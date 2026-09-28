@@ -28,6 +28,16 @@ const dialog = () => screen.queryByRole('dialog', { name: 'Command palette' })
 describe('CommandPalette', () => {
   beforeEach(() => nav.push.mockReset())
 
+  it('announces "No matches" as a status, outside the listbox', async () => {
+    const user = userEvent.setup()
+    setup()
+    await user.click(screen.getByText('Jump to…'))
+    await user.keyboard('zzz')
+    const listbox = screen.getByRole('listbox')
+    expect(Array.from(listbox.children).every((c) => c.getAttribute('role') === 'option')).toBe(true)
+    expect(screen.getByRole('status')).toHaveTextContent('No matches')
+  })
+
   it('Ctrl+K opens and Ctrl+K again closes', async () => {
     const user = userEvent.setup()
     setup()
