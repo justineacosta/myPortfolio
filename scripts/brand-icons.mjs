@@ -13,7 +13,7 @@ const BRANDS = {
   langchain: '5FB39B', huggingface: 'FFD21E', googlegemini: '8E75B2', zapier: 'FF4F00', make: '6D00CC',
   stripe: '635BFF', expo: 'A3AAB2', graphql: 'E10098', anthropic: 'D97757', hubspot: 'FF7A59',
   airtable: '18BFFF', notion: 'A3AAB2', postman: 'FF6C37', googlechrome: '4285F4', express: 'A3AAB2',
-  github: 'A3AAB2', hackerrank: '00EA64',
+  github: 'A3AAB2', googlesheets: '34A853', hackerrank: '00EA64',
 }
 
 const src = path.join('node_modules', 'simple-icons', 'icons')
