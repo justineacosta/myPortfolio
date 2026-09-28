@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import ProjectViews from '@/components/projects/ProjectViews'
 import { projects } from '@/data/projects'
+import { applyPerfTier } from '@/lib/perf'
 import { installMatchMedia, setMediaMatch } from '@/test/matchMedia'
 
 vi.mock('@/components/projects/SiteDrum', () => ({
@@ -22,6 +23,9 @@ vi.mock('@/components/projects/SiteDrum', () => ({
 }))
 
 const TOUCH = { '(pointer: coarse) and (hover: none)': true }
+const setDrumThrows = (v: boolean) => ((globalThis as { drumThrows?: boolean }).drumThrows = v)
+/** The Kraft carousel: what a failed drum, and the closed view's pre-rendered HTML, show. */
+const carousel = (view: HTMLElement) => view.querySelector<HTMLElement>('[data-carousel]')
 const sites = projects.sitesView.sites
 const answer = (status: number) => vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status })))
 
@@ -31,16 +35,21 @@ function openSites() {
   return screen.getByRole('dialog', { name: 'Funnels and sites' })
 }
 
-describe('Funnels and sites: the grid and the preview', () => {
+describe('Funnels and sites: the carousel and the preview', () => {
+  // The drum can't run here, so the Kraft carousel stands in.
   beforeEach(() => {
-    installMatchMedia(TOUCH)
+    setDrumThrows(true)
     answer(200)
   })
-  afterEach(() => vi.unstubAllGlobals())
+  afterEach(() => {
+    setDrumThrows(false)
+    vi.unstubAllGlobals()
+  })
 
-  it('lists every sample site as a button, in order', () => {
+  it('lists every sample site as a button, in order', async () => {
     const view = openSites()
-    const list = within(view).getByRole('list', { name: 'Sample sites' })
+    await within(view).findByRole('button', { name: 'Open Apex Build Co.' })
+    const list = within(carousel(view)!).getByRole('list', { name: 'Sample sites' })
     expect(within(list).getAllByRole('button').map((b) => b.getAttribute('aria-label'))).toEqual(sites.map((s) => `Open ${s.name}`))
   })
 
@@ -96,38 +105,52 @@ describe('Funnels and sites: the drum', () => {
   beforeEach(() => answer(200))
   afterEach(() => vi.unstubAllGlobals())
 
-  it('spins up the drum where WebGL is allowed, and a pick opens the preview', async () => {
+  it('spins up the drum, and a pick opens the preview', async () => {
     const view = openSites()
     fireEvent.click(await within(view).findByText('drum pick'))
     expect(screen.getByRole('dialog', { name: 'Apex Build Co. preview' })).toHaveAttribute('open')
-    expect(within(view).queryByRole('list', { name: 'Sample sites' })).toBeNull()
+    expect(carousel(view)).toBeNull()
   })
 
-  it('falls back to the grid when WebGL fails', async () => {
+  it('shows the drum on touch screens too', async () => {
+    installMatchMedia(TOUCH)
     const view = openSites()
-    fireEvent.click(await within(view).findByText('drum fail'))
-    expect(within(view).getByRole('list', { name: 'Sample sites' })).toBeInTheDocument()
-    expect(within(view).queryByTestId('drum')).toBeNull()
+    expect(await within(view).findByTestId('drum')).toBeInTheDocument()
   })
 
-  it('falls back to the grid when the drum fails to load or throws', async () => {
-    ;(globalThis as { drumThrows?: boolean }).drumThrows = true
-    try {
-      const view = openSites()
-      expect(await within(view).findByRole('list', { name: 'Sample sites' })).toBeInTheDocument()
-      fireEvent.click(within(view).getByRole('button', { name: 'Open Apex Build Co.' }))
-      expect(screen.getByRole('dialog', { name: 'Apex Build Co. preview' })).toHaveAttribute('open')
-    } finally {
-      ;(globalThis as { drumThrows?: boolean }).drumThrows = false
-    }
-  })
-
-  it('swaps the drum for the grid the moment the OS turns on reduced motion', async () => {
+  it('shows the drum with reduced motion on, and keeps it when the OS turns it on mid-visit', async () => {
+    installMatchMedia({ '(prefers-reduced-motion: reduce)': true })
     const view = openSites()
     await within(view).findByTestId('drum')
+    act(() => setMediaMatch('(prefers-reduced-motion: reduce)', false))
     act(() => setMediaMatch('(prefers-reduced-motion: reduce)', true))
+    expect(within(view).getByTestId('drum')).toBeInTheDocument()
+  })
+
+  it('shows the drum at the low perf tier too', async () => {
+    act(() => applyPerfTier('low'))
+    const view = openSites()
+    expect(await within(view).findByTestId('drum')).toBeInTheDocument()
+  })
+
+  it('falls back to the Kraft carousel when WebGL fails', async () => {
+    const view = openSites()
+    fireEvent.click(await within(view).findByText('drum fail'))
+    expect(carousel(view)).toBeInTheDocument()
     expect(within(view).queryByTestId('drum')).toBeNull()
-    expect(within(view).getByRole('list', { name: 'Sample sites' })).toBeInTheDocument()
+  })
+
+  it('falls back to the Kraft carousel when the drum fails to load or throws, and a page there opens the preview', async () => {
+    setDrumThrows(true)
+    try {
+      const view = openSites()
+      await within(view).findByRole('button', { name: 'Open Apex Build Co.' })
+      expect(carousel(view)).toBeInTheDocument()
+      fireEvent.click(within(carousel(view)!).getByRole('button', { name: 'Open Apex Build Co.' }))
+      expect(screen.getByRole('dialog', { name: 'Apex Build Co. preview' })).toHaveAttribute('open')
+    } finally {
+      setDrumThrows(false)
+    }
   })
 
   it('pauses the drum while a preview covers it, and resumes when it closes', async () => {
@@ -139,18 +162,12 @@ describe('Funnels and sites: the drum', () => {
     expect(within(view).getByTestId('drum')).toHaveAttribute('data-paused', 'false')
   })
 
-  it('never loads the drum with reduced motion', () => {
-    installMatchMedia({ '(prefers-reduced-motion: reduce)': true })
-    const view = openSites()
-    expect(within(view).queryByTestId('drum')).toBeNull()
-    expect(within(view).getByRole('list', { name: 'Sample sites' })).toBeInTheDocument()
-  })
-
-  it('keeps the grid in the page while the view is closed', () => {
+  it("keeps the carousel's sites in the page while the view is closed, and never a grid", () => {
     window.history.replaceState(null, '', '/projects')
     render(<ProjectViews />)
     // A closed <dialog> has no role to query by, so find it by its label.
     const view = document.querySelector('dialog[aria-label="Funnels and sites"]') as HTMLElement
-    expect(view.querySelector('ul[aria-label="Sample sites"]')).toBeInTheDocument()
+    expect(carousel(view)?.querySelectorAll('button')).toHaveLength(sites.length)
+    expect(view.querySelector('[data-site-grid]')).toBeNull()
   })
 })

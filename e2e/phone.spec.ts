@@ -109,15 +109,17 @@ test('phone: at 320px every Projects card fits its frame and nothing scrolls sid
   expect(new Set(rights).size, `card right edges: ${rights.join(', ')}`).toBe(1)
 })
 
-test('phone: the sites are a grid, and a tap previews the page', async ({ page }) => {
+test('phone: a tap on the 3D drum previews the page under it', async ({ page }) => {
   await page.goto('/projects#sites')
   await hydrated(page)
   const view = page.getByRole('dialog', { name: 'Funnels and sites' })
-  await expect(view.locator('canvas')).toHaveCount(0)
-  await view.getByRole('button', { name: 'Open Apex Build Co.' }).tap()
-  const preview = page.getByRole('dialog', { name: 'Apex Build Co. preview' })
+  const canvas = view.locator('canvas')
+  await expect(canvas).toBeVisible()
+  await page.waitForTimeout(800) // let the thumbnails land on the cards
+  const box = (await canvas.boundingBox())!
+  await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height * 0.45)
+  const preview = page.getByRole('dialog', { name: / preview$/ })
   await expect(preview).toBeVisible()
-  await expect(page.frameLocator('iframe[title="Apex Build Co."]').getByRole('heading', { level: 1, name: 'Apex Build Co.' })).toBeVisible()
   await preview.getByRole('button', { name: 'Close preview' }).tap()
   await expect(preview).toBeHidden()
   await expect(view).toBeVisible()
@@ -158,4 +160,12 @@ test('phone: the largest text never scrolls sideways', async ({ page }) => {
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
     expect(overflow, r).toBeLessThanOrEqual(0)
   }
+})
+
+test('phone: the sites view spins the 3D drum, not a grid', async ({ page }) => {
+  await page.goto('/projects#sites')
+  await hydrated(page)
+  const view = page.getByRole('dialog', { name: 'Funnels and sites' })
+  await expect(view.locator('canvas')).toBeVisible()
+  await expect(view.locator('[data-carousel]')).toHaveCount(0)
 })
