@@ -1,0 +1,91 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { NavigationProvider } from '@/components/shell/NavigationProvider'
+import { PaletteProvider, usePalette } from '@/components/shell/CommandPalette'
+
+const nav = vi.hoisted(() => ({ push: vi.fn() }))
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: nav.push }),
+  usePathname: () => '/',
+}))
+
+function Opener() {
+  const { openPalette } = usePalette()
+  return <button onClick={openPalette}>Jump to…</button>
+}
+
+const setup = () =>
+  render(
+    <NavigationProvider>
+      <PaletteProvider>
+        <Opener />
+      </PaletteProvider>
+    </NavigationProvider>,
+  )
+const dialog = () => screen.queryByRole('dialog', { name: 'Command palette' })
+
+describe('CommandPalette', () => {
+  beforeEach(() => nav.push.mockReset())
+
+  it('Ctrl+K opens and Ctrl+K again closes', async () => {
+    const user = userEvent.setup()
+    setup()
+    await user.keyboard('{Control>}k{/Control}')
+    expect(dialog()).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: 'Jump to a section' })).toHaveFocus()
+    await user.keyboard('{Control>}k{/Control}')
+    expect(dialog()).toBeNull()
+  })
+
+  it('Meta+K opens too', async () => {
+    const user = userEvent.setup()
+    setup()
+    await user.keyboard('{Meta>}k{/Meta}')
+    expect(dialog()).toBeInTheDocument()
+  })
+
+  it('Enter jumps to the first hit', async () => {
+    const user = userEvent.setup()
+    setup()
+    await user.click(screen.getByText('Jump to…'))
+    await user.keyboard('serv{Enter}')
+    await waitFor(() => expect(nav.push).toHaveBeenCalledWith('/services', { scroll: false }))
+    expect(dialog()).toBeNull()
+  })
+
+  it('ArrowDown moves the selection', async () => {
+    const user = userEvent.setup()
+    setup()
+    await user.click(screen.getByText('Jump to…'))
+    await user.keyboard('{ArrowDown}{Enter}')
+    await waitFor(() => expect(nav.push).toHaveBeenCalledWith('/projects', { scroll: false }))
+  })
+
+  it('Enter with no matches does nothing and keeps the palette open', async () => {
+    const user = userEvent.setup()
+    setup()
+    await user.click(screen.getByText('Jump to…'))
+    await user.keyboard('zzz{Enter}')
+    expect(dialog()).toBeInTheDocument()
+    expect(screen.getByText('No matches')).toBeInTheDocument()
+    expect(nav.push).not.toHaveBeenCalled()
+  })
+
+  it('Escape closes and returns focus to the opener', async () => {
+    const user = userEvent.setup()
+    setup()
+    await user.click(screen.getByText('Jump to…'))
+    await user.keyboard('{Escape}')
+    expect(dialog()).toBeNull()
+    await waitFor(() => expect(screen.getByText('Jump to…')).toHaveFocus())
+  })
+
+  it('traps Tab inside the dialog', async () => {
+    const user = userEvent.setup()
+    setup()
+    await user.click(screen.getByText('Jump to…'))
+    for (let i = 0; i < 12; i++) await user.tab()
+    expect(dialog()!.contains(document.activeElement)).toBe(true)
+  })
+})

@@ -105,3 +105,6 @@ html[data-theme-sweep]::view-transition-new(root){animation:theme-sweep 1200ms c
   from{clip-path:circle(0px at var(--sweep-x,50%) var(--sweep-y,50%))}
   to{clip-path:circle(var(--sweep-r,150vmax) at var(--sweep-x,50%) var(--sweep-y,50%))}
 }
+
+/* ---- Kraft palette card shadow (Kraft Portfolio.dc.html:345) ---- */
+:root{--palette-shadow:0 40px 90px -30px rgba(0,0,0,.9)}

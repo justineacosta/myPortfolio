@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react'
+import { PaletteProvider } from '@/components/shell/CommandPalette'
 import { NavigationProvider } from '@/components/shell/NavigationProvider'
 import PanelContent from '@/components/shell/PanelContent'
+import ShellTopBar from '@/components/shell/ShellTopBar'
 import Sidebar from '@/components/shell/Sidebar'
-import TopBar from '@/components/shell/TopBar'
 import { PANEL_ID } from '@/lib/scroller'
 
 /**
@@ -13,7 +14,7 @@ import { PANEL_ID } from '@/lib/scroller'
 export default function SiteLayout({ children }: { children: ReactNode }) {
   return (
     <NavigationProvider>
-      {/* Task 6: wrap everything below in <PaletteProvider> */}
+      <PaletteProvider>
       <a href={`#${PANEL_ID}`} className="skip-link">
         Skip to main content
       </a>
@@ -28,12 +29,13 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
           className="min-w-0 flex-1 px-4 pt-16 pb-[120px] outline-none shell:overflow-x-hidden shell:overflow-y-auto shell:px-(--deskpad) shell:pt-0 shell:pb-[72px]"
         >
           <div>
-            <TopBar />
+            <ShellTopBar />
             <PanelContent>{children}</PanelContent>
           </div>
         </main>
       </div>
       {/* Task 7: phone */}
+      </PaletteProvider>
     </NavigationProvider>
   )
 }
