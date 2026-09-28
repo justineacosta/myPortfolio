@@ -21,6 +21,7 @@
   --animate-screen-in: kScreenA .54s cubic-bezier(.22,.7,.2,1) both;
   --animate-pulse-dot: kPulse 2.6s ease-in-out infinite;
   --animate-rise: kRise .22s ease both;
+  --animate-marquee: kMarquee var(--marq,132s) linear infinite;
 }
 
 @theme inline {
@@ -121,3 +122,19 @@ html[data-a11y-motion=true] [data-reveal]{opacity:1 !important;transform:none !i
 :root[data-perf=mid] *::before,:root[data-perf=low] *::before,
 :root[data-perf=mid] *::after,:root[data-perf=low] *::after{backdrop-filter:none !important;-webkit-backdrop-filter:none !important}
 :root[data-perf=low] [data-contour]{display:none}
+
+/* ---- Home (KraftScreens.dc.html:47-200) ---- */
+:root{--arc-shadow:0 18px 42px -24px rgba(0,0,0,.8)}
+.bento{background:radial-gradient(120% 110% at 74% -12%,rgba(var(--amb),.55),rgba(var(--amb),0) 56%),linear-gradient(180deg,var(--s1),var(--bg))}
+.edge-fade{mask-image:linear-gradient(90deg,transparent,#000 var(--fade,7%),#000 calc(100% - var(--fade,7%)),transparent)}
+@keyframes kMarquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+[data-marquee]:hover .animate-marquee{animation-play-state:paused}
+/* Unlayered, so it beats the layered animate-marquee shorthand regardless of utility order. */
+.marquee-reverse{animation-direction:reverse}
+
+/* Kraft's project arc (KraftScreens.dc.html:84-90, 1061-1078): a compact fan
+   at rest, wider when the card is hovered or focused, and the hovered shot
+   lifts out. Per-card geometry arrives as --x --y --r --z. */
+.arc-card{position:absolute;left:50%;bottom:26%;width:40%;margin-left:-20%;aspect-ratio:16/10;border-radius:13px;overflow:hidden;background:var(--s0);border:1px solid var(--b2);box-shadow:var(--arc-shadow);transform-origin:50% 50%;will-change:transform;z-index:var(--z);transform:translate(calc(var(--x) * 1%),calc(var(--y) * 1%)) rotate(calc(var(--r) * 1deg));transition:transform .55s cubic-bezier(.2,.7,.2,1),box-shadow .4s ease,border-color .4s ease}
+.arc:hover .arc-card,a:focus-visible .arc-card{transform:translate(calc(var(--x) * 1.9%),calc(var(--y) * 1.5%)) rotate(calc(var(--r) * 1.85deg))}
+.arc .arc-card:hover{z-index:40;border-color:var(--washB);box-shadow:0 30px 64px -24px var(--glow);transform:translate(calc(var(--x) * 1.9%),calc(var(--y) * 1.5%)) rotate(calc(var(--r) * .555deg)) translateY(-14px) scale(1.05)}
