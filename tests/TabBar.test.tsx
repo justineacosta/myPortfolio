@@ -21,4 +21,13 @@ describe('TabBar', () => {
     expect(screen.getByRole('link', { name: 'Services' })).toHaveAttribute('aria-current', 'page')
     expect(screen.getByRole('link', { name: 'Home' })).not.toHaveAttribute('aria-current')
   })
+
+  it('rises back in after the intro', () => {
+    render(
+      <NavigationProvider>
+        <TabBar />
+      </NavigationProvider>,
+    )
+    expect(screen.getByRole('navigation', { name: 'Sections' })).toHaveAttribute('data-intro-hold', 'bar')
+  })
 })

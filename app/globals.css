@@ -160,3 +160,48 @@ html[data-a11y-motion=true] [data-reveal]{opacity:1 !important;transform:none !i
 .medal:hover .medal-disc{box-shadow:var(--medal-shadow),0 0 0 6px var(--wash)}
 .medal-pill{position:absolute;top:calc(100% + 12px);left:50%;display:flex;align-items:center;gap:6px;width:max-content;white-space:nowrap;padding:6px 11px;border-radius:999px;background:var(--s1);border:1px solid var(--washB);font-size:11px;font-weight:600;line-height:1.35;color:var(--ink);opacity:0;pointer-events:none;z-index:30;box-shadow:var(--pill-shadow);transform:translateX(-50%) translateY(-6px) rotate(var(--pill-tilt));transition:opacity .25s,transform .3s cubic-bezier(.2,.8,.2,1)}
 .medal:hover .medal-pill{opacity:1;transform:translateX(-50%) translateY(0) rotate(0deg)}
+
+/* ---- Intro (kape IntroOverlay + boot.css, Kraft tokens; lib/intro.ts) ----
+   lib/boot.ts sets data-intro and data-intro-head before first paint on a
+   full load of "/". Held pieces are hidden with no transition; lib/intro.ts
+   deals them back in with one-shot animations. The overlay paints no
+   backdrop, so the contour shader drifts behind the whole sequence. */
+html[data-intro] [data-intro-hold],
+html[data-intro] [data-intro-rail] > *{opacity:0}
+html[data-intro-head] [data-intro-target]{opacity:0}
+.intro{display:none;position:fixed;inset:0;z-index:90;pointer-events:none}
+html[data-intro-head] .intro{display:block}
+.intro-skip{visibility:hidden}
+html[data-intro-live] .intro-skip{visibility:visible}
+
+/* The flying copy must be typographically identical to the Home <h1>
+   (letter-spacing, line-height, weight); the font size is copied at run time. */
+.intro-title,.intro-canvas{position:fixed;top:0;left:0;transform-origin:0 0;opacity:0;will-change:transform}
+.intro-title{font-weight:700;letter-spacing:-.035em;line-height:1.02;color:var(--ink)}
+.intro-line{display:flex;flex-wrap:wrap}
+.intro-line--accent{color:var(--accent)}
+/* Flex, not inline-block: a masked inline-block moves its baseline to its
+   bottom margin edge and drops the line. 132% clears the padded mask box. */
+.intro-word{display:block;overflow:hidden;padding:.2em 0 .08em;margin:-.2em 0 -.08em;white-space:pre}
+.intro-word-in{display:block;transform:translateY(132%);will-change:transform}
+
+.intro-cables{position:absolute;top:0;left:0;overflow:visible}
+.intro-cable{fill:none;stroke:var(--b2);stroke-width:2;stroke-linecap:round;opacity:0}
+.intro-cable--live{stroke:var(--accent);opacity:1;filter:drop-shadow(0 0 4px var(--glow))}
+.intro-node{position:absolute;width:40px;opacity:0}
+.intro-node-card{position:relative;display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:var(--s1);border:1.5px solid var(--b1);color:var(--ink3);transition:border-color .26s,background-color .26s,color .26s}
+.intro-node--trigger .intro-node-card{border-radius:20px 12px 12px 20px}
+.intro-node.is-done .intro-node-card{border-color:var(--accent);background:var(--wash);color:var(--accent)}
+.intro-port{position:absolute;top:50%;width:7px;height:7px;border-radius:50%;background:var(--s1);border:1.5px solid var(--b2);transform:translateY(-50%)}
+.intro-port--in{left:-5px}
+.intro-port--out{right:-5px}
+.intro-node--trigger .intro-port--in,.intro-node--last .intro-port--out{display:none}
+.intro-node.is-done .intro-port{border-color:var(--accent)}
+.intro-check{position:absolute;top:-6px;right:-6px;display:grid;place-items:center;width:15px;height:15px;border-radius:50%;background:var(--accent);color:var(--onAccent);box-shadow:0 0 0 2px var(--bg);opacity:0;transform:scale(.3)}
+.intro-label{position:absolute;top:46px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:8.5px;font-weight:600;letter-spacing:-.01em;color:var(--ink3);transition:color .4s}
+.intro-node.is-done .intro-label{color:var(--ink)}
+.intro-dot{position:absolute;top:0;left:0;width:8px;height:8px;margin:-4px 0 0 -4px;will-change:transform}
+.intro-dot-core{display:block;width:100%;height:100%;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px var(--wash),0 0 12px 2px var(--glow);opacity:0}
+.intro-status{position:absolute;left:0;top:82px;display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:7.5px;letter-spacing:.1em;color:var(--accent);opacity:0}
+.intro-status-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--glow);animation:kPulse 1.6s ease-in-out infinite}
+.intro-status.is-done .intro-status-dot{animation:none}
