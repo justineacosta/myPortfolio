@@ -15,6 +15,12 @@ export async function hydrated(page: Page, selector = '#main-content') {
   )
 }
 
+/**
+ * For tests that must catch the intro while it plays: goto's default waits for
+ * the load event, which on a busy machine can land after the whole ~3.7s run.
+ */
+export const INTRO_LOAD = { waitUntil: 'domcontentloaded' } as const
+
 /** Resolves once the intro has handed the page back (at once when there was no intro). */
 export async function settleIntro(page: Page) {
   await page.waitForFunction(() => !document.documentElement.hasAttribute('data-intro-head'), null, { timeout: 12_000 })

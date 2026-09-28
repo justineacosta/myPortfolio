@@ -15,12 +15,14 @@ import {
 } from 'react'
 import { prefersReducedMotion } from '@/lib/motion'
 import { currentHash, pushHash, splitHref } from '@/lib/hash'
-import { scrollToSection, scrollToTop } from '@/lib/scroller'
+import { getScrollY, scrollToSection, scrollToTop, scrollToY } from '@/lib/scroller'
+import { committed, watchScroll } from '@/lib/scrollMemory'
 
 /**
  * Kraft's screen change (Kraft Portfolio.dc.html:676-694): the outgoing page
  * dims for SWAP_MS, the route commits, the scroll resets while nothing is
- * visible, and the incoming page rises in (app/(site)/template.tsx).
+ * visible (or, after Back/Forward, returns to where that entry was:
+ * lib/scrollMemory.ts), and the incoming page rises in (app/(site)/template.tsx).
  *
  * `swapping` is derived, not stored: it is true only while a pending
  * navigation was started FROM the current pathname. Any route change (ours,
@@ -88,6 +90,9 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
     [pathname, router],
   )
 
+  // Back/Forward positions (lib/scrollMemory.ts). Declared first, so it hears the popstate before any route commits.
+  useEffect(() => watchScroll(getScrollY), [])
+
   // The new page is committed: drop any fade still waiting to navigate (the
   // visitor went elsewhere, e.g. Back mid-fade), and reset scroll while the
   // page is still transparent. Our own earlier push landing late is not
@@ -96,6 +101,12 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
     if (pathname !== shown.current && pathname !== pushed.current) window.clearTimeout(timer.current)
     shown.current = pathname
     pushed.current = null
+    // Back or Forward: where that entry was. Anything else: the top, or a ⌘K section.
+    const restore = committed(pathname)
+    if (restore !== null) {
+      scrollToY(restore)
+      return
+    }
     scrollToTop({ smooth: false })
     // A ⌘K section on another page lands on the section, not the top.
     scrollToSection(currentHash(), { smooth: false })

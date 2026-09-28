@@ -39,6 +39,24 @@ export function scrollToTop({ smooth }: { smooth: boolean }) {
   window.scrollTo({ top: 0, behavior: 'instant' })
 }
 
+/** How far the page is scrolled, in whichever element scrolls (the panel on desktop, the window below). */
+export function getScrollY(): number {
+  return Math.max(getPanel()?.scrollTop ?? 0, window.scrollY)
+}
+
+/** Jumps, with no animation, to `y` in whichever element scrolls. The browser clamps a `y` past the end. */
+export function scrollToY(y: number) {
+  if (lenis) lenis.scrollTo(y, { immediate: true, force: true })
+  const panel = getPanel()
+  if (panel) {
+    const prev = panel.style.scrollBehavior
+    panel.style.scrollBehavior = 'auto'
+    panel.scrollTop = y
+    panel.style.scrollBehavior = prev
+  }
+  window.scrollTo({ top: y, behavior: 'instant' })
+}
+
 /**
  * Brings the page section `id` into view in whichever element scrolls.
  * Returns false when there is no such section. Sub-views are dialogs and
