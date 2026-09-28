@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import AccessMenu from '@/components/shell/AccessMenu'
 import LegalLinks from '@/components/shell/LegalLinks'
 import ThemeButton from '@/components/shell/ThemeButton'
+import { shellCopy } from '@/data/nav'
 import { profile } from '@/data/profile'
 
 /**
@@ -15,7 +16,7 @@ export default function PlainShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-dvh flex-col">
       <a href="#plain-main" className="skip-link">
-        Skip to main content
+        {shellCopy.skipLink}
       </a>
       <header className="mx-auto flex w-full max-w-[880px] items-center gap-2.5 px-4 py-5">
         <Link href="/" className="flex items-center gap-2.5 text-ink">

@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { CaretRightIcon, CheckCircleIcon, CrownIcon, MagnifyingGlassIcon, MapPinLineIcon, PlusIcon, SparkleIcon, StarIcon } from '@phosphor-icons/react/ssr'
-import { MOCK, type ShowcaseTab } from '@/data/showcase'
+import { MOCK, showcase, type ShowcaseTab } from '@/data/showcase'
 
 /** Stagger order for the rise-in (globals.css .mock-rise). */
 const rise = (i: number) => ({ '--i': i }) as CSSProperties
@@ -10,7 +10,7 @@ const PILL = 'rounded-full border px-[.7em] py-[.35em] text-[.7em] font-bold whi
 const FILTER = `${PILL} border-b1 bg-s1 text-ink3`
 const FILTER_ON = `${PILL} border-accent bg-accent text-on-accent`
 const TONES = ['bg-wash text-accent', 'bg-chip text-ink2', 'bg-s3 text-ink'] as const
-const STATE = { Applied: 'bg-wash text-accent', Saved: 'bg-chip text-ink3', New: 'bg-accent text-on-accent' } as const
+const STATE = { applied: 'bg-wash text-accent', saved: 'bg-chip text-ink3', new: 'bg-accent text-on-accent' } as const
 
 /**
  * The Flagship's product mock (kape Flagship.tsx), in Kraft's tokens. Every
@@ -219,7 +219,7 @@ function ListingsScreen() {
               <span className="truncate text-[.78em] font-extrabold">{r.title}</span>
               <span className="truncate text-[.66em] font-medium text-ink3">{r.meta}</span>
             </span>
-            <span className={`grid place-items-center rounded-full px-[.4em] py-[.22em] text-[.6em] font-extrabold tracking-[.06em] uppercase ${STATE[r.state]}`}>{r.state}</span>
+            <span className={`grid place-items-center rounded-full px-[.4em] py-[.22em] text-[.6em] font-extrabold tracking-[.06em] uppercase ${STATE[r.state]}`}>{showcase.mockStates[r.state]}</span>
             <CaretRightIcon weight="bold" size=".85em" className="text-ink4" />
           </div>
         ))}

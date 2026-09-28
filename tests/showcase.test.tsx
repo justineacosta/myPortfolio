@@ -4,6 +4,7 @@ import ShowcasePage from '@/app/(site)/showcase/page'
 import Feedback from '@/components/showcase/Feedback'
 import Flagship from '@/components/showcase/Flagship'
 import Cta from '@/components/showcase/Cta'
+import Mock from '@/components/showcase/Mock'
 import { FEEDBACK, showcase, TABS } from '@/data/showcase'
 import { DEFAULT_PREFS, savePrefs } from '@/lib/a11y'
 import { installMatchMedia } from '@/test/matchMedia'
@@ -111,5 +112,12 @@ describe('Flagship CTA', () => {
     const link = screen.getByRole('link', { name: 'Open product' })
     expect(link).toHaveAttribute('href', 'https://example.com')
     expect(link).toHaveAttribute('target', '_blank')
+  })
+})
+
+describe('product mock', () => {
+  it('labels its status pills from data/', () => {
+    render(<Mock tab={TABS.find((t) => t.id === 'listings')!} />)
+    expect(screen.getAllByText(showcase.mockStates.applied).length).toBeGreaterThan(0)
   })
 })

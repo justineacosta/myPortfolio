@@ -19,12 +19,14 @@ export type Quote = { name: string; context: string; date: string; rating: numbe
 type NavRow = { id: MockNav; label: string; icon: Icon; sub?: boolean; pro?: boolean }
 type Task = { title: string; tag: string; mine?: boolean }
 type Tile = { name: string; note: string; icon: Icon; pro?: boolean }
-type Row = { source: string; tone: 0 | 1 | 2; title: string; meta: string; state: 'Applied' | 'Saved' | 'New' }
+type Row = { source: string; tone: 0 | 1 | 2; title: string; meta: string; state: 'applied' | 'saved' | 'new' }
 type Result = { name: string; place: string; rating: string; reviews: string; score: number; tag: string }
 
 export const showcase = {
   title: ['Your flagship product,', 'and the people using it.'] as const,
   lede: 'PLACEHOLDER - one line on what this product is and why a visitor should look at it.',
+  /** The listing rows' status pills in the product mock. */
+  mockStates: { applied: 'Applied', saved: 'Saved', new: 'New' },
   flagship: {
     eyebrow: 'FLAGSHIP BUILD',
     name: 'PLACEHOLDER - product name',
@@ -83,11 +85,11 @@ const TILES: Tile[] = [
   { name: 'Feature ten', note: 'Short description', icon: MagicWandIcon },
 ]
 const ROWS: Row[] = [
-  { source: 'Src A', tone: 0, title: 'PLACEHOLDER listing one', meta: 'Detail · posted 2h ago', state: 'Applied' },
-  { source: 'Src B', tone: 1, title: 'PLACEHOLDER listing two', meta: 'Detail · posted 5h ago', state: 'Saved' },
-  { source: 'Src C', tone: 2, title: 'PLACEHOLDER listing three', meta: 'Detail · posted 6h ago', state: 'New' },
-  { source: 'Src A', tone: 0, title: 'PLACEHOLDER listing four', meta: 'Detail · posted 9h ago', state: 'Saved' },
-  { source: 'Src B', tone: 1, title: 'PLACEHOLDER listing five', meta: 'Detail · posted 1d ago', state: 'New' },
+  { source: 'Src A', tone: 0, title: 'PLACEHOLDER listing one', meta: 'Detail · posted 2h ago', state: 'applied' },
+  { source: 'Src B', tone: 1, title: 'PLACEHOLDER listing two', meta: 'Detail · posted 5h ago', state: 'saved' },
+  { source: 'Src C', tone: 2, title: 'PLACEHOLDER listing three', meta: 'Detail · posted 6h ago', state: 'new' },
+  { source: 'Src A', tone: 0, title: 'PLACEHOLDER listing four', meta: 'Detail · posted 9h ago', state: 'saved' },
+  { source: 'Src B', tone: 1, title: 'PLACEHOLDER listing five', meta: 'Detail · posted 1d ago', state: 'new' },
 ]
 const RESULTS: Result[] = [
   { name: 'PLACEHOLDER result one', place: 'Location', rating: '4.8', reviews: '212', score: 91, tag: 'Tag' },

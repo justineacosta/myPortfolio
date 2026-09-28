@@ -9,6 +9,7 @@ import PhoneControls from '@/components/shell/PhoneControls'
 import TabBar from '@/components/shell/TabBar'
 import Sidebar from '@/components/shell/Sidebar'
 import SmoothScroll from '@/components/shell/SmoothScroll'
+import { shellCopy } from '@/data/nav'
 import { PANEL_ID } from '@/lib/scroller'
 
 /**
@@ -21,7 +22,7 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
     <NavigationProvider>
       <PaletteProvider>
       <a href={`#${PANEL_ID}`} className="skip-link">
-        Skip to main content
+        {shellCopy.skipLink}
       </a>
       <IntroOverlay />
       <BackgroundGate />
