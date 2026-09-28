@@ -93,12 +93,12 @@ export default function ContactForm({ endpoint, open }: Props) {
       {/* Honeypot: hidden from people and assistive tech; a bot that fills every field trips it. */}
       <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden className="absolute -left-[9999px] size-px opacity-0" />
       <div className="flex flex-wrap gap-3.5">
-        <div className="flex min-w-[150px] flex-[1_1_180px] flex-col gap-[7px]">
+        <div className="flex min-w-[min(150px,100%)] flex-[1_1_180px] flex-col gap-[7px]">
           <label htmlFor="contact-firstName" className={LABEL}>{f.firstName.label}</label>
           <input id="contact-firstName" name="firstName" type="text" autoComplete="given-name" maxLength={MAX_NAME} placeholder={f.firstName.placeholder} className={INPUT} {...described('firstName')} />
           {error('firstName')}
         </div>
-        <div className="flex min-w-[150px] flex-[1_1_180px] flex-col gap-[7px]">
+        <div className="flex min-w-[min(150px,100%)] flex-[1_1_180px] flex-col gap-[7px]">
           <label htmlFor="contact-lastName" className={LABEL}>{f.lastName.label}</label>
           <input id="contact-lastName" name="lastName" type="text" autoComplete="family-name" maxLength={MAX_NAME} placeholder={f.lastName.placeholder} className={INPUT} {...described('lastName')} />
           {error('lastName')}

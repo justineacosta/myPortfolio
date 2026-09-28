@@ -38,7 +38,7 @@ export default function SitesView({ open, onClose }: { open: boolean; onClose: (
         {drum ? (
           <DrumBoundary onFail={() => setFailed(true)}>
             <Suspense fallback={<div className="min-h-0 flex-1" />}>
-              <SiteDrum sites={s.sites} onOpen={setSite} onFail={() => setFailed(true)} />
+              <SiteDrum sites={s.sites} onOpen={setSite} onFail={() => setFailed(true)} paused={site !== null} />
             </Suspense>
           </DrumBoundary>
         ) : (

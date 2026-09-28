@@ -22,7 +22,7 @@ export default function Testimonials() {
   const length = isPlaceholder(c.video.duration) ? t.noLength : c.video.duration
   return (
     <Frame lit={{ x: '78%', alpha: 0.55, stop: '56%' }} className="flex flex-wrap gap-[clamp(11px,1.3cqw,18px)] p-[clamp(11px,1.3cqw,18px)]">
-      <div className="flex min-w-[250px] flex-[1_1_320px] flex-col gap-3">
+      <div className="flex min-w-[min(250px,100%)] flex-[1_1_320px] flex-col gap-3">
         <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[20px] border border-b1 bg-s0">
           {hasVideo ? (
             <video
@@ -73,7 +73,7 @@ export default function Testimonials() {
         </div>
       </div>
 
-      <div className="flex min-w-[260px] flex-[2_1_420px] flex-col gap-[clamp(11px,1.3cqw,16px)]">
+      <div className="flex min-w-[min(260px,100%)] flex-[2_1_420px] flex-col gap-[clamp(11px,1.3cqw,16px)]">
         <div className={`${CARD} flex flex-col gap-3.5 p-[clamp(16px,1.8cqw,24px)]`}>
           <span className="font-mono text-[10px] tracking-[.16em] text-accent">{t.featured}</span>
           <p className="text-[clamp(15px,1.8cqw,21px)] leading-[1.45] tracking-[-.015em]">{c.quote}</p>

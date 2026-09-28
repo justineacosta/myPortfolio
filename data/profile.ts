@@ -8,6 +8,8 @@ import { DiscordLogoIcon, GithubLogoIcon, LinkedinLogoIcon, XLogoIcon } from '@p
 export const profile = {
   name: 'Justine Acosta',
   brand: 'KRAFT',
+  /** The studio name as written in prose, titles and structured data. */
+  studio: 'Kraft',
   handleLines: ['@Kraft · FULL STACK DEV', 'AI AUTOMATION & WORKFLOWS'] as [string, string],
   phoneHandle: '@KRAFT',
   verifiedLabel: 'Certified',

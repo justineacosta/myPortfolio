@@ -3,6 +3,8 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import ShowcasePage from '@/app/(site)/showcase/page'
 import Feedback from '@/components/showcase/Feedback'
 import Flagship from '@/components/showcase/Flagship'
+import Cta from '@/components/showcase/Cta'
+import Mock from '@/components/showcase/Mock'
 import { FEEDBACK, showcase, TABS } from '@/data/showcase'
 import { DEFAULT_PREFS, savePrefs } from '@/lib/a11y'
 import { installMatchMedia } from '@/test/matchMedia'
@@ -96,5 +98,26 @@ describe('Feedback', () => {
     expect(reel).toHaveAttribute('data-paused')
     fireEvent.click(screen.getByRole('button', { name: showcase.feedback.playLabel }))
     expect(reel).not.toHaveAttribute('data-paused')
+  })
+})
+
+describe('Flagship CTA', () => {
+  it('is not a link while its URL is a placeholder, and says so to screen readers', () => {
+    render(<Cta label="Open product" href="PLACEHOLDER - product URL" soon="Link coming soon" />)
+    expect(screen.queryByRole('link')).toBeNull()
+    expect(screen.getByText(/Link coming soon/)).toBeInTheDocument()
+  })
+  it('opens the real product in a new tab', () => {
+    render(<Cta label="Open product" href="https://example.com" soon="Link coming soon" />)
+    const link = screen.getByRole('link', { name: 'Open product' })
+    expect(link).toHaveAttribute('href', 'https://example.com')
+    expect(link).toHaveAttribute('target', '_blank')
+  })
+})
+
+describe('product mock', () => {
+  it('labels its status pills from data/', () => {
+    render(<Mock tab={TABS.find((t) => t.id === 'listings')!} />)
+    expect(screen.getAllByText(showcase.mockStates.applied).length).toBeGreaterThan(0)
   })
 })

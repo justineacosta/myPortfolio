@@ -16,7 +16,18 @@ describe('placePanel', () => {
     expect(placePanel(button(900, 50), panel, view).left).toBe(684)
     expect(placePanel(button(2, 50), panel, view).left).toBe(16)
   })
-  it('stays on screen when there is room neither above nor below', () => {
-    expect(placePanel(button(100, 300), panel, { width: 1000, height: 500 }).top).toBe(16)
+  it('when it fits neither way, takes the side with more room below and scrolls inside', () => {
+    expect(placePanel(button(100, 300), { width: 300, height: 600 }, view)).toEqual({ top: 348, left: 100, maxHeight: 436 })
+  })
+  it('when it fits neither way, takes the side with more room above and scrolls inside', () => {
+    expect(placePanel(button(100, 500), { width: 300, height: 600 }, view)).toEqual({ top: 16, left: 100, maxHeight: 474 })
+  })
+  it('never covers its button', () => {
+    for (const top of [100, 300, 420, 500, 700]) {
+      const b = button(100, top)
+      const p = placePanel(b, { width: 300, height: 600 }, view)
+      const bottom = p.top + (p.maxHeight ?? 600)
+      expect(bottom <= b.top || p.top >= b.bottom, `button at ${top}`).toBe(true)
+    }
   })
 })

@@ -2,14 +2,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import ProjectViews from '@/components/projects/ProjectViews'
 import { projects } from '@/data/projects'
-import { installMatchMedia } from '@/test/matchMedia'
+import { installMatchMedia, setMediaMatch } from '@/test/matchMedia'
 
 vi.mock('@/components/projects/SiteDrum', () => ({
-  default: ({ sites: list, onOpen, onFail }: { sites: typeof sites; onOpen: (s: (typeof sites)[number]) => void; onFail: () => void }) => {
+  default: ({ sites: list, onOpen, onFail, paused }: { sites: typeof sites; onOpen: (s: (typeof sites)[number]) => void; onFail: () => void; paused?: boolean }) => {
     // Stands in for a drum chunk that fails to load, or a drum that throws.
     if ((globalThis as { drumThrows?: boolean }).drumThrows) throw new Error('drum chunk failed')
     return (
-    <div data-testid="drum">
+    <div data-testid="drum" data-paused={String(!!paused)}>
       <button type="button" onClick={() => onOpen(list[0])}>
         drum pick
       </button>
@@ -120,6 +120,23 @@ describe('Funnels and sites: the drum', () => {
     } finally {
       ;(globalThis as { drumThrows?: boolean }).drumThrows = false
     }
+  })
+
+  it('swaps the drum for the grid the moment the OS turns on reduced motion', async () => {
+    const view = openSites()
+    await within(view).findByTestId('drum')
+    act(() => setMediaMatch('(prefers-reduced-motion: reduce)', true))
+    expect(within(view).queryByTestId('drum')).toBeNull()
+    expect(within(view).getByRole('list', { name: 'Sample sites' })).toBeInTheDocument()
+  })
+
+  it('pauses the drum while a preview covers it, and resumes when it closes', async () => {
+    const view = openSites()
+    fireEvent.click(await within(view).findByText('drum pick'))
+    expect(within(view).getByTestId('drum')).toHaveAttribute('data-paused', 'true')
+    const preview = screen.getByRole('dialog', { name: 'Apex Build Co. preview' })
+    fireEvent.click(within(preview).getByRole('button', { name: projects.sitesView.preview.close }))
+    expect(within(view).getByTestId('drum')).toHaveAttribute('data-paused', 'false')
   })
 
   it('never loads the drum with reduced motion', () => {

@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({ subsets: ['latin'], weight: ['400', '500'], varia
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: SITE_NAME, template: '%s · Kraft' },
+  title: { default: SITE_NAME, template: `%s · ${profile.studio}` },
   description: home.lede,
-  applicationName: 'Kraft',
+  applicationName: profile.studio,
   authors: [{ name: profile.name }],
   openGraph: { ...OG_BASE, title: SITE_NAME, description: home.lede },
   twitter: { card: 'summary_large_image' },

@@ -22,7 +22,7 @@ const LIFT =
  */
 export default function HomeCard({ title, icon: Icon, meta, href, className = '', headClassName = '', children }: Props) {
   const head = (
-    <div className={`flex items-center gap-[11px] ${headClassName}`}>
+    <div className={`flex flex-wrap items-center gap-[11px] ${headClassName}`}>
       <span aria-hidden className="grid size-[34px] shrink-0 place-items-center rounded-[10px] border border-wash-b bg-wash">
         <Icon size={18} className="text-accent" />
       </span>

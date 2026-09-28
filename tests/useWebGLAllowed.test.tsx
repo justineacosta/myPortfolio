@@ -3,7 +3,7 @@ import { act, renderHook } from '@testing-library/react'
 import { useWebGLAllowed } from '@/hooks/useWebGLAllowed'
 import { DEFAULT_PREFS, savePrefs } from '@/lib/a11y'
 import { applyPerfTier } from '@/lib/perf'
-import { installMatchMedia } from '@/test/matchMedia'
+import { installMatchMedia, setMediaMatch } from '@/test/matchMedia'
 
 describe('useWebGLAllowed', () => {
   it('allows WebGL on a fine pointer, with motion, at a healthy tier', () => {
@@ -23,5 +23,14 @@ describe('useWebGLAllowed', () => {
     expect(result.current).toBe(true)
     act(() => applyPerfTier('low'))
     expect(result.current).toBe(false)
+  })
+
+  it('says no the moment the OS turns on reduced motion, and yes when it goes off', () => {
+    const { result } = renderHook(() => useWebGLAllowed())
+    expect(result.current).toBe(true)
+    act(() => setMediaMatch('(prefers-reduced-motion: reduce)', true))
+    expect(result.current).toBe(false)
+    act(() => setMediaMatch('(prefers-reduced-motion: reduce)', false))
+    expect(result.current).toBe(true)
   })
 })

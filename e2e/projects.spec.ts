@@ -47,7 +47,16 @@ test('the page behind an open view does not scroll', async ({ page }) => {
   const panel = page.locator('#main-content')
   await page.getByRole('link', { name: /^AI agents and RAG chatbots/ }).click()
   await expect(page.getByRole('dialog', { name: 'AI agents and RAG chatbots' })).toBeVisible()
-  const before = await panel.evaluate((el) => el.scrollTop)
+  // Playwright scrolled the card into view to click it; let that smooth scroll finish first.
+  const y = () => panel.evaluate((el) => el.scrollTop)
+  await expect
+    .poll(async () => {
+      const a = await y()
+      await page.waitForTimeout(150)
+      return (await y()) - a
+    })
+    .toBe(0)
+  const before = await y()
   await page.mouse.move(720, 450)
   for (let i = 0; i < 6; i++) await page.mouse.wheel(0, 600)
   await page.waitForTimeout(400)
@@ -131,4 +140,42 @@ test('other pages never load the Projects write-ups up front', async ({ request 
   expect(srcs.length).toBeGreaterThan(0)
   const bodies = await Promise.all(srcs.map(async (src) => (await request.get(src)).text()))
   expect(bodies.filter((b) => b.includes('Name the outcome')).length).toBe(0)
+})
+
+test('a write-up window keeps its margin', async ({ page }) => {
+  await page.goto('/projects#build-plan')
+  await hydrated(page)
+  const view = page.getByRole('dialog', { name: 'The build plan' })
+  await expect(view).toBeVisible()
+  const pad = await view.evaluate((el) => parseFloat(getComputedStyle(el).paddingTop))
+  expect(pad).toBeGreaterThan(0)
+})
+
+const sidebarNav = (page: import('@playwright/test').Page) =>
+  page.getByRole('complementary', { name: 'Profile and site navigation' }).getByRole('navigation', { name: 'Sections' })
+
+test('Back from another page into Projects shows Projects, not the other page', async ({ page }) => {
+  await page.goto('/projects')
+  await hydrated(page)
+  await page.getByRole('link', { name: /^The build plan/ }).click()
+  const view = page.getByRole('dialog', { name: 'The build plan' })
+  await expect(view).toBeVisible()
+  await view.getByRole('button', { name: 'Close' }).click()
+  await expect(view).toBeHidden()
+  await sidebarNav(page).getByRole('link', { name: /^About/ }).click()
+  await expect(page).toHaveURL(/\/about$/)
+  await page.goBack()
+  await expect(page).toHaveURL(/\/projects$/)
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Real builds you can open.')
+})
+
+test('after closing a view, a router refresh never brings its hash back', async ({ page }) => {
+  await page.goto('/projects#build-plan')
+  await hydrated(page)
+  const view = page.getByRole('dialog', { name: 'The build plan' })
+  await view.getByRole('button', { name: 'Close' }).click()
+  await page.evaluate(() => (window as unknown as { next: { router: { refresh(): void } } }).next.router.refresh())
+  await page.waitForLoadState('networkidle')
+  await expect(page).toHaveURL(/\/projects$/)
+  await expect(view).toBeHidden()
 })

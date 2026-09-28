@@ -36,3 +36,19 @@ test('larger text grows the page and the sidebar', async ({ page }) => {
   await expect(page.locator('#main-content > div')).toHaveCSS('zoom', '1.25')
   await expect(page.locator('aside[data-a11y-scale] > *').first()).toHaveCSS('zoom', '1.25')
 })
+
+test('at the largest text on a short window, the panel never covers its button', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 560 })
+  await page.goto('/about')
+  await hydrated(page)
+  await sidebarMenu(page).click()
+  await page.getByRole('dialog', { name: 'Accessibility' }).getByRole('button', { name: 'A++, Largest text' }).click()
+  await page.keyboard.press('Escape')
+  await sidebarMenu(page).click()
+  const panel = page.getByRole('dialog', { name: 'Accessibility' })
+  await expect(panel).toBeVisible()
+  const b = (await sidebarMenu(page).boundingBox())!
+  const p = (await panel.boundingBox())!
+  const overlaps = p.x < b.x + b.width && b.x < p.x + p.width && p.y < b.y + b.height && b.y < p.y + p.height
+  expect(overlaps).toBe(false)
+})

@@ -1,10 +1,9 @@
 import { ImageResponse } from 'next/og'
 import { home } from '@/data/home'
 import { profile } from '@/data/profile'
+import { shareFonts } from './share-font'
+import { SHARE_SIZE } from './share-meta'
 import { readTokens } from './tokens'
-
-export const SHARE_SIZE = { width: 1200, height: 630 }
-export const SHARE_ALT = `${profile.name} · Kraft: ${home.headline.join(' ')}`
 
 /** The share image (spec §13): Home's headline on Kraft's dark palette, lit by the ambient green like the page frames. */
 export function shareImage() {
@@ -19,6 +18,7 @@ export function shareImage() {
           flexDirection: 'column',
           justifyContent: 'space-between',
           padding: 72,
+          fontFamily: 'Geist',
           color: t.ink,
           backgroundColor: t.bg,
           backgroundImage: `radial-gradient(900px 520px at 78% -10%, rgba(${t.amb},.55), rgba(${t.amb},0) 60%)`,
@@ -32,6 +32,6 @@ export function shareImage() {
         <div style={{ display: 'flex', fontSize: 26, color: t.ink2, maxWidth: 900 }}>{home.lede}</div>
       </div>
     ),
-    SHARE_SIZE,
+    { ...SHARE_SIZE, fonts: shareFonts() },
   )
 }

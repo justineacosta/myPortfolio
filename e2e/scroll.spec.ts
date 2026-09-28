@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { settleIntro } from './helpers'
+import { hydrated, settleIntro } from './helpers'
 
 test('Lenis drives the panel on desktop and the wheel scrolls it', async ({ page }) => {
   await page.goto('/')
@@ -41,4 +41,26 @@ test.describe('reduced motion', () => {
 test('a reveal becomes visible once in view', async ({ page }) => {
   await page.goto('/showcase')
   await expect(page.locator('[data-reveal]').first()).toHaveClass(/is-revealed/)
+})
+
+test('after moving from one page to a longer one, the wheel reaches the very bottom', async ({ page }) => {
+  await page.goto('/testimonials')
+  await hydrated(page)
+  await page
+    .getByRole('complementary', { name: 'Profile and site navigation' })
+    .getByRole('navigation', { name: 'Sections' })
+    .getByRole('link', { name: /^Projects/ })
+    .click()
+  await expect(page).toHaveURL(/\/projects$/)
+  const panel = page.locator('#main-content')
+  await page.mouse.move(900, 450)
+  await expect
+    .poll(
+      async () => {
+        await page.mouse.wheel(0, 2000)
+        return panel.evaluate((el) => el.scrollHeight - el.clientHeight - el.scrollTop)
+      },
+      { timeout: 10_000 },
+    )
+    .toBeLessThan(2)
 })

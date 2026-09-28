@@ -12,8 +12,10 @@ import {
   easeInOutCubic,
   holdIntro,
   INTRO,
+  INTRO_MAX_MS,
   introRequested,
   nodeCentres,
+  registerIntroSkip,
   releaseHead,
   releasePage,
   restPose,
@@ -110,6 +112,9 @@ export default function IntroOverlay() {
       done()
     }
     skipRef.current = skip
+    registerIntroSkip(skip)
+    // Whatever goes wrong inside the run, the page comes back.
+    timers.push(window.setTimeout(skip, INTRO_MAX_MS))
     window.addEventListener('keydown', onKey)
     window.addEventListener('resize', onResize)
 
@@ -228,27 +233,32 @@ export default function IntroOverlay() {
         if (card) play(card, [{ transform: 'scale(1)' }, { transform: 'scale(1.08)' }, { transform: 'scale(1)' }], { duration: 420, easing: EASE.out })
       }
       succeed(0)
-      await new Promise<void>((resolve) => {
+      await new Promise<void>((resolve, reject) => {
         const start = performance.now()
+        // A frame that throws rejects the run, and run().catch(skip) hands the page back at once.
         const step = (now: number) => {
-          if (cancelled) return resolve()
-          const raw = Math.min(1, (now - start) / RUN)
-          const p = easeInOutCubic(raw)
-          const x = x0 + p * (x1 - x0)
-          dot.style.transform = `translate3d(${x}px, ${INTRO.nodeY}px, 0)`
-          for (const c of cables) {
-            const f = Math.min(1, Math.max(0, (x - c.from) / (c.to - c.from)))
-            c.live.style.strokeDashoffset = `${c.len * (1 - f)}`
-          }
-          for (let i = 1; i < nodes.length - 1; i++) if (!succeeded[i] && p >= nodeAt[i]) succeed(i)
-          for (const g of gates) {
-            if (!g.done && p >= g.at) {
-              g.done = true
-              play(g.el, [{ transform: 'translateY(132%)' }, { transform: 'translateY(0)' }], { duration: 760, easing: EASE.out })
+          try {
+            if (cancelled) return resolve()
+            const raw = Math.min(1, (now - start) / RUN)
+            const p = easeInOutCubic(raw)
+            const x = x0 + p * (x1 - x0)
+            dot.style.transform = `translate3d(${x}px, ${INTRO.nodeY}px, 0)`
+            for (const c of cables) {
+              const f = Math.min(1, Math.max(0, (x - c.from) / (c.to - c.from)))
+              c.live.style.strokeDashoffset = `${c.len * (1 - f)}`
             }
+            for (let i = 1; i < nodes.length - 1; i++) if (!succeeded[i] && p >= nodeAt[i]) succeed(i)
+            for (const g of gates) {
+              if (!g.done && p >= g.at) {
+                g.done = true
+                play(g.el, [{ transform: 'translateY(132%)' }, { transform: 'translateY(0)' }], { duration: 760, easing: EASE.out })
+              }
+            }
+            if (raw < 1) raf = requestAnimationFrame(step)
+            else resolve()
+          } catch (err) {
+            reject(err)
           }
-          if (raw < 1) raf = requestAnimationFrame(step)
-          else resolve()
         }
         raf = requestAnimationFrame(step)
       })
@@ -296,6 +306,7 @@ export default function IntroOverlay() {
       window.removeEventListener('keydown', onKey)
       window.removeEventListener('resize', onResize)
       skipRef.current = () => {}
+      registerIntroSkip(null)
       // Never leave the page hidden. `pending` stays as it was, so a StrictMode remount replays.
       releasePage(false)
       releaseHead()

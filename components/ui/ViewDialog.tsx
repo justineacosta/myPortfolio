@@ -18,6 +18,19 @@ function unlockIfLast() {
 const isBackdrop = (target: EventTarget | null, dialog: HTMLElement) =>
   target === dialog || (target instanceof HTMLElement && target.dataset.backdrop !== undefined)
 
+const FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+
+/**
+ * Nothing to return focus to (a ⌘K pick made with nothing focused). The view
+ * still open underneath gets it, if there is one; the page behind it is inert.
+ * Otherwise the page itself does.
+ */
+function focusFallback() {
+  const under = Array.from(document.querySelectorAll<HTMLDialogElement>('dialog.view[open]')).pop()
+  const target = under ? (under.querySelector<HTMLElement>(FOCUSABLE) ?? under) : document.getElementById(PANEL_ID)
+  target?.focus({ preventScroll: true })
+}
+
 /**
  * Kraft's full-screen overlays (Kraft Projects Board.dc.html:132-313) on a
  * native modal <dialog>:
@@ -66,9 +79,8 @@ export default function ViewDialog({ open, onClose, label, className = '', child
         unlockIfLast()
         const back = returnTo.current
         returnTo.current = null
-        // Nothing to go back to (a ⌘K pick made with nothing focused): the page itself.
         if (back && back.isConnected && back !== document.body) back.focus()
-        else document.getElementById(PANEL_ID)?.focus({ preventScroll: true })
+        else focusFallback()
         if (wanted.current) onClose()
       }}
       onPointerDown={(e) => {

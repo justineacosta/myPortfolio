@@ -13,15 +13,16 @@ test('Ctrl+K, type, Enter navigates', async ({ page }) => {
   await expect(dialog).toBeHidden()
 })
 
-test('Jump to button opens it; Escape closes and returns focus', async ({ page }) => {
-  await page.goto('/')
+test('Ctrl+K from a focused link; Escape closes and returns focus to it', async ({ page }) => {
+  await page.goto('/about')
   await hydrated(page)
-  const jump = page.getByRole('button', { name: /Jump to/ })
-  await jump.click()
+  const link = page.getByRole('complementary', { name: 'Profile and site navigation' }).getByRole('link', { name: /^Home/ })
+  await link.focus()
+  await page.keyboard.press('Control+k')
   await expect(page.getByRole('dialog', { name: 'Command palette' })).toBeVisible()
   await page.keyboard.press('Escape')
   await expect(page.getByRole('dialog', { name: 'Command palette' })).toBeHidden()
-  await expect(jump).toBeFocused()
+  await expect(link).toBeFocused()
 })
 
 test('clicking the scrim closes it', async ({ page }) => {

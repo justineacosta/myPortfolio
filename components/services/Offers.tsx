@@ -8,7 +8,7 @@ export default function Offers() {
   const o = servicesPage.offers
   const total = String(SERVICES.length).padStart(2, '0')
   return (
-    <section id={o.id} aria-labelledby="offers-title" className="flex scroll-mt-[88px] flex-col gap-[clamp(14px,1.6cqw,20px)]">
+    <section id={o.id} aria-labelledby="offers-title" className="flex scroll-mt-[88px] shell:scroll-mt-6 flex-col gap-[clamp(14px,1.6cqw,20px)]">
       <div className="flex flex-wrap items-baseline gap-3 pt-1.5">
         <h2 id="offers-title" className="text-[clamp(18px,2.2cqw,26px)] font-semibold tracking-[-.025em]">
           {o.title}
@@ -19,7 +19,7 @@ export default function Offers() {
         {SERVICES.map((s) => (
           <article
             key={s.n}
-            className={`${CARD} flex min-w-[245px] flex-[1_1_300px] flex-col gap-3 p-5 transition-[translate,border-color,box-shadow] duration-400 ease-[cubic-bezier(.2,.7,.2,1)] hover:-translate-y-[3px] hover:border-b2 hover:shadow-[0_24px_60px_-30px_var(--washB)]`}
+            className={`${CARD} flex min-w-[min(245px,100%)] flex-[1_1_300px] flex-col gap-3 p-5 transition-[translate,border-color,box-shadow] duration-400 ease-[cubic-bezier(.2,.7,.2,1)] hover:-translate-y-[3px] hover:border-b2 hover:shadow-[0_24px_60px_-30px_var(--washB)]`}
           >
             <div className="flex items-center gap-2.5">
               <div className="flex gap-[5px] rounded-[13px] border border-b1 bg-chip p-[5px]">

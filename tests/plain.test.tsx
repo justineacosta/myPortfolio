@@ -6,6 +6,7 @@ import PrivacyPage from '@/app/(plain)/privacy/page'
 import TermsPage from '@/app/(plain)/terms/page'
 import ThankYouPage, { metadata as thankYouMeta } from '@/app/(plain)/thank-you/page'
 import { legal } from '@/data/legal'
+import { shellCopy } from '@/data/nav'
 
 describe('plain pages', () => {
   it('the shell links home, carries the theme and access buttons, and the legal links', () => {
@@ -19,6 +20,16 @@ describe('plain pages', () => {
     expect(screen.getByRole('button', { name: 'Accessibility options' })).toBeInTheDocument()
     const nav = screen.getByRole('navigation', { name: 'Legal' })
     expect(within(nav).getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual(['/privacy', '/terms'])
+  })
+
+  it('takes its skip link and legal landmark name from data/', () => {
+    render(
+      <PlainLayout>
+        <p>content</p>
+      </PlainLayout>,
+    )
+    expect(screen.getByRole('link', { name: shellCopy.skipLink })).toHaveAttribute('href', '#plain-main')
+    expect(screen.getByRole('navigation', { name: shellCopy.legalNav })).toBeInTheDocument()
   })
 
   it('Privacy and Terms are flagged for owner review, with every section', () => {

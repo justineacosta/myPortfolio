@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { headlineLanding, hydrated, settleIntro } from './helpers'
+import { headlineLanding, hydrated, INTRO_LOAD, settleIntro } from './helpers'
 
 test('phone: tab bar replaces the sidebar', async ({ page }) => {
   await page.goto('/')
@@ -57,7 +57,7 @@ test('phone: Home opens with the profile header instead of floating controls', a
 })
 
 test('phone: the intro lands exactly on the Home h1', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/', INTRO_LOAD)
   await expect(page.getByRole('button', { name: 'Skip intro' })).toBeVisible()
   await settleIntro(page)
   const r = await headlineLanding(page)

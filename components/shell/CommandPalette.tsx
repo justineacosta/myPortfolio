@@ -13,6 +13,7 @@ import {
 } from 'react'
 import { MagnifyingGlassIcon } from '@phosphor-icons/react/ssr'
 import { filterCommands, type Command } from '@/lib/commands'
+import { introLive, skipIntro } from '@/lib/intro'
 import { useShellNav } from './NavigationProvider'
 
 type PaletteCtx = { open: boolean; openPalette: () => void; closePalette: () => void }
@@ -50,6 +51,8 @@ export function PaletteProvider({ children }: { children: ReactNode }) {
         // A sub-view (components/ui/ViewDialog.tsx) owns the screen and makes
         // the rest inert: a palette opened now would sit, unusable, behind it.
         if (document.documentElement.hasAttribute('data-dialog')) return
+        // ⌘K during the Home intro: end it (as Esc would), then open on the real page.
+        if (!open && introLive()) skipIntro()
         if (open) closePalette()
         else openPalette()
       }
@@ -180,28 +183,33 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
             ESC
           </button>
         </div>
-        <div id="palette-results" role="listbox" data-scroll className="max-h-[46vh] overflow-y-auto p-2">
-          {hits.length === 0 && <p className="px-[13px] py-3 text-sm text-ink3">No matches</p>}
-          {hits.map((c, i) => {
-            const Icon = c.icon
-            return (
-              <button
-                key={c.id}
-                id={`palette-${c.id}`}
-                type="button"
-                role="option"
-                aria-selected={i === active}
-                tabIndex={-1}
-                onClick={() => choose(c)}
-                onMouseMove={() => setActive(i)}
-                className={`flex min-h-[46px] w-full cursor-pointer items-center gap-3 rounded-xl border-0 px-[13px] py-3 text-left transition-colors duration-200 ${i === active ? 'bg-hover' : 'bg-transparent'}`}
-              >
-                <Icon size={16} aria-hidden className="text-accent" />
-                <span className="text-sm font-medium text-ink">{c.label}</span>
-                <span className="ml-auto font-mono text-[9.5px] text-ink3">{c.hint}</span>
-              </button>
-            )
-          })}
+        <div data-scroll className="max-h-[46vh] overflow-y-auto p-2">
+          <div id="palette-results" role="listbox" aria-label="Sections">
+            {hits.map((c, i) => {
+              const Icon = c.icon
+              return (
+                <button
+                  key={c.id}
+                  id={`palette-${c.id}`}
+                  type="button"
+                  role="option"
+                  aria-selected={i === active}
+                  tabIndex={-1}
+                  onClick={() => choose(c)}
+                  onMouseMove={() => setActive(i)}
+                  className={`flex min-h-[46px] w-full cursor-pointer items-center gap-3 rounded-xl border-0 px-[13px] py-3 text-left transition-colors duration-200 ${i === active ? 'bg-hover' : 'bg-transparent'}`}
+                >
+                  <Icon size={16} aria-hidden className="text-accent" />
+                  <span className="text-sm font-medium text-ink">{c.label}</span>
+                  <span className="ml-auto font-mono text-[9.5px] text-ink3">{c.hint}</span>
+                </button>
+              )
+            })}
+          </div>
+          {/* Always mounted, so a screen reader announces the text when it appears. */}
+          <p role="status" className={hits.length === 0 ? 'px-[13px] py-3 text-sm text-ink3' : 'sr-only'}>
+            {hits.length === 0 ? 'No matches' : ''}
+          </p>
         </div>
       </div>
     </div>

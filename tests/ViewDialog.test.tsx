@@ -112,6 +112,24 @@ describe('ViewDialog', () => {
     expect(screen.getByRole('main')).toHaveFocus()
   })
 
+  it('with nothing to go back to, a stacked view hands focus to the view under it, not the page behind', () => {
+    const ui = (top: boolean) => (
+      <main id="main-content" tabIndex={-1}>
+        <ViewDialog open onClose={onClose} label="Sites">
+          <button type="button">Under</button>
+        </ViewDialog>
+        <ViewDialog open={top} onClose={onClose} label="Preview">
+          <p>Top</p>
+        </ViewDialog>
+      </main>
+    )
+    const { rerender } = render(ui(false))
+    ;(document.activeElement as HTMLElement | null)?.blur()
+    rerender(ui(true))
+    rerender(ui(false))
+    expect(screen.getByRole('button', { name: 'Under' })).toHaveFocus()
+  })
+
   it('never leaves the page locked when it unmounts while open', () => {
     const { rerender, unmount } = render(ui(false))
     rerender(ui(true))

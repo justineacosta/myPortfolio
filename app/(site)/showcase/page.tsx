@@ -3,9 +3,9 @@ import Flagship from '@/components/showcase/Flagship'
 import Frame from '@/components/ui/Frame'
 import PageHeader from '@/components/ui/PageHeader'
 import { showcase } from '@/data/showcase'
-import { pageMetadata } from '@/lib/seo'
+import { ledeOr, pageMetadata } from '@/lib/seo'
 
-export const metadata = pageMetadata('/showcase', showcase.title.join(' '))
+export const metadata = pageMetadata('/showcase', ledeOr(showcase.lede, showcase.title.join(' ')))
 
 export default function Page() {
   return (

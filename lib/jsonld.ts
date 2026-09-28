@@ -12,7 +12,7 @@ export function personJsonLd(url = SITE_URL) {
     url,
     image: `${url}${profile.portrait.src}`,
     jobTitle: profile.jobTitle,
-    worksFor: { '@type': 'Organization', name: 'Kraft' },
+    worksFor: { '@type': 'Organization', name: profile.studio },
     address: { '@type': 'PostalAddress', addressLocality: profile.address.locality, addressCountry: profile.address.country },
     ...(real(profile.email) ? { email: `mailto:${profile.email}` } : {}),
     sameAs: profile.socials.map((s) => s.href).filter(real),

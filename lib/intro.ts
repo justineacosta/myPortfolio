@@ -31,6 +31,13 @@ export const INTRO = {
   fallGap: 72,
 } as const
 
+/**
+ * The most the whole run may take once the overlay claims it: the font wait
+ * plus the desktop sequence (4.35s), with room to spare. Past this the page is
+ * handed back, whatever went wrong.
+ */
+export const INTRO_MAX_MS = 8000
+
 export const EASE = {
   out: 'cubic-bezier(0.16, 1, 0.3, 1)',
   spring: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
@@ -39,7 +46,7 @@ export const EASE = {
 
 export const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
 
-/** Phones get the same sequence at two-thirds speed: a thumb is waiting. */
+/** Phones run the same sequence in 62% of the desktop time: a thumb is waiting. */
 export const speedFor = (desktop: boolean) => (desktop ? 1 : 0.62)
 
 /** Where the headline waits: scaled up to 86% of the viewport (max 2.6x), centred, lifted a little. */
@@ -89,6 +96,19 @@ export function holdIntro() {
 
 export function claimIntro() {
   root().setAttribute('data-intro-live', '')
+}
+
+let skipper: (() => void) | null = null
+
+/** The running intro's skip, for keys other than its own Esc (⌘K). */
+export function registerIntroSkip(fn: (() => void) | null) {
+  skipper = fn
+}
+
+export const introLive = () => root().hasAttribute('data-intro-live')
+
+export function skipIntro() {
+  skipper?.()
 }
 
 export function releaseHead() {

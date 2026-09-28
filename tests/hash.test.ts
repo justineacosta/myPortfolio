@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { clearHash, currentHash, pushHash, splitHref } from '@/lib/hash'
-import { registerLenis, scrollToSection, SECTION_OFFSET } from '@/lib/scroller'
+import { registerLenis, scrollToSection, scrollToY } from '@/lib/scroller'
 
 describe('splitHref', () => {
   it('splits a path from its hash', () => {
@@ -27,6 +27,14 @@ describe('pushHash / clearHash', () => {
     window.removeEventListener('hashchange', heard)
   })
 
+  it("clears with a fresh state, so Next's patched replaceState updates its own URL too", () => {
+    window.history.replaceState({ __NA: true }, '', '/projects#reel')
+    const spy = vi.spyOn(window.history, 'replaceState')
+    clearHash()
+    expect(spy).toHaveBeenCalledWith(null, '', '/projects')
+    spy.mockRestore()
+  })
+
   it('clears the hash in place, keeping the path and the query', () => {
     pushHash('reel')
     const len = window.history.length
@@ -47,7 +55,7 @@ describe('scrollToSection', () => {
     expect(scrollToSection('', { smooth: true })).toBe(false)
   })
 
-  it('goes through Lenis when Lenis owns the panel, clearing the sticky top bar', () => {
+  it('goes through Lenis when Lenis owns the panel, leaving the air to the section', () => {
     document.body.innerHTML = '<section id="method"></section>'
     const lenis = { scrollTo: vi.fn() }
     registerLenis(lenis)
@@ -55,8 +63,17 @@ describe('scrollToSection', () => {
     expect(lenis.scrollTo).toHaveBeenCalledWith(document.getElementById('method'), {
       immediate: true,
       force: true,
-      offset: -SECTION_OFFSET,
     })
+    registerLenis(null)
+  })
+})
+
+describe('scrollToY', () => {
+  it('re-measures Lenis before jumping, so a restore onto a longer page is not clamped to the old one', () => {
+    const calls: string[] = []
+    registerLenis({ resize: () => calls.push('resize'), scrollTo: (y) => calls.push(`scrollTo ${y}`) })
+    scrollToY(1200)
+    expect(calls).toEqual(['resize', 'scrollTo 1200'])
     registerLenis(null)
   })
 })

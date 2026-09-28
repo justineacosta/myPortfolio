@@ -10,7 +10,7 @@ export default function AgentsView({ open, onClose }: { open: boolean; onClose: 
       {a.groups.map((g) => (
         <WindowSection key={g.name} name={g.name} blurb={g.blurb}>
           {g.cards.map((c) => (
-            <article key={c.title} className="flex min-w-[240px] flex-[0_1_280px] flex-col gap-[9px] rounded-2xl border border-b1 bg-linear-to-b from-s1 to-s2 p-4">
+            <article key={c.title} className="flex min-w-[min(240px,100%)] flex-[0_1_280px] flex-col gap-[9px] rounded-2xl border border-b1 bg-linear-to-b from-s1 to-s2 p-4">
               <div className="flex items-center gap-2">
                 {c.icons.map((Tool, i) => (
                   <span key={`${c.title}-${i}`} aria-hidden className="grid size-[34px] place-items-center rounded-[10px] border border-b1 bg-chip">

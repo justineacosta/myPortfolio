@@ -8,6 +8,8 @@ export const PANEL_ID = 'main-content'
 
 export type LenisLike = {
   scrollTo(target: number | HTMLElement, opts?: { immediate?: boolean; force?: boolean; offset?: number }): void
+  /** Re-measures the page. Lenis does this itself, but only after a 250ms debounce. */
+  resize?(): void
 }
 
 let lenis: LenisLike | null = null
@@ -39,19 +41,44 @@ export function scrollToTop({ smooth }: { smooth: boolean }) {
   window.scrollTo({ top: 0, behavior: 'instant' })
 }
 
-/** Clears the sticky desktop top bar (components/shell/TopBar.tsx, about 72px) when a section lands. */
-export const SECTION_OFFSET = 88
+/** How far the page is scrolled, in whichever element scrolls (the panel on desktop, the window below). */
+export function getScrollY(): number {
+  return Math.max(getPanel()?.scrollTop ?? 0, window.scrollY)
+}
+
+/**
+ * Jumps, with no animation, to `y` in whichever element scrolls. The browser
+ * clamps a `y` past the end. Lenis is re-measured first: straight after a
+ * route change it still holds the previous page's height, and would clamp `y`
+ * to it and then wheel on from the wrong place.
+ */
+export function scrollToY(y: number) {
+  if (lenis) {
+    lenis.resize?.()
+    lenis.scrollTo(y, { immediate: true, force: true })
+  }
+  const panel = getPanel()
+  if (panel) {
+    const prev = panel.style.scrollBehavior
+    panel.style.scrollBehavior = 'auto'
+    panel.scrollTop = y
+    panel.style.scrollBehavior = prev
+  }
+  window.scrollTo({ top: y, behavior: 'instant' })
+}
 
 /**
  * Brings the page section `id` into view in whichever element scrolls.
  * Returns false when there is no such section. Sub-views are dialogs and
- * handle their own hashes (hooks/useHashView.ts).
+ * handle their own hashes (hooks/useHashView.ts). A section's own
+ * scroll-margin (scroll-mt) sets how much air lands above it; Lenis and the
+ * browser both honour it, so there is no second offset here.
  */
 export function scrollToSection(id: string, { smooth }: { smooth: boolean }): boolean {
   const el = id ? document.getElementById(id) : null
   if (!el || el.closest('dialog')) return false
   if (lenis) {
-    lenis.scrollTo(el, smooth ? { offset: -SECTION_OFFSET } : { immediate: true, force: true, offset: -SECTION_OFFSET })
+    lenis.scrollTo(el, smooth ? undefined : { immediate: true, force: true })
     return true
   }
   el.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' })
