@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Automation from '@/components/services/Automation'
 import Method from '@/components/services/Method'
 import Offers from '@/components/services/Offers'
 import PageHeader from '@/components/ui/PageHeader'
@@ -12,6 +13,7 @@ export default function Page() {
       <PageHeader href="/services" title={servicesPage.title} lede={servicesPage.lede} />
       <Method />
       <Offers />
+      <Automation />
     </section>
   )
 }
