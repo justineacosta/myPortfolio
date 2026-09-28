@@ -53,6 +53,7 @@ test('phone: Home opens with the profile header instead of floating controls', a
   await expect(header.getByText('Justine Acosta')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Toggle dark and light mode' })).toHaveCount(1)
   await expect(page.getByRole('button', { name: 'Open command palette' })).toHaveCount(1)
+  await expect(page.getByRole('button', { name: 'Accessibility options' })).toHaveCount(1)
 })
 
 test('phone: the intro lands exactly on the Home h1', async ({ page }) => {
@@ -95,6 +96,33 @@ test('phone: no page scrolls sideways', async ({ page }) => {
   }
 })
 
+test('phone: at 320px every Projects card fits its frame and nothing scrolls sideways', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 700 })
+  for (const r of ['/projects', '/services', '/testimonials', '/about', '/contact']) {
+    await page.goto(r)
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
+    expect(overflow, r).toBeLessThanOrEqual(0)
+  }
+  await page.goto('/projects')
+  const rights = await page.locator('main a[href^="#"]').evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().right)))
+  expect(new Set(rights).size, `card right edges: ${rights.join(', ')}`).toBe(1)
+})
+
+test('phone: the sites are a grid, and a tap previews the page', async ({ page }) => {
+  await page.goto('/projects#sites')
+  await hydrated(page)
+  const view = page.getByRole('dialog', { name: 'Funnels and sites' })
+  await expect(view.locator('canvas')).toHaveCount(0)
+  await view.getByRole('button', { name: 'Open Apex Build Co.' }).tap()
+  const preview = page.getByRole('dialog', { name: 'Apex Build Co. preview' })
+  await expect(preview).toBeVisible()
+  await expect(page.frameLocator('iframe[title="Apex Build Co."]').getByRole('heading', { level: 1, name: 'Apex Build Co.' })).toBeVisible()
+  await preview.getByRole('button', { name: 'Close preview' }).tap()
+  await expect(preview).toBeHidden()
+  await expect(view).toBeVisible()
+})
+
 test('phone: an open view fills the screen and holds the page still', async ({ page }) => {
   await page.goto('/projects')
   await hydrated(page)
@@ -116,4 +144,18 @@ test('phone: an open view fills the screen and holds the page still', async ({ p
   for (let i = 0; i < 4; i++) await page.mouse.wheel(0, 700)
   await page.waitForTimeout(300)
   expect(await page.evaluate(() => window.scrollY)).toBe(y)
+})
+
+test('phone: the largest text never scrolls sideways', async ({ page }) => {
+  await page.goto('/about')
+  await hydrated(page)
+  await page.getByRole('button', { name: 'Accessibility options' }).tap()
+  await page.getByRole('dialog', { name: 'Accessibility' }).getByRole('button', { name: 'A++, Largest text' }).tap()
+  for (const r of ['/', '/projects', '/services', '/about', '/contact']) {
+    await page.goto(r)
+    await settleIntro(page)
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
+    expect(overflow, r).toBeLessThanOrEqual(0)
+  }
 })

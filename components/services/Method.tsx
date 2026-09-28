@@ -4,20 +4,22 @@ import { Fragment, useEffect, useRef, useState, type CSSProperties } from 'react
 import Frame from '@/components/ui/Frame'
 import { CARD, TAG } from '@/components/ui/styles'
 import { METHOD_MS, PROCESS, servicesPage } from '@/data/services'
-import { prefersReducedMotion } from '@/lib/motion'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
 
 /**
  * The Kraft Method (KraftScreens.dc.html:217-241, 989-995, 1112-1125): five
  * gates, one lit at a time, advancing every METHOD_MS while the frame is on
- * screen. With reduced motion the first gate stays lit and still.
+ * screen. With reduced motion (the OS setting or the access menu, followed
+ * live) the first gate stays lit and still.
  */
 export default function Method() {
   const m = servicesPage.method
   const [step, setStep] = useState(0)
+  const still = useReducedMotion()
   const ref = useRef<HTMLElement>(null)
 
   useEffect(() => {
-    if (prefersReducedMotion()) return
+    if (still) return
     let timer: number | undefined
     const start = () => {
       if (timer === undefined) timer = window.setInterval(() => setStep((s) => (s + 1) % PROCESS.length), METHOD_MS)
@@ -37,7 +39,7 @@ export default function Method() {
       io.disconnect()
       stop()
     }
-  }, [])
+  }, [still])
 
   return (
     <section
@@ -63,7 +65,7 @@ export default function Method() {
         {PROCESS.map((st, i) => (
           <div
             key={st.n}
-            data-on={i === step || undefined}
+            data-on={i === (still ? 0 : step) || undefined}
             className="method-step relative flex min-w-[215px] flex-[1_1_230px] flex-col gap-2.5 overflow-hidden rounded-[20px] p-5"
           >
             <span aria-hidden className="method-rail" />

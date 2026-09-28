@@ -1,11 +1,11 @@
-import type { Metadata } from 'next'
 import Automation from '@/components/services/Automation'
 import Method from '@/components/services/Method'
 import Offers from '@/components/services/Offers'
 import PageHeader from '@/components/ui/PageHeader'
 import { servicesPage } from '@/data/services'
+import { pageMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = { title: 'Services' }
+export const metadata = pageMetadata('/services', servicesPage.lede)
 
 export default function Page() {
   return (

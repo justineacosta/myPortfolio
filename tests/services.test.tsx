@@ -3,6 +3,7 @@ import { act, render, screen, within } from '@testing-library/react'
 import Method from '@/components/services/Method'
 import Offers from '@/components/services/Offers'
 import { METHOD_MS, PROCESS } from '@/data/services'
+import { DEFAULT_PREFS, savePrefs } from '@/lib/a11y'
 import { installMatchMedia } from '@/test/matchMedia'
 
 const lit = () => document.querySelector('.method-step[data-on] h3')?.textContent
@@ -27,6 +28,19 @@ describe('Method', () => {
     render(<Method />)
     act(() => vi.advanceTimersByTime(METHOD_MS * 3))
     expect(lit()).toBe('Kickoff')
+  })
+
+  it('stops on the first gate the moment motion is switched off, and carries on after', () => {
+    render(<Method />)
+    act(() => vi.advanceTimersByTime(METHOD_MS))
+    expect(lit()).toBe('Research')
+    act(() => savePrefs({ ...DEFAULT_PREFS, motion: true }))
+    expect(lit()).toBe('Kickoff')
+    act(() => vi.advanceTimersByTime(METHOD_MS * 2))
+    expect(lit()).toBe('Kickoff')
+    act(() => savePrefs(DEFAULT_PREFS))
+    act(() => vi.advanceTimersByTime(METHOD_MS))
+    expect(lit()).toBe('Architect')
   })
 
   it('is the #method section ⌘K lands on', () => {

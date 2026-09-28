@@ -11,6 +11,8 @@ export const profile = {
   handleLines: ['@Kraft · FULL STACK DEV', 'AI AUTOMATION & WORKFLOWS'] as [string, string],
   phoneHandle: '@KRAFT',
   verifiedLabel: 'Certified',
+  jobTitle: 'Full-stack developer and AI automation engineer',
+  address: { locality: 'Manila', country: 'PH' },
   portrait: { src: '/assets/portrait.jpg', alt: 'Portrait of Justine Acosta', position: '57% 36%' },
   email: 'PLACEHOLDER - your contact email (the Kraft design used justine@kraft.dev)',
   timezone: 'Asia/Manila',

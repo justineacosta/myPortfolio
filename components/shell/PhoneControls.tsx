@@ -2,10 +2,11 @@
 
 import { usePathname } from 'next/navigation'
 import { MagnifyingGlassIcon } from '@phosphor-icons/react/ssr'
+import AccessMenu from './AccessMenu'
 import { usePalette } from './CommandPalette'
 import ThemeButton from './ThemeButton'
 
-/** Theme and ⌘K on phones, floating top-right, except on Home, whose profile header carries them (spec §7). */
+/** Theme, accessibility and ⌘K on phones, floating top-right, except on Home, whose profile header carries them (spec §7). */
 export default function PhoneControls() {
   const { openPalette } = usePalette()
   const pathname = usePathname()
@@ -13,6 +14,7 @@ export default function PhoneControls() {
   return (
     <div className="fixed top-[max(12px,env(safe-area-inset-top))] right-3.5 z-30 flex gap-2 shell:hidden">
       <ThemeButton size={40} />
+      <AccessMenu size={40} />
       <button
         type="button"
         onClick={openPalette}

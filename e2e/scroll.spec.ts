@@ -31,14 +31,14 @@ test('Lenis is torn down below 1100px', async ({ page }) => {
 test.describe('reduced motion', () => {
   test.use({ reducedMotion: 'reduce' })
   test('no Lenis and reveals are visible immediately', async ({ page }) => {
-    // /showcase is the last page still built from PagePlaceholder, whose lede reveals.
+    // /showcase opens with a revealed frame (the Flagship).
     await page.goto('/showcase')
     await expect(page.locator('.lenis')).toHaveCount(0)
     await expect(page.locator('[data-reveal]').first()).toHaveCSS('opacity', '1')
   })
 })
 
-test('placeholder reveal becomes visible', async ({ page }) => {
+test('a reveal becomes visible once in view', async ({ page }) => {
   await page.goto('/showcase')
   await expect(page.locator('[data-reveal]').first()).toHaveClass(/is-revealed/)
 })

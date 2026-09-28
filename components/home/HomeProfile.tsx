@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import { MagnifyingGlassIcon, SealCheckIcon } from '@phosphor-icons/react/ssr'
 import { usePalette } from '@/components/shell/CommandPalette'
+import AccessMenu from '@/components/shell/AccessMenu'
 import ManilaClock from '@/components/shell/ManilaClock'
 import ThemeButton from '@/components/shell/ThemeButton'
 import { profile } from '@/data/profile'
@@ -30,6 +31,7 @@ export default function HomeProfile() {
         </span>
       </div>
       <ThemeButton size={40} className="ml-auto" />
+      <AccessMenu size={40} />
       <button
         type="button"
         onClick={openPalette}

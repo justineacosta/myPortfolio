@@ -1,9 +1,10 @@
 import { existsSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import AboutPage from '@/app/(site)/about/page'
 import { about, ROLES } from '@/data/about'
 import { brandIcon } from '@/data/stack'
+import { DEFAULT_PREFS, savePrefs } from '@/lib/a11y'
 
 describe('About', () => {
   it("is Kraft's About: the greeting, the parts nobody demos, and four roles", () => {
@@ -27,6 +28,21 @@ describe('About', () => {
     expect(screen.getByRole('img', { name: about.image.alt })).toBeInTheDocument()
     expect(screen.getByText('Based in Manila, Philippines')).toBeInTheDocument()
     expect(screen.getByText('GMT+8 · US / EU / CA OVERLAP')).toBeInTheDocument()
+  })
+
+  it('swaps the workstation GIF for a still frame when motion is off', () => {
+    render(<AboutPage />)
+    const img = screen.getByRole('img', { name: about.image.alt })
+    expect(img.getAttribute('src')).toContain('about-workstation.gif')
+    expect(document.querySelector('source[media="(prefers-reduced-motion: reduce)"]')?.getAttribute('srcset')).toContain(
+      'about-workstation-still.webp',
+    )
+    act(() => savePrefs({ ...DEFAULT_PREFS, motion: true }))
+    expect(img.getAttribute('src')).toContain('about-workstation-still.webp')
+  })
+
+  it('ships the still frame', () => {
+    expect(existsSync(`public${about.image.still}`)).toBe(true)
   })
 
   it('has a self-hosted logo for every role', () => {

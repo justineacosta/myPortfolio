@@ -70,7 +70,12 @@ export default function Automation() {
               </button>
             </div>
           </div>
-          <div className="overflow-x-auto overflow-y-hidden bg-[radial-gradient(60%_100%_at_50%_0,var(--wash),transparent_70%)] px-[18px] py-5">
+          <div
+            role="region"
+            aria-label={a.canvasLabel}
+            tabIndex={0}
+            className="overflow-x-auto overflow-y-hidden bg-[radial-gradient(60%_100%_at_50%_0,var(--wash),transparent_70%)] px-[18px] py-5"
+          >
             <FlowCanvas key={index} flow={flow} />
           </div>
         </div>

@@ -1,30 +1,51 @@
-import Shot from '@/components/ui/Shot'
+'use client'
+
+import { lazy, Suspense, useState } from 'react'
 import ViewDialog from '@/components/ui/ViewDialog'
-import { projects } from '@/data/projects'
+import { projects, type Site } from '@/data/projects'
+import { useWebGLAllowed } from '@/hooks/useWebGLAllowed'
+import DrumBoundary from './DrumBoundary'
+import SiteGrid from './SiteGrid'
+import SitePreview from './SitePreview'
 import StageBar from './StageBar'
 
+// Three.js stays out of the page's bundle until the drum is first shown (spec §5).
+const SiteDrum = lazy(() => import('./SiteDrum'))
+
 /**
- * Funnels and sites. Phase 4 puts Kraft's spinning drum and the live preview
- * here. Until then the sites sit in a plain grid, the same list the drum
- * keeps for keyboard and screen-reader users (spec §11).
+ * Funnels and sites (Kraft Projects Board.dc.html:267-286). Wherever WebGL
+ * is allowed, the sites cover kape's spinning 3D drum. Everywhere else, and
+ * if WebGL fails, they sit in a grid. Each one opens the live preview
+ * stacked on top.
  */
 export default function SitesView({ open, onClose }: { open: boolean; onClose: () => void }) {
   const s = projects.sitesView
+  const allowed = useWebGLAllowed()
+  const [failed, setFailed] = useState(false)
+  const [site, setSite] = useState<Site | null>(null)
+  // Leaving the view (Close, Esc, Back) closes the preview on it too.
+  const [wasOpen, setWasOpen] = useState(open)
+  if (open !== wasOpen) {
+    setWasOpen(open)
+    if (!open) setSite(null)
+  }
+  // Only while open: the pre-rendered page and a closed view keep the grid.
+  const drum = open && allowed && !failed
   return (
-    <ViewDialog open={open} onClose={onClose} label={s.label} className="view--stage">
-      <StageBar kicker={s.kicker} onClose={onClose} />
-      <div data-backdrop className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-8">
-        <ul data-backdrop className="mx-auto grid max-w-[1100px] grid-cols-[repeat(auto-fill,minmax(170px,1fr))] gap-4">
-          {s.sites.map((site) => (
-            <li key={site.file} className="relative aspect-[3/4] overflow-hidden rounded-[14px] border border-b2 bg-s1 shadow-(--shot-shadow)">
-              <Shot src={site.shot} hint={s.slotHint} alt={site.name} sizes="200px" />
-              <span className="absolute inset-x-0 bottom-0 bg-linear-to-b from-transparent to-veil-deep px-[11px] py-[9px] font-mono text-[10px] tracking-[.1em] text-veil-ink">
-                {site.name}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </ViewDialog>
+    <>
+      <ViewDialog open={open} onClose={onClose} label={s.label} className="view--stage">
+        <StageBar kicker={s.kicker} onClose={onClose} />
+        {drum ? (
+          <DrumBoundary onFail={() => setFailed(true)}>
+            <Suspense fallback={<div className="min-h-0 flex-1" />}>
+              <SiteDrum sites={s.sites} onOpen={setSite} onFail={() => setFailed(true)} />
+            </Suspense>
+          </DrumBoundary>
+        ) : (
+          <SiteGrid sites={s.sites} onOpen={setSite} />
+        )}
+      </ViewDialog>
+      <SitePreview site={site} onClose={() => setSite(null)} />
+    </>
   )
 }

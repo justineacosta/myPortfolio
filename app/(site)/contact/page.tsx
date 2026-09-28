@@ -1,4 +1,3 @@
-import type { Metadata } from 'next'
 import Availability from '@/components/contact/Availability'
 import ContactForm from '@/components/contact/ContactForm'
 import Faqs from '@/components/contact/Faqs'
@@ -6,8 +5,9 @@ import Frame from '@/components/ui/Frame'
 import PageHeader from '@/components/ui/PageHeader'
 import { CARD } from '@/components/ui/styles'
 import { contact } from '@/data/contact'
+import { pageMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = { title: 'FAQs / Contact' }
+export const metadata = pageMetadata('/contact', contact.lede)
 
 export default function Page() {
   const q = contact.faqs

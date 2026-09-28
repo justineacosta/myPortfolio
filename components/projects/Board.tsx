@@ -58,7 +58,7 @@ export default function Board() {
         </div>
 
         <div className={`flex flex-wrap ${GAP}`}>
-          <a href="#reel" data-case={c.reel.cue} className={`${CARD} min-w-[270px] flex-[3_1_420px]`}>
+          <a href="#reel" data-case={c.reel.cue} className={`${CARD} min-w-[min(270px,100%)] flex-[3_1_420px]`}>
             <span aria-hidden className={TILE}>
               <c.reel.icon size={20} className="text-accent" />
             </span>
@@ -144,13 +144,13 @@ export default function Board() {
                   style={{ transform }}
                   className={`absolute left-1/2 aspect-[3/4] h-[84%] origin-bottom overflow-hidden rounded-[11px] border bg-s0 ${i === 2 ? 'bottom-4 border-b2 shadow-(--peek-shadow)' : 'bottom-1 border-b1 shadow-(--tile-shadow)'}`}
                 >
-                  <Shot src={projects.sitesView.sites[i].shot} hint={c.sites.fanHint} />
+                  <Shot src={projects.sitesView.sites[i].thumb} hint={c.sites.fanHint} sizes="120px" />
                 </div>
               ))}
             </div>
           </a>
 
-          <a href="#ai-agents" data-case={c.agents.cue} className={`${CARD} min-w-[270px] flex-[3_1_380px]`}>
+          <a href="#ai-agents" data-case={c.agents.cue} className={`${CARD} min-w-[min(270px,100%)] flex-[3_1_380px]`}>
             <span aria-hidden className={TILE}>
               <c.agents.icon size={20} className="text-accent" />
             </span>

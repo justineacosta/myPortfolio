@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import BackgroundGate from '@/components/shell/BackgroundGate'
 import { PaletteProvider } from '@/components/shell/CommandPalette'
 import IntroOverlay from '@/components/shell/IntroOverlay'
+import LegalLinks from '@/components/shell/LegalLinks'
 import { NavigationProvider } from '@/components/shell/NavigationProvider'
 import PanelContent from '@/components/shell/PanelContent'
 import PhoneControls from '@/components/shell/PhoneControls'
@@ -32,11 +33,13 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
           id={PANEL_ID}
           tabIndex={-1}
           data-scroll
+          data-a11y-scale
           className="min-w-0 flex-1 px-4 pt-16 pb-[120px] outline-none max-shell:has-[[data-home-profile]]:pt-4 shell:overflow-x-hidden shell:overflow-y-auto shell:px-(--deskpad) shell:pt-0 shell:pb-[72px]"
         >
           <div>
             <ShellTopBar />
             <PanelContent>{children}</PanelContent>
+            <LegalLinks className="mt-10 justify-center shell:hidden" />
           </div>
         </main>
       </div>

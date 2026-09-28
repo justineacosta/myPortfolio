@@ -20,18 +20,20 @@ describe('Projects stage views', () => {
     window.history.replaceState(null, '', '/projects#reel')
     render(<ProjectViews />)
     const view = screen.getByRole('dialog', { name: 'Workflow screens' })
-    fireEvent.click(view.querySelector('.reel') as HTMLElement)
+    const stage = view.querySelector('.reel') as HTMLElement
+    fireEvent.pointerDown(stage)
+    fireEvent.click(stage)
     expect(window.location.hash).toBe('')
     expect(view).not.toHaveAttribute('open')
   })
 
-  it('lists the eight sample sites by name', () => {
-    window.history.replaceState(null, '', '/projects#sites')
+  it('pauses and plays from a button, for keyboard and touch', () => {
+    window.history.replaceState(null, '', '/projects#reel')
     render(<ProjectViews />)
-    const view = screen.getByRole('dialog', { name: 'Funnels and sites' })
-    expect(within(view).getAllByRole('listitem')).toHaveLength(8)
-    expect([...view.querySelectorAll('li > span.font-mono')].map((s) => s.textContent)).toEqual([
-      'Apex Build Co.', 'Blade Studio', 'Below Ground', 'Baptiste', 'One Hour Therapy', 'Trusted Mover', 'Payline', 'Solar Field',
-    ])
+    const view = screen.getByRole('dialog', { name: 'Workflow screens' })
+    fireEvent.click(within(view).getByRole('button', { name: 'Pause the reel' }))
+    expect(view.querySelector('.reel-row')).toHaveAttribute('data-paused')
+    fireEvent.click(within(view).getByRole('button', { name: 'Play the reel' }))
+    expect(view.querySelector('.reel-row')).not.toHaveAttribute('data-paused')
   })
 })

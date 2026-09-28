@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import Board from '@/components/projects/Board'
@@ -22,6 +23,15 @@ describe('Projects data', () => {
       '01 - Support | New Ticket', 'Workflows list', '02 - Post-Purchase Delivery', 'Global workflow settings', 'Execution logs',
     ])
     expect(projects.sitesView.sites).toHaveLength(8)
+  })
+
+  it('has a page and a thumbnail on disk for every sample site', () => {
+    for (const s of projects.sitesView.sites) {
+      expect(s.src).toBe(`/samples/${s.file}`)
+      expect(s.thumb).toBe(`/samples/thumbs/${s.file.replace(/\.html$/, '.jpeg')}`)
+      expect(existsSync(`public${s.src}`), s.src).toBe(true)
+      expect(existsSync(`public${s.thumb}`), s.thumb).toBe(true)
+    }
   })
 })
 
@@ -54,7 +64,8 @@ describe('ProjectViews', () => {
   it('pre-renders every view, closed', () => {
     render(<ProjectViews />)
     const dialogs = document.querySelectorAll('dialog')
-    expect(dialogs).toHaveLength(PROJECT_VIEWS.length)
+    // Every sub-view, plus the site preview that stacks on the sites view.
+    expect(dialogs).toHaveLength(PROJECT_VIEWS.length + 1)
     dialogs.forEach((d) => expect(d).not.toHaveAttribute('open'))
     expect(document.body).toHaveTextContent('Name the outcome')
   })

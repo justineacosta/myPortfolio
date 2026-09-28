@@ -22,7 +22,7 @@ export type Doc = { kicker: string; title: string; lede: string; stack: Chip[]; 
 export type AgentCard = { title: string; icon: Icon; live: boolean; icons: Icon[]; desc: string; meta: string; tags: string[] }
 export type AgentGroup = { name: string; blurb: string; cards: AgentCard[] }
 export type Screenshot = { src: string; label: string }
-export type Site = { name: string; file: string; shot: string }
+export type Site = { name: string; file: string; src: string; thumb: string }
 type Writeup = { view: DocView; kicker: string; title: string; desc: string; icon: Icon; cue: string }
 
 const REEL: Screenshot[] = [
@@ -33,6 +33,11 @@ const REEL: Screenshot[] = [
   'Execution logs',
 ].map((label) => ({ label, src: `PLACEHOLDER - GoHighLevel workflow screenshot: ${label} (16:10)` }))
 
+/**
+ * Kraft's sample sites, in its order. Every page is a PLACEHOLDER written by
+ * scripts/make-sites.mjs. Replace a page in public/samples/, then run
+ * `npm run thumbs` to re-shoot its thumbnail.
+ */
 const SITES: Site[] = [
   ['Apex Build Co.', 'sample-auto-repair-performance-tuning.html'],
   ['Blade Studio', 'sample-brand-studio.html'],
@@ -42,7 +47,7 @@ const SITES: Site[] = [
   ['Trusted Mover', 'sample-moving-company.html'],
   ['Payline', 'sample-fintech-funnel.html'],
   ['Solar Field', 'sample-solar-installer.html'],
-].map(([name, file]) => ({ name, file, shot: `PLACEHOLDER - ${name} site screenshot (3:4)` }))
+].map(([name, file]) => ({ name, file, src: `/samples/${file}`, thumb: `/samples/thumbs/${file.replace(/\.html$/, '.jpeg')}` }))
 
 const WRITEUPS: Writeup[] = [
   { view: 'support-desk', kicker: 'GOHIGHLEVEL BLUEPRINT', title: 'Support Ticketing System', desc: 'A full support desk inside GoHighLevel. One pipeline, five stages, four branded emails.', icon: LifebuoyIcon, cue: 'READ THE WRITE-UP' },
@@ -91,10 +96,28 @@ export const projects = {
   writeups: WRITEUPS,
   reel: {
     label: 'Workflow screens', kicker: 'AUTOMATIONS · WORKFLOW REEL', hint: 'HOVER TO PAUSE',
+    pause: 'PAUSE', play: 'PLAY', pauseLabel: 'Pause the reel', playLabel: 'Play the reel',
     /** Kraft's default reel pace (the board's marqueeSeconds prop). */
     seconds: 20,
     slotHint: 'Drop a workflow screenshot · 16:10',
     shots: REEL,
   },
-  sitesView: { label: 'Funnels and sites', kicker: 'FUNNELS AND SITES', slotHint: 'Drop a site screenshot', sites: SITES },
+  sitesView: {
+    label: 'Funnels and sites',
+    kicker: 'FUNNELS AND SITES',
+    hint: 'DRAG TO SPIN · CLICK A PAGE TO OPEN',
+    listLabel: 'Sample sites',
+    open: 'Open',
+    siteKicker: 'SITE',
+    sites: SITES,
+    /** Kraft's site preview (Kraft Projects Board.dc.html:288-311). */
+    preview: {
+      label: 'preview',
+      newTab: 'Open in new tab',
+      close: 'Close preview',
+      upload: 'Upload',
+      uploadTail: 'to public/samples/ and this page opens live.',
+      uploadNote: 'STANDALONE HTML · SAME FOLDER',
+    },
+  },
 }

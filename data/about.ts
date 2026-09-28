@@ -25,6 +25,7 @@ export const about = {
   },
   image: {
     src: '/assets/about-workstation.gif',
+    still: '/assets/about-workstation-still.webp',
     alt: 'Animated pixel-art illustration of a late-night developer workstation',
     width: 1920,
     height: 1080,

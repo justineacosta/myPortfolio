@@ -21,6 +21,7 @@ export const contact = {
     emailFormat: 'That email doesn’t look right.',
     message: 'Tell me what you’re running into.',
     failed: 'That did not go through. Email me directly instead.',
+    direct: 'Or write to',
   },
   submit: 'Send it',
   sending: 'Sending',

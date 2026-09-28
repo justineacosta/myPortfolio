@@ -106,6 +106,16 @@
 @media (prefers-reduced-motion:reduce){*{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important}}
 html[data-a11y-motion=true] *{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important}
 
+/* ---- Access menu effects (spec §6, §11; lib/a11y.ts). Larger text zooms
+   what the sidebar and the panel CONTAIN ([data-a11y-scale] > *), not the
+   fixed-height boxes, so both still scroll when the content outgrows them.
+   Stronger contrast lifts the muted inks and the hairlines in each theme. ---- */
+:root[data-a11y-text=lg] [data-a11y-scale] > *{zoom:1.12}
+:root[data-a11y-text=xl] [data-a11y-scale] > *{zoom:1.25}
+:root[data-a11y-contrast=true]{--ink2:#DCE3DE;--ink3:#B4BEB8;--ink4:#939D97;--b1:rgba(215,255,224,.18);--b2:rgba(215,255,224,.34)}
+:root[data-a11y-contrast=true][data-theme=light]{--ink2:#1E2824;--ink3:#38433E;--ink4:#56615B;--b1:rgba(11,46,30,.24);--b2:rgba(11,46,30,.42)}
+:root[data-a11y-links=true] :is(#main-content,[data-plain-main]) a{text-decoration:underline;text-underline-offset:.18em}
+
 /* ---- Skip link ---- */
 .skip-link{position:fixed;left:12px;top:-64px;z-index:100;padding:10px 14px;border-radius:10px;background:var(--accent);color:var(--onAccent);font-weight:600;transition:top .2s}
 .skip-link:focus{top:12px}
@@ -249,10 +259,11 @@ dialog.view::backdrop{background:rgba(6,10,8,.78)}
    marches left; hovering or focusing it pauses it. With reduced motion it
    stands still and the stage scrolls by hand. */
 .reel-row{animation:kMarquee var(--marq,20s) linear infinite}
-.reel-row:hover,.reel-row:focus-within{animation-play-state:paused}
-@media (prefers-reduced-motion:reduce){.reel{overflow-x:auto}.reel-row{animation:none}}
+.reel-row:hover,.reel-row:focus-within,.reel-row[data-paused]{animation-play-state:paused}
+@media (prefers-reduced-motion:reduce){.reel{overflow-x:auto}.reel-row{animation:none}.reel-pause{display:none}}
 html[data-a11y-motion=true] .reel{overflow-x:auto}
 html[data-a11y-motion=true] .reel-row{animation:none}
+html[data-a11y-motion=true] .reel-pause{display:none}
 
 /* The Kraft Method (KraftScreens.dc.html:223-240, 1112-1125): the lit gate
    gets the accent frame, a popped icon, a brighter letter, and a spark that
@@ -279,3 +290,23 @@ html[data-a11y-motion=true] .reel-row{animation:none}
 .flow-ball{position:absolute;left:0;top:0;width:8px;height:8px;border-radius:50%;background:var(--accent);offset-anchor:50% 50%;offset-rotate:0deg;animation-name:kTravel;animation-timing-function:linear;animation-iteration-count:infinite}
 @media (prefers-reduced-motion:reduce){.flow-ball{display:none}}
 html[data-a11y-motion=true] .flow-ball{display:none}
+
+/* ---- Showcase (kape Flagship.tsx, Kraft tokens) ----
+   The product mock's pieces rise in, in reading order (--i), each time its
+   stage remounts. The active progress bar is the auto-advance clock: its
+   fill runs for --flag-ms while [data-run] is set, and its end opens the
+   next tab (components/showcase/Flagship.tsx). With reduced motion there is
+   no clock; the held tab's bar is simply full. */
+.mock-rise{animation:kRise .42s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0) * 38ms)}
+.flag-bar{position:relative;flex:1 1 0;height:2px;border-radius:2px;background:var(--b1);overflow:hidden}
+.flag-bar[data-on]::after,.flag-bar[data-full]::after{content:'';position:absolute;inset:0;background:var(--accent);transform-origin:left center}
+.flag-bar[data-on]::after{animation:flagFill var(--flag-ms,6s) linear both;animation-play-state:paused}
+.flag-bar[data-on][data-run]::after{animation-play-state:running}
+@keyframes flagFill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+/* The quotes: held under the pointer, on focus and by their button; with
+   reduced motion they stand still and scroll by hand. */
+.feedback:hover .animate-marquee,.feedback:focus-within .animate-marquee,.feedback:focus .animate-marquee,.feedback[data-paused] .animate-marquee{animation-play-state:paused}
+@media (prefers-reduced-motion:reduce){.feedback{overflow-x:auto}.feedback .animate-marquee{animation:none}.feedback-toggle{display:none}}
+html[data-a11y-motion=true] .feedback{overflow-x:auto}
+html[data-a11y-motion=true] .feedback .animate-marquee{animation:none}
+html[data-a11y-motion=true] .feedback-toggle{display:none}

@@ -1,13 +1,14 @@
-import type { Metadata } from 'next'
-import { Location, Workstation } from '@/components/about/Aside'
+import { Location } from '@/components/about/Aside'
+import Workstation from '@/components/about/Workstation'
 import Certified from '@/components/about/Certified'
 import Intro from '@/components/about/Intro'
 import Roles from '@/components/about/Roles'
 import Frame from '@/components/ui/Frame'
 import PageHeader from '@/components/ui/PageHeader'
 import { about } from '@/data/about'
+import { pageMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = { title: 'About' }
+export const metadata = pageMetadata('/about', about.lede)
 
 const COLUMN = 'flex flex-col gap-[clamp(11px,1.3cqw,16px)]'
 
