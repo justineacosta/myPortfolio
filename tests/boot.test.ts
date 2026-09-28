@@ -74,6 +74,12 @@ describe('bootScript intro decision (spec §8)', () => {
     expect(html().hasAttribute('data-intro-head')).toBe(true)
   })
 
+  it('keeps the browser from restoring scroll mid-intro', () => {
+    history.scrollRestoration = 'auto'
+    run()
+    expect(history.scrollRestoration).toBe('manual')
+  })
+
   it('does not hold any other route', () => {
     window.history.replaceState(null, '', '/about')
     run()

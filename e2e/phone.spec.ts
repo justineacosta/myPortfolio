@@ -65,3 +65,23 @@ test('phone: the intro lands exactly on the Home h1', async ({ page }) => {
   expect(r.sameSize).toBe(true)
   await expect(page.getByRole('navigation', { name: 'Sections' })).toHaveCSS('opacity', '1')
 })
+
+test('phone: reloading a scrolled Home still lands the intro at the top', async ({ page }) => {
+  await page.goto('/')
+  await settleIntro(page)
+  await page.evaluate(() => window.scrollTo({ top: 2000, behavior: 'instant' }))
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(1000)
+  // Hold images back so the load event (when the browser restores scroll) lands mid-intro.
+  await page.route(/\.(png|jpe?g|gif|svg)(\?|$)|\/_next\/image/, async (route) => {
+    await new Promise((r) => setTimeout(r, 2500))
+    await route.continue()
+  })
+  await page.reload()
+  await settleIntro(page)
+  await page.waitForLoadState('load')
+  await page.waitForTimeout(300)
+  expect(await page.evaluate(() => window.scrollY)).toBe(0)
+  const top = await page.locator('[data-intro-target]').evaluate((el) => el.getBoundingClientRect().top)
+  expect(top).toBeGreaterThan(0)
+  expect(top).toBeLessThan(844)
+})

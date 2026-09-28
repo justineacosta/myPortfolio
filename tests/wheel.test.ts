@@ -18,6 +18,12 @@ describe('wheelToX (Kraft svcWheel, KraftScreens.dc.html:1080-1092)', () => {
     expect(wheelToX({ dx: 0, dy: -100, left: 0, max: 500 })).toBeNull()
   })
 
+  it('treats a fractional scroll position within 1px of an end as the end', () => {
+    // Firefox and zoomed pages report fractional scrollLeft against an integer max.
+    expect(wheelToX({ dx: 0, dy: 100, left: 862.7, max: 863 })).toBeNull()
+    expect(wheelToX({ dx: 0, dy: -100, left: 0.4, max: 863 })).toBeNull()
+  })
+
   it('leaves sideways gestures to the browser', () => {
     expect(wheelToX({ dx: 120, dy: 20, left: 0, max: 500 })).toBeNull()
   })
