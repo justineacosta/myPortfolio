@@ -95,3 +95,13 @@ html[data-a11y-motion=true] *{animation-duration:.001ms !important;animation-ite
 /* ---- Skip link ---- */
 .skip-link{position:fixed;left:12px;top:-64px;z-index:100;padding:10px 14px;border-radius:10px;background:var(--accent);color:var(--onAccent);font-weight:600;transition:top .2s}
 .skip-link:focus{top:12px}
+
+/* ---- Theme sweep (kape lib/theme.ts): the new palette is a circle that
+   grows from the toggle; default cross-fades are off so the edge stays hard. ---- */
+::view-transition-old(root),
+::view-transition-new(root){animation:none;mix-blend-mode:normal}
+html[data-theme-sweep]::view-transition-new(root){animation:theme-sweep 1200ms cubic-bezier(.55,0,.15,1) both}
+@keyframes theme-sweep{
+  from{clip-path:circle(0px at var(--sweep-x,50%) var(--sweep-y,50%))}
+  to{clip-path:circle(var(--sweep-r,150vmax) at var(--sweep-x,50%) var(--sweep-y,50%))}
+}
