@@ -4,6 +4,19 @@ import ProjectViews from '@/components/projects/ProjectViews'
 import { projects } from '@/data/projects'
 import { installMatchMedia } from '@/test/matchMedia'
 
+vi.mock('@/components/projects/SiteDrum', () => ({
+  default: ({ sites: list, onOpen, onFail }: { sites: typeof sites; onOpen: (s: (typeof sites)[number]) => void; onFail: () => void }) => (
+    <div data-testid="drum">
+      <button type="button" onClick={() => onOpen(list[0])}>
+        drum pick
+      </button>
+      <button type="button" onClick={onFail}>
+        drum fail
+      </button>
+    </div>
+  ),
+}))
+
 const TOUCH = { '(pointer: coarse) and (hover: none)': true }
 const sites = projects.sitesView.sites
 const answer = (status: number) => vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status })))
@@ -68,5 +81,39 @@ describe('Funnels and sites: the grid and the preview', () => {
     expect(view).not.toHaveAttribute('open')
     // A closed <dialog> has no role to query by, so find it by its label.
     expect(document.querySelector('dialog[aria-label="Baptiste preview"]')).not.toHaveAttribute('open')
+  })
+})
+
+describe('Funnels and sites: the drum', () => {
+  beforeEach(() => answer(200))
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('spins up the drum where WebGL is allowed, and a pick opens the preview', async () => {
+    const view = openSites()
+    fireEvent.click(await within(view).findByText('drum pick'))
+    expect(screen.getByRole('dialog', { name: 'Apex Build Co. preview' })).toHaveAttribute('open')
+    expect(within(view).queryByRole('list', { name: 'Sample sites' })).toBeNull()
+  })
+
+  it('falls back to the grid when WebGL fails', async () => {
+    const view = openSites()
+    fireEvent.click(await within(view).findByText('drum fail'))
+    expect(within(view).getByRole('list', { name: 'Sample sites' })).toBeInTheDocument()
+    expect(within(view).queryByTestId('drum')).toBeNull()
+  })
+
+  it('never loads the drum with reduced motion', () => {
+    installMatchMedia({ '(prefers-reduced-motion: reduce)': true })
+    const view = openSites()
+    expect(within(view).queryByTestId('drum')).toBeNull()
+    expect(within(view).getByRole('list', { name: 'Sample sites' })).toBeInTheDocument()
+  })
+
+  it('keeps the grid in the page while the view is closed', () => {
+    window.history.replaceState(null, '', '/projects')
+    render(<ProjectViews />)
+    // A closed <dialog> has no role to query by, so find it by its label.
+    const view = document.querySelector('dialog[aria-label="Funnels and sites"]') as HTMLElement
+    expect(view.querySelector('ul[aria-label="Sample sites"]')).toBeInTheDocument()
   })
 })

@@ -81,8 +81,38 @@ test('the sites view lists every sample site', async ({ page }) => {
   await expect(page.getByRole('dialog', { name: 'Funnels and sites' }).getByRole('listitem')).toHaveCount(8)
 })
 
+test('the sites view spins the 3D drum; its keyboard list opens a page, and Escape closes only the preview', async ({ page }) => {
+  await page.goto('/projects#sites')
+  await hydrated(page)
+  const view = page.getByRole('dialog', { name: 'Funnels and sites' })
+  await expect(view.locator('canvas')).toBeVisible()
+  const list = view.getByRole('list', { name: 'Sample sites' })
+  await expect(list.getByRole('button')).toHaveCount(8)
+  await expect(list).toHaveCSS('opacity', '0')
+  await page.keyboard.press('Tab')
+  const first = list.getByRole('button', { name: 'Open Apex Build Co.' })
+  await expect(first).toBeFocused()
+  await expect(list).toHaveCSS('opacity', '1')
+  await page.keyboard.press('Enter')
+  const preview = page.getByRole('dialog', { name: 'Apex Build Co. preview' })
+  await expect(preview).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(preview).toBeHidden()
+  await expect(view).toBeVisible()
+  await expect(first).toBeFocused()
+})
+
 test.describe('reduced motion', () => {
   test.use({ reducedMotion: 'reduce' })
+
+  test('the sites stay a grid', async ({ page }) => {
+    await page.goto('/projects#sites')
+    await hydrated(page)
+    const view = page.getByRole('dialog', { name: 'Funnels and sites' })
+    await expect(view.getByRole('button', { name: 'Open Apex Build Co.' })).toBeVisible()
+    await expect(view.locator('canvas')).toHaveCount(0)
+  })
+
 
   test('the reel stands still and scrolls by hand', async ({ page }) => {
     await page.goto('/projects#reel')
