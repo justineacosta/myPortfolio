@@ -2,10 +2,10 @@
 
 import { useEffect } from 'react'
 import { A11Y_EVENT } from '@/lib/a11y'
+import { SHELL_MIN_QUERY } from '@/lib/breakpoints'
 import { prefersReducedMotion } from '@/lib/motion'
 import { getPanel, registerLenis } from '@/lib/scroller'
 
-const DESKTOP = '(min-width: 1100px)'
 const TOUCH = '(pointer: coarse) and (hover: none)'
 
 /**
@@ -17,7 +17,7 @@ const TOUCH = '(pointer: coarse) and (hover: none)'
  */
 export function useSmoothScroll() {
   useEffect(() => {
-    const desktop = window.matchMedia(DESKTOP)
+    const desktop = window.matchMedia(SHELL_MIN_QUERY)
     let lenis: import('lenis').default | null = null
     let seq = 0
 
@@ -34,6 +34,9 @@ export function useSmoothScroll() {
       const panel = getPanel()
       const content = panel?.firstElementChild
       if (!panel || !(content instanceof HTMLElement)) return
+      // Belt and braces: Lenis swallows wheel events, so only take over a panel
+      // that really is the scroller in the layout CSS is showing.
+      if (getComputedStyle(panel).overflowY !== 'auto') return
       const { default: Lenis } = await import('lenis')
       if (run !== seq) return
       lenis = new Lenis({

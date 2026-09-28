@@ -81,6 +81,26 @@ describe('CommandPalette', () => {
     await waitFor(() => expect(screen.getByText('Jump to…')).toHaveFocus())
   })
 
+  it('Escape still closes after clicking empty space inside the card', async () => {
+    const user = userEvent.setup()
+    setup()
+    await user.click(screen.getByText('Jump to…'))
+    await user.keyboard('zzz')
+    await user.click(screen.getByText('No matches'))
+    await user.keyboard('{Escape}')
+    expect(dialog()).toBeNull()
+  })
+
+  it('keeps Tab inside the dialog after clicking empty space inside the card', async () => {
+    const user = userEvent.setup()
+    setup()
+    await user.click(screen.getByText('Jump to…'))
+    await user.keyboard('zzz')
+    await user.click(screen.getByText('No matches'))
+    await user.tab()
+    expect(dialog()!.contains(document.activeElement)).toBe(true)
+  })
+
   it('traps Tab inside the dialog', async () => {
     const user = userEvent.setup()
     setup()

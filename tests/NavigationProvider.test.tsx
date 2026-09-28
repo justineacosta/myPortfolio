@@ -70,4 +70,24 @@ describe('NavigationProvider', () => {
     rerender()
     expect(result.current.swapping).toBe(false)
   })
+
+  it('stays visible after Back returns to the page the navigation started from', () => {
+    const { result, rerender } = setup()
+    act(() => result.current.go('/about'))
+    act(() => vi.advanceTimersByTime(SWAP_MS))
+    nav.pathname = '/about'
+    rerender()
+    nav.pathname = '/' // browser Back
+    rerender()
+    expect(result.current.swapping).toBe(false)
+  })
+
+  it('drops a pending navigation when the route changes before the fade ends', () => {
+    const { result, rerender } = setup()
+    act(() => result.current.go('/projects'))
+    nav.pathname = '/services' // browser Back mid-fade
+    rerender()
+    act(() => vi.advanceTimersByTime(SWAP_MS))
+    expect(nav.push).not.toHaveBeenCalled()
+  })
 })

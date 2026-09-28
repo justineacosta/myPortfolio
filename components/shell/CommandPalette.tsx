@@ -77,6 +77,23 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
     }
   }, [])
 
+  // If focus ever leaves the dialog (a browser may drop it on <body>), Escape
+  // and Tab still belong to the palette: close, or pull focus back in.
+  useEffect(() => {
+    const onDocKey = (e: KeyboardEvent) => {
+      if (dialogRef.current?.contains(document.activeElement)) return
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        onClose()
+      } else if (e.key === 'Tab') {
+        e.preventDefault()
+        inputRef.current?.focus()
+      }
+    }
+    document.addEventListener('keydown', onDocKey)
+    return () => document.removeEventListener('keydown', onDocKey)
+  }, [onClose])
+
   const choose = (c: Command) => {
     onClose()
     go(c.href)
@@ -124,7 +141,13 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
       }}
       className="fixed inset-0 z-40 flex animate-rise items-start justify-center bg-scrim px-[18px] pt-[12vh] pb-[18px] backdrop-blur-[6px]"
     >
-      <div className="w-full max-w-[520px] overflow-hidden rounded-[18px] border border-b2 bg-linear-to-b from-s2 to-s1 shadow-(--palette-shadow)">
+      <div
+        onMouseDown={(e) => {
+          // Clicking the card's empty space must not steal focus from the input.
+          if (!(e.target as HTMLElement).closest('input, button')) e.preventDefault()
+        }}
+        className="w-full max-w-[520px] overflow-hidden rounded-[18px] border border-b2 bg-linear-to-b from-s2 to-s1 shadow-(--palette-shadow)"
+      >
         <div className="flex items-center gap-2.5 border-b border-b1 px-[17px] py-[15px]">
           <MagnifyingGlassIcon size={16} aria-hidden className="text-accent" />
           <input

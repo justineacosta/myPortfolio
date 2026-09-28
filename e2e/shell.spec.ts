@@ -87,3 +87,12 @@ test('resizing across 1100px switches layouts and keeps scrolling working', asyn
   await page.setViewportSize({ width: 1440, height: 900 })
   await expect(sidebar).toBeVisible()
 })
+
+test('browser Back to the starting page keeps the panel visible', async ({ page }) => {
+  await page.goto('/')
+  await sidebarNav(page).getByRole('link', { name: /^About/ }).click()
+  await expect(page).toHaveURL(/\/about$/)
+  await page.goBack()
+  await expect(page).toHaveURL(/\/$/)
+  await expect(page.locator('[data-panel-content]')).toHaveCSS('opacity', '1')
+})

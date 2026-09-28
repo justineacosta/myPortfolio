@@ -44,6 +44,15 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   const [pending, setPending] = useState<Pending>(null)
   const timer = useRef<number | undefined>(undefined)
 
+  // Any committed route change settles the fade. Without this, Back to the
+  // page a navigation started from would match `pending.from` again and leave
+  // the panel transparent.
+  const [seenPath, setSeenPath] = useState(pathname)
+  if (pathname !== seenPath) {
+    setSeenPath(pathname)
+    setPending(null)
+  }
+
   const go = useCallback(
     (href: string) => {
       window.clearTimeout(timer.current)
@@ -63,8 +72,11 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
     [pathname, router],
   )
 
-  // The new page is committed: reset scroll while it is still transparent.
+  // The new page is committed: drop any fade still waiting to navigate (the
+  // visitor went elsewhere, e.g. Back mid-fade), and reset scroll while the
+  // page is still transparent.
   useEffect(() => {
+    window.clearTimeout(timer.current)
     scrollToTop({ smooth: false })
   }, [pathname])
 
