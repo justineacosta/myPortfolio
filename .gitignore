@@ -21,3 +21,6 @@ kapeportfolio/
 # os / editor
 .DS_Store
 Thumbs.db
+
+# local agent workspace
+.superpowers/
