@@ -64,7 +64,8 @@ describe('ProjectViews', () => {
   it('pre-renders every view, closed', () => {
     render(<ProjectViews />)
     const dialogs = document.querySelectorAll('dialog')
-    expect(dialogs).toHaveLength(PROJECT_VIEWS.length)
+    // Every sub-view, plus the site preview that stacks on the sites view.
+    expect(dialogs).toHaveLength(PROJECT_VIEWS.length + 1)
     dialogs.forEach((d) => expect(d).not.toHaveAttribute('open'))
     expect(document.body).toHaveTextContent('Name the outcome')
   })

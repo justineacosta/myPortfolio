@@ -102,5 +102,22 @@ export const projects = {
     slotHint: 'Drop a workflow screenshot · 16:10',
     shots: REEL,
   },
-  sitesView: { label: 'Funnels and sites', kicker: 'FUNNELS AND SITES', slotHint: 'Drop a site screenshot', sites: SITES },
+  sitesView: {
+    label: 'Funnels and sites',
+    kicker: 'FUNNELS AND SITES',
+    hint: 'DRAG TO SPIN · CLICK A PAGE TO OPEN',
+    listLabel: 'Sample sites',
+    open: 'Open',
+    siteKicker: 'SITE',
+    sites: SITES,
+    /** Kraft's site preview (Kraft Projects Board.dc.html:288-311). */
+    preview: {
+      label: 'preview',
+      newTab: 'Open in new tab',
+      close: 'Close preview',
+      upload: 'Upload',
+      uploadTail: 'to public/samples/ and this page opens live.',
+      uploadNote: 'STANDALONE HTML · SAME FOLDER',
+    },
+  },
 }

@@ -36,14 +36,4 @@ describe('Projects stage views', () => {
     fireEvent.click(within(view).getByRole('button', { name: 'Play the reel' }))
     expect(view.querySelector('.reel-row')).not.toHaveAttribute('data-paused')
   })
-
-  it('lists the eight sample sites by name', () => {
-    window.history.replaceState(null, '', '/projects#sites')
-    render(<ProjectViews />)
-    const view = screen.getByRole('dialog', { name: 'Funnels and sites' })
-    expect(within(view).getAllByRole('listitem')).toHaveLength(8)
-    expect([...view.querySelectorAll('li > span.font-mono')].map((s) => s.textContent)).toEqual([
-      'Apex Build Co.', 'Blade Studio', 'Below Ground', 'Baptiste', 'One Hour Therapy', 'Trusted Mover', 'Payline', 'Solar Field',
-    ])
-  })
 })

@@ -108,6 +108,20 @@ test('phone: at 320px every Projects card fits its frame and nothing scrolls sid
   expect(new Set(rights).size, `card right edges: ${rights.join(', ')}`).toBe(1)
 })
 
+test('phone: the sites are a grid, and a tap previews the page', async ({ page }) => {
+  await page.goto('/projects#sites')
+  await hydrated(page)
+  const view = page.getByRole('dialog', { name: 'Funnels and sites' })
+  await expect(view.locator('canvas')).toHaveCount(0)
+  await view.getByRole('button', { name: 'Open Apex Build Co.' }).tap()
+  const preview = page.getByRole('dialog', { name: 'Apex Build Co. preview' })
+  await expect(preview).toBeVisible()
+  await expect(page.frameLocator('iframe[title="Apex Build Co."]').getByRole('heading', { level: 1, name: 'Apex Build Co.' })).toBeVisible()
+  await preview.getByRole('button', { name: 'Close preview' }).tap()
+  await expect(preview).toBeHidden()
+  await expect(view).toBeVisible()
+})
+
 test('phone: an open view fills the screen and holds the page still', async ({ page }) => {
   await page.goto('/projects')
   await hydrated(page)
