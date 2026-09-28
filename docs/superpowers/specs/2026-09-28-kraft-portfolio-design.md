@@ -6,7 +6,7 @@
 
 ## 1. Goal
 
-Turn the Claude Design export in `Kraft_Portfolio_Design_System/` into a live portfolio site. The look and copy come from Kraft. The structure follows the reference project `kapeportfolio/`, and a chosen set of kape's features is ported in and restyled to Kraft.
+Turn the Claude Design export in `reference/Kraft_Portfolio_Design_System/` into a live portfolio site. The look and copy come from Kraft. The structure follows the reference project `kapeportfolio/`, and a chosen set of kape's features is ported in and restyled to Kraft.
 
 **Audience:** freelance clients first. Visitors should end up contacting Justine or starting a project. The site must also work as a résumé for employers.
 
@@ -17,18 +17,20 @@ Turn the Claude Design export in `Kraft_Portfolio_Design_System/` into a live po
 - The site stays smooth on slow machines (the performance auto-downgrade) and fully usable with reduced motion.
 - Content can be edited in `data/` without touching components.
 
-**Out of scope:** `Kraft_Portfolio_Design_System/HANDOFF.md` is not followed. The project also includes no CMS, no analytics, no form backend (the form is switchable later), and no blog.
+**Out of scope:** `reference/Kraft_Portfolio_Design_System/HANDOFF.md` is not followed. The project also includes no CMS, no analytics, no form backend (the form is switchable later), and no blog.
 
 ## 2. Sources
 
 | Source | Role |
 |---|---|
-| `Kraft_Portfolio_Design_System/Kraft Portfolio (standalone).html` | Visual reference render, used for side-by-side comparison |
-| `Kraft_Portfolio_Design_System/Kraft Portfolio.dc.html` | Shell, tokens (`:root` dark at line 50, `[data-theme=light]` at line 51), sidebar, top bar, mobile nav, ⌘K, theme button |
-| `Kraft_Portfolio_Design_System/KraftScreens.dc.html` | Home, Services, Testimonials, About, Contact/FAQ screens and copy |
-| `Kraft_Portfolio_Design_System/Kraft Projects Board.dc.html` | Projects board and its sub-views |
-| `Kraft_Portfolio_Design_System/assets/`, `uploads/` | Logo, portrait, workstation GIF, workflow screenshots |
-| `kapeportfolio/src/` | Structure reference and source of the ported features (§6) |
+| `reference/Kraft_Portfolio_Design_System/Kraft Portfolio (standalone).html` | Visual reference render, used for side-by-side comparison |
+| `reference/Kraft_Portfolio_Design_System/Kraft Portfolio.dc.html` | Shell, tokens (`:root` dark at line 50, `[data-theme=light]` at line 51), sidebar, top bar, mobile nav, ⌘K, theme button |
+| `reference/Kraft_Portfolio_Design_System/KraftScreens.dc.html` | Home, Services, Testimonials, About, Contact/FAQ screens and copy |
+| `reference/Kraft_Portfolio_Design_System/Kraft Projects Board.dc.html` | Projects board and its sub-views |
+| `reference/Kraft_Portfolio_Design_System/assets/`, `uploads/` | Logo, portrait, workstation GIF, workflow screenshots |
+| `reference/kapeportfolio/src/` | Structure reference and source of the ported features (§6) |
+
+All reference material lives in `reference/` (gitignored) since Phase 1 Task 1.
 
 Ignored: `support.js` (design-tool runtime), `_ds/safeguard-design-system-*` (an unrelated brand), `HANDOFF.md`.
 

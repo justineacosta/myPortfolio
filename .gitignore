@@ -1,0 +1,23 @@
+# deps / build
+node_modules/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# tests
+test-results/
+playwright-report/
+coverage/
+
+# env
+.env*.local
+
+# design references (kept on disk only)
+reference/
+# original kape folder, left at the root while Windows holds a lock on it
+kapeportfolio/
+
+# os / editor
+.DS_Store
+Thumbs.db
