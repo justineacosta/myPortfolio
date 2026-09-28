@@ -1,6 +1,9 @@
 import AboutCard from './AboutCard'
+import CredentialsCard from './CredentialsCard'
 import ProjectsCard from './ProjectsCard'
+import ServicesCard from './ServicesCard'
 import StackCard from './StackCard'
+import TestimonialsCard from './TestimonialsCard'
 import ToolsRow from './ToolsRow'
 
 const ROW = 'flex flex-wrap gap-[clamp(11px,1.3cqw,18px)]'
@@ -18,6 +21,11 @@ export default function Bento() {
         <ProjectsCard />
         <AboutCard />
         <StackCard />
+      </div>
+      <div className={ROW}>
+        <ServicesCard />
+        <TestimonialsCard />
+        <CredentialsCard />
       </div>
     </div>
   )

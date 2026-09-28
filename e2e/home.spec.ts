@@ -31,3 +31,30 @@ test('every Home logo and image loads from this site', async ({ page }) => {
   expect(bad).toEqual([])
   expect(offsite).toEqual([])
 })
+
+test('the wheel over the services row scrolls it sideways, then hands back to the page', async ({ page }) => {
+  await page.goto('/')
+  const panel = page.locator('#main-content')
+  const row = page.locator('[data-wheel-x]')
+  await row.scrollIntoViewIfNeeded()
+  const box = (await row.boundingBox())!
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+
+  const before = await panel.evaluate((el) => el.scrollTop)
+  expect(before).toBeGreaterThan(0) // the row sits below the fold, so the page has room to scroll back up
+  await page.mouse.wheel(0, 200)
+  await expect.poll(() => row.evaluate((el) => el.scrollLeft)).toBeGreaterThan(0)
+  expect(await panel.evaluate((el) => el.scrollTop)).toBe(before)
+
+  // At its start, an upward wheel belongs to the page again.
+  await row.evaluate((el) => {
+    el.style.scrollBehavior = 'auto'
+    el.scrollLeft = 0
+  })
+  await expect
+    .poll(async () => {
+      await page.mouse.wheel(0, -200)
+      return panel.evaluate((el) => el.scrollTop)
+    })
+    .toBeLessThan(before)
+})

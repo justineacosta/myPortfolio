@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import Bento from '@/components/home/Bento'
 import { NavigationProvider } from '@/components/shell/NavigationProvider'
 
@@ -18,7 +18,9 @@ const renderBento = () =>
 describe('Bento', () => {
   it("renders Kraft's cards in order", () => {
     renderBento()
-    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['Projects', 'About', 'Stack'])
+    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
+      'Projects', 'About', 'Stack', 'Services', 'Testimonials', 'Credentials',
+    ])
   })
 
   it('makes Projects and About whole-card links, and leaves Stack static', () => {
@@ -50,6 +52,41 @@ describe('Bento', () => {
     const chip = within(stack).getAllByText('LangChain')[0].closest('li')!
     expect(chip).toHaveAttribute('data-experimental', 'true')
     expect(within(stack).getByText('IN USE')).toBeInTheDocument()
+  })
+
+  it("lists Kraft's six services with their numbers and logos", () => {
+    renderBento()
+    const services = screen.getByRole('link', { name: /^Services/ })
+    expect(services).toHaveAttribute('href', '/services')
+    expect(within(services).getByText('01 / 06')).toBeInTheDocument()
+    expect(within(services).getByText('Mobile Apps & Extensions')).toBeInTheDocument()
+    expect(services.querySelector('img[src="/icons/brands/n8n.svg"]')).not.toBeNull()
+  })
+
+  it('turns a vertical wheel over the services row into sideways scroll', () => {
+    const { container } = renderBento()
+    const row = container.querySelector<HTMLElement>('[data-wheel-x]')!
+    Object.defineProperty(row, 'scrollWidth', { configurable: true, value: 1100 })
+    Object.defineProperty(row, 'clientWidth', { configurable: true, value: 300 })
+    row.scrollTo = vi.fn() as unknown as typeof row.scrollTo
+    const notCancelled = fireEvent.wheel(row, { deltaY: 100 })
+    expect(notCancelled).toBe(false)
+    expect(row.scrollTo).toHaveBeenCalledWith({ left: expect.closeTo(110, 6), behavior: 'smooth' })
+  })
+
+  it('lists three placeholder clients on the Testimonials card', () => {
+    renderBento()
+    const t = screen.getByRole('link', { name: /^Testimonials/ })
+    expect(t).toHaveAttribute('href', '/testimonials')
+    expect(within(t).getByText('AWAITING REAL QUOTES')).toBeInTheDocument()
+    expect(within(t).getAllByText('PLACEHOLDER - client name')).toHaveLength(3)
+  })
+
+  it('shows both certifications as medals', () => {
+    renderBento()
+    expect(screen.getByRole('img', { name: 'AWS Cloud Practitioner Essentials' })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'HackerRank Software Engineer' })).toBeInTheDocument()
+    expect(screen.getByText('AWS Cloud Practitioner. HackerRank Software Engineer.')).toBeInTheDocument()
   })
 
   it('is held back for the intro', () => {

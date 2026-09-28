@@ -54,6 +54,7 @@
   --color-fade-a: var(--fadeA);
   --color-fade-b: var(--fadeB);
   --color-scrim: var(--scrim);
+  --color-logo-chip: var(--logo-chip);
   --font-sans: var(--font-geist), system-ui, 'Helvetica Neue', sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
@@ -138,3 +139,24 @@ html[data-a11y-motion=true] [data-reveal]{opacity:1 !important;transform:none !i
 .arc-card{position:absolute;left:50%;bottom:26%;width:40%;margin-left:-20%;aspect-ratio:16/10;border-radius:13px;overflow:hidden;background:var(--s0);border:1px solid var(--b2);box-shadow:var(--arc-shadow);transform-origin:50% 50%;will-change:transform;z-index:var(--z);transform:translate(calc(var(--x) * 1%),calc(var(--y) * 1%)) rotate(calc(var(--r) * 1deg));transition:transform .55s cubic-bezier(.2,.7,.2,1),box-shadow .4s ease,border-color .4s ease}
 .arc:hover .arc-card,a:focus-visible .arc-card{transform:translate(calc(var(--x) * 1.9%),calc(var(--y) * 1.5%)) rotate(calc(var(--r) * 1.85deg))}
 .arc .arc-card:hover{z-index:40;border-color:var(--washB);box-shadow:0 30px 64px -24px var(--glow);transform:translate(calc(var(--x) * 1.9%),calc(var(--y) * 1.5%)) rotate(calc(var(--r) * .555deg)) translateY(-14px) scale(1.05)}
+
+/* Logo chips and shadows Kraft uses on both themes (KraftScreens.dc.html:141, 190-191) */
+:root{--logo-chip:#f7f4ee;--logo-shadow:0 2px 8px -2px rgba(0,0,0,.45);--medal-shadow:0 8px 22px -10px rgba(0,0,0,.7);--pill-shadow:0 14px 34px -14px rgba(0,0,0,.7)}
+
+/* Kraft's certification medals (KraftScreens.dc.html:183-195, 1130-1149): two
+   tilted rosettes that straighten, lift and show a pill on hover. */
+.medal{position:relative;display:grid;place-items:center;width:72px;height:72px;cursor:default;transform-origin:50% 85%;transform:rotate(var(--tilt));transition:transform .45s cubic-bezier(.2,.8,.2,1),margin-left .45s cubic-bezier(.2,.8,.2,1)}
+.medal:first-child{--tilt:-11deg;--pill-tilt:11deg;z-index:5}
+.medal:nth-child(2){--tilt:11deg;--pill-tilt:-11deg;z-index:4}
+.medal + .medal{margin-left:-26px}
+.medal + .medal:hover{margin-left:-14px}
+.medal:hover{transform:rotate(0deg) translateY(-10px) scale(1.1);z-index:12}
+.medal-tail{position:absolute;bottom:-20px;left:50%;width:15px;height:34px;background:linear-gradient(180deg,var(--accent),rgba(var(--amb),1));clip-path:polygon(0 0,100% 0,100% 100%,50% 72%,0 100%);transform-origin:50% 0;z-index:0}
+.medal-tail--l{transform:translateX(-118%) rotate(-15deg)}
+.medal-tail--r{transform:translateX(18%) rotate(15deg)}
+.medal-rosette{position:absolute;inset:-5px;border-radius:50%;border:6px dashed var(--accent);opacity:.9;z-index:1;transition:transform .45s cubic-bezier(.2,.8,.2,1)}
+.medal:hover .medal-rosette{transform:rotate(22deg)}
+.medal-disc{position:absolute;inset:0;border-radius:50%;background:var(--logo-chip);border:2px solid var(--accent);box-shadow:var(--medal-shadow),0 0 0 0 var(--wash);z-index:2;transition:box-shadow .4s ease}
+.medal:hover .medal-disc{box-shadow:var(--medal-shadow),0 0 0 6px var(--wash)}
+.medal-pill{position:absolute;top:calc(100% + 12px);left:50%;display:flex;align-items:center;gap:6px;width:max-content;white-space:nowrap;padding:6px 11px;border-radius:999px;background:var(--s1);border:1px solid var(--washB);font-size:11px;font-weight:600;line-height:1.35;color:var(--ink);opacity:0;pointer-events:none;z-index:30;box-shadow:var(--pill-shadow);transform:translateX(-50%) translateY(-6px) rotate(var(--pill-tilt));transition:opacity .25s,transform .3s cubic-bezier(.2,.8,.2,1)}
+.medal:hover .medal-pill{opacity:1;transform:translateX(-50%) translateY(0) rotate(0deg)}
