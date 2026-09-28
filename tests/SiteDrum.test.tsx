@@ -65,6 +65,14 @@ describe('SiteDrum', () => {
     expect(canvases[0]).toHaveAttribute('aria-hidden', 'true')
   })
 
+  it('uses no deprecated three.js API (the console stays quiet)', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(<SiteDrum sites={projects.sitesView.sites} onOpen={() => {}} onFail={() => {}} />)
+    const deprecations = warn.mock.calls.map((c) => c.join(' ')).filter((m) => /deprecated/i.test(m))
+    expect(deprecations).toEqual([])
+    warn.mockRestore()
+  })
+
   it('takes its canvas away with it when it unmounts', () => {
     const { container, unmount } = render(<SiteDrum sites={projects.sitesView.sites} onOpen={() => {}} onFail={() => {}} />)
     expect(container.querySelectorAll('canvas')).toHaveLength(1)

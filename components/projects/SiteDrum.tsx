@@ -239,17 +239,17 @@ export default function SiteDrum({ sites, onOpen, onFail, paused = false }: Prop
     resize()
 
     // ---- the loop: sleeps while off screen or hidden, woken by kick() ----
-    const clock = new THREE.Clock()
+    const timer = new THREE.Timer()
     let raf = 0
     let running = false
     let onScreen = true
-    const frame = () => {
+    const frame = (now: number) => {
       if (document.hidden || !onScreen || pausedRef.current) {
         running = false
         return
       }
       raf = requestAnimationFrame(frame)
-      const dt = Math.min(clock.getDelta(), 0.05)
+      const dt = Math.min(timer.update(now).getDelta(), 0.05)
 
       spinAngle += (inside ? 0.04 : 0.16) * dt // idle spin, slower under the pointer
       group.rotation.y = spinAngle + dragSpin + spinTarget * 0.4
@@ -282,7 +282,7 @@ export default function SiteDrum({ sites, onOpen, onFail, paused = false }: Prop
     const kick = () => {
       if (running) return
       running = true
-      clock.getDelta() // drop the time spent asleep
+      timer.reset() // drop the time spent asleep
       raf = requestAnimationFrame(frame)
     }
     kickRef.current = kick
