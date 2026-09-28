@@ -54,6 +54,7 @@ test('phone: Home opens with the profile header instead of floating controls', a
   await expect(page.getByRole('button', { name: 'Toggle dark and light mode' })).toHaveCount(1)
   await expect(page.getByRole('button', { name: 'Open command palette' })).toHaveCount(1)
   await expect(page.getByRole('button', { name: 'Accessibility options' })).toHaveCount(1)
+  await expect(page.locator('[data-floating-access]')).toBeHidden()
 })
 
 test('phone: the intro lands exactly on the Home h1', async ({ page }) => {
