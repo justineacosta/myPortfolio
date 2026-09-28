@@ -185,11 +185,12 @@ html[data-a11y-motion=true] [data-reveal]{opacity:1 !important;transform:none !i
 
 /* ---- Intro (kape IntroOverlay + boot.css, Kraft tokens; lib/intro.ts) ----
    lib/boot.ts sets data-intro and data-intro-head before first paint on a
-   full load of "/". Held pieces are hidden with no transition; lib/intro.ts
+   full load of "/". Held pieces are hidden with no transition (visibility too,
+   so they can't be clicked or tabbed to unseen); lib/intro.ts
    deals them back in with one-shot animations. The overlay paints no
    backdrop, so the contour shader drifts behind the whole sequence. */
 html[data-intro] [data-intro-hold],
-html[data-intro] [data-intro-rail] > *{opacity:0}
+html[data-intro] [data-intro-rail] > *{opacity:0;visibility:hidden}
 html[data-intro-head] [data-intro-target]{opacity:0}
 .intro{display:none;position:fixed;inset:0;z-index:90;pointer-events:none}
 html[data-intro-head] .intro{display:block}

@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NavigationProvider } from '@/components/shell/NavigationProvider'
 import { PaletteProvider, usePalette } from '@/components/shell/CommandPalette'
+import { registerIntroSkip } from '@/lib/intro'
 
 const nav = vi.hoisted(() => ({ push: vi.fn() }))
 vi.mock('next/navigation', () => ({
@@ -27,6 +28,30 @@ const dialog = () => screen.queryByRole('dialog', { name: 'Command palette' })
 
 describe('CommandPalette', () => {
   beforeEach(() => nav.push.mockReset())
+
+  it('Ctrl+K during the Home intro ends the intro, then opens', async () => {
+    const user = userEvent.setup()
+    const skip = vi.fn(() => document.documentElement.removeAttribute('data-intro-live'))
+    registerIntroSkip(skip)
+    document.documentElement.setAttribute('data-intro-live', '')
+    setup()
+    await user.keyboard('{Control>}k{/Control}')
+    expect(skip).toHaveBeenCalledOnce()
+    expect(dialog()).toBeInTheDocument()
+    registerIntroSkip(null)
+  })
+
+  it('Ctrl+K with no intro running never touches it', async () => {
+    const user = userEvent.setup()
+    const skip = vi.fn()
+    registerIntroSkip(skip)
+    setup()
+    await user.keyboard('{Control>}k{/Control}')
+    await user.keyboard('{Control>}k{/Control}')
+    expect(skip).not.toHaveBeenCalled()
+    expect(dialog()).toBeNull()
+    registerIntroSkip(null)
+  })
 
   it('announces "No matches" as a status, outside the listbox', async () => {
     const user = userEvent.setup()

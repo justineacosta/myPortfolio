@@ -13,6 +13,7 @@ import {
 } from 'react'
 import { MagnifyingGlassIcon } from '@phosphor-icons/react/ssr'
 import { filterCommands, type Command } from '@/lib/commands'
+import { introLive, skipIntro } from '@/lib/intro'
 import { useShellNav } from './NavigationProvider'
 
 type PaletteCtx = { open: boolean; openPalette: () => void; closePalette: () => void }
@@ -50,6 +51,8 @@ export function PaletteProvider({ children }: { children: ReactNode }) {
         // A sub-view (components/ui/ViewDialog.tsx) owns the screen and makes
         // the rest inert: a palette opened now would sit, unusable, behind it.
         if (document.documentElement.hasAttribute('data-dialog')) return
+        // ⌘K during the Home intro: end it (as Esc would), then open on the real page.
+        if (!open && introLive()) skipIntro()
         if (open) closePalette()
         else openPalette()
       }

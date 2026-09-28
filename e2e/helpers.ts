@@ -37,3 +37,40 @@ export function headlineLanding(page: Page) {
     }
   })
 }
+
+/** The headline's lines, read by where each word sits: the flying copy (shown for a moment, unpainted) and the real <h1>. */
+export function headlineLines(page: Page) {
+  return page.evaluate(() => {
+    const byRow = (items: { top: number; text: string }[]) => {
+      const rows = new Map<number, string[]>()
+      for (const it of items) {
+        const k = Math.round(it.top)
+        rows.set(k, [...(rows.get(k) ?? []), it.text])
+      }
+      return [...rows.keys()].sort((a, b) => a - b).map((k) => rows.get(k)!.join(' '))
+    }
+    const overlay = document.querySelector<HTMLElement>('[data-intro-overlay]')!
+    overlay.style.display = 'block'
+    overlay.style.visibility = 'hidden'
+    const flying = byRow(
+      [...overlay.querySelectorAll<HTMLElement>('.intro-title .intro-word')].map((w) => ({
+        top: w.getBoundingClientRect().top,
+        text: (w.textContent ?? '').trim(),
+      })),
+    )
+    overlay.style.display = ''
+    overlay.style.visibility = ''
+    const h1 = document.querySelector<HTMLElement>('[data-intro-target]')!
+    const words: { top: number; text: string }[] = []
+    const walker = document.createTreeWalker(h1, NodeFilter.SHOW_TEXT)
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+      for (const m of (n.textContent ?? '').matchAll(/\S+/g)) {
+        const r = document.createRange()
+        r.setStart(n, m.index!)
+        r.setEnd(n, m.index! + m[0].length)
+        words.push({ top: r.getBoundingClientRect().top, text: m[0] })
+      }
+    }
+    return { flying, real: byRow(words) }
+  })
+}
