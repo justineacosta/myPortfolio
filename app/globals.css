@@ -280,3 +280,23 @@ html[data-a11y-motion=true] .reel-pause{display:none}
 .flow-ball{position:absolute;left:0;top:0;width:8px;height:8px;border-radius:50%;background:var(--accent);offset-anchor:50% 50%;offset-rotate:0deg;animation-name:kTravel;animation-timing-function:linear;animation-iteration-count:infinite}
 @media (prefers-reduced-motion:reduce){.flow-ball{display:none}}
 html[data-a11y-motion=true] .flow-ball{display:none}
+
+/* ---- Showcase (kape Flagship.tsx, Kraft tokens) ----
+   The product mock's pieces rise in, in reading order (--i), each time its
+   stage remounts. The active progress bar is the auto-advance clock: its
+   fill runs for --flag-ms while [data-run] is set, and its end opens the
+   next tab (components/showcase/Flagship.tsx). With reduced motion there is
+   no clock; the held tab's bar is simply full. */
+.mock-rise{animation:kRise .42s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0) * 38ms)}
+.flag-bar{position:relative;flex:1 1 0;height:2px;border-radius:2px;background:var(--b1);overflow:hidden}
+.flag-bar[data-on]::after,.flag-bar[data-full]::after{content:'';position:absolute;inset:0;background:var(--accent);transform-origin:left center}
+.flag-bar[data-on]::after{animation:flagFill var(--flag-ms,6s) linear both;animation-play-state:paused}
+.flag-bar[data-on][data-run]::after{animation-play-state:running}
+@keyframes flagFill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+/* The quotes: held under the pointer, on focus and by their button; with
+   reduced motion they stand still and scroll by hand. */
+.feedback:hover .animate-marquee,.feedback:focus-within .animate-marquee,.feedback:focus .animate-marquee,.feedback[data-paused] .animate-marquee{animation-play-state:paused}
+@media (prefers-reduced-motion:reduce){.feedback{overflow-x:auto}.feedback .animate-marquee{animation:none}.feedback-toggle{display:none}}
+html[data-a11y-motion=true] .feedback{overflow-x:auto}
+html[data-a11y-motion=true] .feedback .animate-marquee{animation:none}
+html[data-a11y-motion=true] .feedback-toggle{display:none}
