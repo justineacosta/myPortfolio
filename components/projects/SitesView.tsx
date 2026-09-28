@@ -4,6 +4,7 @@ import { lazy, Suspense, useState } from 'react'
 import ViewDialog from '@/components/ui/ViewDialog'
 import { projects, type Site } from '@/data/projects'
 import { useWebGLAllowed } from '@/hooks/useWebGLAllowed'
+import DrumBoundary from './DrumBoundary'
 import SiteGrid from './SiteGrid'
 import SitePreview from './SitePreview'
 import StageBar from './StageBar'
@@ -35,9 +36,11 @@ export default function SitesView({ open, onClose }: { open: boolean; onClose: (
       <ViewDialog open={open} onClose={onClose} label={s.label} className="view--stage">
         <StageBar kicker={s.kicker} onClose={onClose} />
         {drum ? (
-          <Suspense fallback={<div className="min-h-0 flex-1" />}>
-            <SiteDrum sites={s.sites} onOpen={setSite} onFail={() => setFailed(true)} />
-          </Suspense>
+          <DrumBoundary onFail={() => setFailed(true)}>
+            <Suspense fallback={<div className="min-h-0 flex-1" />}>
+              <SiteDrum sites={s.sites} onOpen={setSite} onFail={() => setFailed(true)} />
+            </Suspense>
+          </DrumBoundary>
         ) : (
           <SiteGrid sites={s.sites} onOpen={setSite} />
         )}

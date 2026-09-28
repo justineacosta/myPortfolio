@@ -116,7 +116,7 @@ export default function AccessMenu({ size = 38, className = '' }: { size?: 38 | 
                       key={s.value}
                       type="button"
                       aria-pressed={on}
-                      aria-label={s.hint}
+                      aria-label={`${s.label}, ${s.hint}`}
                       onClick={() => savePrefs({ ...prefs, text: s.value })}
                       className={`h-10 cursor-pointer rounded-[10px] border font-bold ${SIZE_TEXT[i]} ${on ? 'border-accent bg-accent text-on-accent' : 'border-b1 bg-s2 text-ink hover:border-b2'}`}
                     >

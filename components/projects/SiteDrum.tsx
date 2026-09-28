@@ -92,7 +92,9 @@ export default function SiteDrum({ sites, onOpen, onFail }: Props) {
       ctx.fillRect(0, 0, 300, 400)
       ctx.fillStyle = 'white'
       ctx.beginPath()
-      ctx.roundRect(0, 0, 300, 400, 30)
+      // roundRect is missing before Safari 16 and Firefox 112: square corners there.
+      if (typeof ctx.roundRect === 'function') ctx.roundRect(0, 0, 300, 400, 30)
+      else ctx.rect(0, 0, 300, 400)
       ctx.fill()
     }
     const roundTex = new THREE.CanvasTexture(mask)

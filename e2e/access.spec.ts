@@ -32,7 +32,7 @@ test('larger text grows the page and the sidebar', async ({ page }) => {
   await page.goto('/about')
   await hydrated(page)
   await sidebarMenu(page).click()
-  await page.getByRole('dialog', { name: 'Accessibility' }).getByRole('button', { name: 'Largest text' }).click()
+  await page.getByRole('dialog', { name: 'Accessibility' }).getByRole('button', { name: 'A++, Largest text' }).click()
   await expect(page.locator('#main-content > div')).toHaveCSS('zoom', '1.25')
   await expect(page.locator('aside[data-a11y-scale] > *').first()).toHaveCSS('zoom', '1.25')
 })

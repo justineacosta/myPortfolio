@@ -5,7 +5,10 @@ import { projects } from '@/data/projects'
 import { installMatchMedia } from '@/test/matchMedia'
 
 vi.mock('@/components/projects/SiteDrum', () => ({
-  default: ({ sites: list, onOpen, onFail }: { sites: typeof sites; onOpen: (s: (typeof sites)[number]) => void; onFail: () => void }) => (
+  default: ({ sites: list, onOpen, onFail }: { sites: typeof sites; onOpen: (s: (typeof sites)[number]) => void; onFail: () => void }) => {
+    // Stands in for a drum chunk that fails to load, or a drum that throws.
+    if ((globalThis as { drumThrows?: boolean }).drumThrows) throw new Error('drum chunk failed')
+    return (
     <div data-testid="drum">
       <button type="button" onClick={() => onOpen(list[0])}>
         drum pick
@@ -14,7 +17,8 @@ vi.mock('@/components/projects/SiteDrum', () => ({
         drum fail
       </button>
     </div>
-  ),
+    )
+  },
 }))
 
 const TOUCH = { '(pointer: coarse) and (hover: none)': true }
@@ -45,10 +49,12 @@ describe('Funnels and sites: the grid and the preview', () => {
     fireEvent.click(within(view).getByRole('button', { name: 'Open Apex Build Co.' }))
     const preview = screen.getByRole('dialog', { name: 'Apex Build Co. preview' })
     expect(preview).toHaveAttribute('open')
-    expect(within(preview).getByTitle('Apex Build Co.')).toHaveAttribute('src', sites[0].src)
     expect(within(preview).getByRole('link', { name: 'Open in new tab' })).toHaveAttribute('href', sites[0].src)
-    await act(async () => {})
-    expect(within(preview).getByTitle('Apex Build Co.')).toBeInTheDocument()
+    const frame = await within(preview).findByTitle('Apex Build Co.')
+    expect(frame).toHaveAttribute('src', sites[0].src)
+    // A dropped-in client export may carry third-party scripts: they run, but not as the portfolio.
+    expect(frame.getAttribute('sandbox')).toContain('allow-scripts')
+    expect(frame.getAttribute('sandbox')).not.toContain('allow-same-origin')
   })
 
   it('closing the preview goes back to the sites, with the page still locked', () => {
@@ -66,6 +72,8 @@ describe('Funnels and sites: the grid and the preview', () => {
     const view = openSites()
     fireEvent.click(within(view).getByRole('button', { name: 'Open Payline' }))
     const preview = screen.getByRole('dialog', { name: 'Payline preview' })
+    // Nothing loads until the page is known to exist: never a 404 inside the window.
+    expect(within(preview).queryByTitle('Payline')).toBeNull()
     expect(await within(preview).findByText(sites[6].file)).toBeInTheDocument()
     expect(within(preview).queryByTitle('Payline')).toBeNull()
     expect(within(preview).getByRole('link', { name: 'Open in new tab' })).toBeInTheDocument()
@@ -100,6 +108,18 @@ describe('Funnels and sites: the drum', () => {
     fireEvent.click(await within(view).findByText('drum fail'))
     expect(within(view).getByRole('list', { name: 'Sample sites' })).toBeInTheDocument()
     expect(within(view).queryByTestId('drum')).toBeNull()
+  })
+
+  it('falls back to the grid when the drum fails to load or throws', async () => {
+    ;(globalThis as { drumThrows?: boolean }).drumThrows = true
+    try {
+      const view = openSites()
+      expect(await within(view).findByRole('list', { name: 'Sample sites' })).toBeInTheDocument()
+      fireEvent.click(within(view).getByRole('button', { name: 'Open Apex Build Co.' }))
+      expect(screen.getByRole('dialog', { name: 'Apex Build Co. preview' })).toHaveAttribute('open')
+    } finally {
+      ;(globalThis as { drumThrows?: boolean }).drumThrows = false
+    }
   })
 
   it('never loads the drum with reduced motion', () => {

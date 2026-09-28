@@ -13,8 +13,8 @@ const CHROME_BUTTON =
 /**
  * Kraft's site preview (Kraft Projects Board.dc.html:288-311, kape
  * FunnelModal.tsx). A browser window stacks on the sites view and loads the
- * real page, so a visitor never leaves. The page is checked first: if it is
- * missing, the window says where the file goes, and "Open in new tab" is
+ * real page, so a visitor never leaves. The page is checked before it loads:
+ * if it is missing, the window says where the file goes, and "Open in new tab" is
  * always there (spec §12). It is closed by Close, Esc, or leaving the sites view.
  */
 export default function SitePreview({ site, onClose }: { site: Site | null; onClose: () => void }) {
@@ -35,7 +35,8 @@ export default function SitePreview({ site, onClose }: { site: Site | null; onCl
     }
   }, [site])
 
-  const missing = !!site && check?.src === site.src && !check.ok
+  const checked = !!site && check?.src === site.src
+  const missing = checked && !check.ok
   return (
     <ViewDialog open={!!site} onClose={onClose} label={shown ? `${shown.name} ${p.label}` : p.label} className="view--window">
       {shown && (
@@ -56,7 +57,15 @@ export default function SitePreview({ site, onClose }: { site: Site | null; onCl
             </button>
           </div>
           <div className="relative flex-1 bg-s1">
-            {site && !missing && <iframe src={site.src} title={site.name} className="absolute inset-0 size-full border-0" />}
+            {checked && !missing && (
+              // Sandboxed without same-origin: a dropped-in client export may carry third-party scripts.
+              <iframe
+                src={site.src}
+                title={site.name}
+                sandbox="allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
+                className="absolute inset-0 size-full border-0"
+              />
+            )}
             {missing && (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 p-6 text-center text-ink2">
                 <UploadSimpleIcon size={26} aria-hidden />

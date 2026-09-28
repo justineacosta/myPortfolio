@@ -26,9 +26,9 @@ describe('AccessMenu', () => {
 
   it('larger text applies at once and is remembered', async () => {
     const user = await openMenu()
-    await user.click(within(panel()).getByRole('button', { name: 'Larger text' }))
+    await user.click(within(panel()).getByRole('button', { name: 'A+, Larger text' }))
     expect(html()).toHaveAttribute('data-a11y-text', 'lg')
-    expect(within(panel()).getByRole('button', { name: 'Larger text' })).toHaveAttribute('aria-pressed', 'true')
+    expect(within(panel()).getByRole('button', { name: 'A+, Larger text' })).toHaveAttribute('aria-pressed', 'true')
     expect(JSON.parse(localStorage.getItem(A11Y_KEY)!)).toMatchObject({ text: 'lg' })
   })
 

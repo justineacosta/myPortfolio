@@ -150,7 +150,7 @@ test('phone: the largest text never scrolls sideways', async ({ page }) => {
   await page.goto('/about')
   await hydrated(page)
   await page.getByRole('button', { name: 'Accessibility options' }).tap()
-  await page.getByRole('dialog', { name: 'Accessibility' }).getByRole('button', { name: 'Largest text' }).tap()
+  await page.getByRole('dialog', { name: 'Accessibility' }).getByRole('button', { name: 'A++, Largest text' }).tap()
   for (const r of ['/', '/projects', '/services', '/about', '/contact']) {
     await page.goto(r)
     await settleIntro(page)
