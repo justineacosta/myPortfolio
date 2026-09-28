@@ -29,7 +29,7 @@ export default function Automation() {
   const [index, setIndex] = useState(0)
   const flow = FLOWS[index]
   return (
-    <section id={a.id} aria-labelledby="automation-title" className="scroll-mt-[88px]">
+    <section id={a.id} aria-labelledby="automation-title" className="scroll-mt-[88px] shell:scroll-mt-6">
       <Frame
         lit={{ x: '50%', y: '-20%', size: '100% 120%', alpha: 0.6, stop: '60%' }}
         className="flex flex-col gap-4 p-[clamp(14px,1.8cqw,24px)]"

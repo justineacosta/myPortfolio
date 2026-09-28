@@ -21,7 +21,6 @@ test('sidebar navigation swaps the panel and updates crumb and active item', asy
   await sidebarNav(page).getByRole('link', { name: /^Projects/ }).click()
   await expect(page).toHaveURL(/\/projects$/)
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Real builds you can open.')
-  await expect(page.getByText('KRAFT / BUILDS')).toBeVisible()
   await expect(sidebarNav(page).getByRole('link', { name: /^Projects/ })).toHaveAttribute('aria-current', 'page')
   await expect(page.locator('[data-panel-content]')).toHaveCSS('opacity', '1')
 })
@@ -65,10 +64,26 @@ test.describe('reduced motion', () => {
   })
 })
 
-test('Get in touch goes to contact', async ({ page }) => {
-  await page.goto('/')
-  await page.getByRole('link', { name: 'Get in touch' }).click()
-  await expect(page).toHaveURL(/\/contact$/)
+test('desktop has no top bar: no crumb, no Jump to button', async ({ page }) => {
+  await page.goto('/about')
+  await hydrated(page)
+  await expect(page.getByRole('button', { name: /Jump to/ })).toHaveCount(0)
+  await expect(page.getByText(/^KRAFT \/ /)).toHaveCount(0)
+})
+
+test('a ⌘K section lands near the top of the panel', async ({ page }) => {
+  await page.goto('/services')
+  await hydrated(page)
+  await page.keyboard.press('Control+k')
+  await page.keyboard.type('kraft method')
+  await page.keyboard.press('Enter')
+  const gap = () =>
+    page.evaluate(() => {
+      const s = document.getElementById('method')!.getBoundingClientRect().top
+      return s - document.getElementById('main-content')!.getBoundingClientRect().top
+    })
+  await expect.poll(gap, { timeout: 5_000 }).toBeLessThan(48)
+  expect(await gap()).toBeGreaterThanOrEqual(0)
 })
 
 test('resizing across 1100px switches layouts and keeps scrolling working', async ({ page }) => {

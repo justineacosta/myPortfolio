@@ -21,7 +21,7 @@ export default function Page() {
         <section
           id={q.id}
           aria-labelledby="faqs-title"
-          className={`${CARD} flex min-w-[250px] flex-[1_1_320px] scroll-mt-[88px] flex-col gap-1.5 p-[clamp(16px,1.8cqw,22px)]`}
+          className={`${CARD} flex min-w-[250px] flex-[1_1_320px] scroll-mt-[88px] shell:scroll-mt-6 flex-col gap-1.5 p-[clamp(16px,1.8cqw,22px)]`}
         >
           <span className="font-mono text-[10px] tracking-[.16em] text-accent">{q.kicker}</span>
           <h2 id="faqs-title" className="text-[clamp(17px,2cqw,23px)] leading-[1.25] font-semibold tracking-[-.025em]">

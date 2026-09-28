@@ -7,7 +7,6 @@ import { NavigationProvider } from '@/components/shell/NavigationProvider'
 import PanelContent from '@/components/shell/PanelContent'
 import PhoneControls from '@/components/shell/PhoneControls'
 import TabBar from '@/components/shell/TabBar'
-import ShellTopBar from '@/components/shell/ShellTopBar'
 import Sidebar from '@/components/shell/Sidebar'
 import SmoothScroll from '@/components/shell/SmoothScroll'
 import { PANEL_ID } from '@/lib/scroller'
@@ -34,10 +33,9 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
           tabIndex={-1}
           data-scroll
           data-a11y-scale
-          className="min-w-0 flex-1 px-4 pt-16 pb-[120px] outline-none max-shell:has-[[data-home-profile]]:pt-4 shell:overflow-x-hidden shell:overflow-y-auto shell:px-(--deskpad) shell:pt-0 shell:pb-[72px]"
+          className="min-w-0 flex-1 px-4 pt-16 pb-[120px] outline-none max-shell:has-[[data-home-profile]]:pt-4 shell:overflow-x-hidden shell:overflow-y-auto shell:px-(--deskpad) shell:pt-(--deskpad) shell:pb-[72px]"
         >
           <div>
-            <ShellTopBar />
             <PanelContent>{children}</PanelContent>
             <LegalLinks className="mt-10 justify-center shell:hidden" />
           </div>

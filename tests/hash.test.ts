@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { clearHash, currentHash, pushHash, splitHref } from '@/lib/hash'
-import { registerLenis, scrollToSection, SECTION_OFFSET } from '@/lib/scroller'
+import { registerLenis, scrollToSection } from '@/lib/scroller'
 
 describe('splitHref', () => {
   it('splits a path from its hash', () => {
@@ -47,7 +47,7 @@ describe('scrollToSection', () => {
     expect(scrollToSection('', { smooth: true })).toBe(false)
   })
 
-  it('goes through Lenis when Lenis owns the panel, clearing the sticky top bar', () => {
+  it('goes through Lenis when Lenis owns the panel, leaving the air to the section', () => {
     document.body.innerHTML = '<section id="method"></section>'
     const lenis = { scrollTo: vi.fn() }
     registerLenis(lenis)
@@ -55,7 +55,6 @@ describe('scrollToSection', () => {
     expect(lenis.scrollTo).toHaveBeenCalledWith(document.getElementById('method'), {
       immediate: true,
       force: true,
-      offset: -SECTION_OFFSET,
     })
     registerLenis(null)
   })

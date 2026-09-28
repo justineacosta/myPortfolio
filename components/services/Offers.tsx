@@ -8,7 +8,7 @@ export default function Offers() {
   const o = servicesPage.offers
   const total = String(SERVICES.length).padStart(2, '0')
   return (
-    <section id={o.id} aria-labelledby="offers-title" className="flex scroll-mt-[88px] flex-col gap-[clamp(14px,1.6cqw,20px)]">
+    <section id={o.id} aria-labelledby="offers-title" className="flex scroll-mt-[88px] shell:scroll-mt-6 flex-col gap-[clamp(14px,1.6cqw,20px)]">
       <div className="flex flex-wrap items-baseline gap-3 pt-1.5">
         <h2 id="offers-title" className="text-[clamp(18px,2.2cqw,26px)] font-semibold tracking-[-.025em]">
           {o.title}

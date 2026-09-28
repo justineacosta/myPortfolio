@@ -39,19 +39,18 @@ export function scrollToTop({ smooth }: { smooth: boolean }) {
   window.scrollTo({ top: 0, behavior: 'instant' })
 }
 
-/** Clears the sticky desktop top bar (components/shell/TopBar.tsx, about 72px) when a section lands. */
-export const SECTION_OFFSET = 88
-
 /**
  * Brings the page section `id` into view in whichever element scrolls.
  * Returns false when there is no such section. Sub-views are dialogs and
- * handle their own hashes (hooks/useHashView.ts).
+ * handle their own hashes (hooks/useHashView.ts). A section's own
+ * scroll-margin (scroll-mt) sets how much air lands above it; Lenis and the
+ * browser both honour it, so there is no second offset here.
  */
 export function scrollToSection(id: string, { smooth }: { smooth: boolean }): boolean {
   const el = id ? document.getElementById(id) : null
   if (!el || el.closest('dialog')) return false
   if (lenis) {
-    lenis.scrollTo(el, smooth ? { offset: -SECTION_OFFSET } : { immediate: true, force: true, offset: -SECTION_OFFSET })
+    lenis.scrollTo(el, smooth ? undefined : { immediate: true, force: true })
     return true
   }
   el.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' })

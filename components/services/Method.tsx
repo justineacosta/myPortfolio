@@ -46,7 +46,7 @@ export default function Method() {
       id={m.id}
       ref={ref}
       aria-label={m.label}
-      className="scroll-mt-[88px]"
+      className="scroll-mt-[88px] shell:scroll-mt-6"
       style={{ '--method-ms': `${METHOD_MS}ms` } as CSSProperties}
     >
       <Frame lit={{ x: '12%', alpha: 0.55, stop: '58%' }} className="flex flex-wrap gap-[clamp(11px,1.3cqw,18px)] p-[clamp(11px,1.3cqw,18px)]">
