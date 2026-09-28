@@ -253,3 +253,18 @@ dialog.view::backdrop{background:rgba(6,10,8,.78)}
 @media (prefers-reduced-motion:reduce){.reel{overflow-x:auto}.reel-row{animation:none}}
 html[data-a11y-motion=true] .reel{overflow-x:auto}
 html[data-a11y-motion=true] .reel-row{animation:none}
+
+/* The Kraft Method (KraftScreens.dc.html:223-240, 1112-1125): the lit gate
+   gets the accent frame, a popped icon, a brighter letter, and a spark that
+   runs its dotted top rail for as long as it stays lit. */
+@keyframes kPop{0%{transform:scale(.86)}58%{transform:scale(1.08)}100%{transform:scale(1)}}
+@keyframes kRail{0%{left:-3px;opacity:0}12%{opacity:1}88%{opacity:1}100%{left:calc(100% - 3px);opacity:0}}
+.method-step{background:linear-gradient(180deg,var(--s2),var(--s1));border:1px solid var(--b1);transition:background .5s ease,border-color .5s ease,box-shadow .5s ease}
+.method-step[data-on]{background:linear-gradient(180deg,var(--wash),var(--s1));border-color:var(--accent);box-shadow:0 22px 52px -30px var(--glow)}
+.method-rail{position:absolute;left:0;right:0;top:0;height:2px;background:repeating-linear-gradient(90deg,var(--b2) 0 3px,transparent 3px 9px)}
+.method-spark{position:absolute;top:-2px;left:-3px;width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--glow);opacity:0}
+.method-step[data-on] .method-spark{animation:kRail var(--method-ms,1.7s) linear both}
+.method-num{position:absolute;top:8px;right:14px;font-size:54px;font-weight:800;letter-spacing:-.05em;line-height:1;color:var(--wash);transition:color .5s ease}
+.method-step[data-on] .method-num{color:var(--washB)}
+.method-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:11px;background:var(--wash);border:1px solid var(--washB);color:var(--accent);transition:background .4s ease,border-color .4s ease,color .4s ease}
+.method-step[data-on] .method-icon{background:var(--accent);border-color:var(--accent);color:var(--onAccent);animation:kPop .5s cubic-bezier(.2,.8,.2,1) both}
