@@ -15,7 +15,7 @@ PRs #1–#4 each ended with a list of deferred minor items. This pass closes eve
 1. **The desktop top bar is removed.** That is the crumb ("KRAFT / 01 HOME"), "Jump to… ⌘K" and "Get in touch".
    - The Ctrl/⌘+K shortcut and the phone search buttons stay.
    - The sidebar's "Start a project" still reaches Contact.
-2. **⌘K during the Home intro** ends the intro, exactly as Esc does, then opens the palette. *(My default, since the owner redirected this question to the top bar. Change it here if you want ⌘K ignored instead.)*
+2. **⌘K during the Home intro** ends the intro, exactly as Esc does, then opens the palette. The owner confirmed this at spec review.
 3. **Back/Forward** returns to the scroll position of that history entry. A new navigation (a link, the sidebar, ⌘K) still starts at the top, or at its section.
 4. **The Showcase CTA**, while its URL is a PLACEHOLDER, looks the same but is not a link. It says "Link coming soon" to screen readers. It becomes a real link when `data/showcase.ts` gets a URL.
 5. **The share image headline** uses Geist Bold, from an OFL `.ttf` committed to the repo. No network is needed at build time.
@@ -51,14 +51,14 @@ PRs #1–#4 each ended with a list of deferred minor items. This pass closes eve
 
 **A6. Showcase CTA.** Decision 4. While `isPlaceholder(f.cta.href)`, render a `<span>` with the button's look, plus visually hidden "Link coming soon". Otherwise render the real `<a target="_blank">`. Test: unit tests for both states.
 
-**A7. The `/showcase` description** uses the page's lede, not its heading. Test: update the SEO unit test to expect the lede.
+**A7. The `/showcase` description** uses the page's lede, not its heading. While the lede is still a PLACEHOLDER it falls back to the heading, so a placeholder never reaches search results (`ledeOr` in `lib/seo.ts`). Test: unit tests for both cases.
 
 ## B. Intro hardening
 
 **B1. A time limit on the running intro.**
 - Once the overlay claims the run, a watchdog of `INTRO_MAX_MS` (in `lib/intro.ts`) calls `skip()` if the page is still held when it fires. Its value is the longest phone sequence plus a margin.
 - The body of the rAF `step` also runs inside `try/catch → skip`, so an error in a frame can't strand the page.
-- Test: unit tests with fake timers. The watchdog releases the page. A throwing frame releases it at once.
+- Test: a unit test with fake timers: the watchdog releases the page. The throwing-frame path isn't reachable in jsdom (it has no `Element.animate` and no `getTotalLength`), so the watchdog test covers that risk and the final review checks the path.
 
 **B2. ⌘K during the intro.** Decision 2. When the intro is live, the palette's key handler calls the intro's skip, then opens the palette. A small `lib/intro.ts` hook shares the skip, so the palette doesn't import the overlay. Test: an e2e check that ⌘K during the intro ends it and the palette's input has focus.
 
@@ -85,7 +85,7 @@ PRs #1–#4 each ended with a list of deferred minor items. This pass closes eve
 
 **C2. The drum pauses under the preview.** `SiteDrum` takes `paused`. While it's true, the render loop stops (no rAF is scheduled), and it resumes when it goes false. `SitesView` passes `paused={!!preview}`. Test: a unit test in the style of the existing drum tests, checking the loop stops scheduling frames while paused.
 
-**C3. WebGL contexts are released.** Both `ContourCanvas` and `SiteDrum` call `renderer.forceContextLoss()` before `dispose()` on unmount. Test: unit tests with the renderer mock, checking both calls happen, in order.
+**C3. WebGL contexts are released.** Both `ContourCanvas` and `SiteDrum` release their renderer through `lib/webgl.ts` `releaseRenderer()`: `dispose()` first, while the context can still free GPU resources, then `forceContextLoss()`. Test: a unit test of the order.
 
 **C4. Lenis after a route change.** Lenis 1.x watches its wrapper and content with a ResizeObserver (`autoResize: true`, the default), so this is expected to be fixed already. Test: an e2e check going from a short page to a long one on desktop, then scrolling to the bottom and landing on the footer. If it fails, call `lenis.resize()` in the pathname effect.
 
