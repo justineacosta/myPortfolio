@@ -163,23 +163,25 @@ html[data-a11y-motion=true] [data-reveal]{opacity:1 !important;transform:none !i
 .arc .arc-card:hover{z-index:40;border-color:var(--washB);box-shadow:0 30px 64px -24px var(--glow);transform:translate(calc(var(--x) * 1.9%),calc(var(--y) * 1.5%)) rotate(calc(var(--r) * .555deg)) translateY(-14px) scale(1.05)}
 
 /* Logo chips and shadows Kraft uses on both themes (KraftScreens.dc.html:141, 190-191) */
-:root{--logo-chip:#f7f4ee;--logo-shadow:0 2px 8px -2px rgba(0,0,0,.45);--medal-shadow:0 8px 22px -10px rgba(0,0,0,.7);--pill-shadow:0 14px 34px -14px rgba(0,0,0,.7)}
+:root{--logo-chip:#f7f4ee;--logo-shadow:0 2px 8px -2px rgba(0,0,0,.45);--pill-shadow:0 14px 34px -14px rgba(0,0,0,.7)}
 
 /* Kraft's certification medals (KraftScreens.dc.html:183-195, 1130-1149): two
-   tilted rosettes that straighten, lift and show a pill on hover. */
+   tilted badges that straighten, lift and show a pill on hover. Each badge is
+   kapeportfolio's badge.svg drawn by components/ui/CertBadge.tsx; its rings
+   use --cert-ink, which stays dark enough to read on the cream disc in both themes. */
+:root{--cert-ink:rgb(var(--amb))}
+[data-theme=light]{--cert-ink:var(--accent)}
 .medal{position:relative;display:grid;place-items:center;width:72px;height:72px;cursor:default;transform-origin:50% 85%;transform:rotate(var(--tilt));transition:transform .45s cubic-bezier(.2,.8,.2,1),margin-left .45s cubic-bezier(.2,.8,.2,1)}
 .medal:first-child{--tilt:-11deg;--pill-tilt:11deg;z-index:5}
 .medal:nth-child(2){--tilt:11deg;--pill-tilt:-11deg;z-index:4}
 .medal + .medal{margin-left:-26px}
 .medal + .medal:hover{margin-left:-14px}
 .medal:hover{transform:rotate(0deg) translateY(-10px) scale(1.1);z-index:12}
-.medal-tail{position:absolute;bottom:-20px;left:50%;width:15px;height:34px;background:linear-gradient(180deg,var(--accent),rgba(var(--amb),1));clip-path:polygon(0 0,100% 0,100% 100%,50% 72%,0 100%);transform-origin:50% 0;z-index:0}
-.medal-tail--l{transform:translateX(-118%) rotate(-15deg)}
-.medal-tail--r{transform:translateX(18%) rotate(15deg)}
-.medal-rosette{position:absolute;inset:-5px;border-radius:50%;border:6px dashed var(--accent);opacity:.9;z-index:1;transition:transform .45s cubic-bezier(.2,.8,.2,1)}
-.medal:hover .medal-rosette{transform:rotate(22deg)}
-.medal-disc{position:absolute;inset:0;border-radius:50%;background:var(--logo-chip);border:2px solid var(--accent);box-shadow:var(--medal-shadow),0 0 0 0 var(--wash);z-index:2;transition:box-shadow .4s ease}
-.medal:hover .medal-disc{box-shadow:var(--medal-shadow),0 0 0 6px var(--wash)}
+.cert-art{filter:drop-shadow(0 8px 10px rgba(0,0,0,.35))}
+.cert-halo{fill:none;stroke:var(--wash);stroke-width:0;transition:stroke-width .4s ease}
+.cert-dashes{transform-box:fill-box;transform-origin:center;transition:transform .45s cubic-bezier(.2,.8,.2,1)}
+.cert-turn:hover .cert-halo,.cert-turn:focus-visible .cert-halo{stroke-width:14}
+.cert-turn:hover .cert-dashes,.cert-turn:focus-visible .cert-dashes{transform:rotate(22deg)}
 .medal-pill{position:absolute;top:calc(100% + 12px);left:50%;display:flex;align-items:center;gap:6px;width:max-content;white-space:nowrap;padding:6px 11px;border-radius:999px;background:var(--s1);border:1px solid var(--washB);font-size:11px;font-weight:600;line-height:1.35;color:var(--ink);opacity:0;pointer-events:none;z-index:30;box-shadow:var(--pill-shadow);transform:translateX(-50%) translateY(-6px) rotate(var(--pill-tilt));transition:opacity .25s,transform .3s cubic-bezier(.2,.8,.2,1)}
 .medal:hover .medal-pill{opacity:1;transform:translateX(-50%) translateY(0) rotate(0deg)}
 
@@ -235,7 +237,7 @@ html[data-intro-live] .intro-skip{visibility:visible}
    dark stage behind the reel and site views (Kraft Projects Board.dc.html:
    137-139, 243-247, 279), and the fade under the testimonial poster
    (KraftScreens.dc.html:339). */
-:root{--danger:#C9614F;--danger-b:rgba(201,97,79,.45);--mac-r:#ED6A5E;--mac-y:#F4BF4F;--mac-g:#61C554;--veil-ink:#F1F5F2;--veil-chip:rgba(255,255,255,.08);--veil-chip-hover:rgba(255,255,255,.18);--veil-line:rgba(255,255,255,.16);--veil-deep:rgba(6,10,8,.88);--poster-fade:rgba(5,5,5,.82);--window-shadow:0 50px 120px -60px rgba(0,0,0,.95);--shot-shadow:0 40px 90px -50px rgba(0,0,0,.9);--peek-shadow:0 20px 50px -24px rgba(0,0,0,.35);--tile-shadow:0 14px 32px -20px rgba(0,0,0,.4);--tip-shadow:0 12px 30px -12px rgba(0,0,0,.6);--cert-shadow:0 3px 12px -4px rgba(0,0,0,.5);--chip-shadow:0 1px 3px rgba(0,0,0,.18)}
+:root{--danger:#C9614F;--danger-b:rgba(201,97,79,.45);--mac-r:#ED6A5E;--mac-y:#F4BF4F;--mac-g:#61C554;--veil-ink:#F1F5F2;--veil-chip:rgba(255,255,255,.08);--veil-chip-hover:rgba(255,255,255,.18);--veil-line:rgba(255,255,255,.16);--veil-deep:rgba(6,10,8,.88);--poster-fade:rgba(5,5,5,.82);--window-shadow:0 50px 120px -60px rgba(0,0,0,.95);--shot-shadow:0 40px 90px -50px rgba(0,0,0,.9);--peek-shadow:0 20px 50px -24px rgba(0,0,0,.35);--tile-shadow:0 14px 32px -20px rgba(0,0,0,.4);--tip-shadow:0 12px 30px -12px rgba(0,0,0,.6);--chip-shadow:0 1px 3px rgba(0,0,0,.18)}
 
 /* Kraft's page frame, lit by the ambient green from one edge
    (KraftScreens.dc.html:217, 276, 335, 401, 472). components/ui/Frame.tsx sets the --lit-* values. */

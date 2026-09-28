@@ -23,6 +23,14 @@ describe('About', () => {
     }
   })
 
+  it('shows each certification as a small badge.svg medal', () => {
+    render(<AboutPage />)
+    for (const name of ['AWS Cloud Practitioner Essentials', 'HackerRank Software Engineer']) {
+      const badge = screen.getByRole('img', { name }).querySelector<HTMLElement>('[data-cert-badge]')
+      expect(badge?.style.width).toBe('40px')
+    }
+  })
+
   it('shows the workstation and where Justine is based', () => {
     render(<AboutPage />)
     expect(screen.getByRole('img', { name: about.image.alt })).toBeInTheDocument()

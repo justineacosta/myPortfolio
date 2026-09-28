@@ -82,10 +82,16 @@ describe('Bento', () => {
     expect(within(t).getAllByText('PLACEHOLDER - client name')).toHaveLength(3)
   })
 
-  it('shows both certifications as medals', () => {
+  it('shows both certifications as badge.svg medals, each with its logo', () => {
     renderBento()
-    expect(screen.getByRole('img', { name: 'AWS Cloud Practitioner Essentials' })).toBeInTheDocument()
-    expect(screen.getByRole('img', { name: 'HackerRank Software Engineer' })).toBeInTheDocument()
+    for (const [name, logo] of [
+      ['AWS Cloud Practitioner Essentials', 'aws-mark.svg'],
+      ['HackerRank Software Engineer', 'hackerrank.svg'],
+    ]) {
+      const medal = screen.getByRole('img', { name })
+      expect(medal.querySelector('[data-cert-badge] img')?.getAttribute('src')).toContain(logo)
+      expect(medal.querySelector('.medal-rosette, .medal-disc, .medal-tail')).toBeNull()
+    }
     expect(screen.getByText('AWS Cloud Practitioner. HackerRank Software Engineer.')).toBeInTheDocument()
   })
 
