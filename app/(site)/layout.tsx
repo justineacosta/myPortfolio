@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import BackgroundGate from '@/components/shell/BackgroundGate'
 import { PaletteProvider } from '@/components/shell/CommandPalette'
 import { NavigationProvider } from '@/components/shell/NavigationProvider'
 import PanelContent from '@/components/shell/PanelContent'
@@ -21,7 +22,7 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
       <a href={`#${PANEL_ID}`} className="skip-link">
         Skip to main content
       </a>
-      {/* Task 10: background */}
+      <BackgroundGate />
       <SmoothScroll />
       <div className="relative z-1 shell:flex shell:h-dvh shell:overflow-hidden">
         <Sidebar />

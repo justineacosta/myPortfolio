@@ -37,3 +37,9 @@ test('phone: the document scrolls (no inner panel)', async ({ page }) => {
     .evaluate((el) => getComputedStyle(el).overflowY === 'auto')
   expect(panelScrolls).toBe(false)
 })
+
+test('phone: no contour on touch devices', async ({ page }) => {
+  await page.goto('/')
+  await page.waitForTimeout(4000)
+  await expect(page.locator('[data-contour]')).toHaveCount(0)
+})
