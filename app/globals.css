@@ -21,6 +21,7 @@
   --animate-screen-in: kScreenA .54s cubic-bezier(.22,.7,.2,1) both;
   --animate-pulse-dot: kPulse 2.6s ease-in-out infinite;
   --animate-rise: kRise .22s ease both;
+  --animate-marquee: kMarquee var(--marq,132s) linear infinite;
 }
 
 @theme inline {
@@ -53,6 +54,7 @@
   --color-fade-a: var(--fadeA);
   --color-fade-b: var(--fadeB);
   --color-scrim: var(--scrim);
+  --color-logo-chip: var(--logo-chip);
   --font-sans: var(--font-geist), system-ui, 'Helvetica Neue', sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
@@ -121,3 +123,85 @@ html[data-a11y-motion=true] [data-reveal]{opacity:1 !important;transform:none !i
 :root[data-perf=mid] *::before,:root[data-perf=low] *::before,
 :root[data-perf=mid] *::after,:root[data-perf=low] *::after{backdrop-filter:none !important;-webkit-backdrop-filter:none !important}
 :root[data-perf=low] [data-contour]{display:none}
+
+/* ---- Home (KraftScreens.dc.html:47-200) ---- */
+:root{--arc-shadow:0 18px 42px -24px rgba(0,0,0,.8)}
+.bento{background:radial-gradient(120% 110% at 74% -12%,rgba(var(--amb),.55),rgba(var(--amb),0) 56%),linear-gradient(180deg,var(--s1),var(--bg))}
+.edge-fade{mask-image:linear-gradient(90deg,transparent,#000 var(--fade,7%),#000 calc(100% - var(--fade,7%)),transparent)}
+@keyframes kMarquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+[data-marquee]:hover .animate-marquee{animation-play-state:paused}
+/* Unlayered, so it beats the layered animate-marquee shorthand regardless of utility order. */
+.marquee-reverse{animation-direction:reverse}
+
+/* Kraft's project arc (KraftScreens.dc.html:84-90, 1061-1078): a compact fan
+   at rest, wider when the card is hovered or focused, and the hovered shot
+   lifts out. Per-card geometry arrives as --x --y --r --z. */
+.arc-card{position:absolute;left:50%;bottom:26%;width:40%;margin-left:-20%;aspect-ratio:16/10;border-radius:13px;overflow:hidden;background:var(--s0);border:1px solid var(--b2);box-shadow:var(--arc-shadow);transform-origin:50% 50%;will-change:transform;z-index:var(--z);transform:translate(calc(var(--x) * 1%),calc(var(--y) * 1%)) rotate(calc(var(--r) * 1deg));transition:transform .55s cubic-bezier(.2,.7,.2,1),box-shadow .4s ease,border-color .4s ease}
+.arc:hover .arc-card,a:focus-visible .arc-card{transform:translate(calc(var(--x) * 1.9%),calc(var(--y) * 1.5%)) rotate(calc(var(--r) * 1.85deg))}
+.arc .arc-card:hover{z-index:40;border-color:var(--washB);box-shadow:0 30px 64px -24px var(--glow);transform:translate(calc(var(--x) * 1.9%),calc(var(--y) * 1.5%)) rotate(calc(var(--r) * .555deg)) translateY(-14px) scale(1.05)}
+
+/* Logo chips and shadows Kraft uses on both themes (KraftScreens.dc.html:141, 190-191) */
+:root{--logo-chip:#f7f4ee;--logo-shadow:0 2px 8px -2px rgba(0,0,0,.45);--medal-shadow:0 8px 22px -10px rgba(0,0,0,.7);--pill-shadow:0 14px 34px -14px rgba(0,0,0,.7)}
+
+/* Kraft's certification medals (KraftScreens.dc.html:183-195, 1130-1149): two
+   tilted rosettes that straighten, lift and show a pill on hover. */
+.medal{position:relative;display:grid;place-items:center;width:72px;height:72px;cursor:default;transform-origin:50% 85%;transform:rotate(var(--tilt));transition:transform .45s cubic-bezier(.2,.8,.2,1),margin-left .45s cubic-bezier(.2,.8,.2,1)}
+.medal:first-child{--tilt:-11deg;--pill-tilt:11deg;z-index:5}
+.medal:nth-child(2){--tilt:11deg;--pill-tilt:-11deg;z-index:4}
+.medal + .medal{margin-left:-26px}
+.medal + .medal:hover{margin-left:-14px}
+.medal:hover{transform:rotate(0deg) translateY(-10px) scale(1.1);z-index:12}
+.medal-tail{position:absolute;bottom:-20px;left:50%;width:15px;height:34px;background:linear-gradient(180deg,var(--accent),rgba(var(--amb),1));clip-path:polygon(0 0,100% 0,100% 100%,50% 72%,0 100%);transform-origin:50% 0;z-index:0}
+.medal-tail--l{transform:translateX(-118%) rotate(-15deg)}
+.medal-tail--r{transform:translateX(18%) rotate(15deg)}
+.medal-rosette{position:absolute;inset:-5px;border-radius:50%;border:6px dashed var(--accent);opacity:.9;z-index:1;transition:transform .45s cubic-bezier(.2,.8,.2,1)}
+.medal:hover .medal-rosette{transform:rotate(22deg)}
+.medal-disc{position:absolute;inset:0;border-radius:50%;background:var(--logo-chip);border:2px solid var(--accent);box-shadow:var(--medal-shadow),0 0 0 0 var(--wash);z-index:2;transition:box-shadow .4s ease}
+.medal:hover .medal-disc{box-shadow:var(--medal-shadow),0 0 0 6px var(--wash)}
+.medal-pill{position:absolute;top:calc(100% + 12px);left:50%;display:flex;align-items:center;gap:6px;width:max-content;white-space:nowrap;padding:6px 11px;border-radius:999px;background:var(--s1);border:1px solid var(--washB);font-size:11px;font-weight:600;line-height:1.35;color:var(--ink);opacity:0;pointer-events:none;z-index:30;box-shadow:var(--pill-shadow);transform:translateX(-50%) translateY(-6px) rotate(var(--pill-tilt));transition:opacity .25s,transform .3s cubic-bezier(.2,.8,.2,1)}
+.medal:hover .medal-pill{opacity:1;transform:translateX(-50%) translateY(0) rotate(0deg)}
+
+/* ---- Intro (kape IntroOverlay + boot.css, Kraft tokens; lib/intro.ts) ----
+   lib/boot.ts sets data-intro and data-intro-head before first paint on a
+   full load of "/". Held pieces are hidden with no transition; lib/intro.ts
+   deals them back in with one-shot animations. The overlay paints no
+   backdrop, so the contour shader drifts behind the whole sequence. */
+html[data-intro] [data-intro-hold],
+html[data-intro] [data-intro-rail] > *{opacity:0}
+html[data-intro-head] [data-intro-target]{opacity:0}
+.intro{display:none;position:fixed;inset:0;z-index:90;pointer-events:none}
+html[data-intro-head] .intro{display:block}
+.intro-skip{visibility:hidden}
+html[data-intro-live] .intro-skip{visibility:visible}
+
+/* The flying copy must be typographically identical to the Home <h1>
+   (letter-spacing, line-height, weight); the font size is copied at run time. */
+.intro-title,.intro-canvas{position:fixed;top:0;left:0;transform-origin:0 0;opacity:0;will-change:transform}
+.intro-title{font-weight:700;letter-spacing:-.035em;line-height:1.02;color:var(--ink)}
+.intro-line{display:flex;flex-wrap:wrap}
+.intro-line--accent{color:var(--accent)}
+/* Flex, not inline-block: a masked inline-block moves its baseline to its
+   bottom margin edge and drops the line. 132% clears the padded mask box. */
+.intro-word{display:block;overflow:hidden;padding:.2em 0 .08em;margin:-.2em 0 -.08em;white-space:pre}
+.intro-word-in{display:block;transform:translateY(132%);will-change:transform}
+
+.intro-cables{position:absolute;top:0;left:0;overflow:visible}
+.intro-cable{fill:none;stroke:var(--b2);stroke-width:2;stroke-linecap:round;opacity:0}
+.intro-cable--live{stroke:var(--accent);opacity:1;filter:drop-shadow(0 0 4px var(--glow))}
+.intro-node{position:absolute;width:40px;opacity:0}
+.intro-node-card{position:relative;display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:var(--s1);border:1.5px solid var(--b1);color:var(--ink3);transition:border-color .26s,background-color .26s,color .26s}
+.intro-node--trigger .intro-node-card{border-radius:20px 12px 12px 20px}
+.intro-node.is-done .intro-node-card{border-color:var(--accent);background:var(--wash);color:var(--accent)}
+.intro-port{position:absolute;top:50%;width:7px;height:7px;border-radius:50%;background:var(--s1);border:1.5px solid var(--b2);transform:translateY(-50%)}
+.intro-port--in{left:-5px}
+.intro-port--out{right:-5px}
+.intro-node--trigger .intro-port--in,.intro-node--last .intro-port--out{display:none}
+.intro-node.is-done .intro-port{border-color:var(--accent)}
+.intro-check{position:absolute;top:-6px;right:-6px;display:grid;place-items:center;width:15px;height:15px;border-radius:50%;background:var(--accent);color:var(--onAccent);box-shadow:0 0 0 2px var(--bg);opacity:0;transform:scale(.3)}
+.intro-label{position:absolute;top:46px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:8.5px;font-weight:600;letter-spacing:-.01em;color:var(--ink3);transition:color .4s}
+.intro-node.is-done .intro-label{color:var(--ink)}
+.intro-dot{position:absolute;top:0;left:0;width:8px;height:8px;margin:-4px 0 0 -4px;will-change:transform}
+.intro-dot-core{display:block;width:100%;height:100%;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px var(--wash),0 0 12px 2px var(--glow);opacity:0}
+.intro-status{position:absolute;left:0;top:82px;display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:7.5px;letter-spacing:.1em;color:var(--accent);opacity:0}
+.intro-status-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--glow);animation:kPulse 1.6s ease-in-out infinite}
+.intro-status.is-done .intro-status-dot{animation:none}

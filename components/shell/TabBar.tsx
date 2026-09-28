@@ -9,6 +9,7 @@ export default function TabBar() {
   return (
     <nav
       aria-label="Sections"
+      data-intro-hold="bar"
       className="fixed inset-x-0 bottom-0 z-30 flex items-end justify-between gap-0.5 border-t border-b1 bg-nav px-3 pt-2.5 pb-[max(18px,env(safe-area-inset-bottom))] shell:hidden"
     >
       <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-10 h-10 bg-linear-to-b from-transparent to-nav" />

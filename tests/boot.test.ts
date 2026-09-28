@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { bootScript } from '@/lib/boot'
 import { A11Y_KEY, PERF_KEY, THEME_KEY } from '@/lib/storage-keys'
 import { installMatchMedia } from '@/test/matchMedia'
@@ -59,5 +59,60 @@ describe('bootScript', () => {
     expect(run).not.toThrow()
     expect(html().dataset.theme).toBe('dark')
     spy.mockRestore()
+  })
+})
+
+describe('bootScript intro decision (spec §8)', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+    window.history.replaceState(null, '', '/')
+  })
+
+  it('holds the page for the intro on a full load of Home', () => {
+    run()
+    expect(html().hasAttribute('data-intro')).toBe(true)
+    expect(html().hasAttribute('data-intro-head')).toBe(true)
+  })
+
+  it('keeps the browser from restoring scroll mid-intro', () => {
+    history.scrollRestoration = 'auto'
+    run()
+    expect(history.scrollRestoration).toBe('manual')
+  })
+
+  it('does not hold any other route', () => {
+    window.history.replaceState(null, '', '/about')
+    run()
+    expect(html().hasAttribute('data-intro')).toBe(false)
+  })
+
+  it('skips the intro with reduced motion', () => {
+    installMatchMedia({ '(prefers-reduced-motion: reduce)': true })
+    run()
+    expect(html().hasAttribute('data-intro')).toBe(false)
+  })
+
+  it("skips the intro when the access menu's motion switch is off", () => {
+    localStorage.setItem(A11Y_KEY, JSON.stringify({ text: 'md', contrast: false, motion: true, links: false }))
+    run()
+    expect(html().hasAttribute('data-intro')).toBe(false)
+  })
+
+  it('hands the page back after 9s if the intro never starts', () => {
+    vi.useFakeTimers()
+    run()
+    vi.advanceTimersByTime(8999)
+    expect(html().hasAttribute('data-intro')).toBe(true)
+    vi.advanceTimersByTime(1)
+    expect(html().hasAttribute('data-intro')).toBe(false)
+    expect(html().hasAttribute('data-intro-head')).toBe(false)
+  })
+
+  it('leaves a claimed intro alone', () => {
+    vi.useFakeTimers()
+    run()
+    html().setAttribute('data-intro-live', '')
+    vi.advanceTimersByTime(9000)
+    expect(html().hasAttribute('data-intro')).toBe(true)
   })
 })

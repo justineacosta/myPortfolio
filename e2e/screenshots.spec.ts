@@ -1,6 +1,7 @@
 import { test } from '@playwright/test'
 import { pathToFileURL } from 'node:url'
 import path from 'node:path'
+import { settleIntro } from './helpers'
 
 const ROUTES = ['/', '/projects', '/showcase', '/services', '/testimonials', '/about', '/contact']
 const SIZES = [
@@ -22,7 +23,8 @@ test.describe('@shots', () => {
         await page.emulateMedia({ colorScheme: theme })
         for (const r of ROUTES) {
           await page.goto(r)
-          await page.waitForTimeout(2500)
+          await settleIntro(page)
+          await page.waitForTimeout(1500) // the assembly and the contour fade-in
           const slug = r === '/' ? 'home' : r.slice(1)
           await page.screenshot({ path: `test-results/shots/app-${slug}-${theme}-${size.name}.png` })
         }

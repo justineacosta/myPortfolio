@@ -8,7 +8,7 @@ import { ShellLink } from './NavigationProvider'
 export default function TopBar({ onJump }: { onJump?: () => void }) {
   const pathname = usePathname()
   return (
-    <div className="sticky top-0 z-5 hidden items-center gap-3.5 bg-linear-to-b from-fade-a via-fade-b via-65% to-transparent py-4 backdrop-blur-[8px] shell:flex">
+    <div data-intro-hold className="sticky top-0 z-5 hidden items-center gap-3.5 bg-linear-to-b from-fade-a via-fade-b via-65% to-transparent py-4 backdrop-blur-[8px] shell:flex">
       <span className="font-mono text-[10.5px] tracking-[.14em] text-ink3">KRAFT / {navForPath(pathname).hint}</span>
       <div className="ml-auto flex items-center gap-2.5">
         {onJump && (

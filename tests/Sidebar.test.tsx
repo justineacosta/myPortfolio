@@ -42,6 +42,11 @@ describe('Sidebar', () => {
     expect(gh).not.toHaveAttribute('target')
   })
 
+  it('is dealt back in row by row after the intro', () => {
+    renderSidebar()
+    expect(screen.getByRole('complementary', { name: 'Profile and site navigation' })).toHaveAttribute('data-intro-rail')
+  })
+
   it('links Start a project to Contact', () => {
     renderSidebar()
     expect(screen.getByRole('link', { name: /Start a project/ })).toHaveAttribute('href', '/contact')

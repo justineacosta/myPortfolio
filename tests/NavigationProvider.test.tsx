@@ -82,6 +82,17 @@ describe('NavigationProvider', () => {
     expect(result.current.swapping).toBe(false)
   })
 
+  it('keeps a newer click when the earlier navigation commits late', () => {
+    const { result, rerender } = setup()
+    act(() => result.current.go('/projects'))
+    act(() => vi.advanceTimersByTime(SWAP_MS)) // /projects is on its way
+    act(() => result.current.go('/about')) // the visitor clicks again before it lands
+    nav.pathname = '/projects' // the first push commits late
+    rerender()
+    act(() => vi.advanceTimersByTime(SWAP_MS))
+    expect(nav.push).toHaveBeenLastCalledWith('/about', { scroll: false })
+  })
+
   it('drops a pending navigation when the route changes before the fade ends', () => {
     const { result, rerender } = setup()
     act(() => result.current.go('/projects'))

@@ -17,6 +17,7 @@ export default function Sidebar() {
   return (
     <aside
       aria-label="Profile and site navigation"
+      data-intro-rail
       className="hidden w-(--rail) shrink-0 flex-col gap-[18px] overflow-y-auto border-r border-b1 bg-linear-to-b from-s1 to-bg px-4 pt-5 pb-4 shell:flex"
     >
       <div className="flex items-center gap-2.5">
