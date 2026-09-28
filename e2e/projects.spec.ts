@@ -132,3 +132,12 @@ test('other pages never load the Projects write-ups up front', async ({ request 
   const bodies = await Promise.all(srcs.map(async (src) => (await request.get(src)).text()))
   expect(bodies.filter((b) => b.includes('Name the outcome')).length).toBe(0)
 })
+
+test('a write-up window keeps its margin', async ({ page }) => {
+  await page.goto('/projects#build-plan')
+  await hydrated(page)
+  const view = page.getByRole('dialog', { name: 'The build plan' })
+  await expect(view).toBeVisible()
+  const pad = await view.evaluate((el) => parseFloat(getComputedStyle(el).paddingTop))
+  expect(pad).toBeGreaterThan(0)
+})

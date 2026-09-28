@@ -248,7 +248,7 @@ html[data-dialog]{overflow:hidden}
 dialog.view{position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:0;border:0;background:transparent;color:var(--ink);overflow:hidden}
 dialog.view[open]{display:flex;flex-direction:column;animation:pbFade .28s ease both}
 dialog.view::backdrop{background:rgba(6,10,8,.78)}
-.view--window{padding:clamp(10px,2.4vw,34px)}
+dialog.view--window{padding:clamp(10px,2.4vw,34px)}
 .view--stage::backdrop{background:rgba(6,10,8,.74);backdrop-filter:blur(3px)}
 @keyframes pbFade{from{opacity:0}to{opacity:1}}
 

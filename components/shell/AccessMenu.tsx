@@ -35,12 +35,13 @@ export default function AccessMenu({ size = 38, className = '' }: { size?: 38 | 
   useLayoutEffect(() => {
     const el = panel.current
     if (!open || !el || !button.current) return
-    const { top, left } = placePanel(button.current.getBoundingClientRect(), el.getBoundingClientRect(), {
+    const { top, left, maxHeight } = placePanel(button.current.getBoundingClientRect(), el.getBoundingClientRect(), {
       width: window.innerWidth,
       height: window.innerHeight,
     })
     el.style.top = `${top}px`
     el.style.left = `${left}px`
+    el.style.maxHeight = maxHeight === undefined ? '' : `${maxHeight}px`
     el.querySelector<HTMLElement>('button')?.focus()
   }, [open])
 
@@ -91,7 +92,7 @@ export default function AccessMenu({ size = 38, className = '' }: { size?: 38 | 
             id={id}
             role="dialog"
             aria-label={access.title}
-            className="fixed top-0 left-0 z-50 flex w-[min(300px,calc(100vw-32px))] animate-rise flex-col gap-3 rounded-[18px] border border-b2 bg-linear-to-b from-s2 to-s1 p-3.5 text-left text-ink shadow-(--palette-shadow)"
+            className="fixed top-0 left-0 z-50 flex w-[min(300px,calc(100vw-32px))] animate-rise flex-col overflow-y-auto gap-3 rounded-[18px] border border-b2 bg-linear-to-b from-s2 to-s1 p-3.5 text-left text-ink shadow-(--palette-shadow)"
           >
             <div className="flex items-center justify-between">
               <span className="text-[15px] font-semibold tracking-[-.01em]">{access.title}</span>
