@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import ProjectViews from '@/components/projects/ProjectViews'
 import { projects } from '@/data/projects'
-import { installMatchMedia } from '@/test/matchMedia'
+import { installMatchMedia, setMediaMatch } from '@/test/matchMedia'
 
 vi.mock('@/components/projects/SiteDrum', () => ({
   default: ({ sites: list, onOpen, onFail }: { sites: typeof sites; onOpen: (s: (typeof sites)[number]) => void; onFail: () => void }) => {
@@ -120,6 +120,14 @@ describe('Funnels and sites: the drum', () => {
     } finally {
       ;(globalThis as { drumThrows?: boolean }).drumThrows = false
     }
+  })
+
+  it('swaps the drum for the grid the moment the OS turns on reduced motion', async () => {
+    const view = openSites()
+    await within(view).findByTestId('drum')
+    act(() => setMediaMatch('(prefers-reduced-motion: reduce)', true))
+    expect(within(view).queryByTestId('drum')).toBeNull()
+    expect(within(view).getByRole('list', { name: 'Sample sites' })).toBeInTheDocument()
   })
 
   it('never loads the drum with reduced motion', () => {

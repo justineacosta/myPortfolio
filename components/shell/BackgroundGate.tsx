@@ -3,8 +3,7 @@
 import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useState } from 'react'
 import { shouldRunContour } from '@/lib/background'
-import { A11Y_EVENT } from '@/lib/a11y'
-import { prefersReducedMotion } from '@/lib/motion'
+import { onMotionChange, prefersReducedMotion } from '@/lib/motion'
 import { getPerfTier, PERF_TIER_EVENT, watchFrameHealth } from '@/lib/perf'
 
 const ContourCanvas = dynamic(() => import('./ContourCanvas'), { ssr: false })
@@ -38,13 +37,13 @@ export default function BackgroundGate() {
 
     const recheck = () => setOn(allowed())
     window.addEventListener(PERF_TIER_EVENT, recheck)
-    window.addEventListener(A11Y_EVENT, recheck)
+    const offMotion = onMotionChange(recheck)
     void watchFrameHealth()
 
     return () => {
       window.removeEventListener('load', start)
       window.removeEventListener(PERF_TIER_EVENT, recheck)
-      window.removeEventListener(A11Y_EVENT, recheck)
+      offMotion()
       if (idleId !== undefined) {
         const c = window as Window & { cancelIdleCallback?: (id: number) => void }
         if (c.cancelIdleCallback) c.cancelIdleCallback(idleId)

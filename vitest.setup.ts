@@ -22,6 +22,8 @@ installMatchMedia()
 
 afterEach(() => {
   cleanup()
+  // A query flipped in one test must never leak into the next.
+  installMatchMedia()
   const root = document.documentElement
   for (const name of Array.from(root.attributes).map((a) => a.name)) {
     if (name.startsWith('data-')) root.removeAttribute(name)

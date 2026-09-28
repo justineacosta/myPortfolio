@@ -12,6 +12,13 @@ test('desktop: switching theme keeps the canvas running', async ({ page }) => {
   await expect(page.locator('[data-contour] canvas')).toHaveCount(1)
 })
 
+test('desktop: turning on reduced motion mid-visit stops the contour', async ({ page }) => {
+  await page.goto('/about')
+  await expect(page.locator('[data-contour] canvas')).toHaveCount(1, { timeout: 10_000 })
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await expect(page.locator('[data-contour] canvas')).toHaveCount(0)
+})
+
 test.describe('reduced motion', () => {
   test.use({ reducedMotion: 'reduce' })
   test('no contour at all', async ({ page }) => {
