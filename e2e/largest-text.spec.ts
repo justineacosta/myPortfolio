@@ -16,6 +16,7 @@ test.beforeEach(async ({ page }) => {
 
 for (const width of [1440, 320]) {
   test(`largest text at ${width}px: every page fits and shows its heading`, async ({ page }) => {
+    test.setTimeout(90_000) // eleven pages in one test
     await page.setViewportSize({ width, height: 900 })
     for (const r of ROUTES) {
       await page.goto(r)

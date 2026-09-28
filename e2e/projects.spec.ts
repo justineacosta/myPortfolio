@@ -47,7 +47,16 @@ test('the page behind an open view does not scroll', async ({ page }) => {
   const panel = page.locator('#main-content')
   await page.getByRole('link', { name: /^AI agents and RAG chatbots/ }).click()
   await expect(page.getByRole('dialog', { name: 'AI agents and RAG chatbots' })).toBeVisible()
-  const before = await panel.evaluate((el) => el.scrollTop)
+  // Playwright scrolled the card into view to click it; let that smooth scroll finish first.
+  const y = () => panel.evaluate((el) => el.scrollTop)
+  await expect
+    .poll(async () => {
+      const a = await y()
+      await page.waitForTimeout(150)
+      return (await y()) - a
+    })
+    .toBe(0)
+  const before = await y()
   await page.mouse.move(720, 450)
   for (let i = 0; i < 6; i++) await page.mouse.wheel(0, 600)
   await page.waitForTimeout(400)

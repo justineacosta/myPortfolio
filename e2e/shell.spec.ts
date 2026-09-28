@@ -6,6 +6,7 @@ const sidebarNav = (page: import('@playwright/test').Page) =>
   page.getByRole('complementary', { name: 'Profile and site navigation' }).getByRole('navigation', { name: 'Sections' })
 
 test('every shell route renders without console or page errors', async ({ page }) => {
+  test.setTimeout(60_000) // one test, many pages: the default 30s is per test
   const errors: string[] = []
   page.on('console', (m) => m.type() === 'error' && errors.push(m.text()))
   page.on('pageerror', (e) => errors.push(e.message))

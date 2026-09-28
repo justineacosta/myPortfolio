@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test'
 const PAGES = ['/', '/projects', '/showcase', '/services', '/testimonials', '/about', '/contact', '/privacy', '/terms']
 
 test('every page has its own title, description, canonical link and share image', async ({ page }) => {
+  test.setTimeout(60_000) // one test, many pages: the default 30s is per test
   const titles = new Set<string>()
   for (const p of PAGES) {
     await page.goto(p)
