@@ -1,7 +1,7 @@
-import Image from 'next/image'
 import { CheckCircleIcon, SealCheckIcon } from '@phosphor-icons/react/ssr'
 import { CERTS } from '@/data/credentials'
 import { home } from '@/data/home'
+import CertBadge from '@/components/ui/CertBadge'
 import HomeCard from './HomeCard'
 
 export default function CredentialsCard() {
@@ -11,12 +11,8 @@ export default function CredentialsCard() {
       <p className="-mt-0.5 mb-0.5 text-[13px] leading-normal text-ink3">{c.body}</p>
       <div className="relative flex items-end justify-center rounded-[13px] border border-b1 bg-s0 px-3.5 pt-[26px] pb-[60px]">
         {CERTS.map((cert) => (
-          <span key={cert.name} role="img" aria-label={cert.name} className="medal">
-            <span aria-hidden className="medal-tail medal-tail--l" />
-            <span aria-hidden className="medal-tail medal-tail--r" />
-            <span aria-hidden className="medal-rosette" />
-            <span aria-hidden className="medal-disc" />
-            <Image src={cert.icon} alt="" width={32} height={32} className="relative z-3 block size-8 object-contain" />
+          <span key={cert.name} role="img" aria-label={cert.name} className="medal cert-turn">
+            <CertBadge icon={cert.icon} size={72} />
             <span aria-hidden className="medal-pill">
               <CheckCircleIcon size={13} className="shrink-0 text-accent" />
               {cert.pill}
