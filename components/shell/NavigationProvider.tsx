@@ -14,7 +14,8 @@ import {
   type ReactNode,
 } from 'react'
 import { prefersReducedMotion } from '@/lib/motion'
-import { scrollToTop } from '@/lib/scroller'
+import { currentHash, pushHash, splitHref } from '@/lib/hash'
+import { scrollToSection, scrollToTop } from '@/lib/scroller'
 
 /**
  * Kraft's screen change (Kraft Portfolio.dc.html:676-694): the outgoing page
@@ -58,20 +59,25 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   const go = useCallback(
     (href: string) => {
       window.clearTimeout(timer.current)
-      if (href === pathname) {
+      const { path, hash } = splitHref(href)
+      if (path === pathname) {
+        // No route change is coming, so there is nothing to fade out for:
+        // a hash names a section (scrolled to below) or a sub-view (it opens).
         setPending(null)
-        scrollToTop({ smooth: true })
+        if (hash) pushHash(hash)
+        else scrollToTop({ smooth: true })
         return
       }
+      // `pushed` holds the path: usePathname() never includes the hash.
       if (prefersReducedMotion()) {
         setPending(null)
-        pushed.current = href
+        pushed.current = path
         router.push(href, { scroll: false })
         return
       }
       setPending({ href, from: pathname })
       timer.current = window.setTimeout(() => {
-        pushed.current = href
+        pushed.current = path
         router.push(href, { scroll: false })
       }, SWAP_MS)
     },
@@ -86,7 +92,16 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
     if (pathname !== pushed.current) window.clearTimeout(timer.current)
     pushed.current = null
     scrollToTop({ smooth: false })
+    // A ⌘K section on another page lands on the section, not the top.
+    scrollToSection(currentHash(), { smooth: false })
   }, [pathname])
+
+  // A section hash on this page (⌘K, or Back/Forward between sections).
+  useEffect(() => {
+    const onHash = () => scrollToSection(currentHash(), { smooth: !prefersReducedMotion() })
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [])
 
   useEffect(() => () => window.clearTimeout(timer.current), [])
 
