@@ -6,6 +6,7 @@ import PhoneControls from '@/components/shell/PhoneControls'
 import TabBar from '@/components/shell/TabBar'
 import ShellTopBar from '@/components/shell/ShellTopBar'
 import Sidebar from '@/components/shell/Sidebar'
+import SmoothScroll from '@/components/shell/SmoothScroll'
 import { PANEL_ID } from '@/lib/scroller'
 
 /**
@@ -21,7 +22,7 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
         Skip to main content
       </a>
       {/* Task 10: background */}
-      {/* Task 8: scroll */}
+      <SmoothScroll />
       <div className="relative z-1 shell:flex shell:h-dvh shell:overflow-hidden">
         <Sidebar />
         <main

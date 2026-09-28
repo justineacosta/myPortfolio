@@ -1,0 +1,41 @@
+import { expect, test } from '@playwright/test'
+
+test('Lenis drives the panel on desktop and the wheel scrolls it', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.locator('.lenis')).toHaveCount(1)
+  const panel = page.locator('#main-content')
+  await panel.evaluate((el) => {
+    const spacer = document.createElement('div')
+    spacer.style.height = '3000px'
+    el.firstElementChild!.appendChild(spacer)
+  })
+  await page.mouse.move(900, 450)
+  // Lenis re-measures content ~250ms after it grows (debounced resize observer), so keep wheeling.
+  await expect
+    .poll(async () => {
+      await page.mouse.wheel(0, 300)
+      return panel.evaluate((el) => el.scrollTop)
+    })
+    .toBeGreaterThan(0)
+})
+
+test('Lenis is torn down below 1100px', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.locator('.lenis')).toHaveCount(1)
+  await page.setViewportSize({ width: 900, height: 900 })
+  await expect(page.locator('.lenis')).toHaveCount(0)
+})
+
+test.describe('reduced motion', () => {
+  test.use({ reducedMotion: 'reduce' })
+  test('no Lenis and reveals are visible immediately', async ({ page }) => {
+    await page.goto('/projects')
+    await expect(page.locator('.lenis')).toHaveCount(0)
+    await expect(page.locator('[data-reveal]').first()).toHaveCSS('opacity', '1')
+  })
+})
+
+test('placeholder reveal becomes visible', async ({ page }) => {
+  await page.goto('/about')
+  await expect(page.locator('[data-reveal]').first()).toHaveClass(/is-revealed/)
+})
