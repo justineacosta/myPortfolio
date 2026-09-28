@@ -43,6 +43,9 @@ export function PaletteProvider({ children }: { children: ReactNode }) {
       if (e.isComposing) return
       if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'k') {
         e.preventDefault()
+        // A sub-view (components/ui/ViewDialog.tsx) owns the screen and makes
+        // the rest inert: a palette opened now would sit, unusable, behind it.
+        if (document.documentElement.hasAttribute('data-dialog')) return
         if (open) closePalette()
         else openPalette()
       }

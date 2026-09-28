@@ -108,4 +108,12 @@ describe('CommandPalette', () => {
     for (let i = 0; i < 12; i++) await user.tab()
     expect(dialog()!.contains(document.activeElement)).toBe(true)
   })
+
+  it('stays shut while a sub-view is open (the modal owns the screen)', async () => {
+    const user = userEvent.setup()
+    setup()
+    document.documentElement.setAttribute('data-dialog', '')
+    await user.keyboard('{Control>}k{/Control}')
+    expect(dialog()).toBeNull()
+  })
 })
