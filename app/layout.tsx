@@ -1,7 +1,11 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { Geist, Geist_Mono } from 'next/font/google'
+import { home } from '@/data/home'
+import { profile } from '@/data/profile'
 import { bootScript } from '@/lib/boot'
+import { OG_BASE, SITE_NAME } from '@/lib/seo'
+import { SITE_URL } from '@/lib/site'
 import 'lenis/dist/lenis.css'
 import './globals.css'
 
@@ -9,9 +13,13 @@ const geist = Geist({ subsets: ['latin'], variable: '--font-geist' })
 const geistMono = Geist_Mono({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-geist-mono' })
 
 export const metadata: Metadata = {
-  title: { default: 'Justine Acosta · Kraft', template: '%s · Kraft' },
-  description:
-    'Full-stack development, AI automation and workflow systems — built to keep running long after launch day.',
+  metadataBase: new URL(SITE_URL),
+  title: { default: SITE_NAME, template: '%s · Kraft' },
+  description: home.lede,
+  applicationName: 'Kraft',
+  authors: [{ name: profile.name }],
+  openGraph: { ...OG_BASE, title: SITE_NAME, description: home.lede },
+  twitter: { card: 'summary_large_image' },
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {

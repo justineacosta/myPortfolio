@@ -20,8 +20,7 @@ test('Home cards open their pages', async ({ page }) => {
 test('every Home logo and image loads from this site', async ({ page }) => {
   const bad: string[] = []
   page.on('response', (r) => {
-    // The favicon arrives with the SEO work in Phase 4.
-    if (r.status() >= 400 && !r.url().endsWith('/favicon.ico')) bad.push(`${r.status()} ${r.url()}`)
+    if (r.status() >= 400) bad.push(`${r.status()} ${r.url()}`)
   })
   const offsite: string[] = []
   page.on('request', (r) => {

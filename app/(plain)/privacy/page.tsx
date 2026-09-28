@@ -1,8 +1,8 @@
-import type { Metadata } from 'next'
 import LegalDoc from '@/components/plain/LegalDoc'
 import { legal } from '@/data/legal'
+import { pageMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = { title: legal.privacy.title, description: legal.privacy.description }
+export const metadata = pageMetadata('/privacy', legal.privacy.description, legal.privacy.title)
 
 export default function Page() {
   return <LegalDoc doc={legal.privacy} />

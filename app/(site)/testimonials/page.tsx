@@ -1,9 +1,9 @@
-import type { Metadata } from 'next'
 import Testimonials from '@/components/testimonials/Testimonials'
 import PageHeader from '@/components/ui/PageHeader'
 import { testimonialsPage } from '@/data/testimonials'
+import { pageMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = { title: 'Testimonials' }
+export const metadata = pageMetadata('/testimonials', testimonialsPage.lede)
 
 export default function Page() {
   return (

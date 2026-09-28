@@ -1,11 +1,11 @@
-import type { Metadata } from 'next'
 import Feedback from '@/components/showcase/Feedback'
 import Flagship from '@/components/showcase/Flagship'
 import Frame from '@/components/ui/Frame'
 import PageHeader from '@/components/ui/PageHeader'
 import { showcase } from '@/data/showcase'
+import { pageMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = { title: 'Showcase' }
+export const metadata = pageMetadata('/showcase', showcase.title.join(' '))
 
 export default function Page() {
   return (
