@@ -10,7 +10,7 @@ test('phone: tab bar replaces the sidebar', async ({ page }) => {
 
 test('phone: Start goes to contact', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('link', { name: 'Start a project' }).tap()
+  await page.getByRole('navigation', { name: 'Sections' }).getByRole('link', { name: 'Start a project' }).tap()
   await expect(page).toHaveURL(/\/contact$/)
 })
 
@@ -42,4 +42,13 @@ test('phone: no contour on touch devices', async ({ page }) => {
   await page.goto('/')
   await page.waitForTimeout(4000)
   await expect(page.locator('[data-contour]')).toHaveCount(0)
+})
+
+test('phone: Home opens with the profile header instead of floating controls', async ({ page }) => {
+  await page.goto('/')
+  const header = page.locator('[data-home-profile]')
+  await expect(header).toBeVisible()
+  await expect(header.getByText('Justine Acosta')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Toggle dark and light mode' })).toHaveCount(1)
+  await expect(page.getByRole('button', { name: 'Open command palette' })).toHaveCount(1)
 })

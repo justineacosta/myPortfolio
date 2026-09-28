@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { hydrated } from './helpers'
 
 const ROUTES = ['/', '/projects', '/showcase', '/services', '/testimonials', '/about', '/contact']
 const sidebarNav = (page: import('@playwright/test').Page) =>
@@ -41,6 +42,7 @@ test('navigation resets the panel scroll to the top', async ({ page }) => {
 
 test('two rapid clicks: the last one wins and the content is visible', async ({ page }) => {
   await page.goto('/')
+  await hydrated(page)
   await sidebarNav(page).getByRole('link', { name: /^Projects/ }).click()
   await sidebarNav(page).getByRole('link', { name: /^About/ }).click()
   await expect(page).toHaveURL(/\/about$/)

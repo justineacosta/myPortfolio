@@ -30,7 +30,7 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
           id={PANEL_ID}
           tabIndex={-1}
           data-scroll
-          className="min-w-0 flex-1 px-4 pt-16 pb-[120px] outline-none shell:overflow-x-hidden shell:overflow-y-auto shell:px-(--deskpad) shell:pt-0 shell:pb-[72px]"
+          className="min-w-0 flex-1 px-4 pt-16 pb-[120px] outline-none max-shell:has-[[data-home-profile]]:pt-4 shell:overflow-x-hidden shell:overflow-y-auto shell:px-(--deskpad) shell:pt-0 shell:pb-[72px]"
         >
           <div>
             <ShellTopBar />

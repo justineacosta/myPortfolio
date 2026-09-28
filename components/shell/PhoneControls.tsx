@@ -1,12 +1,15 @@
 'use client'
 
+import { usePathname } from 'next/navigation'
 import { MagnifyingGlassIcon } from '@phosphor-icons/react/ssr'
 import { usePalette } from './CommandPalette'
 import ThemeButton from './ThemeButton'
 
-/** Theme and ⌘K on phones, floating top-right (spec §7). */
+/** Theme and ⌘K on phones, floating top-right, except on Home, whose profile header carries them (spec §7). */
 export default function PhoneControls() {
   const { openPalette } = usePalette()
+  const pathname = usePathname()
+  if (pathname === '/') return null
   return (
     <div className="fixed top-[max(12px,env(safe-area-inset-top))] right-3.5 z-30 flex gap-2 shell:hidden">
       <ThemeButton size={40} />
