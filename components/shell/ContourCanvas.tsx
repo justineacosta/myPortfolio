@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { readContourColors, type RGB } from '@/lib/color'
 import { THEME_EVENT } from '@/lib/theme'
+import { releaseRenderer } from '@/lib/webgl'
 
 // kape HeroCanvasV2: two-layer simplex contour field (technique credit: landonorris.com by OFF+BRAND;
 // simplex noise by Ashima Arts / Ian McEwan, MIT). noiseGLSL and vert are kape's, verbatim.
@@ -216,7 +217,7 @@ export default function ContourCanvas({ onFail }: { onFail: () => void }) {
       window.removeEventListener('resize', onResize)
       window.removeEventListener(THEME_EVENT, onTheme)
       renderer.domElement.removeEventListener('webglcontextlost', onLost)
-      renderer.dispose()
+      releaseRenderer(renderer)
       if (el.contains(renderer.domElement)) el.removeChild(renderer.domElement)
       geo.dispose()
       mat.dispose()

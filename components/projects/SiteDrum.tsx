@@ -4,8 +4,9 @@ import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { projects, type Site } from '@/data/projects'
 import { cardLook, drumLayout, slotOrder, wrapY } from '@/lib/drum'
+import { releaseRenderer } from '@/lib/webgl'
 
-type Props = { sites: Site[]; onOpen: (site: Site) => void; onFail: () => void }
+type Props = { sites: Site[]; onOpen: (site: Site) => void; onFail: () => void; paused?: boolean }
 type Card = { site: Site; baseY: number; baseAngle: number; hot: number; dim: number }
 
 /**
@@ -17,13 +18,13 @@ type Card = { site: Site; baseY: number; baseAngle: number; hot: number; dim: nu
  * It loads only when the sites view opens and WebGL is allowed
  * (hooks/useWebGLAllowed.ts). If WebGL fails to start, or loses its context,
  * `onFail` hands the view back to the grid. The rendering stops while the
- * view is off screen or the tab is hidden.
+ * view is off screen, the tab is hidden, or a preview covers it.
  *
  * The canvas is hidden from assistive tech. The site list below it carries
  * the same pages as real buttons (spec §11). It is invisible until one of its
  * buttons holds keyboard focus.
  */
-export default function SiteDrum({ sites, onOpen, onFail }: Props) {
+export default function SiteDrum({ sites, onOpen, onFail, paused = false }: Props) {
   const s = projects.sitesView
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -36,6 +37,13 @@ export default function SiteDrum({ sites, onOpen, onFail }: Props) {
     onOpenRef.current = onOpen
     onFailRef.current = onFail
   })
+  // A preview stacked on top hides the drum: stop drawing it, and pick up where it was when it shows again.
+  const pausedRef = useRef(paused)
+  const kickRef = useRef<() => void>(() => {})
+  useEffect(() => {
+    pausedRef.current = paused
+    if (!paused) kickRef.current()
+  }, [paused])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -231,7 +239,7 @@ export default function SiteDrum({ sites, onOpen, onFail }: Props) {
     let running = false
     let onScreen = true
     const frame = () => {
-      if (document.hidden || !onScreen) {
+      if (document.hidden || !onScreen || pausedRef.current) {
         running = false
         return
       }
@@ -272,6 +280,7 @@ export default function SiteDrum({ sites, onOpen, onFail }: Props) {
       clock.getDelta() // drop the time spent asleep
       raf = requestAnimationFrame(frame)
     }
+    kickRef.current = kick
     const io = new IntersectionObserver(
       (entries) => {
         onScreen = entries[0]?.isIntersecting ?? true
@@ -302,7 +311,8 @@ export default function SiteDrum({ sites, onOpen, onFail }: Props) {
       roundTex.dispose()
       mats.forEach((m) => m.dispose())
       textures.forEach((t) => t.dispose())
-      renderer.dispose()
+      kickRef.current = () => {}
+      releaseRenderer(renderer)
     }
   }, [sites])
 
