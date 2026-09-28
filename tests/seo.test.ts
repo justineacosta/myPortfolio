@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import robots from '@/app/robots'
 import sitemap from '@/app/sitemap'
 import { jsonLd, personJsonLd } from '@/lib/jsonld'
-import { INDEXED_PATHS, pageMetadata, SITE_NAME } from '@/lib/seo'
+import { INDEXED_PATHS, ledeOr, pageMetadata, SITE_NAME } from '@/lib/seo'
 import { SITE_URL, siteUrl } from '@/lib/site'
 import { readTokens } from '@/lib/tokens'
 import { SHARE_ALT, SHARE_SIZE } from '@/lib/share-meta'
@@ -79,5 +79,14 @@ describe('share image', () => {
     expect(font).toMatchObject({ name: 'Geist Bold', weight: 700, style: 'normal' })
     expect(font.data.readUInt32BE(0)).toBe(0x00010000)
     expect(font.data.length).toBeGreaterThan(30_000)
+  })
+})
+
+describe('ledeOr', () => {
+  it('uses the lede once it is real', () => {
+    expect(ledeOr('A real line.', 'Heading')).toBe('A real line.')
+  })
+  it('never lets a PLACEHOLDER reach search results', () => {
+    expect(ledeOr('PLACEHOLDER - one line', 'Heading')).toBe('Heading')
   })
 })

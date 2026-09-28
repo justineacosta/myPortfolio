@@ -29,7 +29,7 @@ export const showcase = {
     eyebrow: 'FLAGSHIP BUILD',
     name: 'PLACEHOLDER - product name',
     desc: 'PLACEHOLDER - two to four sentences on your flagship product: who it is for, the main things it does, and one detail on how you built or run it (stack, hosting, how many people use it).',
-    cta: { label: 'Open product', href: 'PLACEHOLDER - product URL' },
+    cta: { label: 'Open product', href: 'PLACEHOLDER - product URL', soon: 'Link coming soon' },
     /** Shown in the mock's address bar; decorative. */
     host: 'yourproduct.com',
     tabsLabel: 'Product screens',

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { legalLinks } from '@/data/legal'
 import { NAV, navForPath } from '@/data/nav'
+import { isPlaceholder } from './placeholder'
 import { SHARE_ALT, SHARE_SIZE } from './share-meta'
 
 export const SITE_NAME = 'Justine Acosta · Kraft'
@@ -26,4 +27,9 @@ export function pageMetadata(href: string, description: string, label?: string):
     openGraph: { ...OG_BASE, title: full, description, url: href, images: [{ url: '/opengraph-image', ...SHARE_SIZE, alt: SHARE_ALT }] },
     twitter: { card: 'summary_large_image', title: full, description, images: [{ url: '/twitter-image', ...SHARE_SIZE, alt: SHARE_ALT }] },
   }
+}
+
+/** A page's meta description: its lede, or `fallback` while the lede is still a PLACEHOLDER. */
+export function ledeOr(lede: string, fallback: string): string {
+  return isPlaceholder(lede) ? fallback : lede
 }

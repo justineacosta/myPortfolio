@@ -1,10 +1,9 @@
 'use client'
 
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react'
-import { ArrowSquareOutIcon } from '@phosphor-icons/react/ssr'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { showcase, TABS } from '@/data/showcase'
-import { isPlaceholder } from '@/lib/placeholder'
+import Cta from './Cta'
 import Mock from './Mock'
 
 /**
@@ -37,7 +36,6 @@ export default function Flagship() {
 
   const running = !still && !hover && !focus && inView
   const tab = TABS[active]
-  const cta = isPlaceholder(f.cta.href) ? '#' : f.cta.href
 
   const onKey = (e: KeyboardEvent<HTMLButtonElement>, i: number) => {
     const n = TABS.length
@@ -55,13 +53,7 @@ export default function Flagship() {
         <span className="font-mono text-[10px] tracking-[.16em] text-accent">{f.eyebrow}</span>
         <h2 className="text-[clamp(26px,3.4cqw,44px)] leading-[1.05] font-bold tracking-[-.03em]">{f.name}</h2>
         <p className="max-w-[46ch] text-[14px] leading-[1.6] text-ink2">{f.desc}</p>
-        <a
-          href={cta}
-          {...(cta === '#' ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
-          className="mt-1 flex min-h-12 items-center gap-2 rounded-[13px] bg-accent px-[22px] py-[13px] text-sm font-semibold text-on-accent transition-[translate,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_40px_-14px_var(--glow)]"
-        >
-          {f.cta.label} <ArrowSquareOutIcon size={16} aria-hidden />
-        </a>
+        <Cta label={f.cta.label} href={f.cta.href} soon={f.cta.soon} />
       </div>
 
       <div
