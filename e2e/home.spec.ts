@@ -60,3 +60,30 @@ test('the wheel over the services row scrolls it sideways, then hands back to th
     })
     .toBeLessThan(before)
 })
+
+/** On-screen angle, in degrees, of a badge part (CSS transforms included). */
+const angles = (page: import('@playwright/test').Page, part: string) =>
+  page.locator(`[data-cert-badge] ${part}`).evaluateAll((els) =>
+    els.map((el) => {
+      const m = (el as SVGGraphicsElement).getScreenCTM()!
+      return Math.round((Math.atan2(m.b, m.a) * 180) / Math.PI) + 0 // no -0
+    }),
+  )
+
+test('the credential medals tilt, but their ribbons always hang straight down', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('/')
+  await hydrated(page)
+  expect(await angles(page, '[data-cert-ring]')).toEqual([-11, 11])
+  expect(await angles(page, '[data-cert-ribbon]')).toEqual([0, 0])
+  await page.getByRole('img', { name: 'HackerRank Software Engineer' }).hover()
+  await page.waitForTimeout(700)
+  expect(await angles(page, '[data-cert-ribbon]')).toEqual([0, 0])
+
+  await page.goto('/about')
+  await hydrated(page)
+  await page.getByRole('img', { name: 'AWS Cloud Practitioner Essentials' }).hover()
+  await page.waitForTimeout(700)
+  expect(await angles(page, '[data-cert-ring]')).toEqual([-5, 0])
+  expect(await angles(page, '[data-cert-ribbon]')).toEqual([0, 0])
+})

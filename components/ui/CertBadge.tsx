@@ -7,10 +7,11 @@ const RING_R = 32
 /**
  * A certification medal in the shape of kapeportfolio's badge.svg
  * (reference/kapeportfolio/public/placeholders/badge.svg): a medallion with a
- * dashed inner ring and a ribbon, coloured from Kraft's tokens, with the logo
- * where the placeholder's "YOUR BADGE" text was. The box is the medallion; the
- * ribbon hangs below it without taking layout room. Purely a picture: the
- * caller names it.
+ * dashed inner ring and a ribbon (widened from 28/44 to 36/56), coloured from
+ * Kraft's tokens, with the logo where the placeholder's "YOUR BADGE" text was.
+ * The box is the medallion; the ribbon hangs below it without taking layout
+ * room, and turns back by the caller's --cert-tilt so it always hangs straight
+ * down. Purely a picture: the caller names it.
  */
 export default function CertBadge({ icon, size }: { icon: string; size: number }) {
   const ribbon = `cert-ribbon-${useId()}`
@@ -32,7 +33,7 @@ export default function CertBadge({ icon, size }: { icon: string; size: number }
             <stop offset="1" style={{ stopColor: 'rgb(var(--amb))' }} />
           </linearGradient>
         </defs>
-        <path data-cert-ribbon d="M34 60 26 90l22-10 22 10-8-30z" fill={`url(#${ribbon})`} />
+        <path data-cert-ribbon className="cert-ribbon" d="M30 60 20 90l28-10 28 10-10-30z" fill={`url(#${ribbon})`} />
         <circle className="cert-halo" cx="48" cy="40" r={RING_R} />
         <circle data-cert-ring cx="48" cy="40" r={RING_R} strokeWidth="3" style={{ fill: 'var(--logo-chip)', stroke: 'var(--cert-ink)' }} />
         <circle

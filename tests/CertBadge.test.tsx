@@ -3,13 +3,13 @@ import { render } from '@testing-library/react'
 import CertBadge from '@/components/ui/CertBadge'
 
 describe('CertBadge (kapeportfolio badge.svg, in Kraft colours)', () => {
-  it("draws badge.svg's medallion, dashed ring and ribbon, with the logo inside", () => {
+  it("draws badge.svg's medallion, dashed ring and a wider ribbon (36 at the top, 56 at the tips), with the logo inside", () => {
     const { container } = render(<CertBadge icon="/assets/aws-mark.svg" size={72} />)
     const badge = container.querySelector('[data-cert-badge]')!
     expect(badge).toHaveAttribute('aria-hidden', 'true')
     expect(badge.querySelector('circle[data-cert-ring]')).toHaveAttribute('r', '32')
     expect(badge.querySelector('circle[data-cert-dashes]')).toHaveAttribute('stroke-dasharray', '4 4')
-    expect(badge.querySelector('path[data-cert-ribbon]')).toHaveAttribute('d', 'M34 60 26 90l22-10 22 10-8-30z')
+    expect(badge.querySelector('path[data-cert-ribbon]')).toHaveAttribute('d', 'M30 60 20 90l28-10 28 10-10-30z')
     expect(badge.querySelector('img')?.getAttribute('src')).toContain('aws-mark.svg')
   })
 
