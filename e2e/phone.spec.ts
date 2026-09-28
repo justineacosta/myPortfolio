@@ -53,6 +53,7 @@ test('phone: Home opens with the profile header instead of floating controls', a
   await expect(header.getByText('Justine Acosta')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Toggle dark and light mode' })).toHaveCount(1)
   await expect(page.getByRole('button', { name: 'Open command palette' })).toHaveCount(1)
+  await expect(page.getByRole('button', { name: 'Accessibility options' })).toHaveCount(1)
 })
 
 test('phone: the intro lands exactly on the Home h1', async ({ page }) => {
@@ -143,4 +144,18 @@ test('phone: an open view fills the screen and holds the page still', async ({ p
   for (let i = 0; i < 4; i++) await page.mouse.wheel(0, 700)
   await page.waitForTimeout(300)
   expect(await page.evaluate(() => window.scrollY)).toBe(y)
+})
+
+test('phone: the largest text never scrolls sideways', async ({ page }) => {
+  await page.goto('/about')
+  await hydrated(page)
+  await page.getByRole('button', { name: 'Accessibility options' }).tap()
+  await page.getByRole('dialog', { name: 'Accessibility' }).getByRole('button', { name: 'Largest text' }).tap()
+  for (const r of ['/', '/projects', '/services', '/about', '/contact']) {
+    await page.goto(r)
+    await settleIntro(page)
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
+    expect(overflow, r).toBeLessThanOrEqual(0)
+  }
 })

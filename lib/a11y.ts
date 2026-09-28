@@ -3,7 +3,7 @@ import { A11Y_KEY } from './storage-keys'
 /**
  * Accessibility switches (spec §6, §11). Each lands on <html> as a
  * data-a11y-* attribute, is remembered in localStorage, and is re-applied
- * before first paint by lib/boot.ts. The AccessMenu UI arrives in Phase 4.
+ * before first paint by lib/boot.ts. The AccessMenu (components/shell/AccessMenu.tsx) is their UI.
  */
 export type TextSize = 'md' | 'lg' | 'xl'
 export type A11yPrefs = { text: TextSize; contrast: boolean; motion: boolean; links: boolean }
@@ -51,4 +51,15 @@ export function savePrefs(p: A11yPrefs) {
 
 export function motionReduced(): boolean {
   return document.documentElement.dataset.a11yMotion === 'true'
+}
+
+/** What is applied right now (the <html> attributes). It stays true even when storage is blocked. */
+export function currentPrefs(): A11yPrefs {
+  const d = document.documentElement.dataset
+  return {
+    text: d.a11yText === 'lg' || d.a11yText === 'xl' ? d.a11yText : 'md',
+    contrast: d.a11yContrast === 'true',
+    motion: d.a11yMotion === 'true',
+    links: d.a11yLinks === 'true',
+  }
 }

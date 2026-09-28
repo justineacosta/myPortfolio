@@ -6,6 +6,7 @@ import { ArrowRightIcon, SealCheckIcon } from '@phosphor-icons/react/ssr'
 import { isActivePath, NAV } from '@/data/nav'
 import { profile } from '@/data/profile'
 import { isPlaceholder } from '@/lib/placeholder'
+import AccessMenu from './AccessMenu'
 import ManilaClock from './ManilaClock'
 import MagnetLink from './MagnetLink'
 import { ShellLink } from './NavigationProvider'
@@ -18,6 +19,7 @@ export default function Sidebar() {
     <aside
       aria-label="Profile and site navigation"
       data-intro-rail
+      data-a11y-scale
       className="hidden w-(--rail) shrink-0 flex-col gap-[18px] overflow-y-auto border-r border-b1 bg-linear-to-b from-s1 to-bg px-4 pt-5 pb-4 shell:flex"
     >
       <div className="flex items-center gap-2.5">
@@ -67,6 +69,7 @@ export default function Sidebar() {
             )
           })}
           <ThemeButton />
+          <AccessMenu />
         </div>
       </div>
 

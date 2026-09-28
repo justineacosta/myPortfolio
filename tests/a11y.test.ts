@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { A11Y_EVENT, DEFAULT_PREFS, motionReduced, readPrefs, savePrefs } from '@/lib/a11y'
+import { A11Y_EVENT, currentPrefs, DEFAULT_PREFS, motionReduced, readPrefs, savePrefs } from '@/lib/a11y'
 import { A11Y_KEY } from '@/lib/storage-keys'
 
 describe('a11y prefs', () => {
@@ -30,6 +30,14 @@ describe('a11y prefs', () => {
     })
     expect(() => savePrefs({ ...DEFAULT_PREFS, contrast: true })).not.toThrow()
     expect(document.documentElement.dataset.a11yContrast).toBe('true')
+    spy.mockRestore()
+  })
+  it('currentPrefs reads what is applied, even when nothing could be stored', () => {
+    const spy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('blocked', 'SecurityError')
+    })
+    savePrefs({ text: 'xl', contrast: true, motion: false, links: true })
+    expect(currentPrefs()).toEqual({ text: 'xl', contrast: true, motion: false, links: true })
     spy.mockRestore()
   })
 })
