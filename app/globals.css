@@ -244,3 +244,12 @@ dialog.view::backdrop{background:rgba(6,10,8,.78)}
 
 /* Projects board (Kraft Projects Board.dc.html:44-46): the "click a card" pill bobs on the frame's top edge. */
 @keyframes pbNudge{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+
+/* Kraft's workflow reel (Kraft Projects Board.dc.html:250): the doubled row
+   marches left; hovering or focusing it pauses it. With reduced motion it
+   stands still and the stage scrolls by hand. */
+.reel-row{animation:kMarquee var(--marq,20s) linear infinite}
+.reel-row:hover,.reel-row:focus-within{animation-play-state:paused}
+@media (prefers-reduced-motion:reduce){.reel{overflow-x:auto}.reel-row{animation:none}}
+html[data-a11y-motion=true] .reel{overflow-x:auto}
+html[data-a11y-motion=true] .reel-row{animation:none}

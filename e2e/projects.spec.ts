@@ -60,3 +60,35 @@ test('the cursor cue names the card under the pointer', async ({ page }) => {
   await page.getByRole('link', { name: /^The build plan/ }).hover()
   await expect(page.getByText('VIEW THE PLAN', { exact: true })).toBeVisible()
 })
+
+test('the reel marches, and pauses under the pointer', async ({ page }) => {
+  await page.goto('/projects#reel')
+  await hydrated(page)
+  await expect(page.getByRole('dialog', { name: 'Workflow screens' })).toBeVisible()
+  const row = page.locator('.reel-row')
+  expect(await row.evaluate((el) => el.getAnimations()[0]?.playState)).toBe('running')
+  // The row never holds still, so hover() would wait forever for it: point at
+  // the stage's centre instead (the row fills the stage's height).
+  const stage = (await page.locator('.reel').boundingBox())!
+  await page.mouse.move(stage.x + stage.width / 2, stage.y + stage.height / 2)
+  await expect.poll(() => row.evaluate((el) => el.getAnimations()[0]?.playState)).toBe('paused')
+})
+
+test('the sites view lists every sample site', async ({ page }) => {
+  await page.goto('/projects')
+  await hydrated(page)
+  await page.getByRole('link', { name: /^Funnels and sites/ }).click()
+  await expect(page.getByRole('dialog', { name: 'Funnels and sites' }).getByRole('listitem')).toHaveCount(8)
+})
+
+test.describe('reduced motion', () => {
+  test.use({ reducedMotion: 'reduce' })
+
+  test('the reel stands still and scrolls by hand', async ({ page }) => {
+    await page.goto('/projects#reel')
+    await hydrated(page)
+    await expect(page.getByRole('dialog', { name: 'Workflow screens' })).toBeVisible()
+    await expect(page.locator('.reel')).toHaveCSS('overflow-x', 'auto')
+    expect(await page.locator('.reel-row').evaluate((el) => el.getAnimations().length)).toBe(0)
+  })
+})

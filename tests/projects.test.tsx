@@ -53,7 +53,7 @@ describe('ProjectViews', () => {
   it('pre-renders every view, closed', () => {
     render(<ProjectViews />)
     const dialogs = document.querySelectorAll('dialog')
-    expect(dialogs).toHaveLength(DOC_VIEWS.length + 1)
+    expect(dialogs).toHaveLength(PROJECT_VIEWS.length)
     dialogs.forEach((d) => expect(d).not.toHaveAttribute('open'))
     expect(document.body).toHaveTextContent('Name the outcome')
   })
