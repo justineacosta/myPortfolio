@@ -27,7 +27,6 @@ type Card = { site: Site; baseY: number; baseAngle: number; hot: number; dim: nu
 export default function SiteDrum({ sites, onOpen, onFail, paused = false }: Props) {
   const s = projects.sitesView
   const wrapRef = useRef<HTMLDivElement>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
   const labelRef = useRef<HTMLDivElement>(null)
   const nameRef = useRef<HTMLSpanElement>(null)
   // The latest callbacks, without re-running the scene effect on each render.
@@ -46,12 +45,17 @@ export default function SiteDrum({ sites, onOpen, onFail, paused = false }: Prop
   }, [paused])
 
   useEffect(() => {
-    const canvas = canvasRef.current
     const wrap = wrapRef.current
     const label = labelRef.current
     const name = nameRef.current
-    if (!canvas || !wrap || !label || !name || sites.length === 0) return
+    if (!wrap || !label || !name || sites.length === 0) return
 
+    // A fresh canvas for every run. The cleanup force-loses its context, and a
+    // canvas never gets a live one back, so reusing it (React's dev double run
+    // of this effect) would hand the next renderer a dead context.
+    const canvas = document.createElement('canvas')
+    canvas.setAttribute('aria-hidden', 'true')
+    canvas.className = 'absolute inset-0 size-full touch-none'
     let renderer: THREE.WebGLRenderer
     try {
       renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true })
@@ -59,6 +63,7 @@ export default function SiteDrum({ sites, onOpen, onFail, paused = false }: Prop
       onFailRef.current()
       return
     }
+    wrap.prepend(canvas) // under the name label and the hint
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     renderer.outputColorSpace = THREE.SRGBColorSpace
 
@@ -313,12 +318,12 @@ export default function SiteDrum({ sites, onOpen, onFail, paused = false }: Prop
       textures.forEach((t) => t.dispose())
       kickRef.current = () => {}
       releaseRenderer(renderer)
+      canvas.remove()
     }
   }, [sites])
 
   return (
     <div ref={wrapRef} className="relative min-h-0 flex-1 overflow-hidden">
-      <canvas ref={canvasRef} aria-hidden className="absolute inset-0 size-full touch-none" />
       <div
         ref={labelRef}
         aria-hidden
