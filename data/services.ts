@@ -78,6 +78,7 @@ export const servicesPage = {
     live: 'LIVE',
     prev: 'Previous automation',
     next: 'Next automation',
+    canvasLabel: 'Flow canvas. Scroll sideways to see all of it.',
   },
 }
 

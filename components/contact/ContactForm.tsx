@@ -131,10 +131,15 @@ export default function ContactForm({ endpoint, open }: Props) {
           {status.kind === 'sending' ? contact.sending : contact.submit} <ArrowRightIcon size={16} aria-hidden />
         </button>
         {status.kind === 'error' ? (
-          <p role="alert" className="flex items-center gap-1.5 text-[12.5px] text-ink2">
-            <WarningCircleIcon size={16} aria-hidden className="shrink-0 text-danger" />
-            {status.note}
-          </p>
+          <div className="flex flex-col gap-1">
+            <p role="alert" className="flex items-center gap-1.5 text-[12.5px] text-ink2">
+              <WarningCircleIcon size={16} aria-hidden className="shrink-0 text-danger" />
+              {status.note}
+            </p>
+            <p className="text-[12.5px] text-ink3">
+              {contact.errors.direct} <span className="font-mono break-all text-ink2 select-all">{profile.email}</span>
+            </p>
+          </div>
         ) : (
           <span className="text-[12.5px] text-ink3">{contact.note}</span>
         )}

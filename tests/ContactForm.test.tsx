@@ -95,4 +95,15 @@ describe('ContactForm', () => {
     expect(first).toHaveValue('')
     expect(first).toHaveFocus()
   })
+
+  it('offers the address to write to when sending fails', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ error: 'Inbox is full.' }), { status: 503 })))
+    const user = userEvent.setup()
+    render(<ContactForm endpoint="https://hooks.example/lead" />)
+    await fill(user)
+    await user.click(submit())
+    await screen.findByRole('alert')
+    expect(screen.getByText(contact.errors.direct, { exact: false })).toBeInTheDocument()
+    expect(screen.getByText(profile.email)).toBeInTheDocument()
+  })
 })

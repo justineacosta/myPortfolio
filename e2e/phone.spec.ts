@@ -95,6 +95,19 @@ test('phone: no page scrolls sideways', async ({ page }) => {
   }
 })
 
+test('phone: at 320px every Projects card fits its frame and nothing scrolls sideways', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 700 })
+  for (const r of ['/projects', '/services', '/testimonials', '/about', '/contact']) {
+    await page.goto(r)
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
+    expect(overflow, r).toBeLessThanOrEqual(0)
+  }
+  await page.goto('/projects')
+  const rights = await page.locator('main a[href^="#"]').evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().right)))
+  expect(new Set(rights).size, `card right edges: ${rights.join(', ')}`).toBe(1)
+})
+
 test('phone: an open view fills the screen and holds the page still', async ({ page }) => {
   await page.goto('/projects')
   await hydrated(page)

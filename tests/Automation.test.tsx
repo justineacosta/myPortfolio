@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
+import { servicesPage } from '@/data/services'
 import Automation from '@/components/services/Automation'
 import { installMatchMedia } from '@/test/matchMedia'
 
@@ -38,5 +39,9 @@ describe('Automation', () => {
     expect(screen.getByText('Lost')).toHaveClass('text-danger')
     expect(screen.getByText('Won')).toHaveClass('text-accent')
     expect(screen.getByText('Booking Email')).toHaveClass('text-ink')
+  })
+  it('lets the keyboard scroll the flow canvas sideways', () => {
+    render(<Automation />)
+    expect(screen.getByRole('region', { name: servicesPage.automation.canvasLabel })).toHaveAttribute('tabindex', '0')
   })
 })
