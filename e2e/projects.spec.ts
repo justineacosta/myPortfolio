@@ -92,3 +92,13 @@ test.describe('reduced motion', () => {
     expect(await page.locator('.reel-row').evaluate((el) => el.getAnimations().length)).toBe(0)
   })
 })
+
+test('other pages never load the Projects write-ups up front', async ({ request }) => {
+  // The page's own scripts, as its HTML lists them. (Next may still prefetch
+  // /projects later, at idle, when a link to it is on screen: that is fine.)
+  const html = await (await request.get('/about')).text()
+  const srcs = [...html.matchAll(/<script[^>]+src="([^"]+)"/g)].map((m) => m[1])
+  expect(srcs.length).toBeGreaterThan(0)
+  const bodies = await Promise.all(srcs.map(async (src) => (await request.get(src)).text()))
+  expect(bodies.filter((b) => b.includes('Name the outcome')).length).toBe(0)
+})

@@ -2,19 +2,20 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import Board from '@/components/projects/Board'
 import ProjectViews from '@/components/projects/ProjectViews'
+import { agentsView, DOCS } from '@/data/projectDocs'
 import { DOC_VIEWS, PROJECT_VIEWS, projects } from '@/data/projects'
 import { installMatchMedia } from '@/test/matchMedia'
 
 describe('Projects data', () => {
   it('names every sub-view once, and every write-up opens a document', () => {
     expect(new Set(PROJECT_VIEWS).size).toBe(PROJECT_VIEWS.length)
-    expect(Object.keys(projects.docs).sort()).toEqual([...DOC_VIEWS].sort())
+    expect(Object.keys(DOCS).sort()).toEqual([...DOC_VIEWS].sort())
     expect(projects.writeups.every((w) => (DOC_VIEWS as readonly string[]).includes(w.view))).toBe(true)
   })
 
   it("keeps Kraft's roster, the build plan's sections, the reel and the sites", () => {
-    expect(projects.agentsView.groups.map((g) => g.name)).toEqual(['KapeAI', 'AI Agents', 'RAG Chatbots', 'Chatbots', 'Hermes'])
-    expect(projects.docs['build-plan'].sections.map((s) => s.name)).toEqual([
+    expect(agentsView.groups.map((g) => g.name)).toEqual(['KapeAI', 'AI Agents', 'RAG Chatbots', 'Chatbots', 'Hermes'])
+    expect(DOCS['build-plan'].sections.map((s) => s.name)).toEqual([
       'Before anything is clicked', 'The flow', 'What ships with it',
     ])
     expect(projects.reel.shots.map((s) => s.label)).toEqual([

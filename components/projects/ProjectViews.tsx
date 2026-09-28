@@ -1,7 +1,8 @@
 'use client'
 
 import { useHashView } from '@/hooks/useHashView'
-import { DOC_VIEWS, PROJECT_VIEWS, projects } from '@/data/projects'
+import { DOCS } from '@/data/projectDocs'
+import { DOC_VIEWS, PROJECT_VIEWS } from '@/data/projects'
 import AgentsView from './AgentsView'
 import DocView from './DocView'
 import ReelView from './ReelView'
@@ -16,7 +17,7 @@ export default function ProjectViews() {
   return (
     <>
       {DOC_VIEWS.map((id) => (
-        <DocView key={id} doc={projects.docs[id]} open={view === id} onClose={close} />
+        <DocView key={id} doc={DOCS[id]} open={view === id} onClose={close} />
       ))}
       <AgentsView open={view === 'ai-agents'} onClose={close} />
       <ReelView open={view === 'reel'} onClose={close} />

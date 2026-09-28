@@ -23,7 +23,7 @@ const c = projects.cards
 /** The board's sub-views open in place (hooks/useHashView.ts); the rest scroll into view (lib/scroller.ts). */
 export const SECTIONS: Command[] = [
   view('reel', c.reel.title, c.reel.icon),
-  view('build-plan', projects.docs['build-plan'].title, c.plan.icon),
+  view('build-plan', c.plan.title, c.plan.icon),
   ...projects.writeups.map((w) => view(w.view, w.title, w.icon)),
   view('sites', c.sites.title, c.sites.icon),
   view('ai-agents', c.agents.title, c.agents.icon),

@@ -1,9 +1,9 @@
+import { agentsView as a } from '@/data/projectDocs'
 import { projects } from '@/data/projects'
 import Window, { WindowHero, WindowSection } from './Window'
 
 /** Every AI system, grouped, with its live or internal status (Kraft Projects Board.dc.html:132-188; GROUPS at :336-373). */
 export default function AgentsView({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const a = projects.agentsView
   return (
     <Window open={open} onClose={onClose} title={a.title}>
       <WindowHero kicker={a.kicker} lede={a.lede} stack={a.builtWith} />
