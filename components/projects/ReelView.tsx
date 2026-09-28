@@ -1,4 +1,5 @@
-import type { CSSProperties } from 'react'
+import { useState, type CSSProperties } from 'react'
+import { PauseIcon, PlayIcon } from '@phosphor-icons/react/ssr'
 import Shot from '@/components/ui/Shot'
 import ViewDialog from '@/components/ui/ViewDialog'
 import { projects } from '@/data/projects'
@@ -8,16 +9,33 @@ import StageBar from './StageBar'
  * Kraft's workflow reel (Kraft Projects Board.dc.html:241-265): screenshots
  * marching past on a dimmed stage. The row is drawn twice for a seamless
  * loop, and the copy is hidden from assistive tech. A click on the empty
- * stage closes it, as Kraft's scrim did.
+ * stage closes it, as Kraft's scrim did. A button pauses it too, for
+ * keyboard and touch (WCAG 2.2.2).
  */
 export default function ReelView({ open, onClose }: { open: boolean; onClose: () => void }) {
   const r = projects.reel
+  const [paused, setPaused] = useState(false)
   const loop = [...r.shots, ...r.shots]
   return (
     <ViewDialog open={open} onClose={onClose} label={r.label} className="view--stage">
-      <StageBar kicker={r.kicker} hint={r.hint} onClose={onClose} />
+      <StageBar kicker={r.kicker} hint={r.hint} onClose={onClose}>
+        <button
+          type="button"
+          onClick={() => setPaused((p) => !p)}
+          aria-label={paused ? r.playLabel : r.pauseLabel}
+          className="reel-pause flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-veil-line bg-veil-chip px-3.5 font-mono text-[10.5px] tracking-[.14em] text-veil-ink transition-colors duration-200 hover:bg-veil-chip-hover"
+        >
+          {paused ? <PlayIcon size={14} weight="fill" aria-hidden /> : <PauseIcon size={14} weight="fill" aria-hidden />}
+          {paused ? r.play : r.pause}
+        </button>
+      </StageBar>
       <div data-backdrop className="reel relative flex min-h-0 flex-1 items-center overflow-hidden">
-        <div data-backdrop className="reel-row flex h-full w-max items-center gap-7 px-3.5" style={{ '--marq': `${r.seconds}s` } as CSSProperties}>
+        <div
+          data-backdrop
+          data-paused={paused || undefined}
+          className="reel-row flex h-full w-max items-center gap-7 px-3.5"
+          style={{ '--marq': `${r.seconds}s` } as CSSProperties}
+        >
           {loop.map((s, i) => (
             <figure
               key={`${s.label}-${i}`}

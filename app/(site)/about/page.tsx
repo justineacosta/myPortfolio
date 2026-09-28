@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
-import { Location, Workstation } from '@/components/about/Aside'
+import { Location } from '@/components/about/Aside'
+import Workstation from '@/components/about/Workstation'
 import Certified from '@/components/about/Certified'
 import Intro from '@/components/about/Intro'
 import Roles from '@/components/about/Roles'

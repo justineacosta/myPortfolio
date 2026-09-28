@@ -91,6 +91,7 @@ export const projects = {
   writeups: WRITEUPS,
   reel: {
     label: 'Workflow screens', kicker: 'AUTOMATIONS · WORKFLOW REEL', hint: 'HOVER TO PAUSE',
+    pause: 'PAUSE', play: 'PLAY', pauseLabel: 'Pause the reel', playLabel: 'Play the reel',
     /** Kraft's default reel pace (the board's marqueeSeconds prop). */
     seconds: 20,
     slotHint: 'Drop a workflow screenshot · 16:10',

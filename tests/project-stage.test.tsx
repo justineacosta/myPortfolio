@@ -27,6 +27,16 @@ describe('Projects stage views', () => {
     expect(view).not.toHaveAttribute('open')
   })
 
+  it('pauses and plays from a button, for keyboard and touch', () => {
+    window.history.replaceState(null, '', '/projects#reel')
+    render(<ProjectViews />)
+    const view = screen.getByRole('dialog', { name: 'Workflow screens' })
+    fireEvent.click(within(view).getByRole('button', { name: 'Pause the reel' }))
+    expect(view.querySelector('.reel-row')).toHaveAttribute('data-paused')
+    fireEvent.click(within(view).getByRole('button', { name: 'Play the reel' }))
+    expect(view.querySelector('.reel-row')).not.toHaveAttribute('data-paused')
+  })
+
   it('lists the eight sample sites by name', () => {
     window.history.replaceState(null, '', '/projects#sites')
     render(<ProjectViews />)

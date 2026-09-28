@@ -249,10 +249,11 @@ dialog.view::backdrop{background:rgba(6,10,8,.78)}
    marches left; hovering or focusing it pauses it. With reduced motion it
    stands still and the stage scrolls by hand. */
 .reel-row{animation:kMarquee var(--marq,20s) linear infinite}
-.reel-row:hover,.reel-row:focus-within{animation-play-state:paused}
-@media (prefers-reduced-motion:reduce){.reel{overflow-x:auto}.reel-row{animation:none}}
+.reel-row:hover,.reel-row:focus-within,.reel-row[data-paused]{animation-play-state:paused}
+@media (prefers-reduced-motion:reduce){.reel{overflow-x:auto}.reel-row{animation:none}.reel-pause{display:none}}
 html[data-a11y-motion=true] .reel{overflow-x:auto}
 html[data-a11y-motion=true] .reel-row{animation:none}
+html[data-a11y-motion=true] .reel-pause{display:none}
 
 /* The Kraft Method (KraftScreens.dc.html:223-240, 1112-1125): the lit gate
    gets the accent frame, a popped icon, a brighter letter, and a spark that
