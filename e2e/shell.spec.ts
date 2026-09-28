@@ -68,3 +68,22 @@ test('Get in touch goes to contact', async ({ page }) => {
   await page.getByRole('link', { name: 'Get in touch' }).click()
   await expect(page).toHaveURL(/\/contact$/)
 })
+
+test('resizing across 1100px switches layouts and keeps scrolling working', async ({ page }) => {
+  await page.goto('/')
+  const sidebar = page.getByRole('complementary', { name: 'Profile and site navigation' })
+  await expect(sidebar).toBeVisible()
+  await page.setViewportSize({ width: 900, height: 900 })
+  await expect(sidebar).toBeHidden()
+  await expect(page.getByRole('navigation', { name: 'Sections' })).toBeVisible()
+  await page.locator('[data-panel-content]').evaluate((el) => {
+    const spacer = document.createElement('div')
+    spacer.style.height = '3000px'
+    el.appendChild(spacer)
+  })
+  await page.mouse.move(450, 450)
+  await page.mouse.wheel(0, 800)
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0)
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await expect(sidebar).toBeVisible()
+})

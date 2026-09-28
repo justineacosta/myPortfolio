@@ -2,6 +2,8 @@ import type { ReactNode } from 'react'
 import { PaletteProvider } from '@/components/shell/CommandPalette'
 import { NavigationProvider } from '@/components/shell/NavigationProvider'
 import PanelContent from '@/components/shell/PanelContent'
+import PhoneControls from '@/components/shell/PhoneControls'
+import TabBar from '@/components/shell/TabBar'
 import ShellTopBar from '@/components/shell/ShellTopBar'
 import Sidebar from '@/components/shell/Sidebar'
 import { PANEL_ID } from '@/lib/scroller'
@@ -34,7 +36,8 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
           </div>
         </main>
       </div>
-      {/* Task 7: phone */}
+      <TabBar />
+      <PhoneControls />
       </PaletteProvider>
     </NavigationProvider>
   )
