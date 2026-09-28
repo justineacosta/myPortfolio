@@ -20,7 +20,7 @@ test('sidebar navigation swaps the panel and updates crumb and active item', asy
   await page.goto('/')
   await sidebarNav(page).getByRole('link', { name: /^Projects/ }).click()
   await expect(page).toHaveURL(/\/projects$/)
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Projects')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Real builds you can open.')
   await expect(page.getByText('KRAFT / BUILDS')).toBeVisible()
   await expect(sidebarNav(page).getByRole('link', { name: /^Projects/ })).toHaveAttribute('aria-current', 'page')
   await expect(page.locator('[data-panel-content]')).toHaveCSS('opacity', '1')
