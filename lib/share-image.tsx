@@ -18,13 +18,14 @@ export function shareImage() {
           flexDirection: 'column',
           justifyContent: 'space-between',
           padding: 72,
+          fontFamily: 'Geist',
           color: t.ink,
           backgroundColor: t.bg,
           backgroundImage: `radial-gradient(900px 520px at 78% -10%, rgba(${t.amb},.55), rgba(${t.amb},0) 60%)`,
         }}
       >
         <div style={{ display: 'flex', fontSize: 22, letterSpacing: 6, color: t.accent }}>{`${profile.brand} · ${profile.name.toUpperCase()}`}</div>
-        <div style={{ display: 'flex', flexDirection: 'column', fontSize: 84, fontFamily: 'Geist Bold', fontWeight: 700, letterSpacing: -3, lineHeight: 1.02 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', fontSize: 84, fontWeight: 700, letterSpacing: -3, lineHeight: 1.02 }}>
           <span>{home.headline[0]}</span>
           <span style={{ color: t.accent }}>{home.headline[1]}</span>
         </div>

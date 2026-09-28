@@ -8,6 +8,8 @@ export const PANEL_ID = 'main-content'
 
 export type LenisLike = {
   scrollTo(target: number | HTMLElement, opts?: { immediate?: boolean; force?: boolean; offset?: number }): void
+  /** Re-measures the page. Lenis does this itself, but only after a 250ms debounce. */
+  resize?(): void
 }
 
 let lenis: LenisLike | null = null
@@ -44,9 +46,17 @@ export function getScrollY(): number {
   return Math.max(getPanel()?.scrollTop ?? 0, window.scrollY)
 }
 
-/** Jumps, with no animation, to `y` in whichever element scrolls. The browser clamps a `y` past the end. */
+/**
+ * Jumps, with no animation, to `y` in whichever element scrolls. The browser
+ * clamps a `y` past the end. Lenis is re-measured first: straight after a
+ * route change it still holds the previous page's height, and would clamp `y`
+ * to it and then wheel on from the wrong place.
+ */
 export function scrollToY(y: number) {
-  if (lenis) lenis.scrollTo(y, { immediate: true, force: true })
+  if (lenis) {
+    lenis.resize?.()
+    lenis.scrollTo(y, { immediate: true, force: true })
+  }
   const panel = getPanel()
   if (panel) {
     const prev = panel.style.scrollBehavior

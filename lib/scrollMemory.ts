@@ -9,7 +9,11 @@ import { SCROLL_KEY } from './storage-keys'
  * sessionStorage so a reload keeps them; blocked storage just means memory.
  * A popstate that changes the path marks its saved position as the one to
  * restore, and scrolling is not recorded until that page has committed: the
- * page swap would otherwise clamp and overwrite it.
+ * page swap would otherwise clamp and overwrite it. The popstate listener is
+ * installed once per page load, not per mount, so Back from a page outside the
+ * site shell (Privacy, Terms) still finds it. A popstate to an entry Next
+ * doesn't own (no __NA state: a native #fragment such as the skip link) is
+ * ignored, as Next ignores it, so nothing is left waiting for a commit.
  */
 const LIMIT = 50
 let memory: Record<string, number> = {}
@@ -61,22 +65,29 @@ export function watchScroll(getY: () => number): () => void {
   const onScroll = () => {
     if (!raf) raf = requestAnimationFrame(record)
   }
-  const onPop = () => {
-    if (window.location.pathname !== committedPath) pending = savedScroll(entryKey()) ?? 0
-  }
   const onHide = () => {
     if (pending === null) saveScroll(entryKey(), getY())
   }
   // Scroll events don't bubble; a capturing listener hears the panel's too.
   window.addEventListener('scroll', onScroll, { capture: true, passive: true })
-  window.addEventListener('popstate', onPop)
   window.addEventListener('pagehide', onHide)
   return () => {
     cancelAnimationFrame(raf)
     window.removeEventListener('scroll', onScroll, { capture: true })
-    window.removeEventListener('popstate', onPop)
     window.removeEventListener('pagehide', onHide)
   }
+}
+
+function onPop(e: PopStateEvent) {
+  const nextOwns = !!(e.state as { __NA?: boolean } | null)?.__NA
+  pending = nextOwns && window.location.pathname !== committedPath ? (savedScroll(entryKey()) ?? 0) : null
+}
+
+if (typeof window !== 'undefined') window.addEventListener('popstate', onPop)
+
+/** The site shell is going away (a page like Privacy has its own). Back into the shell then counts as a path change. */
+export function leftShell() {
+  committedPath = null
 }
 
 /** The page for `path` has committed. Returns the position to restore after Back or Forward, or null for a fresh navigation. */
@@ -86,3 +97,4 @@ export function committed(path: string): number | null {
   pending = null
   return y
 }
+

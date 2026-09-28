@@ -11,9 +11,10 @@ beforeEach(async () => {
 })
 afterEach(() => vi.restoreAllMocks())
 
-const pop = (url: string) => {
-  window.history.replaceState(null, '', url)
-  window.dispatchEvent(new PopStateEvent('popstate'))
+// Next's own entries carry __NA; Next ignores a popstate to any other entry.
+const pop = (url: string, state: unknown = { __NA: true }) => {
+  window.history.replaceState(state, '', url)
+  window.dispatchEvent(new PopStateEvent('popstate', { state }))
 }
 
 describe('entryKey', () => {
@@ -71,6 +72,26 @@ describe('Back and Forward', () => {
     await new Promise((r) => requestAnimationFrame(() => r(null)))
     expect(m.committed('/about')).toBe(640)
     stop()
+  })
+
+  it("ignores a popstate to an entry Next doesn't own (a native #fragment, e.g. the skip link)", () => {
+    const stop = m.watchScroll(() => 0)
+    m.committed('/services')
+    m.saveScroll('/about', 640)
+    pop('/about', null)
+    expect(m.committed('/services')).toBeNull()
+    stop()
+  })
+
+  it('restores after Back from a page outside the site shell (Privacy, Terms)', () => {
+    const stop = m.watchScroll(() => 0)
+    m.committed('/services')
+    m.saveScroll('/services', 800)
+    stop()
+    m.leftShell() // the (site) provider unmounts on the way to /privacy
+    window.history.replaceState({ __NA: true }, '', '/privacy')
+    pop('/services')
+    expect(m.committed('/services')).toBe(800)
   })
 
   it('keeps working in memory when storage is blocked', () => {

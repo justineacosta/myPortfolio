@@ -16,7 +16,7 @@ import {
 import { prefersReducedMotion } from '@/lib/motion'
 import { currentHash, pushHash, splitHref } from '@/lib/hash'
 import { getScrollY, scrollToSection, scrollToTop, scrollToY } from '@/lib/scroller'
-import { committed, watchScroll } from '@/lib/scrollMemory'
+import { committed, leftShell, watchScroll } from '@/lib/scrollMemory'
 
 /**
  * Kraft's screen change (Kraft Portfolio.dc.html:676-694): the outgoing page
@@ -91,7 +91,13 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   )
 
   // Back/Forward positions (lib/scrollMemory.ts). Declared first, so it hears the popstate before any route commits.
-  useEffect(() => watchScroll(getScrollY), [])
+  useEffect(() => {
+    const stop = watchScroll(getScrollY)
+    return () => {
+      stop()
+      leftShell()
+    }
+  }, [])
 
   // The new page is committed: drop any fade still waiting to navigate (the
   // visitor went elsewhere, e.g. Back mid-fade), and reset scroll while the

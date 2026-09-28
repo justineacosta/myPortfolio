@@ -74,11 +74,16 @@ describe('readTokens', () => {
 })
 
 describe('share image', () => {
-  it('draws the headline in Geist Bold, loaded from the repo', () => {
-    const [font] = shareFonts()
-    expect(font).toMatchObject({ name: 'Geist Bold', weight: 700, style: 'normal' })
-    expect(font.data.readUInt32BE(0)).toBe(0x00010000)
-    expect(font.data.length).toBeGreaterThan(30_000)
+  it('carries Geist in both weights from the repo: bold for the headline, regular for the rest', () => {
+    const fonts = shareFonts()
+    expect(fonts.map((f) => [f.name, f.weight, f.style])).toEqual([
+      ['Geist', 400, 'normal'],
+      ['Geist', 700, 'normal'],
+    ])
+    for (const f of fonts) {
+      expect(f.data.readUInt32BE(0)).toBe(0x00010000)
+      expect(f.data.length).toBeGreaterThan(30_000)
+    }
   })
 })
 

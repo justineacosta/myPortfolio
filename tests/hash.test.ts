@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { clearHash, currentHash, pushHash, splitHref } from '@/lib/hash'
-import { registerLenis, scrollToSection } from '@/lib/scroller'
+import { registerLenis, scrollToSection, scrollToY } from '@/lib/scroller'
 
 describe('splitHref', () => {
   it('splits a path from its hash', () => {
@@ -64,6 +64,16 @@ describe('scrollToSection', () => {
       immediate: true,
       force: true,
     })
+    registerLenis(null)
+  })
+})
+
+describe('scrollToY', () => {
+  it('re-measures Lenis before jumping, so a restore onto a longer page is not clamped to the old one', () => {
+    const calls: string[] = []
+    registerLenis({ resize: () => calls.push('resize'), scrollTo: (y) => calls.push(`scrollTo ${y}`) })
+    scrollToY(1200)
+    expect(calls).toEqual(['resize', 'scrollTo 1200'])
     registerLenis(null)
   })
 })
