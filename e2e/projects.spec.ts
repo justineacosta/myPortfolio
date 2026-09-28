@@ -111,15 +111,38 @@ test('the sites view spins the 3D drum; its keyboard list opens a page, and Esca
   await expect(first).toBeFocused()
 })
 
+test('without WebGL, the Kraft carousel spins, and a focused page turns to the front and opens', async ({ page }) => {
+  // A device where WebGL can't start at all.
+  await page.addInitScript(() => {
+    const orig = HTMLCanvasElement.prototype.getContext
+    HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, type: string, ...rest: unknown[]) {
+      return /webgl/i.test(type) ? null : (orig as (...a: unknown[]) => unknown).call(this, type, ...rest)
+    } as typeof orig
+  })
+  await page.goto('/projects#sites')
+  await hydrated(page)
+  const view = page.getByRole('dialog', { name: 'Funnels and sites' })
+  const ring = view.locator('[data-carousel-ring]')
+  await expect(ring).toBeVisible()
+  await expect(view.locator('canvas')).toHaveCount(0)
+  const turn = () => ring.evaluate((el) => el.style.transform)
+  const before = await turn()
+  await expect.poll(turn).not.toBe(before)
+  const page3 = view.getByRole('button', { name: 'Open Payline' })
+  await page3.focus()
+  await page3.press('Enter')
+  await expect(page.getByRole('dialog', { name: 'Payline preview' })).toBeVisible()
+})
+
 test.describe('reduced motion', () => {
   test.use({ reducedMotion: 'reduce' })
 
-  test('the sites stay a grid', async ({ page }) => {
+  test('the sites view still spins the 3D drum', async ({ page }) => {
     await page.goto('/projects#sites')
     await hydrated(page)
     const view = page.getByRole('dialog', { name: 'Funnels and sites' })
-    await expect(view.getByRole('button', { name: 'Open Apex Build Co.' })).toBeVisible()
-    await expect(view.locator('canvas')).toHaveCount(0)
+    await expect(view.locator('canvas')).toBeVisible()
+    await expect(view.locator('[data-carousel]')).toHaveCount(0)
   })
 
 

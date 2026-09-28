@@ -5,6 +5,7 @@ import * as THREE from 'three'
 import { projects, type Site } from '@/data/projects'
 import { cardLook, drumLayout, slotOrder, wrapY } from '@/lib/drum'
 import { releaseRenderer } from '@/lib/webgl'
+import { getPerfTier } from '@/lib/perf'
 
 type Props = { sites: Site[]; onOpen: (site: Site) => void; onFail: () => void; paused?: boolean }
 type Card = { site: Site; baseY: number; baseAngle: number; hot: number; dim: number }
@@ -15,9 +16,9 @@ type Card = { site: Site; baseY: number; baseAngle: number; hot: number; dim: nu
  * - drag it to spin and scrub;
  * - hover a page to name it;
  * - click one to open its preview.
- * It loads only when the sites view opens and WebGL is allowed
- * (hooks/useWebGLAllowed.ts). If WebGL fails to start, or loses its context,
- * `onFail` hands the view back to the grid. The rendering stops while the
+ * It loads only when the sites view opens, for every visitor; at the low
+ * perf tier it runs lighter. If WebGL fails to start, or loses its context,
+ * `onFail` hands the view to Kraft's spin carousel (SiteCarousel.tsx). The rendering stops while the
  * view is off screen, the tab is hidden, or a preview covers it.
  *
  * The canvas is hidden from assistive tech. The site list below it carries
@@ -50,6 +51,8 @@ export default function SiteDrum({ sites, onOpen, onFail, paused = false }: Prop
     const name = nameRef.current
     if (!wrap || !label || !name || sites.length === 0) return
 
+    // A slow device (the low perf tier) gets a lighter drum: 1x pixels, no antialiasing.
+    const lite = getPerfTier() === 'low'
     // A fresh canvas for every run. The cleanup force-loses its context, and a
     // canvas never gets a live one back, so reusing it (React's dev double run
     // of this effect) would hand the next renderer a dead context.
@@ -58,13 +61,13 @@ export default function SiteDrum({ sites, onOpen, onFail, paused = false }: Prop
     canvas.className = 'absolute inset-0 size-full touch-none'
     let renderer: THREE.WebGLRenderer
     try {
-      renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true })
+      renderer = new THREE.WebGLRenderer({ canvas, antialias: !lite, alpha: true })
     } catch {
       onFailRef.current()
       return
     }
     wrap.prepend(canvas) // under the name label and the hint
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    renderer.setPixelRatio(lite ? 1 : Math.min(window.devicePixelRatio, 2))
     renderer.outputColorSpace = THREE.SRGBColorSpace
 
     const scene = new THREE.Scene()
