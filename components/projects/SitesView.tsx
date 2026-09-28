@@ -17,7 +17,7 @@ export default function SitesView({ open, onClose }: { open: boolean; onClose: (
         <ul data-backdrop className="mx-auto grid max-w-[1100px] grid-cols-[repeat(auto-fill,minmax(170px,1fr))] gap-4">
           {s.sites.map((site) => (
             <li key={site.file} className="relative aspect-[3/4] overflow-hidden rounded-[14px] border border-b2 bg-s1 shadow-(--shot-shadow)">
-              <Shot src={site.shot} hint={s.slotHint} alt={site.name} sizes="200px" />
+              <Shot src={site.thumb} hint={s.slotHint} alt={site.name} sizes="200px" />
               <span className="absolute inset-x-0 bottom-0 bg-linear-to-b from-transparent to-veil-deep px-[11px] py-[9px] font-mono text-[10px] tracking-[.1em] text-veil-ink">
                 {site.name}
               </span>

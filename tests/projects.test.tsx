@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import Board from '@/components/projects/Board'
@@ -22,6 +23,15 @@ describe('Projects data', () => {
       '01 - Support | New Ticket', 'Workflows list', '02 - Post-Purchase Delivery', 'Global workflow settings', 'Execution logs',
     ])
     expect(projects.sitesView.sites).toHaveLength(8)
+  })
+
+  it('has a page and a thumbnail on disk for every sample site', () => {
+    for (const s of projects.sitesView.sites) {
+      expect(s.src).toBe(`/samples/${s.file}`)
+      expect(s.thumb).toBe(`/samples/thumbs/${s.file.replace(/\.html$/, '.jpeg')}`)
+      expect(existsSync(`public${s.src}`), s.src).toBe(true)
+      expect(existsSync(`public${s.thumb}`), s.thumb).toBe(true)
+    }
   })
 })
 

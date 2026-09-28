@@ -144,7 +144,7 @@ export default function Board() {
                   style={{ transform }}
                   className={`absolute left-1/2 aspect-[3/4] h-[84%] origin-bottom overflow-hidden rounded-[11px] border bg-s0 ${i === 2 ? 'bottom-4 border-b2 shadow-(--peek-shadow)' : 'bottom-1 border-b1 shadow-(--tile-shadow)'}`}
                 >
-                  <Shot src={projects.sitesView.sites[i].shot} hint={c.sites.fanHint} />
+                  <Shot src={projects.sitesView.sites[i].thumb} hint={c.sites.fanHint} sizes="120px" />
                 </div>
               ))}
             </div>
