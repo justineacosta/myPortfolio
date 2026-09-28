@@ -1,10 +1,5 @@
-import ThemeButton from '@/components/shell/ThemeButton'
+import PagePlaceholder from '@/components/ui/PagePlaceholder'
 
 export default function HomePage() {
-  return (
-    <>
-      <h1>Kraft</h1>
-      <ThemeButton />
-    </>
-  )
+  return <PagePlaceholder href="/" phase={2} />
 }
