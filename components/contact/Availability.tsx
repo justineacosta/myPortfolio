@@ -1,4 +1,5 @@
 import { LinkedinLogoIcon } from '@phosphor-icons/react/ssr'
+import AvailabilityLine from '@/components/shell/AvailabilityLine'
 import { contact } from '@/data/contact'
 import { profile } from '@/data/profile'
 import { isPlaceholder } from '@/lib/placeholder'
@@ -9,17 +10,7 @@ export default function Availability() {
   const real = !isPlaceholder(linkedin.href)
   return (
     <div className="mt-auto flex flex-wrap items-center gap-3.5 pt-6">
-      <div className="mr-auto flex items-center gap-[9px]">
-        <span aria-hidden className="size-[7px] shrink-0 animate-pulse-dot rounded-full bg-accent shadow-[0_0_10px_var(--accent)]" />
-        <div className="flex flex-col gap-0.5">
-          <span className="text-[12.5px] text-ink2">
-            {profile.availability.label} · {profile.tzLabel}
-          </span>
-          <span className="font-mono text-[9.5px] tracking-[.1em] text-ink3">
-            {profile.availability.regions.join(' · ')} {contact.availability.hours}
-          </span>
-        </div>
-      </div>
+      <AvailabilityLine className="mr-auto" />
       <a
         href={real ? linkedin.href : '#'}
         {...(real ? { target: '_blank', rel: 'noopener noreferrer' } : {})}

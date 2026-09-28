@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import BackgroundGate from '@/components/shell/BackgroundGate'
 import { PaletteProvider } from '@/components/shell/CommandPalette'
+import FloatingAccess from '@/components/shell/FloatingAccess'
 import IntroOverlay from '@/components/shell/IntroOverlay'
 import LegalLinks from '@/components/shell/LegalLinks'
 import { NavigationProvider } from '@/components/shell/NavigationProvider'
@@ -44,6 +45,7 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
       </div>
       <TabBar />
       <PhoneControls />
+      <FloatingAccess />
       </PaletteProvider>
     </NavigationProvider>
   )

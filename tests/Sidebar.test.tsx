@@ -32,7 +32,23 @@ describe('Sidebar', () => {
     renderSidebar()
     expect(screen.getByText('Justine Acosta')).toBeInTheDocument()
     expect(screen.getByRole('img', { name: 'Certified' })).toBeInTheDocument()
-    expect(screen.getByText('Available for work')).toBeInTheDocument()
+  })
+
+  it("shows availability the way Contact does: the timezone, then the regions and hours covered", () => {
+    renderSidebar()
+    expect(screen.getByText('Available for work · GMT+8')).toBeInTheDocument()
+    expect(screen.getByText('US · EU · CA HOURS COVERED')).toBeInTheDocument()
+    expect(screen.queryByText('TIMEZONES')).not.toBeInTheDocument()
+  })
+
+  it('links GitHub and LinkedIn only, beside the theme button, and leaves accessibility to the floating button', () => {
+    renderSidebar()
+    const aside = screen.getByRole('complementary', { name: 'Profile and site navigation' })
+    expect(within(aside).queryByRole('link', { name: 'X' })).not.toBeInTheDocument()
+    expect(within(aside).queryByRole('link', { name: 'Discord' })).not.toBeInTheDocument()
+    expect(within(aside).getByRole('link', { name: 'GitHub' })).toBeInTheDocument()
+    expect(within(aside).getByRole('link', { name: 'LinkedIn' })).toBeInTheDocument()
+    expect(within(aside).queryByRole('button', { name: 'Accessibility options' })).not.toBeInTheDocument()
   })
 
   it('points placeholder social links at # and never opens a new tab for them', () => {

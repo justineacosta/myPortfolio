@@ -1,5 +1,5 @@
 import type { Icon } from '@phosphor-icons/react'
-import { DiscordLogoIcon, GithubLogoIcon, LinkedinLogoIcon, XLogoIcon } from '@phosphor-icons/react/ssr'
+import { GithubLogoIcon, LinkedinLogoIcon } from '@phosphor-icons/react/ssr'
 
 /**
  * Identity shown in the shell. Text is Kraft's, verbatim. Gaps are
@@ -23,8 +23,6 @@ export const profile = {
   socials: [
     { label: 'GitHub', href: 'PLACEHOLDER - GitHub profile URL', icon: GithubLogoIcon },
     { label: 'LinkedIn', href: 'PLACEHOLDER - LinkedIn profile URL', icon: LinkedinLogoIcon },
-    { label: 'X', href: 'PLACEHOLDER - X profile URL', icon: XLogoIcon },
-    { label: 'Discord', href: 'PLACEHOLDER - Discord invite or profile URL', icon: DiscordLogoIcon },
   ] satisfies { label: string; href: string; icon: Icon }[],
   copyright: '© 2026 KRAFT · JUSTINE ACOSTA',
 }

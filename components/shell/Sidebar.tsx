@@ -6,9 +6,8 @@ import { ArrowRightIcon, SealCheckIcon } from '@phosphor-icons/react/ssr'
 import { isActivePath, NAV } from '@/data/nav'
 import { profile } from '@/data/profile'
 import { isPlaceholder } from '@/lib/placeholder'
-import AccessMenu from './AccessMenu'
+import AvailabilityLine from './AvailabilityLine'
 import LegalLinks from './LegalLinks'
-import ManilaClock from './ManilaClock'
 import MagnetLink from './MagnetLink'
 import { ShellLink } from './NavigationProvider'
 import ThemeButton from './ThemeButton'
@@ -70,7 +69,6 @@ export default function Sidebar() {
             )
           })}
           <ThemeButton />
-          <AccessMenu />
         </div>
       </div>
 
@@ -105,23 +103,7 @@ export default function Sidebar() {
 
       <div className="min-h-3 flex-1" />
 
-      <div className="flex flex-col gap-[7px] rounded-[14px] border border-b1 bg-linear-to-b from-s2 to-s1 px-3.5 py-[13px]">
-        <div className="flex items-center gap-2">
-          <span aria-hidden className="size-[7px] animate-pulse-dot rounded-full bg-accent shadow-[0_0_10px_var(--accent)]" />
-          <span className="text-[12.5px] font-medium">{profile.availability.label}</span>
-        </div>
-        <div className="mt-0.5 flex flex-wrap gap-[5px]">
-          {profile.availability.regions.map((r) => (
-            <span key={r} className="rounded-[7px] border border-wash-b bg-wash px-[7px] py-[3px] font-mono text-[9px] tracking-[.1em] text-accent">
-              {r}
-            </span>
-          ))}
-          <span className="self-center font-mono text-[9px] tracking-[.06em] text-ink3">TIMEZONES</span>
-          <span className="font-mono text-[10px] tracking-[.06em] text-ink3">
-            {profile.tzLabel} · <ManilaClock /> LOCAL
-          </span>
-        </div>
-      </div>
+      <AvailabilityLine className="rounded-[14px] border border-b1 bg-linear-to-b from-s2 to-s1 px-3.5 py-[13px]" />
 
       <MagnetLink
         href="/contact"
