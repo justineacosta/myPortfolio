@@ -1,8 +1,36 @@
 import type { Metadata } from 'next'
-import PagePlaceholder from '@/components/ui/PagePlaceholder'
+import Availability from '@/components/contact/Availability'
+import ContactForm from '@/components/contact/ContactForm'
+import Faqs from '@/components/contact/Faqs'
+import Frame from '@/components/ui/Frame'
+import PageHeader from '@/components/ui/PageHeader'
+import { CARD } from '@/components/ui/styles'
+import { contact } from '@/data/contact'
 
 export const metadata: Metadata = { title: 'FAQs / Contact' }
 
 export default function Page() {
-  return <PagePlaceholder href="/contact" phase={3} />
+  const q = contact.faqs
+  return (
+    <section className="flex flex-col gap-[clamp(14px,1.6cqw,20px)]">
+      <PageHeader href="/contact" title={contact.title} lede={contact.lede} ledeClassName="max-w-[560px]" />
+      <Frame lit={{ x: '72%', alpha: 0.6, stop: '56%' }} className="flex flex-wrap gap-[clamp(11px,1.3cqw,18px)] p-[clamp(11px,1.3cqw,18px)]">
+        <div className={`${CARD} min-w-[260px] flex-[2_1_380px] p-[clamp(16px,1.8cqw,24px)]`}>
+          <ContactForm />
+        </div>
+        <section
+          id={q.id}
+          aria-labelledby="faqs-title"
+          className={`${CARD} flex min-w-[250px] flex-[1_1_320px] scroll-mt-[88px] flex-col gap-1.5 p-[clamp(16px,1.8cqw,22px)]`}
+        >
+          <span className="font-mono text-[10px] tracking-[.16em] text-accent">{q.kicker}</span>
+          <h2 id="faqs-title" className="text-[clamp(17px,2cqw,23px)] leading-[1.25] font-semibold tracking-[-.025em]">
+            {q.title} <span className="block text-ink3">{q.aside}</span>
+          </h2>
+          <Faqs />
+          <Availability />
+        </section>
+      </Frame>
+    </section>
+  )
 }

@@ -6,7 +6,9 @@
  */
 export const PANEL_ID = 'main-content'
 
-export type LenisLike = { scrollTo(target: number, opts?: { immediate?: boolean; force?: boolean }): void }
+export type LenisLike = {
+  scrollTo(target: number | HTMLElement, opts?: { immediate?: boolean; force?: boolean; offset?: number }): void
+}
 
 let lenis: LenisLike | null = null
 
@@ -35,4 +37,23 @@ export function scrollToTop({ smooth }: { smooth: boolean }) {
     panel.style.scrollBehavior = prev
   }
   window.scrollTo({ top: 0, behavior: 'instant' })
+}
+
+/** Clears the sticky desktop top bar (components/shell/TopBar.tsx, about 72px) when a section lands. */
+export const SECTION_OFFSET = 88
+
+/**
+ * Brings the page section `id` into view in whichever element scrolls.
+ * Returns false when there is no such section. Sub-views are dialogs and
+ * handle their own hashes (hooks/useHashView.ts).
+ */
+export function scrollToSection(id: string, { smooth }: { smooth: boolean }): boolean {
+  const el = id ? document.getElementById(id) : null
+  if (!el || el.closest('dialog')) return false
+  if (lenis) {
+    lenis.scrollTo(el, smooth ? { offset: -SECTION_OFFSET } : { immediate: true, force: true, offset: -SECTION_OFFSET })
+    return true
+  }
+  el.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' })
+  return true
 }

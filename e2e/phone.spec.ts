@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { headlineLanding, settleIntro } from './helpers'
+import { headlineLanding, hydrated, settleIntro } from './helpers'
 
 test('phone: tab bar replaces the sidebar', async ({ page }) => {
   await page.goto('/')
@@ -84,4 +84,36 @@ test('phone: reloading a scrolled Home still lands the intro at the top', async 
   const top = await page.locator('[data-intro-target]').evaluate((el) => el.getBoundingClientRect().top)
   expect(top).toBeGreaterThan(0)
   expect(top).toBeLessThan(844)
+})
+
+test('phone: no page scrolls sideways', async ({ page }) => {
+  for (const r of ['/projects', '/services', '/testimonials', '/about', '/contact']) {
+    await page.goto(r)
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
+    expect(overflow, r).toBeLessThanOrEqual(0)
+  }
+})
+
+test('phone: an open view fills the screen and holds the page still', async ({ page }) => {
+  await page.goto('/projects')
+  await hydrated(page)
+  await page.getByRole('link', { name: /^The build plan/ }).tap()
+  const view = page.getByRole('dialog', { name: 'The build plan' })
+  await expect(view).toBeVisible()
+  expect((await view.boundingBox())!.width).toBe(390)
+  // tap() brought the card into view with the page's smooth scrolling; let it finish first.
+  const scrollY = () => page.evaluate(() => window.scrollY)
+  await expect
+    .poll(async () => {
+      const a = await scrollY()
+      await page.waitForTimeout(150)
+      return a === (await scrollY())
+    })
+    .toBe(true)
+  const y = await scrollY()
+  await page.mouse.move(195, 500)
+  for (let i = 0; i < 4; i++) await page.mouse.wheel(0, 700)
+  await page.waitForTimeout(300)
+  expect(await page.evaluate(() => window.scrollY)).toBe(y)
 })

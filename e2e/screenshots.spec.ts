@@ -33,13 +33,26 @@ test.describe('@shots', () => {
   })
 
   test('capture the Kraft standalone reference', async ({ page }) => {
+    // Kraft's sidebar labels (Kraft Portfolio.dc.html:366-373). The phone
+    // reference is the Home screen only: Kraft's phone nav names pages differently.
+    const SCREENS: [string, string | null][] = [
+      ['home', null], ['projects', 'Projects'], ['services', 'Services'],
+      ['testimonials', 'Testimonials'], ['about', 'About'], ['contact', 'FAQs / Contact'],
+    ]
     for (const size of SIZES) {
       await page.setViewportSize({ width: size.width, height: size.height })
       for (const theme of THEMES) {
         await page.addInitScript((t) => localStorage.setItem('kraft-theme', t), theme)
         await page.goto(STANDALONE)
         await page.waitForTimeout(7000) // Kraft's loader and headline flight
-        await page.screenshot({ path: `test-results/shots/kraft-${theme}-${size.name}.png` })
+        for (const [slug, label] of SCREENS) {
+          if (label) {
+            if (size.name === 'phone') continue
+            await page.getByText(label, { exact: true }).first().click()
+            await page.waitForTimeout(900)
+          }
+          await page.screenshot({ path: `test-results/shots/kraft-${slug}-${theme}-${size.name}.png` })
+        }
       }
     }
   })

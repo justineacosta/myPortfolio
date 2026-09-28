@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { act, renderHook } from '@testing-library/react'
+import { act, render, renderHook } from '@testing-library/react'
+import { useLayoutEffect, useRef } from 'react'
 import { NavigationProvider, SWAP_MS, useShellNav } from '@/components/shell/NavigationProvider'
 import { installMatchMedia } from '@/test/matchMedia'
 
@@ -45,6 +46,28 @@ describe('NavigationProvider', () => {
     act(() => vi.advanceTimersByTime(SWAP_MS))
     expect(nav.push).toHaveBeenCalledTimes(1)
     expect(nav.push).toHaveBeenCalledWith('/about', { scroll: false })
+  })
+
+  it('keeps a click made before its first effects run (right after hydration)', () => {
+    // A layout effect runs before the provider's own mount effect, exactly
+    // like a click React delivers between the hydration commit and its effects.
+    function EarlyClick() {
+      const { go } = useShellNav()
+      const done = useRef(false)
+      useLayoutEffect(() => {
+        if (done.current) return
+        done.current = true
+        go('/projects')
+      })
+      return null
+    }
+    render(
+      <NavigationProvider>
+        <EarlyClick />
+      </NavigationProvider>,
+    )
+    act(() => vi.advanceTimersByTime(SWAP_MS))
+    expect(nav.push).toHaveBeenCalledWith('/projects', { scroll: false })
   })
 
   it('does not navigate when the current page is clicked', () => {

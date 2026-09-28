@@ -22,6 +22,7 @@
   --animate-pulse-dot: kPulse 2.6s ease-in-out infinite;
   --animate-rise: kRise .22s ease both;
   --animate-marquee: kMarquee var(--marq,132s) linear infinite;
+  --animate-nudge: pbNudge 3.2s ease-in-out infinite;
 }
 
 @theme inline {
@@ -55,6 +56,17 @@
   --color-fade-b: var(--fadeB);
   --color-scrim: var(--scrim);
   --color-logo-chip: var(--logo-chip);
+  --color-danger: var(--danger);
+  --color-danger-b: var(--danger-b);
+  --color-mac-r: var(--mac-r);
+  --color-mac-y: var(--mac-y);
+  --color-mac-g: var(--mac-g);
+  --color-veil-ink: var(--veil-ink);
+  --color-veil-chip: var(--veil-chip);
+  --color-veil-chip-hover: var(--veil-chip-hover);
+  --color-veil-line: var(--veil-line);
+  --color-veil-deep: var(--veil-deep);
+  --color-poster-fade: var(--poster-fade);
   --font-sans: var(--font-geist), system-ui, 'Helvetica Neue', sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
@@ -205,3 +217,65 @@ html[data-intro-live] .intro-skip{visibility:visible}
 .intro-status{position:absolute;left:0;top:82px;display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:7.5px;letter-spacing:.1em;color:var(--accent);opacity:0}
 .intro-status-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--glow);animation:kPulse 1.6s ease-in-out infinite}
 .intro-status.is-done .intro-status-dot{animation:none}
+
+/* ---- Pages (Phase 3) ----
+   Fixed colours Kraft uses on both themes: the alert red of dead-end flow
+   nodes (KraftScreens.dc.html:1223-1225), the window traffic lights and the
+   dark stage behind the reel and site views (Kraft Projects Board.dc.html:
+   137-139, 243-247, 279), and the fade under the testimonial poster
+   (KraftScreens.dc.html:339). */
+:root{--danger:#C9614F;--danger-b:rgba(201,97,79,.45);--mac-r:#ED6A5E;--mac-y:#F4BF4F;--mac-g:#61C554;--veil-ink:#F1F5F2;--veil-chip:rgba(255,255,255,.08);--veil-chip-hover:rgba(255,255,255,.18);--veil-line:rgba(255,255,255,.16);--veil-deep:rgba(6,10,8,.88);--poster-fade:rgba(5,5,5,.82);--window-shadow:0 50px 120px -60px rgba(0,0,0,.95);--shot-shadow:0 40px 90px -50px rgba(0,0,0,.9);--peek-shadow:0 20px 50px -24px rgba(0,0,0,.35);--tile-shadow:0 14px 32px -20px rgba(0,0,0,.4);--tip-shadow:0 12px 30px -12px rgba(0,0,0,.6);--cert-shadow:0 3px 12px -4px rgba(0,0,0,.5);--chip-shadow:0 1px 3px rgba(0,0,0,.18)}
+
+/* Kraft's page frame, lit by the ambient green from one edge
+   (KraftScreens.dc.html:217, 276, 335, 401, 472). components/ui/Frame.tsx sets the --lit-* values. */
+.frame{background:radial-gradient(var(--lit-size) at var(--lit-x) var(--lit-y),rgba(var(--amb),var(--lit)),rgba(var(--amb),0) var(--lit-stop)),linear-gradient(180deg,var(--lit-from),var(--bg))}
+
+/* Sub-views (components/ui/ViewDialog.tsx): a native modal <dialog> filling
+   the viewport. It lives in the top layer, so the page's rise-in transform
+   and swap fade never reach it. ::backdrop does not reliably inherit custom
+   properties, so its colours are literal. */
+html[data-dialog]{overflow:hidden}
+dialog.view{position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:0;border:0;background:transparent;color:var(--ink);overflow:hidden}
+dialog.view[open]{display:flex;flex-direction:column;animation:pbFade .28s ease both}
+dialog.view::backdrop{background:rgba(6,10,8,.78)}
+.view--window{padding:clamp(10px,2.4vw,34px)}
+.view--stage::backdrop{background:rgba(6,10,8,.74);backdrop-filter:blur(3px)}
+@keyframes pbFade{from{opacity:0}to{opacity:1}}
+
+/* Projects board (Kraft Projects Board.dc.html:44-46): the "click a card" pill bobs on the frame's top edge. */
+@keyframes pbNudge{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+
+/* Kraft's workflow reel (Kraft Projects Board.dc.html:250): the doubled row
+   marches left; hovering or focusing it pauses it. With reduced motion it
+   stands still and the stage scrolls by hand. */
+.reel-row{animation:kMarquee var(--marq,20s) linear infinite}
+.reel-row:hover,.reel-row:focus-within{animation-play-state:paused}
+@media (prefers-reduced-motion:reduce){.reel{overflow-x:auto}.reel-row{animation:none}}
+html[data-a11y-motion=true] .reel{overflow-x:auto}
+html[data-a11y-motion=true] .reel-row{animation:none}
+
+/* The Kraft Method (KraftScreens.dc.html:223-240, 1112-1125): the lit gate
+   gets the accent frame, a popped icon, a brighter letter, and a spark that
+   runs its dotted top rail for as long as it stays lit. */
+@keyframes kPop{0%{transform:scale(.86)}58%{transform:scale(1.08)}100%{transform:scale(1)}}
+@keyframes kRail{0%{left:-3px;opacity:0}12%{opacity:1}88%{opacity:1}100%{left:calc(100% - 3px);opacity:0}}
+.method-step{background:linear-gradient(180deg,var(--s2),var(--s1));border:1px solid var(--b1);transition:background .5s ease,border-color .5s ease,box-shadow .5s ease}
+.method-step[data-on]{background:linear-gradient(180deg,var(--wash),var(--s1));border-color:var(--accent);box-shadow:0 22px 52px -30px var(--glow)}
+.method-rail{position:absolute;left:0;right:0;top:0;height:2px;background:repeating-linear-gradient(90deg,var(--b2) 0 3px,transparent 3px 9px)}
+.method-spark{position:absolute;top:-2px;left:-3px;width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--glow);opacity:0}
+.method-step[data-on] .method-spark{animation:kRail var(--method-ms,1.7s) linear both}
+.method-num{position:absolute;top:8px;right:14px;font-size:54px;font-weight:800;letter-spacing:-.05em;line-height:1;color:var(--wash);transition:color .5s ease}
+.method-step[data-on] .method-num{color:var(--washB)}
+.method-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:11px;background:var(--wash);border:1px solid var(--washB);color:var(--accent);transition:background .4s ease,border-color .4s ease,color .4s ease}
+.method-step[data-on] .method-icon{background:var(--accent);border-color:var(--accent);color:var(--onAccent);animation:kPop .5s cubic-bezier(.2,.8,.2,1) both}
+
+/* Live automation (KraftScreens.dc.html:300-320, 962-966): the three edge
+   styles and the dots that travel along them. The dots stop, and hide, for
+   reduced motion. */
+.flow-edge{fill:none;stroke:var(--washB);stroke-width:1.5;stroke-linecap:round}
+.flow-edge--dash{stroke:var(--accent);stroke-dasharray:7 6;opacity:.85}
+.flow-edge--dot{stroke:var(--ink3);stroke-width:1.3;stroke-dasharray:2 7;opacity:.75}
+@keyframes kTravel{from{offset-distance:0%}to{offset-distance:100%}}
+.flow-ball{position:absolute;left:0;top:0;width:8px;height:8px;border-radius:50%;background:var(--accent);offset-anchor:50% 50%;offset-rotate:0deg;animation-name:kTravel;animation-timing-function:linear;animation-iteration-count:infinite}
+@media (prefers-reduced-motion:reduce){.flow-ball{display:none}}
+html[data-a11y-motion=true] .flow-ball{display:none}
