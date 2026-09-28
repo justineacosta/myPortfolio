@@ -43,6 +43,8 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const [pending, setPending] = useState<Pending>(null)
   const timer = useRef<number | undefined>(undefined)
+  // The href we last handed to the router, until its route commits.
+  const pushed = useRef<string | null>(null)
 
   // Any committed route change settles the fade. Without this, Back to the
   // page a navigation started from would match `pending.from` again and leave
@@ -63,20 +65,26 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
       }
       if (prefersReducedMotion()) {
         setPending(null)
+        pushed.current = href
         router.push(href, { scroll: false })
         return
       }
       setPending({ href, from: pathname })
-      timer.current = window.setTimeout(() => router.push(href, { scroll: false }), SWAP_MS)
+      timer.current = window.setTimeout(() => {
+        pushed.current = href
+        router.push(href, { scroll: false })
+      }, SWAP_MS)
     },
     [pathname, router],
   )
 
   // The new page is committed: drop any fade still waiting to navigate (the
   // visitor went elsewhere, e.g. Back mid-fade), and reset scroll while the
-  // page is still transparent.
+  // page is still transparent. Our own earlier push landing late is not
+  // "elsewhere": a click made while it loaded must still win.
   useEffect(() => {
-    window.clearTimeout(timer.current)
+    if (pathname !== pushed.current) window.clearTimeout(timer.current)
+    pushed.current = null
     scrollToTop({ smooth: false })
   }, [pathname])
 

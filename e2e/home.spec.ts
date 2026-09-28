@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { settleIntro } from './helpers'
 
 test("Home shows Kraft's headline, lede and actions", async ({ page }) => {
   await page.goto('/')
@@ -34,6 +35,7 @@ test('every Home logo and image loads from this site', async ({ page }) => {
 
 test('the wheel over the services row scrolls it sideways, then hands back to the page', async ({ page }) => {
   await page.goto('/')
+  await settleIntro(page)
   const panel = page.locator('#main-content')
   const row = page.locator('[data-wheel-x]')
   await row.scrollIntoViewIfNeeded()

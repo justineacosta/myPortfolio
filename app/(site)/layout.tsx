@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import BackgroundGate from '@/components/shell/BackgroundGate'
 import { PaletteProvider } from '@/components/shell/CommandPalette'
+import IntroOverlay from '@/components/shell/IntroOverlay'
 import { NavigationProvider } from '@/components/shell/NavigationProvider'
 import PanelContent from '@/components/shell/PanelContent'
 import PhoneControls from '@/components/shell/PhoneControls'
@@ -22,6 +23,7 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
       <a href={`#${PANEL_ID}`} className="skip-link">
         Skip to main content
       </a>
+      <IntroOverlay />
       <BackgroundGate />
       <SmoothScroll />
       <div className="relative z-1 shell:flex shell:h-dvh shell:overflow-hidden">

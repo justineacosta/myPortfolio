@@ -1,7 +1,9 @@
 import { expect, test } from '@playwright/test'
+import { settleIntro } from './helpers'
 
 test('Lenis drives the panel on desktop and the wheel scrolls it', async ({ page }) => {
   await page.goto('/')
+  await settleIntro(page)
   await expect(page.locator('.lenis')).toHaveCount(1)
   const panel = page.locator('#main-content')
   await panel.evaluate((el) => {

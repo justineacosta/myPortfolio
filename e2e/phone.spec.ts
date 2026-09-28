@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { headlineLanding, settleIntro } from './helpers'
 
 test('phone: tab bar replaces the sidebar', async ({ page }) => {
   await page.goto('/')
@@ -25,6 +26,7 @@ test('phone: floating theme and search controls work', async ({ page }) => {
 
 test('phone: the document scrolls (no inner panel)', async ({ page }) => {
   await page.goto('/')
+  await settleIntro(page)
   await page.locator('[data-panel-content]').evaluate((el) => {
     const spacer = document.createElement('div')
     spacer.style.height = '3000px'
@@ -51,4 +53,15 @@ test('phone: Home opens with the profile header instead of floating controls', a
   await expect(header.getByText('Justine Acosta')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Toggle dark and light mode' })).toHaveCount(1)
   await expect(page.getByRole('button', { name: 'Open command palette' })).toHaveCount(1)
+})
+
+test('phone: the intro lands exactly on the Home h1', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.getByRole('button', { name: 'Skip intro' })).toBeVisible()
+  await settleIntro(page)
+  const r = await headlineLanding(page)
+  expect(r.dx).toBeLessThan(1)
+  expect(r.dy).toBeLessThan(1)
+  expect(r.sameSize).toBe(true)
+  await expect(page.getByRole('navigation', { name: 'Sections' })).toHaveCSS('opacity', '1')
 })
