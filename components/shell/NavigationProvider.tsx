@@ -46,6 +46,10 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   const timer = useRef<number | undefined>(undefined)
   // The href we last handed to the router, until its route commits.
   const pushed = useRef<string | null>(null)
+  // The path this provider last committed. Its first render is not a route
+  // change, so the mount effect must not cancel a click that React delivered
+  // between the hydration commit and that effect.
+  const shown = useRef(pathname)
 
   // Any committed route change settles the fade. Without this, Back to the
   // page a navigation started from would match `pending.from` again and leave
@@ -89,7 +93,8 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   // page is still transparent. Our own earlier push landing late is not
   // "elsewhere": a click made while it loaded must still win.
   useEffect(() => {
-    if (pathname !== pushed.current) window.clearTimeout(timer.current)
+    if (pathname !== shown.current && pathname !== pushed.current) window.clearTimeout(timer.current)
+    shown.current = pathname
     pushed.current = null
     scrollToTop({ smooth: false })
     // A ⌘K section on another page lands on the section, not the top.

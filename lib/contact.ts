@@ -58,10 +58,17 @@ export function checkLead(data: FormData): { lead: Lead; errors: null } | { lead
   return Object.keys(errors).length ? { lead: null, errors } : { lead, errors: null }
 }
 
+/** The subject and body a message goes out with, whether through the mail app or copied by hand. */
+export function composeMessage(lead: Lead): { subject: string; body: string } {
+  return {
+    subject: `Project inquiry from ${lead.firstName} ${lead.lastName}`,
+    body: [`Name: ${lead.firstName} ${lead.lastName}`, `Email: ${lead.email}`, '', lead.message].join('\n'),
+  }
+}
+
 /** The mail-client link. Every value is encoded, which blocks header injection (CR/LF) and parameter smuggling (& or ?). */
 export function mailtoHref(lead: Lead, to: string = profile.email): string {
-  const subject = `Project inquiry from ${lead.firstName} ${lead.lastName}`
-  const body = [`Name: ${lead.firstName} ${lead.lastName}`, `Email: ${lead.email}`, '', lead.message].join('\n')
+  const { subject, body } = composeMessage(lead)
   return `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
 }
 

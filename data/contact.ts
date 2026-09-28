@@ -33,6 +33,8 @@ export const contact = {
     copy: 'Copy',
     copied: 'Copied',
     copyFailed: 'Select it to copy',
+    copyMessage: 'Copy message',
+    copiedMessage: 'Message copied',
     again: 'Send another',
   },
   faqs: {

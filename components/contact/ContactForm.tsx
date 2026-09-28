@@ -1,15 +1,16 @@
 'use client'
 
 import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { flushSync } from 'react-dom'
 import { ArrowRightIcon, CheckCircleIcon, CopyIcon, WarningCircleIcon } from '@phosphor-icons/react/ssr'
 import { contact } from '@/data/contact'
 import { profile } from '@/data/profile'
 import {
-  checkLead, FIELDS, MAX_EMAIL, MAX_MESSAGE, MAX_NAME, SubmitError, submitLead,
-  type Errors, type Field, type Via,
+  checkLead, composeMessage, FIELDS, MAX_EMAIL, MAX_MESSAGE, MAX_NAME, SubmitError, submitLead,
+  type Errors, type Field, type Lead, type Via,
 } from '@/lib/contact'
 
-type Status = { kind: 'idle' } | { kind: 'sending' } | { kind: 'error'; note: string } | { kind: 'sent'; via: Via }
+type Status = { kind: 'idle' } | { kind: 'sending' } | { kind: 'error'; note: string } | { kind: 'sent'; via: Via; lead: Lead }
 type Props = { endpoint?: string; open?: (url: string) => void }
 
 const LABEL = 'font-mono text-[9.5px] tracking-[.14em] text-ink3'
@@ -44,7 +45,8 @@ export default function ContactForm({ endpoint, open }: Props) {
     checked.current = true
     const result = checkLead(new FormData(el))
     if (!result.lead) {
-      setErrors(result.errors)
+      // Render the errors before focus moves, so the field is announced with its reason.
+      flushSync(() => setErrors(result.errors))
       const first = FIELDS.find((k) => result.errors[k])
       el.querySelector<HTMLElement>(`[name="${first}"]`)?.focus()
       return
@@ -52,7 +54,7 @@ export default function ContactForm({ endpoint, open }: Props) {
     setErrors({})
     setStatus({ kind: 'sending' })
     try {
-      setStatus({ kind: 'sent', via: await submitLead(result.lead, { endpoint, open }) })
+      setStatus({ kind: 'sent', via: await submitLead(result.lead, { endpoint, open }), lead: result.lead })
     } catch (err) {
       setStatus({ kind: 'error', note: err instanceof SubmitError ? err.message : contact.errors.failed })
     }
@@ -67,6 +69,7 @@ export default function ContactForm({ endpoint, open }: Props) {
     return (
       <Sent
         via={status.via}
+        lead={status.lead}
         onAgain={() => {
           checked.current = false
           again.current = true
@@ -140,24 +143,32 @@ export default function ContactForm({ endpoint, open }: Props) {
   )
 }
 
-/** Kraft's "Message queued." card (KraftScreens.dc.html:475-482), truthful for how the message left. */
-function Sent({ via, onAgain }: { via: Via; onAgain: () => void }) {
+type Copy = 'idle' | 'done' | 'failed'
+
+/**
+ * Kraft's "Message queued." card (KraftScreens.dc.html:475-482), truthful for
+ * how the message left. After a mail-app send it keeps the message: if no
+ * mail app opened, the visitor copies the address and the text by hand.
+ */
+function Sent({ via, lead, onAgain }: { via: Via; lead: Lead; onAgain: () => void }) {
   const s = contact.sent
   const heading = useRef<HTMLHeadingElement>(null)
-  const [copy, setCopy] = useState<'idle' | 'done' | 'failed'>('idle')
+  const [copy, setCopy] = useState<Copy>('idle')
+  const [copyMsg, setCopyMsg] = useState<Copy>('idle')
 
   useEffect(() => {
     heading.current?.focus()
   }, [])
 
-  const copyAddress = async () => {
+  const copyText = async (text: string, done: (c: Copy) => void) => {
     try {
-      await navigator.clipboard.writeText(profile.email)
-      setCopy('done')
+      await navigator.clipboard.writeText(text)
+      done('done')
     } catch {
-      setCopy('failed')
+      done('failed')
     }
   }
+  const { subject, body } = composeMessage(lead)
 
   return (
     <div role="status" className="flex min-h-80 animate-rise flex-col items-start justify-center gap-3.5">
@@ -173,11 +184,19 @@ function Sent({ via, onAgain }: { via: Via; onAgain: () => void }) {
           {s.fallback} <span className="font-mono break-all text-ink2 select-all">{profile.email}</span>
           <button
             type="button"
-            onClick={copyAddress}
+            onClick={() => copyText(profile.email, setCopy)}
             className="flex min-h-9 cursor-pointer items-center gap-1.5 rounded-[10px] border border-b1 px-2.5 py-1.5 text-xs text-ink2 transition-colors duration-250 hover:border-b2"
           >
             <CopyIcon size={14} aria-hidden />
             {copy === 'done' ? s.copied : copy === 'failed' ? s.copyFailed : s.copy}
+          </button>
+          <button
+            type="button"
+            onClick={() => copyText(`${subject}\n\n${body}`, setCopyMsg)}
+            className="flex min-h-9 cursor-pointer items-center gap-1.5 rounded-[10px] border border-b1 px-2.5 py-1.5 text-xs text-ink2 transition-colors duration-250 hover:border-b2"
+          >
+            <CopyIcon size={14} aria-hidden />
+            {copyMsg === 'done' ? s.copiedMessage : copyMsg === 'failed' ? s.copyFailed : s.copyMessage}
           </button>
         </p>
       )}

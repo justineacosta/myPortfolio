@@ -30,6 +30,28 @@ describe('ContactForm', () => {
     expect(screen.getByLabelText(f.email.label)).toHaveAccessibleDescription(contact.errors.email)
   })
 
+  it('the first bad field already names its error when it takes focus', async () => {
+    const user = userEvent.setup()
+    render(<ContactForm open={vi.fn()} />)
+    const first = screen.getByLabelText(f.firstName.label)
+    let described: string | null = 'never focused'
+    first.addEventListener('focus', () => {
+      described = first.getAttribute('aria-describedby')
+    })
+    await user.click(submit())
+    expect(described).toBe('contact-firstName-error')
+  })
+
+  it('keeps the message after a mail-app send, ready to copy if no app opened', async () => {
+    const user = userEvent.setup()
+    render(<ContactForm open={vi.fn()} />)
+    await fill(user)
+    await user.click(submit())
+    await user.click(await screen.findByRole('button', { name: contact.sent.copyMessage }))
+    expect(await navigator.clipboard.readText()).toContain(GOOD.message)
+    expect(screen.getByRole('button', { name: contact.sent.copiedMessage })).toBeInTheDocument()
+  })
+
   it('clears an error as soon as the field is fixed', async () => {
     const user = userEvent.setup()
     render(<ContactForm open={vi.fn()} />)
