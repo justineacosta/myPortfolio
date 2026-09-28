@@ -115,3 +115,9 @@ html[data-js] [data-reveal]{opacity:0;transform:translateY(14px);transition:opac
 html[data-js] [data-reveal].is-revealed{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){html[data-js] [data-reveal]{opacity:1;transform:none}}
 html[data-a11y-motion=true] [data-reveal]{opacity:1 !important;transform:none !important}
+
+/* ---- Perf tiers (lib/perf.ts). They only ever turn things OFF. ---- */
+:root[data-perf=mid] *,:root[data-perf=low] *,
+:root[data-perf=mid] *::before,:root[data-perf=low] *::before,
+:root[data-perf=mid] *::after,:root[data-perf=low] *::after{backdrop-filter:none !important;-webkit-backdrop-filter:none !important}
+:root[data-perf=low] [data-contour]{display:none}
