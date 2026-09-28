@@ -1,10 +1,11 @@
 'use client'
 
-import { useRef, useState, type PointerEvent } from 'react'
+import { useRef, useState, type MouseEvent, type PointerEvent } from 'react'
 import { ArrowUpRightIcon, ArrowsClockwiseIcon, HandPointingIcon } from '@phosphor-icons/react/ssr'
 import Frame from '@/components/ui/Frame'
 import Shot from '@/components/ui/Shot'
 import { projects } from '@/data/projects'
+import { pushHash } from '@/lib/hash'
 import { prefersReducedMotion } from '@/lib/motion'
 
 const CARD =
@@ -25,9 +26,21 @@ const FAN = [
 ]
 
 /**
+ * A card is a real #view link, so it can open in a new tab. A plain click goes
+ * through pushHash, the history.pushState that Next patches, so the entry
+ * carries Next's state and Back from another page lands on Projects again.
+ */
+function openView(e: MouseEvent<HTMLAnchorElement>) {
+  if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+  e.preventDefault()
+  pushHash(e.currentTarget.hash.slice(1))
+}
+
+/**
  * The Projects board (Kraft Projects Board.dc.html:43-130). Every card is a
  * link to its sub-view's hash, so it opens in place, can be opened in a new
- * tab, and Back closes it. One label follows the pointer and names the
+ * tab, and Back closes it. A plain click goes through Next's history
+ * (openView). One label follows the pointer and names the
  * action of the card under it (data-case). There is none on touch or with
  * reduced motion.
  */
@@ -58,7 +71,7 @@ export default function Board() {
         </div>
 
         <div className={`flex flex-wrap ${GAP}`}>
-          <a href="#reel" data-case={c.reel.cue} className={`${CARD} min-w-[min(270px,100%)] flex-[3_1_420px]`}>
+          <a href="#reel" onClick={openView} data-case={c.reel.cue} className={`${CARD} min-w-[min(270px,100%)] flex-[3_1_420px]`}>
             <span aria-hidden className={TILE}>
               <c.reel.icon size={20} className="text-accent" />
             </span>
@@ -77,7 +90,7 @@ export default function Board() {
             </div>
           </a>
 
-          <a href="#build-plan" data-case={c.plan.cue} className={`${CARD} min-w-[250px] flex-[2_1_300px]`}>
+          <a href="#build-plan" onClick={openView} data-case={c.plan.cue} className={`${CARD} min-w-[250px] flex-[2_1_300px]`}>
             <span aria-hidden className={TILE}>
               <c.plan.icon size={20} className="text-accent" />
             </span>
@@ -108,6 +121,7 @@ export default function Board() {
               <a
                 key={w.view}
                 href={`#${w.view}`}
+                onClick={openView}
                 data-case={w.cue}
                 className="flex flex-1 items-start gap-3 rounded-[18px] border border-b1 bg-linear-to-b from-s1 to-s2 p-4 text-left text-ink transition-[translate,border-color,box-shadow] duration-350 hover:-translate-y-0.5 hover:border-b2 hover:from-s2 hover:to-hover hover:shadow-[0_22px_50px_-32px_var(--washB)]"
               >
@@ -128,7 +142,7 @@ export default function Board() {
         </div>
 
         <div className={`flex flex-wrap ${GAP}`}>
-          <a href="#sites" data-case={c.sites.cue} className={`${CARD} min-w-[260px] flex-[2_1_320px]`}>
+          <a href="#sites" onClick={openView} data-case={c.sites.cue} className={`${CARD} min-w-[260px] flex-[2_1_320px]`}>
             <span aria-hidden className={TILE}>
               <c.sites.icon size={20} className="text-accent" />
             </span>
@@ -150,7 +164,7 @@ export default function Board() {
             </div>
           </a>
 
-          <a href="#ai-agents" data-case={c.agents.cue} className={`${CARD} min-w-[min(270px,100%)] flex-[3_1_380px]`}>
+          <a href="#ai-agents" onClick={openView} data-case={c.agents.cue} className={`${CARD} min-w-[min(270px,100%)] flex-[3_1_380px]`}>
             <span aria-hidden className={TILE}>
               <c.agents.icon size={20} className="text-accent" />
             </span>

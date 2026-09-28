@@ -141,3 +141,32 @@ test('a write-up window keeps its margin', async ({ page }) => {
   const pad = await view.evaluate((el) => parseFloat(getComputedStyle(el).paddingTop))
   expect(pad).toBeGreaterThan(0)
 })
+
+const sidebarNav = (page: import('@playwright/test').Page) =>
+  page.getByRole('complementary', { name: 'Profile and site navigation' }).getByRole('navigation', { name: 'Sections' })
+
+test('Back from another page into Projects shows Projects, not the other page', async ({ page }) => {
+  await page.goto('/projects')
+  await hydrated(page)
+  await page.getByRole('link', { name: /^The build plan/ }).click()
+  const view = page.getByRole('dialog', { name: 'The build plan' })
+  await expect(view).toBeVisible()
+  await view.getByRole('button', { name: 'Close' }).click()
+  await expect(view).toBeHidden()
+  await sidebarNav(page).getByRole('link', { name: /^About/ }).click()
+  await expect(page).toHaveURL(/\/about$/)
+  await page.goBack()
+  await expect(page).toHaveURL(/\/projects$/)
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Real builds you can open.')
+})
+
+test('after closing a view, a router refresh never brings its hash back', async ({ page }) => {
+  await page.goto('/projects#build-plan')
+  await hydrated(page)
+  const view = page.getByRole('dialog', { name: 'The build plan' })
+  await view.getByRole('button', { name: 'Close' }).click()
+  await page.evaluate(() => (window as unknown as { next: { router: { refresh(): void } } }).next.router.refresh())
+  await page.waitForLoadState('networkidle')
+  await expect(page).toHaveURL(/\/projects$/)
+  await expect(view).toBeHidden()
+})

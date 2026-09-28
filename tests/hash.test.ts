@@ -27,6 +27,14 @@ describe('pushHash / clearHash', () => {
     window.removeEventListener('hashchange', heard)
   })
 
+  it("clears with a fresh state, so Next's patched replaceState updates its own URL too", () => {
+    window.history.replaceState({ __NA: true }, '', '/projects#reel')
+    const spy = vi.spyOn(window.history, 'replaceState')
+    clearHash()
+    expect(spy).toHaveBeenCalledWith(null, '', '/projects')
+    spy.mockRestore()
+  })
+
   it('clears the hash in place, keeping the path and the query', () => {
     pushHash('reel')
     const len = window.history.length

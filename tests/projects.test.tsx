@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import Board from '@/components/projects/Board'
 import ProjectViews from '@/components/projects/ProjectViews'
@@ -48,6 +48,23 @@ describe('Board', () => {
     render(<Board />)
     fireEvent.pointerMove(screen.getByRole('link', { name: /^The build plan/ }), { clientX: 40, clientY: 40 })
     expect(screen.getByText('VIEW THE PLAN')).toBeInTheDocument()
+  })
+
+  it('a plain click opens the view through history.pushState, so Next can find the entry again', () => {
+    window.history.replaceState(null, '', '/projects')
+    const spy = vi.spyOn(window.history, 'pushState')
+    render(<Board />)
+    fireEvent.click(screen.getByRole('link', { name: /^The build plan/ }))
+    expect(spy).toHaveBeenCalledWith(null, '', '#build-plan')
+    spy.mockRestore()
+  })
+
+  it('a modified click is left to the browser (new tab, new window)', () => {
+    const spy = vi.spyOn(window.history, 'pushState')
+    render(<Board />)
+    fireEvent.click(screen.getByRole('link', { name: /^The build plan/ }), { ctrlKey: true })
+    expect(spy).not.toHaveBeenCalled()
+    spy.mockRestore()
   })
 
   it('shows no cue with reduced motion', () => {
