@@ -3,7 +3,7 @@ import { pathToFileURL } from 'node:url'
 import path from 'node:path'
 import { settleIntro } from './helpers'
 
-const ROUTES = ['/', '/projects', '/showcase', '/services', '/testimonials', '/about', '/contact']
+const ROUTES = ['/', '/projects', '/showcase', '/services', '/testimonials', '/about', '/contact', '/privacy', '/terms', '/thank-you', '/not-a-page']
 const SIZES = [
   { name: 'desktop', width: 1440, height: 900 },
   { name: 'phone', width: 390, height: 844 },
@@ -28,6 +28,12 @@ test.describe('@shots', () => {
           const slug = r === '/' ? 'home' : r.slice(1)
           await page.screenshot({ path: `test-results/shots/app-${slug}-${theme}-${size.name}.png` })
         }
+        await page.goto('/projects#sites')
+        await page.waitForTimeout(2500) // the drum loads its thumbnails
+        await page.screenshot({ path: `test-results/shots/app-sites-${theme}-${size.name}.png` })
+        await page.getByRole('button', { name: 'Open Apex Build Co.' }).dispatchEvent('click')
+        await page.waitForTimeout(1200)
+        await page.screenshot({ path: `test-results/shots/app-preview-${theme}-${size.name}.png` })
       }
     }
   })
