@@ -17,7 +17,7 @@ const ARC = [
 export default function ProjectsCard() {
   const c = home.cards.projects
   return (
-    <HomeCard title={c.title} icon={FolderOpenIcon} meta={c.meta} href={c.href} className="min-w-[250px] flex-[2_1_400px] gap-[13px] p-5">
+    <HomeCard title={c.title} icon={FolderOpenIcon} meta={c.meta} href={c.href} className="min-w-[min(250px,100%)] flex-[2_1_400px] gap-[13px] p-5">
       <p className="max-w-[420px] text-[13.5px] leading-normal text-ink3">{c.body}</p>
       <div className="arc relative h-[215px] w-full max-w-[369px] self-center">
         {c.arc.map((shot, i) => {

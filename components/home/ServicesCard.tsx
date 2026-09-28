@@ -17,7 +17,7 @@ export default function ServicesCard() {
   const c = home.cards.services
   const total = String(SERVICES.length).padStart(2, '0')
   return (
-    <HomeCard title={c.title} icon={StackIcon} meta={total} href={c.href} className="min-w-[240px] flex-[1_1_290px] gap-3 p-5">
+    <HomeCard title={c.title} icon={StackIcon} meta={total} href={c.href} className="min-w-[min(240px,100%)] flex-[1_1_290px] gap-3 p-5">
       <div className="flex items-center gap-2 font-mono text-[9.5px] tracking-[.14em] text-ink3">
         {c.hint} <ArrowRightIcon size={12} aria-hidden className="text-accent" />
       </div>

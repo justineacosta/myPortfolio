@@ -50,7 +50,7 @@ export default function Method() {
       style={{ '--method-ms': `${METHOD_MS}ms` } as CSSProperties}
     >
       <Frame lit={{ x: '12%', alpha: 0.55, stop: '58%' }} className="flex flex-wrap gap-[clamp(11px,1.3cqw,18px)] p-[clamp(11px,1.3cqw,18px)]">
-        <div className={`${CARD} flex min-w-[220px] flex-[1_1_240px] flex-col gap-[9px] p-5`}>
+        <div className={`${CARD} flex min-w-[min(220px,100%)] flex-[1_1_240px] flex-col gap-[9px] p-5`}>
           <span className="font-mono text-[10px] tracking-[.16em] text-accent">{m.kicker}</span>
           <h2 className="text-[clamp(18px,2cqw,24px)] leading-[1.2] font-semibold tracking-[-.025em]">
             {m.title.map((line, i) => (
@@ -66,7 +66,7 @@ export default function Method() {
           <div
             key={st.n}
             data-on={i === (still ? 0 : step) || undefined}
-            className="method-step relative flex min-w-[215px] flex-[1_1_230px] flex-col gap-2.5 overflow-hidden rounded-[20px] p-5"
+            className="method-step relative flex min-w-[min(215px,100%)] flex-[1_1_230px] flex-col gap-2.5 overflow-hidden rounded-[20px] p-5"
           >
             <span aria-hidden className="method-rail" />
             <span aria-hidden className="method-spark" />

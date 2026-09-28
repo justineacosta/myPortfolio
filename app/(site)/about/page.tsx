@@ -17,11 +17,11 @@ export default function Page() {
     <section className="flex flex-col gap-[clamp(14px,1.6cqw,20px)]">
       <PageHeader href="/about" title={about.title} lede={about.lede} ledeClassName="max-w-[560px]" />
       <Frame lit={{ x: '82%', alpha: 0.6, stop: '58%' }} className="flex flex-wrap gap-[clamp(11px,1.3cqw,18px)] p-[clamp(11px,1.3cqw,18px)]">
-        <div className={`${COLUMN} min-w-[260px] flex-[1_1_360px]`}>
+        <div className={`${COLUMN} min-w-[min(260px,100%)] flex-[1_1_360px]`}>
           <Intro />
           <Roles />
         </div>
-        <div className={`${COLUMN} min-w-[250px] flex-[1_1_300px]`}>
+        <div className={`${COLUMN} min-w-[min(250px,100%)] flex-[1_1_300px]`}>
           <Workstation />
           <div className="flex flex-wrap gap-[clamp(11px,1.3cqw,16px)]">
             <Certified />

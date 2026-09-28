@@ -11,7 +11,7 @@ import { CERTS } from '@/data/credentials'
  */
 export default function Certified() {
   return (
-    <div className="flex min-w-[190px] flex-[1_1_210px] items-center gap-3.5 rounded-[18px] border border-b1 bg-linear-to-b from-s2 to-s1 px-[17px] py-[15px]">
+    <div className="flex min-w-[min(190px,100%)] flex-[1_1_210px] flex-wrap items-center gap-3.5 rounded-[18px] border border-b1 bg-linear-to-b from-s2 to-s1 px-[17px] py-[15px]">
       <span aria-hidden className={ICON_TILE}>
         <SealCheckIcon size={18} />
       </span>

@@ -11,7 +11,7 @@ export default function StackCard() {
     <HomeCard
       title={c.title}
       icon={StackSimpleIcon}
-      className="min-w-[220px] flex-[1_1_240px] gap-[13px] overflow-hidden pt-5 pb-[22px]"
+      className="min-w-[min(220px,100%)] flex-[1_1_240px] gap-[13px] overflow-hidden pt-5 pb-[22px]"
       headClassName="px-5"
     >
       <p className="px-5 text-[13.5px] leading-normal text-ink3">{c.body}</p>

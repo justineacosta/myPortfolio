@@ -19,7 +19,7 @@ export default function Offers() {
         {SERVICES.map((s) => (
           <article
             key={s.n}
-            className={`${CARD} flex min-w-[245px] flex-[1_1_300px] flex-col gap-3 p-5 transition-[translate,border-color,box-shadow] duration-400 ease-[cubic-bezier(.2,.7,.2,1)] hover:-translate-y-[3px] hover:border-b2 hover:shadow-[0_24px_60px_-30px_var(--washB)]`}
+            className={`${CARD} flex min-w-[min(245px,100%)] flex-[1_1_300px] flex-col gap-3 p-5 transition-[translate,border-color,box-shadow] duration-400 ease-[cubic-bezier(.2,.7,.2,1)] hover:-translate-y-[3px] hover:border-b2 hover:shadow-[0_24px_60px_-30px_var(--washB)]`}
           >
             <div className="flex items-center gap-2.5">
               <div className="flex gap-[5px] rounded-[13px] border border-b1 bg-chip p-[5px]">

@@ -90,7 +90,7 @@ export default function Board() {
             </div>
           </a>
 
-          <a href="#build-plan" onClick={openView} data-case={c.plan.cue} className={`${CARD} min-w-[250px] flex-[2_1_300px]`}>
+          <a href="#build-plan" onClick={openView} data-case={c.plan.cue} className={`${CARD} min-w-[min(250px,100%)] flex-[2_1_300px]`}>
             <span aria-hidden className={TILE}>
               <c.plan.icon size={20} className="text-accent" />
             </span>
@@ -116,7 +116,7 @@ export default function Board() {
             </div>
           </a>
 
-          <div className="flex min-w-[250px] flex-[2_1_300px] flex-col gap-[clamp(8px,1cqw,12px)]">
+          <div className="flex min-w-[min(250px,100%)] flex-[2_1_300px] flex-col gap-[clamp(8px,1cqw,12px)]">
             {projects.writeups.map((w) => (
               <a
                 key={w.view}
@@ -142,7 +142,7 @@ export default function Board() {
         </div>
 
         <div className={`flex flex-wrap ${GAP}`}>
-          <a href="#sites" onClick={openView} data-case={c.sites.cue} className={`${CARD} min-w-[260px] flex-[2_1_320px]`}>
+          <a href="#sites" onClick={openView} data-case={c.sites.cue} className={`${CARD} min-w-[min(260px,100%)] flex-[2_1_320px]`}>
             <span aria-hidden className={TILE}>
               <c.sites.icon size={20} className="text-accent" />
             </span>

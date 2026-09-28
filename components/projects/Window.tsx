@@ -42,7 +42,7 @@ export default function Window({ open, onClose, title, children }: Props) {
 export function WindowHero({ kicker, lede, stack }: { kicker: string; lede: string; stack: Chip[] }) {
   return (
     <div className="flex flex-wrap items-center gap-5 rounded-2xl border border-b1 bg-[radial-gradient(120%_140%_at_8%_-20%,rgba(var(--amb),.5),rgba(var(--amb),0)_60%),linear-gradient(180deg,var(--s1),var(--s2))] p-[clamp(18px,2vw,28px)]">
-      <div className="flex min-w-[260px] flex-[1_1_360px] flex-col gap-2.5">
+      <div className="flex min-w-[min(260px,100%)] flex-[1_1_360px] flex-col gap-2.5">
         <span className="font-mono text-[10.5px] tracking-[.18em] text-accent">{kicker}</span>
         <h2 className="text-[clamp(19px,2.2vw,27px)] leading-[1.24] font-semibold tracking-[-.03em]">{lede}</h2>
       </div>

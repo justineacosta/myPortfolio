@@ -6,7 +6,7 @@ import HomeCard from './HomeCard'
 export default function TestimonialsCard() {
   const c = home.cards.testimonials
   return (
-    <HomeCard title={c.title} icon={QuotesIcon} meta={c.meta} href={c.href} className="min-w-[250px] flex-[2_1_380px] gap-[13px] p-5">
+    <HomeCard title={c.title} icon={QuotesIcon} meta={c.meta} href={c.href} className="min-w-[min(250px,100%)] flex-[2_1_380px] gap-[13px] p-5">
       <ul className="flex flex-col gap-[9px]">
         {CLIENTS.map((cl) => (
           <li key={cl.n} className="flex items-center gap-3 rounded-[13px] border border-b1 bg-s0 px-3.5 py-3">
