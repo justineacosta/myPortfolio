@@ -5,6 +5,8 @@ import { jsonLd, personJsonLd } from '@/lib/jsonld'
 import { INDEXED_PATHS, pageMetadata, SITE_NAME } from '@/lib/seo'
 import { SITE_URL, siteUrl } from '@/lib/site'
 import { readTokens } from '@/lib/tokens'
+import { SHARE_ALT, SHARE_SIZE } from '@/lib/share-meta'
+import { shareFonts } from '@/lib/share-font'
 
 describe('siteUrl', () => {
   it('prefers NEXT_PUBLIC_SITE_URL, without a trailing slash', () => {
@@ -24,8 +26,9 @@ describe('pageMetadata', () => {
     expect(m.title).toBe('Projects')
     expect(m.description).toBe('Everything here shipped.')
     expect(m.alternates?.canonical).toBe('/projects')
-    expect(m.openGraph).toMatchObject({ title: 'Projects · Kraft', url: '/projects', siteName: 'Kraft', images: ['/opengraph-image'] })
-    expect(m.twitter).toMatchObject({ images: ['/twitter-image'] })
+    const image = { width: SHARE_SIZE.width, height: SHARE_SIZE.height, alt: SHARE_ALT }
+    expect(m.openGraph).toMatchObject({ title: 'Projects · Kraft', url: '/projects', siteName: 'Kraft', images: [{ url: '/opengraph-image', ...image }] })
+    expect(m.twitter).toMatchObject({ images: [{ url: '/twitter-image', ...image }] })
   })
   it('gives Home the full site name', () => {
     expect(pageMetadata('/', 'x').title).toEqual({ absolute: SITE_NAME })
@@ -67,5 +70,14 @@ describe('readTokens', () => {
   })
   it('says so when the token file has no such block', () => {
     expect(() => readTokens('dark', 'body{}')).toThrow(/dark/)
+  })
+})
+
+describe('share image', () => {
+  it('draws the headline in Geist Bold, loaded from the repo', () => {
+    const [font] = shareFonts()
+    expect(font).toMatchObject({ name: 'Geist Bold', weight: 700, style: 'normal' })
+    expect(font.data.readUInt32BE(0)).toBe(0x00010000)
+    expect(font.data.length).toBeGreaterThan(30_000)
   })
 })
