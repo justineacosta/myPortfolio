@@ -47,12 +47,6 @@ describe('Home data', () => {
     expect(a.length + b.length).toBe(TOOLS.length)
   })
 
-  it('gives every placeholder stat a short stand-in', () => {
-    expect(home.stats).toHaveLength(3)
-    expect(home.stats.filter((s) => isPlaceholder(s.value)).every((s) => !!s.short)).toBe(true)
-    expect(home.stats[2].value).toBe('GMT+8')
-  })
-
   it("uses Kraft's four loader steps for the intro", () => {
     expect(home.intro.steps.map((s) => s.label)).toEqual(['Brief comes in', 'Architect', 'Build & test', 'Shipped'])
   })

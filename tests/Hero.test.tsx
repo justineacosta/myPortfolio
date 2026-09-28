@@ -35,12 +35,10 @@ describe('Hero', () => {
     expect(screen.getByRole('link', { name: 'See the work' })).toHaveAttribute('href', '/projects')
   })
 
-  it('shows short stand-ins for placeholder stats and the real timezone', () => {
+  it('has no stats row under the actions (no [X] yrs, [N] builds or GMT+8 tiles)', () => {
     renderHero()
-    const list = screen.getByRole('list')
-    expect(list).toHaveTextContent('[X]yrs')
-    expect(list).toHaveTextContent('[N]builds')
-    expect(list).toHaveTextContent('GMT+8')
-    expect(list).toHaveTextContent('US hours')
+    expect(screen.queryByRole('list')).toBeNull()
+    expect(screen.queryByText('GMT+8')).toBeNull()
+    expect(screen.queryByText('[X]')).toBeNull()
   })
 })

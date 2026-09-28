@@ -4,16 +4,8 @@ import { CodeIcon, LightningIcon, RocketLaunchIcon, TreeStructureIcon } from '@p
 /**
  * Home copy, verbatim from KraftScreens.dc.html:47-200. The intro steps and
  * status lines are Kraft's loader (Kraft Portfolio.dc.html:389-394, 733).
- * The stats row is spec §8; its first two values are PLACEHOLDERs.
  */
-export type Stat = { value: string; short?: string; unit: string; label: string }
 export type IntroStep = { label: string; icon: Icon }
-
-const stats: Stat[] = [
-  { value: 'PLACEHOLDER - years building', short: '[X]', unit: 'yrs', label: 'building' },
-  { value: 'PLACEHOLDER - builds shipped', short: '[N]', unit: 'builds', label: 'shipped' },
-  { value: 'GMT+8', unit: '', label: 'US hours' },
-]
 
 const steps: IntroStep[] = [
   { label: 'Brief comes in', icon: LightningIcon },
@@ -27,7 +19,6 @@ export const home = {
   lede: 'Full-stack development, AI automation and workflow systems — built to keep running long after launch day.',
   primary: { label: 'Start a project', href: '/contact' },
   secondary: { label: 'See the work', href: '/projects' },
-  stats,
   tools: { kicker: 'DAILY DRIVERS', title: 'Tools I work with' },
   cards: {
     projects: {
