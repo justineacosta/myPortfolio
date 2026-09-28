@@ -13,6 +13,22 @@ const ui = (open: boolean) => (
   </>
 )
 const dialog = () => document.querySelector('dialog')!
+/** A real click: the press and the release on the same element. */
+const press = (el: Element) => {
+  fireEvent.pointerDown(el)
+  fireEvent.click(el)
+}
+/** Two views. B comes first in the tree, so its effect runs before A's (a hash handover from A to B). */
+const pair = (a: boolean, b: boolean) => (
+  <>
+    <ViewDialog open={b} onClose={() => {}} label="B">
+      <p>B</p>
+    </ViewDialog>
+    <ViewDialog open={a} onClose={() => {}} label="A">
+      <p>A</p>
+    </ViewDialog>
+  </>
+)
 
 describe('ViewDialog', () => {
   beforeEach(() => onClose.mockReset())
@@ -53,11 +69,47 @@ describe('ViewDialog', () => {
   it('closes on the backdrop or an empty stage, not on a click inside', () => {
     const { rerender } = render(ui(false))
     rerender(ui(true))
-    fireEvent.click(screen.getByText('Inside'))
+    press(screen.getByText('Inside'))
     expect(onClose).not.toHaveBeenCalled()
-    fireEvent.click(dialog())
-    fireEvent.click(screen.getByText('Empty stage'))
+    press(dialog())
+    press(screen.getByText('Empty stage'))
     expect(onClose).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not close when a press inside ends on the backdrop (drag-selecting text)', () => {
+    const { rerender } = render(ui(false))
+    rerender(ui(true))
+    fireEvent.pointerDown(screen.getByText('Inside'))
+    fireEvent.click(dialog())
+    expect(onClose).not.toHaveBeenCalled()
+  })
+
+  it('keeps the page locked when one view hands over straight to another', () => {
+    const { rerender } = render(pair(true, false))
+    rerender(pair(false, true))
+    expect(document.documentElement).toHaveAttribute('data-dialog')
+  })
+
+  it('keeps the page locked when a view stacked on another closes', () => {
+    const { rerender } = render(pair(true, false))
+    rerender(pair(true, true))
+    rerender(pair(true, false))
+    expect(document.documentElement).toHaveAttribute('data-dialog')
+  })
+
+  it('with nothing focused to go back to, returns focus to the page, not the body', () => {
+    const page = (open: boolean) => (
+      <main id="main-content" tabIndex={-1}>
+        <ViewDialog open={open} onClose={onClose} label="A view">
+          <p>Inside</p>
+        </ViewDialog>
+      </main>
+    )
+    const { rerender } = render(page(false))
+    ;(document.activeElement as HTMLElement | null)?.blur()
+    rerender(page(true))
+    rerender(page(false))
+    expect(screen.getByRole('main')).toHaveFocus()
   })
 
   it('never leaves the page locked when it unmounts while open', () => {

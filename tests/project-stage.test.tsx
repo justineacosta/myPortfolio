@@ -20,7 +20,9 @@ describe('Projects stage views', () => {
     window.history.replaceState(null, '', '/projects#reel')
     render(<ProjectViews />)
     const view = screen.getByRole('dialog', { name: 'Workflow screens' })
-    fireEvent.click(view.querySelector('.reel') as HTMLElement)
+    const stage = view.querySelector('.reel') as HTMLElement
+    fireEvent.pointerDown(stage)
+    fireEvent.click(stage)
     expect(window.location.hash).toBe('')
     expect(view).not.toHaveAttribute('open')
   })

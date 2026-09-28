@@ -1,8 +1,22 @@
 'use client'
 
 import { useEffect, useRef, type ReactNode } from 'react'
+import { PANEL_ID } from '@/lib/scroller'
 
 type Props = { open: boolean; onClose: () => void; label: string; className?: string; children: ReactNode }
+
+/**
+ * The page stays locked while any view is open. Views can hand over to each
+ * other (a hash edit, Back and Forward), and the site preview stacks on the
+ * sites view. A closing view's `close` event can arrive after the next view
+ * has opened.
+ */
+function unlockIfLast() {
+  if (!document.querySelector('dialog.view[open]')) document.documentElement.removeAttribute('data-dialog')
+}
+
+const isBackdrop = (target: EventTarget | null, dialog: HTMLElement) =>
+  target === dialog || (target instanceof HTMLElement && target.dataset.backdrop !== undefined)
 
 /**
  * Kraft's full-screen overlays (Kraft Projects Board.dc.html:132-313) on a
@@ -11,9 +25,10 @@ type Props = { open: boolean; onClose: () => void; label: string; className?: st
  *   needed syncOverlays().
  * - The browser supplies the focus trap and the inert background.
  * - `data-lenis-prevent` keeps the smooth scroller off the page behind.
- * Esc, backdrop clicks and clicks on anything marked `data-backdrop` all go
- * through onClose, so the owner (the URL hash) stays the one source of
- * truth. The content is in the pre-rendered HTML even while closed.
+ * Esc, and a press-and-release on the backdrop or on anything marked
+ * `data-backdrop`, all go through onClose. So the owner (the URL hash, or
+ * the sites view's state) stays the one source of truth. The content is in
+ * the pre-rendered HTML even while closed.
  */
 export default function ViewDialog({ open, onClose, label, className = '', children }: Props) {
   const ref = useRef<HTMLDialogElement>(null)
@@ -21,6 +36,9 @@ export default function ViewDialog({ open, onClose, label, className = '', child
   // What the owner wants. A `close` event while this is still true was the
   // browser's own doing (Esc), so the owner has to hear about it.
   const wanted = useRef(open)
+  // A click closes only when the press started on the backdrop too. Then
+  // drag-selecting text and letting go outside it never closes the view.
+  const pressedBackdrop = useRef(false)
 
   useEffect(() => {
     wanted.current = open
@@ -36,7 +54,7 @@ export default function ViewDialog({ open, onClose, label, className = '', child
   }, [open])
 
   // A route change can unmount an open view; the page must not stay locked.
-  useEffect(() => () => document.documentElement.removeAttribute('data-dialog'), [])
+  useEffect(() => () => unlockIfLast(), [])
 
   return (
     <dialog
@@ -45,15 +63,21 @@ export default function ViewDialog({ open, onClose, label, className = '', child
       data-lenis-prevent
       className={`view ${className}`}
       onClose={() => {
-        document.documentElement.removeAttribute('data-dialog')
+        unlockIfLast()
         const back = returnTo.current
         returnTo.current = null
+        // Nothing to go back to (a ⌘K pick made with nothing focused): the page itself.
         if (back && back.isConnected && back !== document.body) back.focus()
+        else document.getElementById(PANEL_ID)?.focus({ preventScroll: true })
         if (wanted.current) onClose()
       }}
+      onPointerDown={(e) => {
+        pressedBackdrop.current = isBackdrop(e.target, e.currentTarget)
+      }}
       onClick={(e) => {
-        const target = e.target as HTMLElement
-        if (target === e.currentTarget || target.dataset.backdrop !== undefined) onClose()
+        const pressed = pressedBackdrop.current
+        pressedBackdrop.current = false
+        if (pressed && isBackdrop(e.target, e.currentTarget)) onClose()
       }}
     >
       {children}

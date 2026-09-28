@@ -35,6 +35,10 @@ export function PaletteProvider({ children }: { children: ReactNode }) {
 
   const closePalette = useCallback(() => {
     setOpen(false)
+    // Now, as well as after the unmount. A pick that opens a sub-view records
+    // the focused element as the one to return to, so the trigger must
+    // already hold focus by then.
+    returnFocus.current?.focus()
     requestAnimationFrame(() => returnFocus.current?.focus())
   }, [])
 
