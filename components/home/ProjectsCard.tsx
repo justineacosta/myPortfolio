@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 import Image from 'next/image'
-import { FolderOpenIcon } from '@phosphor-icons/react/ssr'
+import { FolderOpenIcon, ImageIcon } from '@phosphor-icons/react/ssr'
 import { home } from '@/data/home'
 import { isPlaceholder } from '@/lib/placeholder'
 import HomeCard from './HomeCard'
@@ -26,7 +26,11 @@ export default function ProjectsCard() {
           return (
             <div key={shot.label} className="arc-card" style={pose}>
               {isPlaceholder(shot.src) ? (
-                <span className="grid h-full place-items-center font-mono text-[9px] tracking-[.06em] text-ink4">{shot.label}</span>
+                // Kraft's empty image-slot: a dashed frame, an image glyph and the slot's size.
+                <span className="m-1.5 grid h-[calc(100%-12px)] place-content-center justify-items-center gap-1.5 rounded-[9px] border border-dashed border-b2 text-ink3">
+                  <ImageIcon size={20} aria-hidden />
+                  <span className="text-[11px] font-medium whitespace-nowrap">{shot.label}</span>
+                </span>
               ) : (
                 <Image src={shot.src} alt="" fill sizes="150px" className="object-cover" />
               )}
