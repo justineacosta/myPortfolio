@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import BackgroundGate from '@/components/shell/BackgroundGate'
 import { PaletteProvider } from '@/components/shell/CommandPalette'
 import IntroOverlay from '@/components/shell/IntroOverlay'
+import LegalLinks from '@/components/shell/LegalLinks'
 import { NavigationProvider } from '@/components/shell/NavigationProvider'
 import PanelContent from '@/components/shell/PanelContent'
 import PhoneControls from '@/components/shell/PhoneControls'
@@ -38,6 +39,7 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
           <div>
             <ShellTopBar />
             <PanelContent>{children}</PanelContent>
+            <LegalLinks className="mt-10 justify-center shell:hidden" />
           </div>
         </main>
       </div>

@@ -7,6 +7,7 @@ import { isActivePath, NAV } from '@/data/nav'
 import { profile } from '@/data/profile'
 import { isPlaceholder } from '@/lib/placeholder'
 import AccessMenu from './AccessMenu'
+import LegalLinks from './LegalLinks'
 import ManilaClock from './ManilaClock'
 import MagnetLink from './MagnetLink'
 import { ShellLink } from './NavigationProvider'
@@ -129,7 +130,10 @@ export default function Sidebar() {
         Start a project <ArrowRightIcon size={16} aria-hidden />
       </MagnetLink>
 
-      <span className="font-mono text-[9px] tracking-[.06em] text-ink4">{profile.copyright}</span>
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+        <span className="font-mono text-[9px] tracking-[.06em] text-ink4">{profile.copyright}</span>
+        <LegalLinks />
+      </div>
     </aside>
   )
 }
