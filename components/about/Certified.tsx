@@ -24,7 +24,7 @@ export default function Certified() {
               role="img"
               tabIndex={0}
               aria-label={c.name}
-              className="group/cert cert-turn relative block cursor-default rounded-full transition-transform duration-400 ease-[cubic-bezier(.2,.8,.2,1)] hover:[transform:translateY(-7px)_rotate(-5deg)_scale(1.1)] focus-visible:[transform:translateY(-7px)_rotate(-5deg)_scale(1.1)]"
+              className="group/cert cert-turn relative block cursor-default rounded-full transition-transform duration-400 ease-[cubic-bezier(.2,.8,.2,1)] hover:[--cert-tilt:-5deg] hover:[transform:translateY(-7px)_rotate(-5deg)_scale(1.1)] focus-visible:[--cert-tilt:-5deg] focus-visible:[transform:translateY(-7px)_rotate(-5deg)_scale(1.1)]"
             >
               <CertBadge icon={c.icon} size={40} />
               <span

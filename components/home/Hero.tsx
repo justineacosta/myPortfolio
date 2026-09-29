@@ -3,7 +3,6 @@ import { ArrowRightIcon } from '@phosphor-icons/react/ssr'
 import { ShellLink } from '@/components/shell/NavigationProvider'
 import { home } from '@/data/home'
 import { navForPath } from '@/data/nav'
-import Stats from './Stats'
 
 /**
  * Kraft's Home header (KraftScreens.dc.html:49-58). The <h1> is the intro's
@@ -49,7 +48,6 @@ export default function Hero() {
           {home.secondary.label}
         </ShellLink>
       </div>
-      <Stats />
     </header>
   )
 }

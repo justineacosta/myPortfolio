@@ -177,8 +177,12 @@ html[data-a11y-motion=true] [data-reveal]{opacity:1 !important;transform:none !i
 .medal + .medal{margin-left:-26px}
 .medal + .medal:hover{margin-left:-14px}
 .medal:hover{transform:rotate(0deg) translateY(-10px) scale(1.1);z-index:12}
+.medal{--cert-tilt:var(--tilt)}
+.medal:hover{--cert-tilt:0deg}
 .cert-art{filter:drop-shadow(0 8px 10px rgba(0,0,0,.35))}
 .cert-halo{fill:none;stroke:var(--wash);stroke-width:0;transition:stroke-width .4s ease}
+/* The ribbon turns back by its medal's tilt (--cert-tilt), around where it meets the medallion, so it hangs straight down. */
+.cert-ribbon{transform-box:view-box;transform-origin:48px 60px;transform:rotate(calc(-1 * var(--cert-tilt,0deg)));transition:transform .45s cubic-bezier(.2,.8,.2,1)}
 .cert-dashes{transform-box:fill-box;transform-origin:center;transition:transform .45s cubic-bezier(.2,.8,.2,1)}
 .cert-turn:hover .cert-halo,.cert-turn:focus-visible .cert-halo{stroke-width:14}
 .cert-turn:hover .cert-dashes,.cert-turn:focus-visible .cert-dashes{transform:rotate(22deg)}
