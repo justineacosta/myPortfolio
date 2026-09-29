@@ -76,9 +76,6 @@ export const servicesPage = {
   },
 }
 
-/** How long each gate of the Kraft Method stays lit (KraftScreens.dc.html:620). */
-export const METHOD_MS = 1700
-
 export type Step = { n: string; key: string; name: string; icon: Icon; line: string; items: string[] }
 
 /** The Kraft Method, verbatim (KraftScreens.dc.html:622-628). */
