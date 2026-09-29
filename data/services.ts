@@ -67,7 +67,7 @@ export const servicesPage = {
     id: 'method',
     label: 'The Kraft Method',
     kicker: 'THE KRAFT METHOD',
-    title: ['Kickoff · Research', 'Architect · Form · Transform'] as const,
+    stepsLabel: 'The five steps',
     body: 'Five steps, always in that order. Every letter is a gate — nothing moves forward until the one before it is answered.',
   },
   offers: { id: 'offers', label: 'What I can do for you', title: 'What I can do for you', aside: 'Pick one, or stack a few.' },
