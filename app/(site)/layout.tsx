@@ -7,7 +7,7 @@ import LegalLinks from '@/components/shell/LegalLinks'
 import { NavigationProvider } from '@/components/shell/NavigationProvider'
 import PageGlow from '@/components/shell/PageGlow'
 import PanelContent from '@/components/shell/PanelContent'
-import PhoneControls from '@/components/shell/PhoneControls'
+import PhoneBar from '@/components/shell/PhoneBar'
 import TabBar from '@/components/shell/TabBar'
 import Sidebar from '@/components/shell/Sidebar'
 import SmoothScroll from '@/components/shell/SmoothScroll'
@@ -31,6 +31,7 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
       {/* After the contour: its canvas is opaque, and the glow is see-through. */}
       <PageGlow />
       <SmoothScroll />
+      <PhoneBar />
       <div className="relative z-1 shell:flex shell:h-dvh shell:overflow-hidden">
         <Sidebar />
         <main
@@ -38,7 +39,7 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
           tabIndex={-1}
           data-scroll
           data-a11y-scale
-          className="min-w-0 flex-1 px-4 pt-16 pb-[120px] outline-none max-shell:has-[[data-home-profile]]:pt-4 shell:overflow-x-hidden shell:overflow-y-auto shell:px-(--deskpad) shell:pt-(--deskpad) shell:pb-[72px]"
+          className="min-w-0 flex-1 px-4 pt-[calc(77px+env(safe-area-inset-top))] pb-[120px] outline-none shell:overflow-x-hidden shell:overflow-y-auto shell:px-(--deskpad) shell:pt-(--deskpad) shell:pb-[72px]"
         >
           <div>
             <PanelContent>{children}</PanelContent>
@@ -47,7 +48,6 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
         </main>
       </div>
       <TabBar />
-      <PhoneControls />
       <FloatingAccess />
       </PaletteProvider>
     </NavigationProvider>
