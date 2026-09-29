@@ -1,7 +1,7 @@
 import type { Icon } from '@phosphor-icons/react'
 import { ChatCircleDotsIcon, LightningIcon, TreeStructureIcon } from '@phosphor-icons/react/ssr'
 import { contact } from '@/data/contact'
-import { NAV } from '@/data/nav'
+import { isHidden, NAV } from '@/data/nav'
 import { projects, type ProjectView } from '@/data/projects'
 import { servicesPage } from '@/data/services'
 
@@ -34,8 +34,11 @@ export const SECTIONS: Command[] = [
 
 export const COMMANDS: Command[] = [...PAGES, ...SECTIONS]
 
+/** The ⌘K entries for pages that are switched on (data/nav.ts). */
+export const commands = () => COMMANDS.filter((c) => !isHidden(c.href))
+
 /** Kraft's filter (Kraft Portfolio.dc.html:705-706): label or hint contains the query. */
-export function filterCommands(query: string, list: Command[] = COMMANDS): Command[] {
+export function filterCommands(query: string, list: Command[] = commands()): Command[] {
   const q = query.trim().toLowerCase()
   if (!q) return list
   return list.filter((cmd) => cmd.label.toLowerCase().includes(q) || cmd.hint.toLowerCase().includes(q))

@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { ArrowRightIcon, SealCheckIcon } from '@phosphor-icons/react/ssr'
-import { isActivePath, NAV } from '@/data/nav'
+import { isActivePath, isHidden, visibleNav } from '@/data/nav'
 import { profile } from '@/data/profile'
 import { isPlaceholder } from '@/lib/placeholder'
 import AvailabilityLine from './AvailabilityLine'
@@ -75,7 +75,7 @@ export default function Sidebar() {
       <div className="h-px bg-b1" />
 
       <nav aria-label="Sections" className="flex flex-col gap-[3px]">
-        {NAV.map((item, i) => {
+        {visibleNav().map((item, i) => {
           const active = isActivePath(pathname, item.href)
           const Icon = item.icon
           return (
@@ -105,12 +105,14 @@ export default function Sidebar() {
 
       <AvailabilityLine className="rounded-[14px] border border-b1 bg-linear-to-b from-s2 to-s1 px-3.5 py-[13px]" />
 
-      <MagnetLink
-        href="/contact"
-        className="flex min-h-[46px] w-full items-center justify-center gap-2 rounded-[13px] bg-accent p-[13px] text-[13.5px] font-semibold text-on-accent transition-[transform,box-shadow] duration-250 hover:shadow-[0_12px_32px_-12px_var(--glow)]"
-      >
-        Start a project <ArrowRightIcon size={16} aria-hidden />
-      </MagnetLink>
+      {!isHidden('/contact') && (
+        <MagnetLink
+          href="/contact"
+          className="flex min-h-[46px] w-full items-center justify-center gap-2 rounded-[13px] bg-accent p-[13px] text-[13.5px] font-semibold text-on-accent transition-[transform,box-shadow] duration-250 hover:shadow-[0_12px_32px_-12px_var(--glow)]"
+        >
+          Start a project <ArrowRightIcon size={16} aria-hidden />
+        </MagnetLink>
+      )}
 
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
         <span className="font-mono text-[9px] tracking-[.06em] text-ink4">{profile.copyright}</span>

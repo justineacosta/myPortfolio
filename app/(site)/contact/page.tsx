@@ -5,11 +5,13 @@ import Frame from '@/components/ui/Frame'
 import PageHeader from '@/components/ui/PageHeader'
 import { CARD } from '@/components/ui/styles'
 import { contact } from '@/data/contact'
+import { notFoundIfHidden } from '@/lib/hidden'
 import { pageMetadata } from '@/lib/seo'
 
 export const metadata = pageMetadata('/contact', contact.lede)
 
 export default function Page() {
+  notFoundIfHidden('/contact')
   const q = contact.faqs
   return (
     <section className="flex flex-col gap-[clamp(14px,1.6cqw,20px)]">

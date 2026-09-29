@@ -1,3 +1,4 @@
+import { isHidden } from '@/data/nav'
 import AboutCard from './AboutCard'
 import CredentialsCard from './CredentialsCard'
 import ProjectsCard from './ProjectsCard'
@@ -8,7 +9,7 @@ import ToolsRow from './ToolsRow'
 
 const ROW = 'flex flex-wrap gap-[clamp(11px,1.3cqw,18px)]'
 
-/** Kraft's framed card grid (KraftScreens.dc.html:60-199). */
+/** Kraft's framed card grid (KraftScreens.dc.html:60-199). A card for a switched-off page (data/nav.ts) is left out; its row closes up. */
 export default function Bento() {
   return (
     <div
@@ -18,13 +19,13 @@ export default function Bento() {
     >
       <ToolsRow />
       <div className={ROW}>
-        <ProjectsCard />
-        <AboutCard />
+        {!isHidden('/projects') && <ProjectsCard />}
+        {!isHidden('/about') && <AboutCard />}
         <StackCard />
       </div>
       <div className={ROW}>
-        <ServicesCard />
-        <TestimonialsCard />
+        {!isHidden('/services') && <ServicesCard />}
+        {!isHidden('/testimonials') && <TestimonialsCard />}
         <CredentialsCard />
       </div>
     </div>
