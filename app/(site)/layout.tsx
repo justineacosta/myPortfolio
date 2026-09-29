@@ -5,6 +5,7 @@ import FloatingAccess from '@/components/shell/FloatingAccess'
 import IntroOverlay from '@/components/shell/IntroOverlay'
 import LegalLinks from '@/components/shell/LegalLinks'
 import { NavigationProvider } from '@/components/shell/NavigationProvider'
+import PageGlow from '@/components/shell/PageGlow'
 import PanelContent from '@/components/shell/PanelContent'
 import PhoneControls from '@/components/shell/PhoneControls'
 import TabBar from '@/components/shell/TabBar'
@@ -27,6 +28,8 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
       </a>
       <IntroOverlay />
       <BackgroundGate />
+      {/* After the contour: its canvas is opaque, and the glow is see-through. */}
+      <PageGlow />
       <SmoothScroll />
       <div className="relative z-1 shell:flex shell:h-dvh shell:overflow-hidden">
         <Sidebar />

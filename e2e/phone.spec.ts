@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { headlineLanding, hydrated, INTRO_LOAD, settleIntro } from './helpers'
+import { catchRun, headlineLanding, hydrated, INTRO_LOAD, loaderGeometry, settleIntro } from './helpers'
 
 test('phone: tab bar replaces the sidebar', async ({ page }) => {
   await page.goto('/')
@@ -66,6 +66,28 @@ test('phone: the intro lands exactly on the Home h1', async ({ page }) => {
   expect(r.dy).toBeLessThan(1)
   expect(r.sameSize).toBe(true)
   await expect(page.getByRole('navigation', { name: 'Sections' })).toHaveCSS('opacity', '1')
+})
+
+test("phone: Kraft's loader fits the screen, logo and headline on the 20px gutter", async ({ page }) => {
+  await page.goto('/', INTRO_LOAD)
+  const g = await loaderGeometry(page)
+  expect(g.brand.text).toContain('KRAFT')
+  expect(Math.abs(g.brand.left - 20)).toBeLessThan(1)
+  expect(Math.abs(g.title.left - 20)).toBeLessThan(1)
+  expect(g.firstNode.top).toBeGreaterThan(g.title.bottom)
+  expect(g.lastNode.left + g.nodeSize).toBeLessThanOrEqual(g.vw - 20 + 1)
+  for (const l of g.labels) {
+    expect(l.left).toBeGreaterThanOrEqual(0)
+    expect(l.right).toBeLessThanOrEqual(g.vw)
+  }
+})
+
+test('phone: the run plays at the quicker pace (62%, about 2.2s)', async ({ page }) => {
+  await page.goto('/', INTRO_LOAD)
+  const start = await catchRun(page, `(f) => f.at === 'burst0'`)
+  const end = await catchRun(page, `(f) => f.done[3]`)
+  expect(end.t - start.t).toBeGreaterThan(1900)
+  expect(end.t - start.t).toBeLessThan(2600)
 })
 
 test('phone: reloading a scrolled Home still lands the intro at the top', async ({ page }) => {
