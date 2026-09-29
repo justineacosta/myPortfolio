@@ -40,11 +40,12 @@ const PAGES: Record<string, () => unknown> = {
 /** Switches `href` off in data/nav.ts for the length of `fn`. */
 function withHidden(href: string, fn: () => void) {
   const item = NAV.find((n) => n.href === href)!
+  const was = item.hidden
   item.hidden = true
   try {
     fn()
   } finally {
-    delete item.hidden
+    item.hidden = was
     cleanup()
   }
 }

@@ -19,20 +19,20 @@ export type MobileNavItem = { href: string; label: string; icon: Icon; center?: 
 /**
  * Sidebar order and numbering (spec §7). Hints are Kraft's crumbs.
  *
- * To switch a page off, add `hidden: true` to its line and redeploy. It then
+ * To switch a page off, set `hidden: true` on its line and redeploy. It then
  * answers its URL with the 404 and leaves the sidebar (which renumbers), the
  * phone tabs, ⌘K, the sitemap, and every link to it (Home's cards, the hero,
- * the Start a project buttons, the 404 and thank-you pages). Delete it to
- * bring the page back. Home can't be hidden.
+ * the Start a project buttons, the 404 and thank-you pages). Set it back to
+ * `false` to bring the page back. Home can't be hidden.
  */
 export const NAV: NavItem[] = [
-  { href: '/', label: 'Home', hint: 'OVERVIEW', eyebrow: 'HOME / OVERVIEW', icon: HouseIcon },
-  { href: '/projects', label: 'Projects', hint: 'BUILDS', eyebrow: 'PROJECTS / BUILDS', icon: FolderOpenIcon },
-  { href: '/showcase', label: 'Showcase', hint: 'FLAGSHIP', eyebrow: 'SHOWCASE / FLAGSHIP', icon: FlagIcon },
-  { href: '/services', label: 'Services', hint: 'OFFERS', eyebrow: 'SERVICES / OFFERS', icon: StackIcon },
-  { href: '/testimonials', label: 'Testimonials', hint: 'CLIENTS', eyebrow: 'TESTIMONIALS / CLIENTS', icon: QuotesIcon },
-  { href: '/about', label: 'About', hint: 'PROFILE', eyebrow: 'ABOUT / PROFILE', icon: UserCircleIcon },
-  { href: '/contact', label: 'FAQs / Contact', hint: 'INQUIRY', eyebrow: 'FAQS / CONTACT', icon: ChatCircleDotsIcon },
+  { href: '/', label: 'Home', hint: 'OVERVIEW', eyebrow: 'HOME / OVERVIEW', icon: HouseIcon, hidden: false },
+  { href: '/projects', label: 'Projects', hint: 'BUILDS', eyebrow: 'PROJECTS / BUILDS', icon: FolderOpenIcon, hidden: false },
+  { href: '/showcase', label: 'Showcase', hint: 'FLAGSHIP', eyebrow: 'SHOWCASE / FLAGSHIP', icon: FlagIcon, hidden: false },
+  { href: '/services', label: 'Services', hint: 'OFFERS', eyebrow: 'SERVICES / OFFERS', icon: StackIcon, hidden: false },
+  { href: '/testimonials', label: 'Testimonials', hint: 'CLIENTS', eyebrow: 'TESTIMONIALS / CLIENTS', icon: QuotesIcon, hidden: false },
+  { href: '/about', label: 'About', hint: 'PROFILE', eyebrow: 'ABOUT / PROFILE', icon: UserCircleIcon, hidden: false },
+  { href: '/contact', label: 'FAQs / Contact', hint: 'INQUIRY', eyebrow: 'FAQS / CONTACT', icon: ChatCircleDotsIcon, hidden: false },
 ]
 
 /** Kraft's phone nav. Showcase and Testimonials are reached from Home and ⌘K. */
