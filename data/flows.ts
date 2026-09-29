@@ -12,8 +12,9 @@ import {
 
 /**
  * Kraft's live automation flows, verbatim (KraftScreens.dc.html:663-960).
- * Coordinates are on the 1180×430 canvas (lib/flow.ts). A node's `kind`
- * marks an outcome ('on', accent) or a dead end ('off', the alert red).
+ * Coordinates are on the flow canvas (lib/flow.ts: FLOW_W × FLOW_H). A
+ * node's `kind` marks an outcome ('on', accent) or a dead end ('off', the
+ * alert red).
  */
 export type FlowNode = { x: number; y: number; icon: Icon; name: string; sub: string; kind?: 'on' | 'off' }
 export type FlowEdge = {

@@ -1,8 +1,29 @@
 import type { FlowEdge } from '@/data/flows'
 
-/** Kraft's canvas (KraftScreens.dc.html:301): fixed 1180×430, scrolled sideways when the frame is narrower. */
-export const FLOW_W = 1180
+/**
+ * Kraft's canvas (KraftScreens.dc.html:301), trimmed from 1180 to 1110 wide so
+ * the nodes (centres 100-1010, 124px wide: 38-1072) sit in its middle. It is
+ * centred in its frame, and scrolled sideways when the frame is narrower.
+ */
+export const FLOW_W = 1110
 export const FLOW_H = 430
+/** A node's width on the canvas (its label column). */
+export const NODE_W = 124
+/** Where the nodes of every flow lie across the canvas. */
+export const FLOW_SPAN = { left: 38, right: 1072 }
+
+/**
+ * Where a frame `client` px wide (with `pad` px of padding each side) should
+ * open its scroll so the nodes sit centred: only when the nodes fit but the
+ * whole canvas does not. Otherwise null: a frame that fits the canvas centres
+ * it with margins, and one too narrow for the nodes starts at the first node.
+ */
+export function centreScroll(client: number, pad: number): number | null {
+  const scrollW = FLOW_W + pad * 2
+  if (client >= scrollW || client < FLOW_SPAN.right - FLOW_SPAN.left) return null
+  const x = Math.round(pad + (FLOW_SPAN.left + FLOW_SPAN.right) / 2 - client / 2)
+  return Math.min(Math.max(x, 0), scrollW - client)
+}
 /** How far a hovered node rises, in px; its edges rise with it (…:1006-1009). */
 export const LIFT = -6
 
