@@ -6,6 +6,7 @@ import Roles from '@/components/about/Roles'
 import Frame from '@/components/ui/Frame'
 import PageHeader from '@/components/ui/PageHeader'
 import { about } from '@/data/about'
+import { notFoundIfHidden } from '@/lib/hidden'
 import { pageMetadata } from '@/lib/seo'
 
 export const metadata = pageMetadata('/about', about.lede)
@@ -13,6 +14,7 @@ export const metadata = pageMetadata('/about', about.lede)
 const COLUMN = 'flex flex-col gap-[clamp(11px,1.3cqw,16px)]'
 
 export default function Page() {
+  notFoundIfHidden('/about')
   return (
     <section className="flex flex-col gap-[clamp(14px,1.6cqw,20px)]">
       <PageHeader href="/about" title={about.title} lede={about.lede} ledeClassName="max-w-[560px]" />

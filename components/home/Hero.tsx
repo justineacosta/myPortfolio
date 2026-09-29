@@ -2,7 +2,7 @@ import { Fragment } from 'react'
 import { ArrowRightIcon } from '@phosphor-icons/react/ssr'
 import { ShellLink } from '@/components/shell/NavigationProvider'
 import { home } from '@/data/home'
-import { navForPath } from '@/data/nav'
+import { isHidden, navForPath } from '@/data/nav'
 
 /**
  * Kraft's Home header (KraftScreens.dc.html:49-58). The <h1> is the intro's
@@ -35,18 +35,22 @@ export default function Hero() {
         {home.lede}
       </p>
       <div data-intro-hold data-intro-delay="100" className="mt-[22px] flex flex-wrap gap-2.5">
-        <ShellLink
-          href={home.primary.href}
-          className="flex min-h-[46px] items-center gap-2 rounded-[13px] bg-accent px-5 py-3 text-sm font-semibold text-on-accent transition-[translate,scale,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_14px_36px_-12px_var(--glow)] active:scale-[.988]"
-        >
-          {home.primary.label} <ArrowRightIcon size={16} aria-hidden />
-        </ShellLink>
-        <ShellLink
-          href={home.secondary.href}
-          className="flex min-h-[46px] items-center gap-2 rounded-[13px] border border-b2 px-5 py-3 text-sm font-medium text-ink transition-[translate,scale,background-color] duration-300 hover:-translate-y-0.5 hover:bg-hover active:scale-[.988]"
-        >
-          {home.secondary.label}
-        </ShellLink>
+        {!isHidden(home.primary.href) && (
+          <ShellLink
+            href={home.primary.href}
+            className="flex min-h-[46px] items-center gap-2 rounded-[13px] bg-accent px-5 py-3 text-sm font-semibold text-on-accent transition-[translate,scale,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_14px_36px_-12px_var(--glow)] active:scale-[.988]"
+          >
+            {home.primary.label} <ArrowRightIcon size={16} aria-hidden />
+          </ShellLink>
+        )}
+        {!isHidden(home.secondary.href) && (
+          <ShellLink
+            href={home.secondary.href}
+            className="flex min-h-[46px] items-center gap-2 rounded-[13px] border border-b2 px-5 py-3 text-sm font-medium text-ink transition-[translate,scale,background-color] duration-300 hover:-translate-y-0.5 hover:bg-hover active:scale-[.988]"
+          >
+            {home.secondary.label}
+          </ShellLink>
+        )}
       </div>
     </header>
   )

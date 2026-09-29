@@ -12,10 +12,19 @@ import {
   UserIcon,
 } from '@phosphor-icons/react/ssr'
 
-export type NavItem = { href: string; label: string; hint: string; eyebrow: string; icon: Icon }
+/** `hidden: true` switches a page off: see NAV. */
+export type NavItem = { href: string; label: string; hint: string; eyebrow: string; icon: Icon; hidden?: boolean }
 export type MobileNavItem = { href: string; label: string; icon: Icon; center?: boolean }
 
-/** Sidebar order and numbering (spec §7). Hints are Kraft's crumbs. */
+/**
+ * Sidebar order and numbering (spec §7). Hints are Kraft's crumbs.
+ *
+ * To switch a page off, add `hidden: true` to its line and redeploy. It then
+ * answers its URL with the 404 and leaves the sidebar (which renumbers), the
+ * phone tabs, ⌘K, the sitemap, and every link to it (Home's cards, the hero,
+ * the Start a project buttons, the 404 and thank-you pages). Delete it to
+ * bring the page back. Home can't be hidden.
+ */
 export const NAV: NavItem[] = [
   { href: '/', label: 'Home', hint: 'OVERVIEW', eyebrow: 'HOME / OVERVIEW', icon: HouseIcon },
   { href: '/projects', label: 'Projects', hint: 'BUILDS', eyebrow: 'PROJECTS / BUILDS', icon: FolderOpenIcon },
@@ -34,6 +43,18 @@ export const MOBILE_NAV: MobileNavItem[] = [
   { href: '/services', label: 'Services', icon: StackIcon },
   { href: '/about', label: 'About', icon: UserIcon },
 ]
+
+/** Whether the page `href` leads to (a `#section` counts as its page) is switched off. */
+export function isHidden(href: string): boolean {
+  const path = href.split('#')[0]
+  return NAV.some((n) => n.hidden && n.href === path)
+}
+
+/** The pages that are switched on, in sidebar order. */
+export const visibleNav = () => NAV.filter((n) => !n.hidden)
+
+/** The phone tabs whose pages are switched on. */
+export const visibleMobileNav = () => MOBILE_NAV.filter((n) => !isHidden(n.href))
 
 export function isActivePath(pathname: string, href: string): boolean {
   if (href === '/') return pathname === '/'

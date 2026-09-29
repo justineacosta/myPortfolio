@@ -3,11 +3,13 @@ import Flagship from '@/components/showcase/Flagship'
 import Frame from '@/components/ui/Frame'
 import PageHeader from '@/components/ui/PageHeader'
 import { showcase } from '@/data/showcase'
+import { notFoundIfHidden } from '@/lib/hidden'
 import { ledeOr, pageMetadata } from '@/lib/seo'
 
 export const metadata = pageMetadata('/showcase', ledeOr(showcase.lede, showcase.title.join(' ')))
 
 export default function Page() {
+  notFoundIfHidden('/showcase')
   return (
     <section className="flex flex-col gap-[clamp(14px,1.6cqw,20px)]">
       <PageHeader href="/showcase" title={showcase.title} lede={showcase.lede} />

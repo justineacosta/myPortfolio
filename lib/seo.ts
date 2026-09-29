@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { legalLinks } from '@/data/legal'
-import { NAV, navForPath } from '@/data/nav'
+import { navForPath, visibleNav } from '@/data/nav'
 import { profile } from '@/data/profile'
 import { isPlaceholder } from './placeholder'
 import { SHARE_ALT, SHARE_SIZE } from './share-meta'
@@ -8,8 +8,8 @@ import { SHARE_ALT, SHARE_SIZE } from './share-meta'
 export const SITE_NAME = `${profile.name} · ${profile.studio}`
 export const OG_BASE = { siteName: profile.studio, type: 'website', locale: 'en_US' } as const
 
-/** Every page search engines should know about. The thank-you page is left out on purpose. */
-export const INDEXED_PATHS = [...NAV.map((n) => n.href), ...legalLinks.map((l) => l.href)]
+/** Every page search engines should know about: the switched-on ones and the legal pages. The thank-you page is left out on purpose. */
+export const indexedPaths = () => [...visibleNav().map((n) => n.href), ...legalLinks.map((l) => l.href)]
 
 /**
  * A route's metadata (spec §13): the title (Home carries the full site name),
