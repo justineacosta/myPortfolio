@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import Bento from '@/components/home/Bento'
 import { NavigationProvider } from '@/components/shell/NavigationProvider'
+import { BUILDS } from '@/data/projects'
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
@@ -27,14 +28,18 @@ describe('Bento', () => {
     renderBento()
     const projects = screen.getByRole('link', { name: /^Projects/ })
     expect(projects).toHaveAttribute('href', '/projects')
-    expect(projects).toHaveTextContent('06 BUILDS')
+    expect(projects).not.toHaveTextContent('BUILDS')
     expect(screen.getByRole('link', { name: /^About/ })).toHaveAttribute('href', '/about')
     expect(screen.getByRole('heading', { name: 'Stack' }).closest('a')).toBeNull()
   })
 
-  it('fans five project shots, labelled while they are placeholders', () => {
-    renderBento()
-    for (const n of [1, 2, 3, 4, 5]) expect(screen.getByText(`Project ${n} · 16:10`)).toBeInTheDocument()
+  it('fans a tile for every build on the Projects page, a real site for Funnels and labelled slots for the rest', () => {
+    const { container } = renderBento()
+    const tiles = [...container.querySelectorAll<HTMLElement>('.arc [data-fan-tile]')]
+    expect(tiles.map((t) => t.dataset.site)).toEqual(BUILDS.map((b) => b.name))
+    const funnels = tiles.find((t) => t.dataset.site === 'Funnels and sites')!
+    expect(decodeURIComponent(funnels.querySelector('img')!.getAttribute('src')!)).toContain('/samples/thumbs/tall/')
+    expect(within(tiles[0]).getByText('Automations')).toBeInTheDocument()
   })
 
   it('loops the tools marquee with a hidden duplicate', () => {

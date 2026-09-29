@@ -156,11 +156,20 @@ html[data-a11y-motion=true] [data-reveal]{opacity:1 !important;transform:none !i
 .marquee-reverse{animation-direction:reverse}
 
 /* Kraft's project arc (KraftScreens.dc.html:84-90, 1061-1078): a compact fan
-   at rest, wider when the card is hovered or focused, and the hovered shot
-   lifts out. Per-card geometry arrives as --x --y --r --z. */
-.arc-card{position:absolute;left:50%;bottom:26%;width:40%;margin-left:-20%;aspect-ratio:16/10;border-radius:13px;overflow:hidden;background:var(--s0);border:1px solid var(--b2);box-shadow:var(--arc-shadow);transform-origin:50% 50%;will-change:transform;z-index:var(--z);transform:translate(calc(var(--x) * 1%),calc(var(--y) * 1%)) rotate(calc(var(--r) * 1deg));transition:transform .55s cubic-bezier(.2,.7,.2,1),box-shadow .4s ease,border-color .4s ease}
-.arc:hover .arc-card,a:focus-visible .arc-card{transform:translate(calc(var(--x) * 1.9%),calc(var(--y) * 1.5%)) rotate(calc(var(--r) * 1.85deg))}
-.arc .arc-card:hover{z-index:40;border-color:var(--washB);box-shadow:0 30px 64px -24px var(--glow);transform:translate(calc(var(--x) * 1.9%),calc(var(--y) * 1.5%)) rotate(calc(var(--r) * .555deg)) translateY(-14px) scale(1.05)}
+   of build tiles (components/home/ProjectsCard.tsx; hooks/useFan.ts). Poses
+   arrive as --x --y (% of a tile) and --r (deg), depth rank as --d. At rest it
+   is flat, as Kraft drew it. While a pointer or finger is on it the stage
+   opens out as Kraft's hover did (x1.9, y1.5, tilt x1.85), gives the tiles
+   depth so its tilt (--tx --ty) shows parallax, and lifts the chosen tile;
+   keyboard focus on the card opens it out too. */
+.arc{perspective:900px}
+.arc-stage{--sx:1;--sy:1;--sr:1;--depth:0;--lift:0px;--up:0px;--grow:1;position:absolute;inset:0;transform-style:preserve-3d;transform:rotateX(var(--tx,0deg)) rotateY(var(--ty,0deg));transition:transform .35s ease-out}
+.arc-stage[data-spread],a:focus-visible .arc-stage{--sx:1.9;--sy:1.5;--sr:1.85}
+.arc-stage[data-spread]{--depth:14;--lift:70px;--up:-14px;--grow:1.05}
+.arc-card{position:absolute;left:50%;bottom:26%;width:40%;margin-left:-20%;aspect-ratio:16/10;border-radius:13px;overflow:hidden;container-type:size;background:var(--s0);border:1px solid var(--b2);box-shadow:var(--arc-shadow);transform-origin:50% 50%;transform:translate3d(calc(var(--x) * var(--sx) * 1%),calc(var(--y) * var(--sy) * 1%),calc(var(--d) * var(--depth) * 1px)) rotate(calc(var(--r) * var(--sr) * 1deg));transition:transform .55s cubic-bezier(.2,.7,.2,1),opacity .5s ease,box-shadow .4s ease,border-color .4s ease}
+.arc-card[data-front]{transform:translate3d(calc(var(--x) * var(--sx) * 1%),calc(var(--y) * var(--sy) * 1%),var(--lift)) translateY(var(--up)) rotate(calc(var(--r) * .555deg)) scale(var(--grow))}
+.arc-stage[data-spread] .arc-card[data-front]{border-color:var(--washB);box-shadow:0 30px 64px -24px var(--glow)}
+.arc-card[data-off]{opacity:0}
 
 /* Logo chips and shadows Kraft uses on both themes (KraftScreens.dc.html:141, 190-191) */
 :root{--logo-chip:#f7f4ee;--logo-shadow:0 2px 8px -2px rgba(0,0,0,.45);--pill-shadow:0 14px 34px -14px rgba(0,0,0,.7)}
@@ -313,7 +322,7 @@ html[data-a11y-motion=true] .flow-ball{display:none}
 .fan-tile[data-front]{border-color:var(--b2);box-shadow:var(--peek-shadow);transform:translateX(-50%) translate3d(calc(var(--x) * var(--spread) * 1px),calc(var(--y) * 1px - 12px),var(--lift)) rotate(0deg)}
 .fan-tile[data-off]{opacity:0}
 .fan-page{display:block;width:100%;height:auto;transition:transform .6s cubic-bezier(.2,.7,.2,1)}
-.fan-tile[data-peek] .fan-page{transform:translateY(calc(-100% + 100cqh));transition:transform 6s cubic-bezier(.45,0,.55,1)}
+[data-peek] > .fan-page{transform:translateY(calc(-100% + 100cqh));transition:transform 6s cubic-bezier(.45,0,.55,1)}
 .fan-tag{position:absolute;top:4px;left:50%;z-index:30;display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;border:1px solid var(--b2);background:var(--s1);font-size:11.5px;font-weight:600;color:var(--ink);white-space:nowrap;box-shadow:var(--tip-shadow);opacity:0;transform:translate(-50%,-4px);transition:opacity .25s ease,transform .25s ease;pointer-events:none}
 .fan-tag[data-on]{opacity:1;transform:translate(-50%,0)}
 

@@ -13,7 +13,8 @@ test("Home shows Kraft's headline, lede and actions", async ({ page }) => {
 
 test('Home cards open their pages', async ({ page }) => {
   await page.goto('/')
-  await page.locator('#main-content').getByRole('link', { name: /^Projects/ }).click()
+  // Off the fan (which opens the build in front), the card opens the Projects page.
+  await page.locator('#main-content').getByRole('link', { name: /^Projects/ }).getByRole('heading', { name: 'Projects' }).click()
   await expect(page).toHaveURL(/\/projects$/)
 })
 
@@ -107,4 +108,21 @@ test('desktop: the Projects fan fills its card up to 1.4x Kraft size, keeping it
     const size = await arcSize(page)
     expect(size, `${width}px`).toEqual(expected)
   }
+})
+
+test('Home Projects fan: the pointer names a build, and a click opens it on Projects', async ({ page }) => {
+  await page.goto('/')
+  await settleIntro(page)
+  await hydrated(page)
+  const fan = page.locator('.arc')
+  await fan.scrollIntoViewIfNeeded()
+  const box = (await fan.boundingBox())!
+  await page.mouse.move(box.x + box.width * 0.08, box.y + box.height * 0.6, { steps: 4 })
+  const tag = page.locator('.arc [data-fan-tag]')
+  await expect(tag).toHaveAttribute('data-on', '')
+  const name = (await tag.textContent())!.trim()
+  expect(name).toBe(await page.locator('.arc [data-fan-tile][data-front]').getAttribute('data-site'))
+  await page.mouse.click(box.x + box.width * 0.08, box.y + box.height * 0.6)
+  await expect(page).toHaveURL(/\/projects#[a-z-]+$/)
+  await expect(page.getByRole('dialog', { name })).toBeVisible()
 })

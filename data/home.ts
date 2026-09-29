@@ -23,13 +23,8 @@ export const home = {
   cards: {
     projects: {
       title: 'Projects',
-      meta: '06 BUILDS',
       body: 'Apps, workflows and internal tools built to remove one specific problem. Open a card to walk through the work.',
       href: '/projects',
-      arc: [1, 2, 3, 4, 5].map((n) => ({
-        src: `PLACEHOLDER - project screenshot ${n} (16:10)`,
-        label: `Project ${n} · 16:10`,
-      })),
     },
     about: {
       title: 'About',
