@@ -300,21 +300,31 @@ html[data-a11y-motion=true] .reel{overflow-x:auto}
 html[data-a11y-motion=true] .reel-row{animation:none}
 html[data-a11y-motion=true] .reel-pause{display:none}
 
-/* The Kraft Method (KraftScreens.dc.html:223-240, 1112-1125): the lit gate
-   gets a soft frame with a glow under it, a popped icon, the accent letter,
-   and its dotted top rail filling for as long as it stays lit. With motion
-   off the fill's animation ends at once, so the rail stands full. */
+/* The Kraft Method (KraftScreens.dc.html:223-240, 1112-1125), run like the
+   loader's steps (components/services/Method.tsx): the card the light goes
+   round, or the one under the pointer or focus, gets a soft wash with a glow
+   under it and the accent letter. A locked card keeps a lighter wash and its
+   icon pops and fills. The wire layer over the cards holds the traced
+   borders and the lines between the cards over their grey tracks, each
+   faded out by the run once the light is past it; the two sparks lead the
+   halves round a card and the dot runs a line. */
 @keyframes kPop{0%{transform:scale(.86)}58%{transform:scale(1.08)}100%{transform:scale(1)}}
-@keyframes kFill{from{transform:scaleX(0)}}
+.method-gate{outline-offset:3px}
 .method-step{background:linear-gradient(180deg,var(--s2),var(--s1));border:1px solid var(--b1);transition:background .5s ease,border-color .5s ease,box-shadow .5s ease}
-.method-step[data-on]{background:linear-gradient(180deg,var(--wash),var(--s1));border-color:var(--washB);box-shadow:0 26px 50px -30px var(--glow)}
-.method-rail{position:absolute;left:0;right:0;top:0;height:2px;background:repeating-linear-gradient(90deg,var(--b2) 0 3px,transparent 3px 9px)}
-.method-fill{position:absolute;inset:0;background:var(--accent);box-shadow:0 0 10px var(--glow);transform-origin:0 50%;transform:scaleX(0)}
-.method-step[data-on] .method-fill{transform:none;animation:kFill var(--method-ms,1.7s) linear both}
+.method-gate[data-state=locked] .method-step{background:linear-gradient(180deg,color-mix(in srgb,var(--wash) 45%,var(--s2)),var(--s1))}
+.method-gate:is([data-state=lit],[data-hover]) .method-step{background:linear-gradient(180deg,var(--wash),var(--s1));box-shadow:0 26px 50px -30px var(--glow)}
 .method-num{position:absolute;top:10px;right:14px;font-size:clamp(30px,3.4cqw,46px);font-weight:800;letter-spacing:-.05em;line-height:1;color:var(--wash);transition:color .5s ease}
-.method-step[data-on] .method-num{color:var(--accent)}
-.method-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:11px;background:var(--wash);border:1px solid var(--washB);color:var(--accent);transition:background .4s ease,border-color .4s ease,color .4s ease}
-.method-step[data-on] .method-icon{background:var(--accent);border-color:var(--accent);color:var(--onAccent);animation:kPop .5s cubic-bezier(.2,.8,.2,1) both}
+.method-gate:is([data-state=lit],[data-hover]) .method-num{color:var(--accent)}
+.method-icon{position:relative;display:grid;place-items:center;width:34px;height:34px;border-radius:11px;background:var(--wash);border:1px solid var(--washB);color:var(--accent);transition:background .4s ease,border-color .4s ease,color .4s ease}
+.method-gate[data-state=locked] .method-icon{background:var(--accent);border-color:var(--accent);color:var(--onAccent);animation:kPop .5s cubic-bezier(.2,.8,.2,1) both}
+.method-burst{position:absolute;inset:-10px;border-radius:50%;background:radial-gradient(circle,var(--glow),transparent 70%);opacity:0;pointer-events:none}
+.method-wire{position:absolute;top:0;left:0;z-index:1;overflow:visible;pointer-events:none}
+.method-ring,.method-line,.method-track{fill:none;stroke-width:1.5;stroke-linecap:round}
+.method-ring,.method-line{stroke:var(--accent);filter:drop-shadow(0 0 3px var(--glow))}
+.method-track{stroke:var(--b2)}
+.method-spark,.method-dot{position:absolute;top:0;left:0;z-index:2;border-radius:50%;background:var(--accent);opacity:0;pointer-events:none;will-change:transform}
+.method-spark{width:7px;height:7px;margin:-3.5px 0 0 -3.5px;box-shadow:0 0 0 2px var(--wash),0 0 12px 3px var(--glow)}
+.method-dot{width:8px;height:8px;margin:-4px 0 0 -4px;box-shadow:0 0 0 3px var(--wash),0 0 12px 2px var(--glow)}
 
 /* Live automation (KraftScreens.dc.html:300-320, 962-966): the three edge
    styles and the dots that travel along them. The dots stop, and hide, for
