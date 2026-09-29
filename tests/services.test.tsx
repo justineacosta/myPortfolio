@@ -69,13 +69,13 @@ describe('Method', () => {
 })
 
 describe('Offers', () => {
-  it("lists Kraft's six offers with logos, number, badge, bullets and tags", () => {
+  it('lists the five offers with logos, number, badge, bullets and tags', () => {
     render(<Offers />)
     const cards = screen.getAllByRole('article')
-    expect(cards).toHaveLength(6)
+    expect(cards).toHaveLength(5)
     const first = within(cards[0])
     expect(first.getByRole('heading', { level: 3 })).toHaveTextContent('Full-Stack Web & SaaS')
-    expect(first.getByText('01 / 06')).toBeInTheDocument()
+    expect(first.getByText('01 / 05')).toBeInTheDocument()
     expect(first.getByText('BUILT TO LAST')).toBeInTheDocument()
     expect(first.getByRole('img', { name: 'PostgreSQL' })).toBeInTheDocument()
     expect(first.getAllByRole('listitem')).toHaveLength(3)
