@@ -1,29 +1,16 @@
 'use client'
 
 import { useRef, useState, type MouseEvent, type PointerEvent } from 'react'
-import { ArrowUpRightIcon, ArrowsClockwiseIcon, HandPointingIcon } from '@phosphor-icons/react/ssr'
+import { ArrowUpRightIcon, HandPointingIcon } from '@phosphor-icons/react/ssr'
 import Frame from '@/components/ui/Frame'
 import Shot from '@/components/ui/Shot'
 import { projects } from '@/data/projects'
 import { pushHash } from '@/lib/hash'
 import { prefersReducedMotion } from '@/lib/motion'
+import SitesCard from './SitesCard'
+import { BODY, CARD, CTA, TILE, TITLE } from './styles'
 
-const CARD =
-  'relative flex flex-col gap-2.5 overflow-hidden rounded-[20px] border border-b1 bg-linear-to-b from-s1 to-s2 p-5 text-left text-ink transition-[translate,scale,border-color,box-shadow] duration-400 ease-[cubic-bezier(.2,.7,.2,1)] hover:-translate-y-[3px] hover:border-b2 hover:from-s2 hover:to-hover hover:shadow-[0_28px_64px_-30px_var(--washB)] active:scale-[.988]'
-const TILE = 'grid size-[38px] place-items-center rounded-xl border border-b1 bg-chip'
-const TITLE = 'text-[clamp(17px,2cqw,22px)] font-semibold tracking-[-.025em]'
-const BODY = 'text-[13px] leading-[1.55] text-ink3'
-const CTA = 'flex items-center gap-[7px] font-mono text-[10px] tracking-[.12em] text-accent'
 const GAP = 'gap-[clamp(11px,1.3cqw,18px)]'
-
-/** Kraft's fan of site tiles on the Funnels card (Kraft Projects Board.dc.html:110-114); index 2 is the front tile. */
-const FAN = [
-  'translateX(-50%) translateX(-112px) translateY(26px) rotate(-26deg)',
-  'translateX(-50%) translateX(-58px) translateY(7px) rotate(-13deg)',
-  'translateX(-50%) rotate(0deg)',
-  'translateX(-50%) translateX(58px) translateY(7px) rotate(13deg)',
-  'translateX(-50%) translateX(112px) translateY(26px) rotate(26deg)',
-]
 
 /**
  * A card is a real #view link, so it can open in a new tab. A plain click goes
@@ -142,27 +129,7 @@ export default function Board() {
         </div>
 
         <div className={`flex flex-wrap ${GAP}`}>
-          <a href="#sites" onClick={openView} data-case={c.sites.cue} className={`${CARD} min-w-[min(260px,100%)] flex-[2_1_320px]`}>
-            <span aria-hidden className={TILE}>
-              <c.sites.icon size={20} className="text-accent" />
-            </span>
-            <h2 className={TITLE}>{c.sites.title}</h2>
-            <p className={BODY}>{c.sites.body}</p>
-            <span className={CTA}>
-              {c.sites.cta} <ArrowsClockwiseIcon size={13} aria-hidden />
-            </span>
-            <div aria-hidden className="relative mt-2.5 h-[clamp(150px,16cqw,200px)] overflow-hidden">
-              {FAN.map((transform, i) => (
-                <div
-                  key={transform}
-                  style={{ transform }}
-                  className={`absolute left-1/2 aspect-[3/4] h-[84%] origin-bottom overflow-hidden rounded-[11px] border bg-s0 ${i === 2 ? 'bottom-4 border-b2 shadow-(--peek-shadow)' : 'bottom-1 border-b1 shadow-(--tile-shadow)'}`}
-                >
-                  <Shot src={projects.sitesView.sites[i].thumb} hint={c.sites.fanHint} sizes="120px" />
-                </div>
-              ))}
-            </div>
-          </a>
+          <SitesCard onOpen={openView} />
 
           <a href="#ai-agents" onClick={openView} data-case={c.agents.cue} className={`${CARD} min-w-[min(270px,100%)] flex-[3_1_380px]`}>
             <span aria-hidden className={TILE}>

@@ -202,3 +202,25 @@ test("phone: the Home Projects fan keeps Kraft's size, within the card", async (
   expect(size.h).toBe(215)
   expect(size.w).toBeLessThanOrEqual(369)
 })
+
+test('phone: a swipe across the Funnels fan scrubs it; a tap opens the sites view', async ({ page }) => {
+  await page.goto('/projects')
+  await hydrated(page)
+  const fan = page.locator('[data-fan]')
+  await fan.scrollIntoViewIfNeeded()
+  const box = (await fan.boundingBox())!
+  const cx = box.x + box.width / 2
+  const y = box.y + box.height * 0.7
+  const touch = (type: string, x: number) =>
+    fan.dispatchEvent(type, { pointerType: 'touch', pointerId: 9, isPrimary: true, clientX: x, clientY: y, bubbles: true })
+  await touch('pointerdown', cx)
+  await touch('pointermove', cx - 60)
+  await touch('pointermove', cx - 140)
+  await touch('pointerup', cx - 140)
+  const tag = page.locator('[data-fan-tag]')
+  await expect(tag).toHaveAttribute('data-on', '')
+  expect(await tag.textContent()).toBe(await page.locator('[data-fan-tile][data-front]').getAttribute('data-site'))
+  await expect(page.getByRole('dialog', { name: 'Funnels and sites' })).toHaveCount(0)
+  await fan.tap()
+  await expect(page.getByRole('dialog', { name: 'Funnels and sites' })).toBeVisible()
+})
