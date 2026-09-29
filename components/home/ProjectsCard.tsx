@@ -19,7 +19,8 @@ export default function ProjectsCard() {
   return (
     <HomeCard title={c.title} icon={FolderOpenIcon} meta={c.meta} href={c.href} className="min-w-[min(250px,100%)] flex-[2_1_400px] gap-[13px] p-5">
       <p className="max-w-[420px] text-[13.5px] leading-normal text-ink3">{c.body}</p>
-      <div className="arc relative h-[215px] w-full max-w-[369px] self-center">
+      {/* Kraft's 369x215 fan on phones. From 640px it fills the card, keeping that shape, up to about 1.4x (520x303). */}
+      <div className="arc relative h-[215px] w-full max-w-[369px] self-center sm:aspect-[369/215] sm:h-auto sm:max-w-[520px]">
         {c.arc.map((shot, i) => {
           const a = ARC[i]
           const pose = { '--x': a.x, '--y': a.y, '--r': a.r, '--z': 10 + (5 - Math.abs(i - 2)) } as CSSProperties
@@ -32,7 +33,7 @@ export default function ProjectsCard() {
                   <span className="text-[11px] font-medium whitespace-nowrap">{shot.label}</span>
                 </span>
               ) : (
-                <Image src={shot.src} alt="" fill sizes="150px" className="object-cover" />
+                <Image src={shot.src} alt="" fill sizes="(min-width: 640px) 210px, 150px" className="object-cover" />
               )}
             </div>
           )

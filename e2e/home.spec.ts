@@ -87,3 +87,24 @@ test('the credential medals tilt, but their ribbons always hang straight down', 
   expect(await angles(page, '[data-cert-ring]')).toEqual([-5, 0])
   expect(await angles(page, '[data-cert-ribbon]')).toEqual([0, 0])
 })
+
+/** The Projects fan's box and its middle card's size. */
+const arcSize = (page: import('@playwright/test').Page) =>
+  page.locator('.arc').evaluate((el) => {
+    const card = el.querySelectorAll<HTMLElement>('.arc-card')[2]
+    return { w: Math.round(el.clientWidth), h: Math.round(el.clientHeight), card: Math.round(card.offsetWidth) }
+  })
+
+test('desktop: the Projects fan fills its card up to 1.4x Kraft size, keeping its shape', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  for (const [width, expected] of [
+    [1440, { w: 452, h: 263, card: 181 }],
+    [1920, { w: 520, h: 303, card: 208 }],
+  ] as const) {
+    await page.setViewportSize({ width, height: 1000 })
+    await page.goto('/')
+    await hydrated(page)
+    const size = await arcSize(page)
+    expect(size, `${width}px`).toEqual(expected)
+  }
+})
