@@ -170,3 +170,18 @@ test('phone: the sites view spins the 3D drum, not a grid', async ({ page }) => 
   await expect(view.locator('canvas')).toBeVisible()
   await expect(view.locator('[data-carousel]')).toHaveCount(0)
 })
+
+test('phone: the Kraft Method steps swipe sideways inside their strip; the page never does', async ({ page }) => {
+  await page.goto('/services')
+  await hydrated(page)
+  const strip = page.getByRole('list', { name: 'The five steps' })
+  const widths = await strip.evaluate((el) => ({ scroll: el.scrollWidth, client: el.clientWidth }))
+  expect(widths.scroll).toBeGreaterThan(widths.client * 2)
+  const cards = await page.locator('.method-step').evaluateAll((els) => els.map((el) => Math.round(el.getBoundingClientRect().width)))
+  // Wide cards (84% of the strip), with the next one peeking in to show it swipes.
+  expect(Math.min(...cards)).toBeGreaterThan(widths.client * 0.8)
+  expect(Math.max(...cards)).toBeLessThan(widths.client)
+  await strip.evaluate((el) => el.scrollTo({ left: 400, behavior: 'instant' }))
+  await expect.poll(() => strip.evaluate((el) => el.scrollLeft)).toBeGreaterThan(0)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0)
+})

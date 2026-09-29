@@ -46,8 +46,25 @@ describe('Method', () => {
   it('is the #method section ⌘K lands on', () => {
     render(<Method />)
     const section = document.getElementById('method')!
-    expect(within(section).getByRole('heading', { level: 2 })).toHaveTextContent('Kickoff · Research Architect · Form · Transform')
     expect(section).toHaveClass('scroll-mt-[88px]')
+  })
+
+  it('heads the section with one title made of the five step names, and the description beside it', () => {
+    render(<Method />)
+    const header = document.querySelector('#method header')!
+    // Each dot is held to the word before it (a no-break space), so a line never starts with one.
+    expect(within(header as HTMLElement).getByRole('heading', { level: 2 }).textContent).toBe(
+      'Kickoff · Research · Architect · Form · Transform',
+    )
+    expect(within(header as HTMLElement).getByText(/^Five steps, always in that order\./)).toBeInTheDocument()
+  })
+
+  it('puts the five steps in one labelled list that takes keyboard focus, so arrow keys can scroll it', () => {
+    render(<Method />)
+    const list = screen.getByRole('list', { name: 'The five steps' })
+    expect(list).toHaveAttribute('tabindex', '0')
+    expect(within(list).getAllByRole('listitem').map((li) => li.querySelector('h3')?.textContent)).toEqual(PROCESS.map((s) => s.name))
+    expect(list).toHaveAttribute('data-wheel-x')
   })
 })
 
