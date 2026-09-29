@@ -125,3 +125,19 @@ export const projects = {
     },
   },
 }
+
+/** A build on the Projects page: its name, the sub-view it opens, and its screenshot (tall where it can scroll). */
+export type Build = { name: string; view: ProjectView; shot: string; tall?: string }
+
+/**
+ * Every build on the Projects page, in its order, for the fan on Home's
+ * Projects card. Funnels and sites shows a sample site; the rest are
+ * PLACEHOLDERs until each has a screenshot (16:10).
+ */
+export const BUILDS: Build[] = [
+  { name: projects.cards.reel.title, view: 'reel', shot: 'PLACEHOLDER - Automations screenshot (16:10)' },
+  { name: projects.cards.plan.title, view: 'build-plan', shot: 'PLACEHOLDER - The build plan screenshot (16:10)' },
+  { name: projects.cards.sites.title, view: 'sites', shot: SITES[0].thumb, tall: SITES[0].tall },
+  { name: projects.cards.agents.title, view: 'ai-agents', shot: 'PLACEHOLDER - AI agents screenshot (16:10)' },
+  ...WRITEUPS.map((w) => ({ name: w.title, view: w.view, shot: `PLACEHOLDER - ${w.title} screenshot (16:10)` })),
+]

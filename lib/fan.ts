@@ -34,13 +34,21 @@ export function slotOf(site: number, turn: number, total: number): number | 'lef
   return k === total - 1 ? 'left' : 'right'
 }
 
-/** The arc slot closest to a pointer `dx` px from the fan's centre, with the fan spread by `spread`. */
-export function nearestSlot(dx: number, spread = 1): number {
+/** The index of the position in `xs` (px from a fan's centre) closest to a pointer `dx` px from it. */
+export function nearestOf(dx: number, xs: number[]): number {
   let best = 0
-  POSES.forEach((p, i) => {
-    if (Math.abs(p.x * spread - dx) < Math.abs(POSES[best].x * spread - dx)) best = i
+  xs.forEach((x, i) => {
+    if (Math.abs(x - dx) < Math.abs(xs[best] - dx)) best = i
   })
   return best
+}
+
+/** The arc slot closest to a pointer `dx` px from the fan's centre, with the fan spread by `spread`. */
+export function nearestSlot(dx: number, spread = 1): number {
+  return nearestOf(
+    dx,
+    POSES.map((p) => p.x * spread),
+  )
 }
 
 /** How long the pointer rests on the front tile before its page starts scrolling (ms). */

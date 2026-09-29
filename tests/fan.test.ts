@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { FAN_SLOTS, FRONT, nearestSlot, POSES, slotOf } from '@/lib/fan'
+import { FAN_SLOTS, FRONT, nearestOf, nearestSlot, POSES, slotOf } from '@/lib/fan'
 
 describe('slotOf (where each site sits as the fan turns)', () => {
   it('puts the first five sites on the arc, in order, before it turns', () => {
@@ -35,5 +35,13 @@ describe('nearestSlot (which tile a pointer is over)', () => {
     // they sit at 134.4 and 69.6, so it is nearer slot 3.
     expect(nearestSlot(90, 1)).toBe(4)
     expect(nearestSlot(90, 1.2)).toBe(3)
+  })
+})
+
+describe('nearestOf (any arc)', () => {
+  it('picks the index of the position closest to the pointer', () => {
+    expect(nearestOf(-50, [-100, -40, 0, 40, 100])).toBe(1)
+    expect(nearestOf(0, [-100, -40, 0, 40, 100])).toBe(2)
+    expect(nearestOf(999, [-100, -40, 0, 40, 100])).toBe(4)
   })
 })
