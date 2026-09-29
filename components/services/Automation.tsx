@@ -5,7 +5,7 @@ import { CaretLeftIcon, CaretRightIcon } from '@phosphor-icons/react/ssr'
 import Frame from '@/components/ui/Frame'
 import { FLOWS, type Flow, type FlowEdge } from '@/data/flows'
 import { servicesPage } from '@/data/services'
-import { edgePath, FLOW_H, FLOW_W, LIFT, stepLift, wrap, type Lifts } from '@/lib/flow'
+import { centreScroll, edgePath, FLOW_H, FLOW_W, LIFT, stepLift, wrap, type Lifts } from '@/lib/flow'
 import { prefersReducedMotion } from '@/lib/motion'
 
 /** Node colours by kind (KraftScreens.dc.html:1218-1229): outcome, dead end, step. */
@@ -15,19 +15,39 @@ const KIND = {
   step: { tile: 'border-b2 bg-s2 text-ink', name: 'text-ink' },
 } as const
 
+/** The canvas frame's side padding (px-[18px]), for centreScroll. */
+const CANVAS_PAD = 18
+
 const NAV =
   'grid size-8 cursor-pointer place-items-center rounded-[10px] border border-b1 bg-s2 text-[15px] text-ink2 transition-colors duration-250 hover:border-accent hover:text-accent'
 
 /**
  * Kraft's live automation (KraftScreens.dc.html:276-323, 997-1033): one of
- * ten flows on a fixed 1180×430 canvas. Its frame scrolls sideways when the
- * page is narrower, and the arrows step through the flows. The title is a
- * live region, so a change of flow is announced.
+ * ten flows on a fixed canvas, centred in its frame. The frame scrolls
+ * sideways when the page is narrower; while the nodes still fit, it opens
+ * scrolled so they sit centred. The arrows step through the flows. The title
+ * is a live region, so a change of flow is announced.
  */
 export default function Automation() {
   const a = servicesPage.automation
   const [index, setIndex] = useState(0)
   const flow = FLOWS[index]
+  const frame = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const el = frame.current
+    if (!el) return
+    const centre = () => {
+      const x = centreScroll(el.clientWidth, CANVAS_PAD)
+      if (x !== null) el.scrollLeft = x
+    }
+    centre()
+    if (typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(centre)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [index])
+
   return (
     <section id={a.id} aria-labelledby="automation-title" className="scroll-mt-[88px] shell:scroll-mt-6">
       <Frame
@@ -71,6 +91,7 @@ export default function Automation() {
             </div>
           </div>
           <div
+            ref={frame}
             role="region"
             aria-label={a.canvasLabel}
             tabIndex={0}
@@ -125,7 +146,7 @@ function FlowCanvas({ flow }: { flow: Flow }) {
 
   return (
     <div
-      className="relative bg-[radial-gradient(circle,var(--b1)_1px,transparent_1px)] bg-size-[26px_26px]"
+      className="relative mx-auto bg-[radial-gradient(circle,var(--b1)_1px,transparent_1px)] bg-size-[26px_26px]"
       style={{ width: FLOW_W, height: FLOW_H }}
     >
       <svg viewBox={`0 0 ${FLOW_W} ${FLOW_H}`} width={FLOW_W} height={FLOW_H} aria-hidden className="pointer-events-none absolute top-0 left-0">

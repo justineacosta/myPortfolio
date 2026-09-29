@@ -185,3 +185,12 @@ test('phone: the Kraft Method steps swipe sideways inside their strip; the page 
   await expect.poll(() => strip.evaluate((el) => el.scrollLeft)).toBeGreaterThan(0)
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0)
 })
+
+test('phone: a live automation still opens at its first node, scrolled to the start', async ({ page }) => {
+  await page.goto('/services')
+  await hydrated(page)
+  const region = page.getByRole('region', { name: 'Flow canvas. Scroll sideways to see all of it.' })
+  await region.scrollIntoViewIfNeeded()
+  expect(await region.evaluate((el) => el.scrollLeft)).toBe(0)
+  await expect(region.getByRole('listitem').first()).toBeInViewport()
+})

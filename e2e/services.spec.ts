@@ -85,3 +85,25 @@ test('desktop: the five offers sit three over two, each row filling the width', 
   expect(b[0].left).toBe(a[0].left)
   expect(b[1].right).toBe(a[2].right)
 })
+
+test('desktop: every live automation sits centred in its panel', async ({ page }) => {
+  await page.goto('/services')
+  await hydrated(page)
+  const region = page.getByRole('region', { name: 'Flow canvas. Scroll sideways to see all of it.' })
+  await region.scrollIntoViewIfNeeded()
+  const offCentre = () =>
+    region.evaluate((el) => {
+      const r = el.getBoundingClientRect()
+      const nodes = [...el.querySelectorAll('li')].map((n) => n.getBoundingClientRect())
+      const left = Math.min(...nodes.map((n) => n.left))
+      const right = Math.max(...nodes.map((n) => n.right))
+      return Math.round((left + right) / 2 - (r.left + r.right) / 2)
+    })
+  for (const width of [1440, 1680]) {
+    await page.setViewportSize({ width, height: 900 })
+    for (let i = 0; i < 10; i++) {
+      expect(Math.abs(await offCentre()), `${width}px, flow ${i + 1}`).toBeLessThanOrEqual(12)
+      await page.getByRole('button', { name: 'Next automation' }).click()
+    }
+  }
+})
