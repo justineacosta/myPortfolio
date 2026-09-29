@@ -194,3 +194,11 @@ test('phone: a live automation still opens at its first node, scrolled to the st
   expect(await region.evaluate((el) => el.scrollLeft)).toBe(0)
   await expect(region.getByRole('listitem').first()).toBeInViewport()
 })
+
+test("phone: the Home Projects fan keeps Kraft's size, within the card", async ({ page }) => {
+  await page.goto('/')
+  await settleIntro(page)
+  const size = await page.locator('.arc').evaluate((el) => ({ w: Math.round(el.clientWidth), h: Math.round(el.clientHeight) }))
+  expect(size.h).toBe(215)
+  expect(size.w).toBeLessThanOrEqual(369)
+})
