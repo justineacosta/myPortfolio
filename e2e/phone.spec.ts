@@ -46,15 +46,38 @@ test('phone: no contour on touch devices', async ({ page }) => {
   await expect(page.locator('[data-contour]')).toHaveCount(0)
 })
 
-test('phone: Home opens with the profile header instead of floating controls', async ({ page }) => {
-  await page.goto('/')
-  const header = page.locator('[data-home-profile]')
-  await expect(header).toBeVisible()
-  await expect(header.getByText('Justine Acosta')).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Toggle dark and light mode' })).toHaveCount(1)
-  await expect(page.getByRole('button', { name: 'Open command palette' })).toHaveCount(1)
-  await expect(page.getByRole('button', { name: 'Accessibility options' })).toHaveCount(1)
-  await expect(page.locator('[data-floating-access]')).toBeHidden()
+for (const path of ['/', '/projects', '/showcase', '/services', '/testimonials', '/about', '/contact']) {
+  test(`phone: ${path} has the profile bar, with its buttons once`, async ({ page }) => {
+    await page.goto(path)
+    await settleIntro(page)
+    const bar = page.locator('[data-phone-bar]')
+    await expect(bar).toBeVisible()
+    await expect(bar.getByText('Justine Acosta')).toBeVisible()
+    await expect(bar).toHaveCSS('position', 'fixed')
+    await expect(page.getByRole('button', { name: 'Toggle dark and light mode' })).toHaveCount(1)
+    await expect(page.getByRole('button', { name: 'Open command palette' })).toHaveCount(1)
+    await expect(page.getByRole('button', { name: 'Accessibility options' })).toHaveCount(1)
+    await expect(page.locator('[data-floating-access]')).toBeHidden()
+    // The page starts below the bar.
+    const gap = await page.evaluate(() => {
+      const b = document.querySelector('[data-phone-bar]')!.getBoundingClientRect()
+      const first = document.querySelector('#main-content')!.firstElementChild!.getBoundingClientRect()
+      return first.top - b.bottom
+    })
+    expect(gap).toBeGreaterThanOrEqual(8)
+  })
+}
+
+test('phone: the profile bar slides away scrolling down and comes back scrolling up', async ({ page }) => {
+  await page.goto('/about')
+  const bar = page.locator('[data-phone-bar]')
+  await expect(bar).not.toHaveAttribute('data-hidden')
+  await page.mouse.wheel(0, 600)
+  await expect(bar).toHaveAttribute('data-hidden')
+  await expect.poll(() => bar.evaluate((el) => el.getBoundingClientRect().bottom)).toBeLessThanOrEqual(0)
+  await page.mouse.wheel(0, -60)
+  await expect(bar).not.toHaveAttribute('data-hidden')
+  await expect.poll(() => bar.evaluate((el) => el.getBoundingClientRect().top)).toBe(0)
 })
 
 test('phone: the intro lands exactly on the Home h1', async ({ page }) => {

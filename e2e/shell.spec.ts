@@ -114,3 +114,17 @@ test('browser Back to the starting page keeps the panel visible', async ({ page 
   await expect(page).toHaveURL(/\/$/)
   await expect(page.locator('[data-panel-content]')).toHaveCSS('opacity', '1')
 })
+
+test('the profile bar is for screens without the sidebar: hidden on desktop', async ({ page }) => {
+  await page.goto('/about')
+  await expect(page.locator('[data-phone-bar]')).toBeHidden()
+})
+
+test.describe('tablet width (900px)', () => {
+  test.use({ viewport: { width: 900, height: 1180 } })
+  test('the profile bar shows, and the sidebar does not', async ({ page }) => {
+    await page.goto('/services')
+    await expect(page.locator('[data-phone-bar]')).toBeVisible()
+    await expect(page.getByRole('complementary', { name: 'Profile and site navigation' })).toBeHidden()
+  })
+})
