@@ -2,7 +2,6 @@ import type { Icon } from '@phosphor-icons/react'
 import {
   ArrowsClockwiseIcon,
   BrowsersIcon,
-  DeviceMobileIcon,
   FlagPennantIcon,
   KanbanIcon,
   LightningIcon,
@@ -14,7 +13,7 @@ import {
 } from '@phosphor-icons/react/ssr'
 import type { Brand } from './stack'
 
-/** Kraft's six offers, verbatim (KraftScreens.dc.html:585-592). */
+/** Kraft's offers, verbatim (KraftScreens.dc.html:585-592), less Mobile Apps & Extensions. */
 export type Service = {
   n: string
   name: string
@@ -51,11 +50,6 @@ export const SERVICES: Service[] = [
     n: '05', name: 'APIs & Integrations', icon: PlugsConnectedIcon, line: 'Systems that finally talk.', badge: 'TYPED',
     bullets: ['Versioned contracts', 'Idempotent by default', 'Monitoring from day one'], tags: ['REST', 'Webhooks', 'SDKs'],
     logos: [{ name: 'Postman', slug: 'postman' }, { name: 'GraphQL', slug: 'graphql' }, { name: 'Stripe', slug: 'stripe' }],
-  },
-  {
-    n: '06', name: 'Mobile Apps & Extensions', icon: DeviceMobileIcon, line: 'Small tools that fix real friction.', badge: 'SHIPS FAST',
-    bullets: ['One job, done properly', 'Store-ready builds', 'Weeks, not quarters'], tags: ['React Native', 'Chrome', 'TS'],
-    logos: [{ name: 'React Native', slug: 'react' }, { name: 'Expo', slug: 'expo' }, { name: 'Chrome', slug: 'googlechrome' }],
   },
 ]
 
