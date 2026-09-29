@@ -202,3 +202,37 @@ test('after closing a view, a router refresh never brings its hash back', async 
   await expect(page).toHaveURL(/\/projects$/)
   await expect(view).toBeHidden()
 })
+
+test('the Funnels card turns on its own, and a pointer scrubs, names and peeks into a site', async ({ page }) => {
+  await page.goto('/projects')
+  await hydrated(page)
+  const fan = page.locator('[data-fan]')
+  await fan.scrollIntoViewIfNeeded()
+  const front = () => page.locator('[data-fan-tile][data-front]').getAttribute('data-site')
+  const first = await front()
+  await expect.poll(front, { timeout: 5000 }).not.toBe(first)
+
+  const box = (await fan.boundingBox())!
+  await page.mouse.move(box.x + box.width / 2 - 140, box.y + box.height * 0.7, { steps: 4 })
+  const picked = await front()
+  const tag = page.locator('[data-fan-tag]')
+  await expect(tag).toHaveAttribute('data-on', '')
+  await expect(tag).toHaveText(picked!)
+  // Held still under the pointer, it does not turn away.
+  await page.waitForTimeout(3500)
+  expect(await front()).toBe(picked)
+  const tile = page.locator('[data-fan-tile][data-front]')
+  await expect(tile).toHaveAttribute('data-peek')
+  const y = () => tile.locator('img').evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).m42)
+  await expect.poll(y).toBeLessThan(-20)
+
+  await page.mouse.move(box.x + box.width / 2 + 140, box.y + box.height * 0.7, { steps: 4 })
+  await expect(tag).not.toHaveText(picked!)
+})
+
+test('the Funnels card still opens the sites view on a click', async ({ page }) => {
+  await page.goto('/projects')
+  await hydrated(page)
+  await page.locator('[data-fan]').click()
+  await expect(page.getByRole('dialog', { name: 'Funnels and sites' })).toBeVisible()
+})

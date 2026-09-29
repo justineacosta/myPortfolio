@@ -299,6 +299,24 @@ html[data-a11y-motion=true] .reel-pause{display:none}
 @media (prefers-reduced-motion:reduce){.flow-ball{display:none}}
 html[data-a11y-motion=true] .flow-ball{display:none}
 
+/* ---- Projects: the Funnels and sites fan (components/projects/SitesCard.tsx,
+   lib/fan.ts). Each tile's pose arrives as --x --y --r (px, px, deg) and its
+   depth rank as --d. At rest the fan is flat, as Kraft drew it. While a
+   pointer is over it the stage opens out (--spread, set from lib/fan.ts), gives the tiles depth
+   (--depth px per rank, so its tilt by --tx --ty shows parallax) and lifts
+   the chosen tile well clear of the rest. A peeking tile scrolls its tall page up to the bottom (100cqh is
+   the tile's own height). ---- */
+.site-fan{perspective:900px}
+.fan-stage{--spread:1;--depth:0;--lift:0px;position:absolute;inset:0;transform-style:preserve-3d;transform:rotateX(var(--tx,0deg)) rotateY(var(--ty,0deg));transition:transform .35s ease-out}
+.fan-stage[data-spread]{--depth:14;--lift:70px}
+.fan-tile{position:absolute;left:50%;bottom:4px;height:84%;aspect-ratio:3/4;overflow:hidden;container-type:size;border-radius:11px;border:1px solid var(--b1);background:var(--s0);box-shadow:var(--tile-shadow);transform-origin:50% 100%;transform:translateX(-50%) translate3d(calc(var(--x) * var(--spread) * 1px),calc(var(--y) * 1px),calc(var(--d) * var(--depth) * 1px)) rotate(calc(var(--r) * 1deg));transition:transform .7s cubic-bezier(.2,.7,.2,1),opacity .5s ease,box-shadow .4s ease,border-color .4s ease}
+.fan-tile[data-front]{border-color:var(--b2);box-shadow:var(--peek-shadow);transform:translateX(-50%) translate3d(calc(var(--x) * var(--spread) * 1px),calc(var(--y) * 1px - 12px),var(--lift)) rotate(0deg)}
+.fan-tile[data-off]{opacity:0}
+.fan-page{display:block;width:100%;height:auto;transition:transform .6s cubic-bezier(.2,.7,.2,1)}
+.fan-tile[data-peek] .fan-page{transform:translateY(calc(-100% + 100cqh));transition:transform 6s cubic-bezier(.45,0,.55,1)}
+.fan-tag{position:absolute;top:4px;left:50%;z-index:30;display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;border:1px solid var(--b2);background:var(--s1);font-size:11.5px;font-weight:600;color:var(--ink);white-space:nowrap;box-shadow:var(--tip-shadow);opacity:0;transform:translate(-50%,-4px);transition:opacity .25s ease,transform .25s ease;pointer-events:none}
+.fan-tag[data-on]{opacity:1;transform:translate(-50%,0)}
+
 /* ---- Showcase (kape Flagship.tsx, Kraft tokens) ----
    The product mock's pieces rise in, in reading order (--i), each time its
    stage remounts. The active progress bar is the auto-advance clock: its
