@@ -22,7 +22,8 @@ export type Doc = { kicker: string; title: string; lede: string; stack: Chip[]; 
 export type AgentCard = { title: string; icon: Icon; live: boolean; icons: Icon[]; desc: string; meta: string; tags: string[] }
 export type AgentGroup = { name: string; blurb: string; cards: AgentCard[] }
 export type Screenshot = { src: string; label: string }
-export type Site = { name: string; file: string; src: string; thumb: string }
+/** A sample site: its page, a 3:4 thumbnail, and a tall shot (up to four screens) the Funnels card peeks through. */
+export type Site = { name: string; file: string; src: string; thumb: string; tall: string }
 type Writeup = { view: DocView; kicker: string; title: string; desc: string; icon: Icon; cue: string }
 
 const REEL: Screenshot[] = [
@@ -47,7 +48,10 @@ const SITES: Site[] = [
   ['Trusted Mover', 'sample-moving-company.html'],
   ['Payline', 'sample-fintech-funnel.html'],
   ['Solar Field', 'sample-solar-installer.html'],
-].map(([name, file]) => ({ name, file, src: `/samples/${file}`, thumb: `/samples/thumbs/${file.replace(/\.html$/, '.jpeg')}` }))
+].map(([name, file]) => {
+  const shot = file.replace(/\.html$/, '.jpeg')
+  return { name, file, src: `/samples/${file}`, thumb: `/samples/thumbs/${shot}`, tall: `/samples/thumbs/tall/${shot}` }
+})
 
 const WRITEUPS: Writeup[] = [
   { view: 'support-desk', kicker: 'GOHIGHLEVEL BLUEPRINT', title: 'Support Ticketing System', desc: 'A full support desk inside GoHighLevel. One pipeline, five stages, four branded emails.', icon: LifebuoyIcon, cue: 'READ THE WRITE-UP' },

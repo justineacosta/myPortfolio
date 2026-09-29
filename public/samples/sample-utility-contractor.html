@@ -25,8 +25,19 @@ p.lede{font-size:18px;color:#6B7565;max-width:46ch;margin:22px 0 32px}
 .band{background:#FFFFFF;border-radius:28px;padding:56px;display:grid;grid-template-columns:1fr auto;gap:32px;align-items:center;margin-bottom:80px}
 .quote{font-size:24px;line-height:1.35;max-width:40ch}
 .who{margin-top:16px;color:#6B7565;font-size:14px}
+.sec{padding:0 0 80px}
+.sec h2{font-size:clamp(28px,3.4vw,40px);letter-spacing:-.03em;line-height:1.1;margin-bottom:28px;max-width:22ch}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.split .shot{aspect-ratio:16/10}
+.tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.tier .price{font-size:34px;font-weight:800;letter-spacing:-.03em;margin:10px 0 14px}
+.tier ul{list-style:none;color:#6B7565;font-size:15px;display:grid;gap:8px;margin-bottom:24px}
+.tier--main{border-color:#C98A00}
+.faq{display:grid;gap:12px;max-width:760px}
+.faq .card h3{font-size:17px}
 footer{border-top:1px solid #6B756533;padding:28px 0 40px;color:#6B7565;font-size:13px;display:flex;justify-content:space-between}
-@media (max-width:760px){.hero,.band{grid-template-columns:1fr}.row{grid-template-columns:1fr}.links{display:none}}
+@media (max-width:760px){.hero,.band,.split{grid-template-columns:1fr}.row,.steps,.tiers{grid-template-columns:1fr}.links{display:none}}
 </style></head>
 <body><div class="wrap">
 <nav><span class="logo">Below Ground<b>.</b></span>
@@ -41,5 +52,17 @@ footer{border-top:1px solid #6B756533;padding:28px 0 40px;color:#6B7565;font-siz
 <div class="row"><div class="card"><div class="n">01</div><h3>PLACEHOLDER</h3><p>A benefit, a step, or a feature from the real site.</p></div><div class="card"><div class="n">02</div><h3>PLACEHOLDER</h3><p>A benefit, a step, or a feature from the real site.</p></div><div class="card"><div class="n">03</div><h3>PLACEHOLDER</h3><p>A benefit, a step, or a feature from the real site.</p></div></div>
 <div class="band"><div><p class="quote">"PLACEHOLDER - a short testimonial from the client this site was built for."</p>
 <p class="who">PLACEHOLDER NAME, Below Ground</p></div><a class="btn" href="#">PLACEHOLDER</a></div>
+<section class="sec"><span class="tag">PLACEHOLDER - How it works</span><h2>From first call to launch, in four steps.</h2>
+<div class="steps"><div class="card"><div class="n">01</div><h3>Discover</h3><p>PLACEHOLDER - what happens at this step.</p></div><div class="card"><div class="n">02</div><h3>Plan</h3><p>PLACEHOLDER - what happens at this step.</p></div><div class="card"><div class="n">03</div><h3>Build</h3><p>PLACEHOLDER - what happens at this step.</p></div><div class="card"><div class="n">04</div><h3>Launch</h3><p>PLACEHOLDER - what happens at this step.</p></div></div></section>
+<section class="sec"><span class="tag">PLACEHOLDER - Services</span><h2>What Below Ground offers.</h2>
+<div class="split"><div class="shot"><div><strong>PLACEHOLDER IMAGE</strong>A service photo</div></div>
+<div class="shot"><div><strong>PLACEHOLDER IMAGE</strong>Another service photo</div></div></div></section>
+<section class="sec"><span class="tag">PLACEHOLDER - Recent work</span><h2>Projects Below Ground is proud of.</h2>
+<div class="row" style="padding:0"><div class="shot"><div><strong>PLACEHOLDER IMAGE</strong>Project photo 01</div></div><div class="shot"><div><strong>PLACEHOLDER IMAGE</strong>Project photo 02</div></div><div class="shot"><div><strong>PLACEHOLDER IMAGE</strong>Project photo 03</div></div></div></section>
+<section class="sec"><span class="tag">PLACEHOLDER - Pricing</span><h2>Simple, clear pricing.</h2>
+<div class="tiers"><div class="card tier"><h3>Starter</h3><div class="price">$PLACEHOLDER</div><ul><li>PLACEHOLDER feature</li><li>PLACEHOLDER feature</li><li>PLACEHOLDER feature</li></ul><a class="btn btn--ghost" href="#">Choose</a></div><div class="card tier tier--main"><h3>Standard</h3><div class="price">$PLACEHOLDER</div><ul><li>PLACEHOLDER feature</li><li>PLACEHOLDER feature</li><li>PLACEHOLDER feature</li></ul><a class="btn" href="#">Choose</a></div><div class="card tier"><h3>Premium</h3><div class="price">$PLACEHOLDER</div><ul><li>PLACEHOLDER feature</li><li>PLACEHOLDER feature</li><li>PLACEHOLDER feature</li></ul><a class="btn btn--ghost" href="#">Choose</a></div></div></section>
+<section class="sec"><span class="tag">PLACEHOLDER - Questions</span><h2>Frequently asked.</h2>
+<div class="faq"><div class="card"><h3>PLACEHOLDER - a question clients ask?</h3><p>PLACEHOLDER - the short, honest answer.</p></div><div class="card"><h3>PLACEHOLDER - a question clients ask?</h3><p>PLACEHOLDER - the short, honest answer.</p></div><div class="card"><h3>PLACEHOLDER - a question clients ask?</h3><p>PLACEHOLDER - the short, honest answer.</p></div><div class="card"><h3>PLACEHOLDER - a question clients ask?</h3><p>PLACEHOLDER - the short, honest answer.</p></div></div></section>
+<div class="band"><div><p class="quote">PLACEHOLDER - the closing call to action.</p><p class="who">Below Ground</p></div><a class="btn" href="#">PLACEHOLDER CTA</a></div>
 <footer><span>&copy; Below Ground</span><span>Replace this file: public/samples/sample-utility-contractor.html</span></footer>
 </div></body></html>

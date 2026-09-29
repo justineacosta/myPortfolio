@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import Board from '@/components/projects/Board'
@@ -33,7 +33,32 @@ describe('Projects data', () => {
       expect(existsSync(`public${s.thumb}`), s.thumb).toBe(true)
     }
   })
+
+  it('has a tall screenshot of every sample page, at least three screens deep, for the card to peek through', () => {
+    for (const s of projects.sitesView.sites) {
+      expect(s.tall).toBe(`/samples/thumbs/tall/${s.file.replace(/\.html$/, '.jpeg')}`)
+      const { width, height } = jpegSize(readFileSync(`public${s.tall}`))
+      expect(width, s.tall).toBe(432)
+      // 1080 x 1440 screens saved at 0.4x: three screens are 1728px.
+      expect(height, s.tall).toBeGreaterThanOrEqual(1728)
+    }
+  })
 })
+
+/** A JPEG's pixel size, from its start-of-frame marker. */
+function jpegSize(b: Buffer) {
+  let i = 2
+  while (i < b.length) {
+    if (b[i] !== 0xff) {
+      i++
+      continue
+    }
+    const m = b[i + 1]
+    if (m >= 0xc0 && m <= 0xc3) return { height: b.readUInt16BE(i + 5), width: b.readUInt16BE(i + 7) }
+    i += 2 + b.readUInt16BE(i + 2)
+  }
+  throw new Error('no JPEG frame')
+}
 
 describe('Board', () => {
   it('links every card to its sub-view by hash, in board order', () => {

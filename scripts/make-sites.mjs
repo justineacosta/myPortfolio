@@ -55,8 +55,19 @@ p.lede{font-size:18px;color:${p.muted};max-width:46ch;margin:22px 0 32px}
 .band{background:${p.surface};border-radius:28px;padding:56px;display:grid;grid-template-columns:1fr auto;gap:32px;align-items:center;margin-bottom:80px}
 .quote{font-size:24px;line-height:1.35;max-width:40ch}
 .who{margin-top:16px;color:${p.muted};font-size:14px}
+.sec{padding:0 0 80px}
+.sec h2{font-size:clamp(28px,3.4vw,40px);letter-spacing:-.03em;line-height:1.1;margin-bottom:28px;max-width:22ch}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.split .shot{aspect-ratio:16/10}
+.tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.tier .price{font-size:34px;font-weight:800;letter-spacing:-.03em;margin:10px 0 14px}
+.tier ul{list-style:none;color:${p.muted};font-size:15px;display:grid;gap:8px;margin-bottom:24px}
+.tier--main{border-color:${p.accent}}
+.faq{display:grid;gap:12px;max-width:760px}
+.faq .card h3{font-size:17px}
 footer{border-top:1px solid ${p.muted}33;padding:28px 0 40px;color:${p.muted};font-size:13px;display:flex;justify-content:space-between}
-@media (max-width:760px){.hero,.band{grid-template-columns:1fr}.row{grid-template-columns:1fr}.links{display:none}}
+@media (max-width:760px){.hero,.band,.split{grid-template-columns:1fr}.row,.steps,.tiers{grid-template-columns:1fr}.links{display:none}}
 `
 
 const page = (name, file, kind, p) => `<!doctype html>
@@ -77,6 +88,26 @@ const page = (name, file, kind, p) => `<!doctype html>
   .join('')}</div>
 <div class="band"><div><p class="quote">"PLACEHOLDER - a short testimonial from the client this site was built for."</p>
 <p class="who">PLACEHOLDER NAME, ${name}</p></div><a class="btn" href="#">PLACEHOLDER</a></div>
+<section class="sec"><span class="tag">PLACEHOLDER - How it works</span><h2>From first call to launch, in four steps.</h2>
+<div class="steps">${['Discover', 'Plan', 'Build', 'Launch']
+  .map((t, i) => `<div class="card"><div class="n">0${i + 1}</div><h3>${t}</h3><p>PLACEHOLDER - what happens at this step.</p></div>`)
+  .join('')}</div></section>
+<section class="sec"><span class="tag">PLACEHOLDER - Services</span><h2>What ${name} offers.</h2>
+<div class="split"><div class="shot"><div><strong>PLACEHOLDER IMAGE</strong>A service photo</div></div>
+<div class="shot"><div><strong>PLACEHOLDER IMAGE</strong>Another service photo</div></div></div></section>
+<section class="sec"><span class="tag">PLACEHOLDER - Recent work</span><h2>Projects ${name} is proud of.</h2>
+<div class="row" style="padding:0">${[1, 2, 3]
+  .map((i) => `<div class="shot"><div><strong>PLACEHOLDER IMAGE</strong>Project photo 0${i}</div></div>`)
+  .join('')}</div></section>
+<section class="sec"><span class="tag">PLACEHOLDER - Pricing</span><h2>Simple, clear pricing.</h2>
+<div class="tiers">${['Starter', 'Standard', 'Premium']
+  .map((t, i) => `<div class="card tier${i === 1 ? ' tier--main' : ''}"><h3>${t}</h3><div class="price">$PLACEHOLDER</div><ul><li>PLACEHOLDER feature</li><li>PLACEHOLDER feature</li><li>PLACEHOLDER feature</li></ul><a class="btn${i === 1 ? '' : ' btn--ghost'}" href="#">Choose</a></div>`)
+  .join('')}</div></section>
+<section class="sec"><span class="tag">PLACEHOLDER - Questions</span><h2>Frequently asked.</h2>
+<div class="faq">${[1, 2, 3, 4]
+  .map(() => `<div class="card"><h3>PLACEHOLDER - a question clients ask?</h3><p>PLACEHOLDER - the short, honest answer.</p></div>`)
+  .join('')}</div></section>
+<div class="band"><div><p class="quote">PLACEHOLDER - the closing call to action.</p><p class="who">${name}</p></div><a class="btn" href="#">PLACEHOLDER CTA</a></div>
 <footer><span>&copy; ${name}</span><span>Replace this file: public/samples/${file}</span></footer>
 </div></body></html>
 `
