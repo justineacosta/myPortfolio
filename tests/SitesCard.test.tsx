@@ -110,7 +110,8 @@ describe('SitesCard (the Funnels and sites card)', () => {
     expect(front()).toBe(names[0])
     expect(tag()).toHaveTextContent(names[0])
     fireEvent.pointerUp(fan(), { pointerType: 'touch', clientX: -150, pointerId: 5 })
-    fireEvent.click(screen.getByRole('link', { name: /^Funnels and sites/ }))
+    // The click a browser sends after a swipe lands where the finger was: on the fan.
+    fireEvent.click(fan())
     expect(onOpen).not.toHaveBeenCalled()
   })
 
