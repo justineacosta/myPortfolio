@@ -80,3 +80,93 @@ export function headlineLines(page: Page) {
     return { flying, real: byRow(words) }
   })
 }
+
+/**
+ * Where the intro's pieces sit on screen mid-run: Kraft's loader layout (lib/intro.ts
+ * loaderLayout). Steps are placed from layout, not their boxes: a node's pop-in
+ * springs past full size for a moment.
+ */
+export async function loaderGeometry(page: Page) {
+  // Past ignition, once the first node has succeeded, every piece is in place.
+  await page.waitForSelector('.intro-node.is-done')
+  return page.evaluate(() => {
+    const el = (s: string) => document.querySelector<HTMLElement>(s)!
+    const px = (e: HTMLElement, prop: 'width' | 'fontSize') => parseFloat(getComputedStyle(e)[prop])
+    const canvas = new DOMMatrix(getComputedStyle(el('.intro-canvas')).transform)
+    const title = el('.intro-title')
+    const titleAt = new DOMMatrix(getComputedStyle(title).transform)
+    const onScreen = (n: HTMLElement) => canvas.e + n.offsetLeft * canvas.a
+    const nodes = [...document.querySelectorAll<HTMLElement>('.intro-node')]
+    const labels = [...document.querySelectorAll<HTMLElement>('.intro-label')].map((l) => {
+      const centre = onScreen(l.parentElement!) + (l.parentElement!.offsetWidth / 2) * canvas.a
+      const half = (l.offsetWidth / 2) * canvas.a
+      return { left: centre - half, right: centre + half }
+    })
+    const brand = el('.intro-brand').getBoundingClientRect()
+    return {
+      vw: window.innerWidth,
+      brand: { left: brand.left, bottom: brand.bottom, text: el('.intro-brand').textContent },
+      title: { left: titleAt.e, top: titleAt.f, bottom: titleAt.f + title.offsetHeight * titleAt.a },
+      font: px(title, 'fontSize') * titleAt.a,
+      firstNode: { left: onScreen(nodes[0]), top: canvas.f + nodes[0].offsetTop * canvas.a },
+      lastNode: { left: onScreen(nodes[nodes.length - 1]) },
+      labels,
+      nodeSize: px(el('.intro-node-card'), 'width') * canvas.a,
+      dotSize: px(el('.intro-status-dot'), 'width') * canvas.a,
+    }
+  })
+}
+
+/** Where the light is, frame by frame: the canvas names its segment (data-at, e.g. "around1"). */
+export type RunFrame = {
+  at: string
+  t: number
+  dot: number
+  sparks: { x: number; y: number; opacity: number }[]
+  ring: { top: number; bottom: number }[]
+  done: boolean[]
+  burst: number
+  centreY: number[]
+}
+
+/**
+ * Watches the run every frame until `until` holds for a frame, and returns that
+ * frame. Ring values are how much of each half is drawn, 0..1.
+ */
+export async function catchRun(page: Page, until: string) {
+  const handle = await page.waitForFunction(
+    (src) => {
+      const canvas = document.querySelector<HTMLElement>('.intro-canvas')
+      if (!canvas?.dataset.at) return false
+      const drawn = (p: SVGPathElement | null) => {
+        if (!p) return 0
+        const len = Number(p.dataset.len)
+        return 1 - parseFloat(p.style.strokeDashoffset || String(len)) / len
+      }
+      const nodes = [...document.querySelectorAll<HTMLElement>('.intro-node')]
+      const frame = {
+        at: canvas.dataset.at,
+        t: performance.now(),
+        dot: parseFloat(getComputedStyle(document.querySelector('.intro-dot-core')!).opacity),
+        sparks: [...document.querySelectorAll<HTMLElement>('.intro-spark')].map((s) => {
+          const b = s.getBoundingClientRect()
+          return { x: b.left + b.width / 2, y: b.top + b.height / 2, opacity: parseFloat(getComputedStyle(s).opacity) }
+        }),
+        ring: nodes.map((_, i) => ({
+          top: drawn(document.querySelector(`.intro-ring[data-node="${i}"][data-half="top"]`)),
+          bottom: drawn(document.querySelector(`.intro-ring[data-node="${i}"][data-half="bottom"]`)),
+        })),
+        done: nodes.map((n) => n.classList.contains('is-done')),
+        burst: parseFloat(getComputedStyle(document.querySelector('.intro-burst')!).opacity),
+        centreY: nodes.map((n) => {
+          const b = n.querySelector('.intro-node-card')!.getBoundingClientRect()
+          return b.top + b.height / 2
+        }),
+      }
+      return new Function('f', `return (${src})(f)`)(frame) ? frame : false
+    },
+    until,
+    { polling: 'raf', timeout: 15_000 },
+  )
+  return (await handle.jsonValue()) as RunFrame
+}
