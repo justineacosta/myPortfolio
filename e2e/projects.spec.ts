@@ -181,6 +181,43 @@ test('the build plan window shows the plan and follows the site theme, dark by d
   await expect.poll(theme).toBe('dark')
 })
 
+test('the End-to-End window shows the graph and follows the site theme', async ({ page }) => {
+  await page.goto('/projects#end-to-end')
+  await hydrated(page)
+  const view = page.getByRole('dialog', { name: 'The End-to-End Workflow' })
+  await expect(view.getByRole('link', { name: 'Open in new tab' })).toHaveAttribute('href', '/end-to-end.html')
+  const frame = page.frameLocator('iframe[title="End-to-End Workflow graph"]')
+  await expect(frame.getByRole('heading', { level: 1 })).toHaveText('The End-to-End Workflow')
+  const theme = () => frame.locator('html').getAttribute('data-theme')
+  await page.evaluate(() => (document.documentElement.dataset.theme = 'light'))
+  await expect.poll(theme).toBe('light')
+  await page.evaluate(() => (document.documentElement.dataset.theme = 'dark'))
+  await expect.poll(theme).toBe('dark')
+})
+
+test('inside the End-to-End window, Escape closes it after a click in the graph', async ({ page }) => {
+  await page.goto('/projects#end-to-end')
+  await hydrated(page)
+  const view = page.getByRole('dialog', { name: 'The End-to-End Workflow' })
+  await page.frameLocator('iframe[title="End-to-End Workflow graph"]').getByRole('heading', { level: 1 }).click()
+  await page.keyboard.press('Escape')
+  await expect(view).toBeHidden()
+  await expect(page).toHaveURL(/\/projects$/)
+})
+
+test('lane chips in the graph add no history, so one Back closes the window', async ({ page }) => {
+  await page.goto('/projects')
+  await hydrated(page)
+  await page.getByRole('link', { name: /The End-to-End Workflow/ }).first().click()
+  const view = page.getByRole('dialog', { name: 'The End-to-End Workflow' })
+  const chips = page.frameLocator('iframe[title="End-to-End Workflow graph"]').getByRole('navigation', { name: 'Lanes' })
+  await chips.getByRole('link', { name: 'H n8n automation' }).click()
+  await chips.getByRole('link', { name: 'C Frame the task' }).click()
+  await page.goBack()
+  await expect(view).toBeHidden()
+  await expect(page).toHaveURL(/\/projects$/)
+})
+
 test('/projects never fetches the plan page until its window opens', async ({ page }) => {
   const asked: string[] = []
   page.on('request', (r) => asked.push(new URL(r.url()).pathname))
@@ -188,6 +225,7 @@ test('/projects never fetches the plan page until its window opens', async ({ pa
   await hydrated(page)
   await page.waitForLoadState('networkidle')
   expect(asked).not.toContain('/build-plan.html')
+  expect(asked).not.toContain('/end-to-end.html')
 })
 
 test('a write-up window keeps its margin', async ({ page }) => {
