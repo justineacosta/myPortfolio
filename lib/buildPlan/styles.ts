@@ -83,9 +83,9 @@ code{font-family:var(--mono);font-size:.85em;background:var(--chip);padding:1px 
 .fields{display:flex;flex-wrap:wrap;gap:6px}
 .note{font-size:.8125rem;color:var(--ink3)}
 .stages{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none}
-.stage{padding:6px 10px;border-radius:9px;border:1px solid var(--b2);background:var(--s2);color:var(--ink);font:inherit;font-size:.8125rem;cursor:pointer}
-.stage:hover{border-color:var(--accent)}
-.stages .exit .stage{border-style:dashed;color:var(--ink3)}
+.stage-btn{padding:6px 10px;border-radius:9px;border:1px solid var(--b2);background:var(--s2);color:var(--ink);font:inherit;font-size:.8125rem;cursor:pointer}
+.stage-btn:hover{border-color:var(--accent)}
+.stages .exit .stage-btn{border-style:dashed;color:var(--ink3)}
 .table-wrap{overflow-x:auto;border:1px solid var(--b1);border-radius:14px;background:var(--s1)}
 table{width:100%;border-collapse:collapse;font-size:.875rem}
 th{padding:10px 14px;border-bottom:1px solid var(--b1);font-family:var(--mono);font-size:.625rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);text-align:left}
@@ -110,8 +110,8 @@ tr:last-child td{border-bottom:0}
 .pan-btn{display:grid;place-items:center;width:28px;height:28px;border-radius:8px;border:1px solid var(--b2);background:var(--s1);color:var(--ink);font:inherit;font-size:1rem;line-height:1;cursor:pointer}
 .pan-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
 .pan-btn:disabled{opacity:.35;cursor:default}
-.canvas-scroll{overflow-x:auto;border:1px solid var(--b1);border-radius:16px;background-color:var(--s0);background-image:radial-gradient(var(--b2) 1px,transparent 1px);background-size:20px 20px;overscroll-behavior-x:contain}
-.stage{position:relative}
+.canvas-scroll{overflow-x:auto;border-radius:16px;background-color:var(--s0);background-image:radial-gradient(var(--b2) 1px,transparent 1px);background-size:20px 20px;overscroll-behavior-x:contain}
+.stage{position:relative;margin:0 auto}
 .edges{position:absolute;inset:0}
 .edge{fill:none;stroke:var(--b2);stroke-width:1.6;transition:stroke .35s ease}
 .edge.lit{stroke:var(--accent);transition-duration:.08s}

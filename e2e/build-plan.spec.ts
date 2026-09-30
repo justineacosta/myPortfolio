@@ -237,6 +237,27 @@ test('no scrollbars show on the page, the diagrams, the tables or the code block
   for (const sel of ['html', '.canvas-scroll', '.table-wrap', 'pre.code']) expect(await hidden(sel), sel).toBe('none')
 })
 
+test('diagram frames have no outline, and no inner box inside them', async ({ page }) => {
+  await page.goto(PAGE)
+  for (const frame of await page.locator('.canvas-scroll').all()) {
+    expect(await frame.evaluate((el) => getComputedStyle(el).borderTopWidth)).toBe('0px')
+    const inner = await frame.locator('> .stage').evaluate((el) => [getComputedStyle(el).borderTopWidth, getComputedStyle(el).backgroundColor])
+    expect(inner).toEqual(['0px', 'rgba(0, 0, 0, 0)'])
+  }
+})
+
+test('a diagram narrower than its frame sits in the middle', async ({ page }) => {
+  await page.goto(PAGE)
+  const frame = page.locator('#tm-04 .canvas-scroll')
+  await frame.scrollIntoViewIfNeeded()
+  const outer = (await frame.boundingBox())!
+  const inner = (await frame.locator('> .stage').boundingBox())!
+  expect(inner.width).toBeLessThan(outer.width)
+  const left = inner.x - outer.x
+  const right = outer.x + outer.width - (inner.x + inner.width)
+  expect(Math.abs(left - right)).toBeLessThanOrEqual(2)
+})
+
 test('a diagram pans by dragging, and a drag never opens a step', async ({ page }) => {
   await page.goto(PAGE)
   const frame = page.locator('#tm-01 .canvas-scroll')
