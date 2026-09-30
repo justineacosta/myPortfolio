@@ -1,11 +1,12 @@
 import { contact } from '@/data/contact'
-import { profile } from '@/data/profile'
-import { checkLead, composeMessage, FIELDS, type Lead } from '@/lib/contact'
+import { checkLead, FIELDS } from '@/lib/contact'
+import { confirmEmail, notifyEmail, type Email } from '@/lib/emails'
 import { rateLimit } from '@/lib/rateLimit'
+import { SITE_URL } from '@/lib/site'
 
 /**
  * The contact form's backend: checks the message with the form's own rules,
- * then sends it through Resend. Two emails go out:
+ * then sends it through Resend. Two emails go out, designed in lib/emails.ts:
  * - To CONTACT_TO, with Reply-To the visitor, so a reply goes straight to them.
  * - To the visitor, a short confirmation. It never repeats what they typed,
  *   so the form cannot be used to mail someone else's words. If it fails
@@ -18,13 +19,13 @@ const allowed = rateLimit({ limit: 5, windowMs: 10 * 60 * 1000 })
 
 const refuse = (error: string, status: number) => Response.json({ error }, { status })
 
-type Mail = { from: string; to: string; replyTo: string; subject: string; text: string }
+type Mail = Email & { from: string; to: string; replyTo: string }
 
-async function send(key: string, { from, to, replyTo, subject, text }: Mail) {
+async function send(key: string, { from, to, replyTo, subject, text, html }: Mail) {
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from, to: [to], reply_to: replyTo, subject, text }),
+    body: JSON.stringify({ from, to: [to], reply_to: replyTo, subject, text, html }),
   })
   if (!res.ok) throw new Error(`Resend answered ${res.status}: ${await res.text().catch(() => '')}`)
 }
@@ -43,11 +44,6 @@ async function readForm(req: Request) {
 const clientIp = (req: Request) =>
   req.headers.get('x-forwarded-for')?.split(',')[0].trim() || req.headers.get('x-real-ip') || 'unknown'
 
-function confirmation(lead: Lead) {
-  const r = contact.reply
-  return { subject: r.subject, text: [`Hi ${lead.firstName},`, '', r.body, '', `— ${profile.name}`].join('\n') }
-}
-
 export async function POST(req: Request) {
   if (!allowed(clientIp(req))) return refuse(contact.errors.rate, 429)
 
@@ -63,15 +59,14 @@ export async function POST(req: Request) {
     return refuse(contact.errors.failed, 500)
   }
 
-  const { subject, body } = composeMessage(lead)
   try {
-    await send(key, { from, to, replyTo: lead.email, subject, text: body })
+    await send(key, { from, to, replyTo: lead.email, ...notifyEmail(lead, new Date()) })
   } catch (err) {
     console.error('Contact form: the message was not sent.', err)
     return refuse(contact.errors.failed, 502)
   }
   try {
-    await send(key, { from, to: lead.email, replyTo: to, ...confirmation(lead) })
+    await send(key, { from, to: lead.email, replyTo: to, ...confirmEmail(lead, SITE_URL) })
   } catch (err) {
     console.error('Contact form: the confirmation was not sent.', err)
   }
