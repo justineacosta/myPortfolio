@@ -109,3 +109,66 @@ test('at phone width the page never scrolls sideways; wide diagrams scroll in th
   expect(await frame.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(true)
   await expect(page.locator('#tm-01 .canvas')).toHaveAttribute('data-overflow', '')
 })
+
+test("the site's reduced-motion setting also stills the steps' hover", async ({ page }) => {
+  await page.goto(PAGE)
+  const card = page.locator('[data-node="tm-01:n1"] .node-card')
+  expect(await card.evaluate((el) => getComputedStyle(el).transitionDuration)).not.toBe('0s')
+  await page.evaluate(() => document.documentElement.setAttribute('data-a11y-motion', 'true'))
+  expect(await card.evaluate((el) => getComputedStyle(el).transitionDuration)).toBe('0s')
+})
+
+test('the settings panel follows its step as the page scrolls, and closes once the step leaves the screen', async ({ page }) => {
+  await page.goto(PAGE)
+  const node = page.locator('[data-node="tm-01:n6"]')
+  await node.scrollIntoViewIfNeeded()
+  await node.click()
+  const panel = page.locator('#node-panel')
+  await expect(panel).toBeVisible()
+  const before = (await panel.boundingBox())!.y
+  await page.evaluate(() => window.scrollBy({ top: 120, behavior: 'instant' }))
+  await expect.poll(async () => Math.round(before - (await panel.boundingBox())!.y)).toBe(120)
+  await page.evaluate(() => window.scrollBy({ top: 3000, behavior: 'instant' }))
+  await expect(panel).toBeHidden()
+})
+
+test('clicking the open step closes its panel, and each step says whether its panel is open', async ({ page }) => {
+  await page.goto(PAGE)
+  const node = page.locator('[data-node="tm-01:n6"]')
+  await expect(node).toHaveAttribute('aria-expanded', 'false')
+  await node.click()
+  const panel = page.locator('#node-panel')
+  await expect(panel).toBeVisible()
+  await expect(node).toHaveAttribute('aria-expanded', 'true')
+  await node.click()
+  await expect(panel).toBeHidden()
+  await expect(node).toHaveAttribute('aria-expanded', 'false')
+})
+
+test('Tab from the settings panel moves on to the next step', async ({ page }) => {
+  await page.goto(PAGE)
+  await page.locator('[data-node="tm-01:n6"]').click()
+  await expect(page.getByRole('button', { name: 'Close settings' })).toBeFocused()
+  await page.keyboard.press('Tab')
+  await expect(page.locator('[data-node="tm-01:n7"]')).toBeFocused()
+})
+
+test('the settings panel clears a classic scrollbar', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto(PAGE)
+  // Headless Chromium draws overlay scrollbars; stand in for a 20px classic one.
+  await page.evaluate(() => Object.defineProperty(document.documentElement, 'clientWidth', { get: () => 370 }))
+  const last = page.locator('[data-node="tm-01:n14"]')
+  await last.scrollIntoViewIfNeeded()
+  await last.click()
+  const box = (await page.locator('#node-panel').boundingBox())!
+  expect(box.x + box.width).toBeLessThanOrEqual(370)
+})
+
+test('on its own, the plan links back to the portfolio', async ({ page }) => {
+  await page.goto(PAGE)
+  const home = page.getByRole('link', { name: '← Justine Acosta · Portfolio' })
+  await expect(home).toBeVisible()
+  await home.click()
+  await expect(page).toHaveURL(/\/$/)
+})

@@ -46,6 +46,8 @@ export type Plan = {
   build: Head & { phases: Phase[] }
   handover: Head & { does: string[]; breaks: string[]; call: string; logs: string }
   footer: { note: string; by: string }
+  /** The link back to the portfolio, shown when the plan is opened on its own. */
+  home: string
 }
 
 /** What each node kind means, for the legend and the screen-reader step lists. */
@@ -449,4 +451,5 @@ export const plan: Plan = {
     logs: 'Every failure is a row in the Errors tab and a Telegram message. Every job change is a row in the Supabase events table.',
   },
   footer: { note: 'A worked example. Trusted Mover is a fictional client.', by: 'Built by Justine Acosta' },
+  home: 'Justine Acosta · Portfolio',
 }

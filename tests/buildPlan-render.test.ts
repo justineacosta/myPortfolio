@@ -24,6 +24,25 @@ describe('renderPlan', () => {
     expect([...doc.querySelectorAll('nav.toc a')].map((a) => a.getAttribute('href'))).toEqual(SECTIONS.map((s) => `#${s}`))
   })
 
+  it('can be shared: its own title and description for link previews', () => {
+    const meta = (sel: string) => doc.querySelector(sel)?.getAttribute('content')
+    expect(meta('meta[property="og:title"]')).toBe(plan.title)
+    expect(meta('meta[property="og:description"]')).toBe(plan.description)
+    expect(meta('meta[property="og:type"]')).toBe('article')
+    expect(meta('meta[name="twitter:card"]')).toBe('summary')
+  })
+
+  it('links back to the portfolio on its own, but not inside the site window', () => {
+    const home = doc.querySelector<HTMLAnchorElement>('a.home')!
+    expect(home.getAttribute('href')).toBe('/')
+    expect(home.getAttribute('target')).toBe('_top')
+    expect(home.textContent).toContain('Justine Acosta')
+    expect(html).toContain(':root[data-embedded] .home{display:none}')
+    const by = doc.querySelector('footer a')!
+    expect(by.getAttribute('href')).toBe('/')
+    expect(by.getAttribute('target')).toBe('_top')
+  })
+
   it('ends with the fictional-client note', () => {
     expect(doc.querySelector('footer')!.textContent).toContain('A worked example. Trusted Mover is a fictional client.')
   })

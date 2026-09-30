@@ -28,7 +28,7 @@ function hero(p: Plan) {
   const legend = (Object.keys(KIND_LABELS) as NodeKind[])
     .map((k) => `<li><span class="k-${k}"><span class="node-card"></span></span>${esc(KIND_LABELS[k])}</li>`)
     .join('')
-  return `<header class="hero"><span class="kicker">${esc(p.kicker)}</span><h1>${esc(p.heading)}</h1><p class="lede">${esc(p.lede)}</p><dl class="meta">${p.meta
+  return `<header class="hero"><a class="home" href="/" target="_top">← ${esc(p.home)}</a><span class="kicker">${esc(p.kicker)}</span><h1>${esc(p.heading)}</h1><p class="lede">${esc(p.lede)}</p><dl class="meta">${p.meta
     .map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`)
     .join('')}</dl><ul class="legend" aria-label="Diagram key">${legend}</ul></header>`
 }
@@ -49,7 +49,7 @@ function canvas(w: Workflow, index: NodeIndex) {
   const buttons = w.nodes
     .map((n) => {
       const at = l.nodes[n.id]
-      return `<button type="button" class="node k-${n.kind}" style="left:${at.x}px;top:${at.y}px" data-node="${esc(key(n.id))}" data-in="${entered.has(n.id) ? 1 : 0}" data-out="${left.has(n.id) ? 1 : 0}" aria-haspopup="dialog"><span class="node-card" aria-hidden="true">${iconSvg(n.icon)}</span><span class="node-label">${esc(n.label)}</span><span class="node-sub">${esc(n.sub)}</span></button>`
+      return `<button type="button" class="node k-${n.kind}" style="left:${at.x}px;top:${at.y}px" data-node="${esc(key(n.id))}" data-in="${entered.has(n.id) ? 1 : 0}" data-out="${left.has(n.id) ? 1 : 0}" aria-haspopup="dialog" aria-expanded="false"><span class="node-card" aria-hidden="true">${iconSvg(n.icon)}</span><span class="node-label">${esc(n.label)}</span><span class="node-sub">${esc(n.sub)}</span></button>`
     })
     .join('')
   const steps = w.nodes
@@ -101,6 +101,10 @@ export function renderPlan(p: Plan = PLAN, themes: Themes = { dark: readTokens('
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(p.title)}</title>
 <meta name="description" content="${esc(p.description)}">
+<meta property="og:title" content="${esc(p.title)}">
+<meta property="og:description" content="${esc(p.description)}">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
 <link rel="canonical" href="${PAGE_PATH}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -113,7 +117,7 @@ export function renderPlan(p: Plan = PLAN, themes: Themes = { dark: readTokens('
 ${hero(p)}
 ${parts.map((s) => s.html).join('\n')}
 </main>
-<footer class="foot"><span>${esc(p.footer.note)}</span><span>${esc(p.footer.by)}</span></footer>
+<footer class="foot"><span>${esc(p.footer.note)}</span><a href="/" target="_top">${esc(p.footer.by)}</a></footer>
 <div id="node-panel" class="panel" popover role="dialog" aria-labelledby="panel-label"><span class="ptype" data-p="type"></span><h3 id="panel-label" data-p="label"></h3><dl></dl><button type="button" class="panel-close" data-p="close" aria-label="Close settings">×</button></div>
 <script type="application/json" id="plan-nodes">${safeJson(index)}</script>
 <script>${client}</script>

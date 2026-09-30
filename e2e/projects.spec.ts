@@ -304,3 +304,11 @@ test("the site's larger text is not applied twice inside the plan", async ({ pag
   expect(await frame.locator('html').getAttribute('data-a11y-text')).toBeNull()
 })
 
+
+test('inside the site window the plan hides its link back to the portfolio', async ({ page }) => {
+  await page.goto('/projects#build-plan')
+  await hydrated(page)
+  const frame = page.frameLocator('iframe[title="Trusted Mover build plan"]')
+  await expect(frame.getByRole('heading', { level: 1 })).toBeVisible()
+  await expect(frame.locator('a.home')).toBeHidden()
+})

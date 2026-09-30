@@ -37,6 +37,9 @@ p{margin:0}
 .toc a:hover{color:var(--ink)}
 .toc a[aria-current=true]{background:var(--wash);color:var(--accent)}
 .page{max-width:1100px;margin:0 auto;padding:32px 16px 80px;display:flex;flex-direction:column;gap:72px}
+.home{align-self:flex-start;font-size:.8125rem;color:var(--ink3);text-decoration:none}
+.home:hover{color:var(--accent)}
+:root[data-embedded] .home{display:none}
 .kicker{font-family:var(--mono);font-size:.6875rem;letter-spacing:.16em;color:var(--accent);text-transform:uppercase}
 .hero{display:flex;flex-direction:column;gap:18px;padding-top:24px}
 .hero h1{font-size:clamp(1.9rem,4.6vw,3rem);line-height:1.08;letter-spacing:-.035em;max-width:22ch}
@@ -132,10 +135,12 @@ tr:last-child td{border-bottom:0}
 .panel dt{color:var(--ink3)}
 .panel dd{margin:0}
 .panel-close{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:9px;border:1px solid var(--b1);background:var(--s2);color:var(--ink);font-size:1.1rem;line-height:1;cursor:pointer}
+.foot a{color:var(--ink2)}
 .foot{max-width:1100px;margin:0 auto;padding:24px 16px 48px;border-top:1px solid var(--b1);display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;font-size:.8125rem;color:var(--ink3)}
 @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}.run-dot{display:none}.node-card{transition:none}}
 :root[data-a11y-motion=true]{scroll-behavior:auto}
 :root[data-a11y-motion=true] .run-dot{display:none}
+:root[data-a11y-motion=true] .node-card{transition:none}
 @media print{
 :root,:root[data-theme]{${vars(light)};color-scheme:light}
 body{background:var(--frame)}
