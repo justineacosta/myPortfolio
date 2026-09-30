@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { KIND_LABELS, plan, type Workflow } from '@/data/buildPlan'
+import { KIND_LABELS, KIND_NOTES, plan, type Workflow } from '@/data/buildPlan'
 
 const all: Workflow[] = [...plan.workflows, ...plan.helpers.list]
 const outs = (w: Workflow, id: string) => w.edges.filter((e) => e.from === id)
@@ -66,6 +66,18 @@ describe('the build plan content', () => {
     for (const p of plan.build.phases) expect(Object.keys(p).sort()).toEqual(['name', 'tasks'])
     expect(plan.meta.map(([k]) => k)).not.toContain('Build time')
     expect(plan.build.blurb).not.toMatch(/hour/i)
+  })
+
+  it('explains every step in plain words, for its panel', () => {
+    for (const w of all) for (const n of w.nodes) expect(n.what, `${w.code} ${n.id}`).toMatch(/^[A-Z].{19,219}.$/)
+  })
+
+  it('explains every kind of step and every job stage', () => {
+    expect(Object.keys(KIND_NOTES).sort()).toEqual(Object.keys(KIND_LABELS).sort())
+    for (const note of Object.values(KIND_NOTES)) expect(note).toMatch(/^[A-Z].+.$/)
+    const stages = [...plan.data.stages, ...plan.data.exitStages]
+    expect(stages).toHaveLength(9)
+    for (const [label, what] of stages) expect(what, label).toMatch(/^[A-Z].+.$/)
   })
 
   it('labels every node kind for the legend', () => {

@@ -13,7 +13,8 @@ export type IconName =
   | 'Stack' | 'Star' | 'Table' | 'Timer' | 'Truck' | 'UserCheck' | 'Warning' | 'WebhooksLogo' | 'XCircle'
 
 export type NodeKind = 'trigger' | 'action' | 'ai' | 'branch' | 'wait' | 'approve' | 'helper' | 'end'
-export type PlanNode = { id: string; kind: NodeKind; label: string; sub: string; icon: IconName; type: string; settings: [string, string][] }
+/** A step: `what` says in plain words what happens there, first in its panel. */
+export type PlanNode = { id: string; kind: NodeKind; label: string; sub: string; icon: IconName; type: string; settings: [string, string][]; what: string }
 export type PlanEdge = { from: string; to: string; label?: string }
 export type Workflow = {
   code: string
@@ -38,7 +39,7 @@ export type Plan = {
   meta: [string, string][]
   start: Head & { outcome: string; trigger: string; exits: string[]; outOfScope: string[] }
   naming: Head & { rules: { name: string; pattern: string; examples: string[]; rule: string }[] }
-  data: Head & { tables: { name: string; fields: string[]; note: string }[]; stages: string[]; exitStages: string[]; sheets: [string, string][] }
+  data: Head & { tables: { name: string; fields: string[]; note: string }[]; stages: [string, string][]; exitStages: [string, string][]; sheets: [string, string][] }
   triggers: Head & { rows: [string, string, string][] }
   workflows: Workflow[]
   helpers: Head & { list: Workflow[] }
@@ -62,8 +63,20 @@ export const KIND_LABELS: Record<NodeKind, string> = {
   end: 'Ends',
 }
 
-const node = (id: string, kind: NodeKind, label: string, sub: string, icon: IconName, type: string, settings: [string, string][]): PlanNode =>
-  ({ id, kind, label, sub, icon, type, settings })
+/** What each kind of step means, for the diagram key's panel. */
+export const KIND_NOTES: Record<NodeKind, string> = {
+  trigger: 'Where a workflow starts: a form, a payment, a schedule or a message.',
+  action: 'A single thing the workflow does, like saving a record or sending an email.',
+  ai: 'A step where Claude reads or writes text. It never sends anything on its own.',
+  branch: 'A decision point. The workflow takes a different path depending on the answer.',
+  wait: 'A pause, until a set time or until something happens, like a reply or a payment.',
+  approve: 'A person has to say yes before the workflow can go on.',
+  helper: 'Hands off to a small shared workflow, like sending the team an alert.',
+  end: 'The last step on this path.',
+}
+
+const node = (id: string, kind: NodeKind, label: string, sub: string, icon: IconName, type: string, settings: [string, string][], what: string): PlanNode =>
+  ({ id, kind, label, sub, icon, type, settings, what })
 const edge = (from: string, to: string, label?: string): PlanEdge => (label ? { from, to, label } : { from, to })
 
 const TM01: Workflow = {
@@ -78,20 +91,20 @@ const TM01: Workflow = {
     'The question never links to a form.',
   ],
   nodes: [
-    node('n1', 'trigger', 'Quote form', 'POST /tm/quote', 'WebhooksLogo', 'Webhook', [['Method', 'POST'], ['Path', '/tm/quote'], ['Respond', 'At once, 202']]),
-    node('n2', 'action', 'Normalize fields', 'Edit Fields', 'PencilSimple', 'Edit Fields (Set)', [['Keeps', 'name, email, phone, dates, addresses, notes'], ['Phone', 'to E.164']]),
-    node('n3', 'action', 'Find contact', 'Supabase', 'MagnifyingGlass', 'Supabase', [['Operation', 'Get many rows'], ['Table', 'contacts'], ['Match', 'email or phone']]),
-    node('n4', 'branch', 'Duplicate in 24 h?', 'If', 'GitBranch', 'If', [['Condition', 'an open job was created under 24 h ago']]),
-    node('n5', 'end', 'Merge into open job', 'Supabase', 'Copy', 'Supabase', [['Operation', 'Update row'], ['Table', 'jobs'], ['Adds', 'the new notes to the open job']]),
-    node('n6', 'ai', 'Extract move details', 'Claude', 'Sparkle', 'Anthropic Chat Model + Structured Output Parser', [['Model', 'Claude Haiku 4.5'], ['Returns', 'size, move_date, from_zip, to_zip, stairs, specialty[], missing[]'], ['Temperature', '0']]),
-    node('n7', 'branch', 'Anything missing?', 'If', 'GitBranch', 'If', [['Condition', 'missing[] is not empty']]),
-    node('n8', 'ai', 'Draft one question', 'Claude', 'Sparkle', 'Anthropic Chat Model', [['Model', 'Claude Haiku 4.5'], ['Rule', 'One question, under 40 words, no form links']]),
-    node('n9', 'action', 'Ask the client', 'Gmail', 'EnvelopeSimple', 'Gmail', [['Operation', 'Reply'], ['Thread', 'Stays on the quote thread']]),
-    node('n10', 'end', 'Stage 0 · needs info', 'Supabase', 'FlagCheckered', 'Supabase', [['Sets', 'stage = 0, needs_info = true']]),
-    node('n11', 'action', 'Create job', 'Supabase', 'Database', 'Supabase', [['Operation', 'Upsert contact, insert job'], ['Stage', '0 New lead']]),
-    node('n12', 'action', 'Log the quote', 'Google Sheets', 'Table', 'Google Sheets', [['Operation', 'Append row'], ['Tab', 'Quote log']]),
-    node('n13', 'helper', 'Notify ops', 'TM-H02', 'Stack', 'Execute Workflow', [['Workflow', 'TM-H02 · Notify ops'], ['Wait for it', 'No']]),
-    node('n14', 'end', 'Send survey link', 'Gmail', 'CalendarCheck', 'Gmail', [['Link', 'Cal.com video or in-home survey'], ['Sends', 'Inside business hours']]),
+    node('n1', 'trigger', 'Quote form', 'POST /tm/quote', 'WebhooksLogo', 'Webhook', [['Method', 'POST'], ['Path', '/tm/quote'], ['Respond', 'At once, 202']], 'Someone fills in the quote form on the Trusted Mover site, and their details arrive here the moment they press send.'),
+    node('n2', 'action', 'Normalize fields', 'Edit Fields', 'PencilSimple', 'Edit Fields (Set)', [['Keeps', 'name, email, phone, dates, addresses, notes'], ['Phone', 'to E.164']], 'Tidies what they typed: trims stray spaces, keeps only the fields that matter and puts the phone number in one standard format.'),
+    node('n3', 'action', 'Find contact', 'Supabase', 'MagnifyingGlass', 'Supabase', [['Operation', 'Get many rows'], ['Table', 'contacts'], ['Match', 'email or phone']], 'Looks the person up in the customer list by email or phone, to see whether they have asked before.'),
+    node('n4', 'branch', 'Duplicate in 24 h?', 'If', 'GitBranch', 'If', [['Condition', 'an open job was created under 24 h ago']], 'Checks whether this person already sent a quote request in the last day.'),
+    node('n5', 'end', 'Merge into open job', 'Supabase', 'Copy', 'Supabase', [['Operation', 'Update row'], ['Table', 'jobs'], ['Adds', 'the new notes to the open job']], 'If they did, the new message is added to their existing job instead of starting a second one.'),
+    node('n6', 'ai', 'Extract move details', 'Claude', 'Sparkle', 'Anthropic Chat Model + Structured Output Parser', [['Model', 'Claude Haiku 4.5'], ['Returns', 'size, move_date, from_zip, to_zip, stairs, specialty[], missing[]'], ['Temperature', '0']], 'Claude reads the request and pulls out the move size, the date, both addresses, stairs and any special items, plus anything that is missing.'),
+    node('n7', 'branch', 'Anything missing?', 'If', 'GitBranch', 'If', [['Condition', 'missing[] is not empty']], 'Checks whether Claude found everything needed to price the move.'),
+    node('n8', 'ai', 'Draft one question', 'Claude', 'Sparkle', 'Anthropic Chat Model', [['Model', 'Claude Haiku 4.5'], ['Rule', 'One question, under 40 words, no form links']], 'If something is missing, Claude writes one short, friendly question asking for it.'),
+    node('n9', 'action', 'Ask the client', 'Gmail', 'EnvelopeSimple', 'Gmail', [['Operation', 'Reply'], ['Thread', 'Stays on the quote thread']], 'Sends that question by email, as a reply in the same conversation.'),
+    node('n10', 'end', 'Stage 0 · needs info', 'Supabase', 'FlagCheckered', 'Supabase', [['Sets', 'stage = 0, needs_info = true']], 'Marks the job as waiting for the client’s answer, so nobody chases it twice.'),
+    node('n11', 'action', 'Create job', 'Supabase', 'Database', 'Supabase', [['Operation', 'Upsert contact, insert job'], ['Stage', '0 New lead']], 'Saves the person and a new job in the database, at the first stage: New lead.'),
+    node('n12', 'action', 'Log the quote', 'Google Sheets', 'Table', 'Google Sheets', [['Operation', 'Append row'], ['Tab', 'Quote log']], 'Adds a row to the Quote log sheet, so the owner can see every request in one place.'),
+    node('n13', 'helper', 'Notify ops', 'TM-H02', 'Stack', 'Execute Workflow', [['Workflow', 'TM-H02 · Notify ops'], ['Wait for it', 'No']], 'Sends the team a short Telegram message that a new lead came in.'),
+    node('n14', 'end', 'Send survey link', 'Gmail', 'CalendarCheck', 'Gmail', [['Link', 'Cal.com video or in-home survey'], ['Sends', 'Inside business hours']], 'Emails the client a link to book a video or in-home survey, sent only during business hours.'),
   ],
   edges: [
     edge('n1', 'n2'), edge('n2', 'n3'), edge('n3', 'n4'),
@@ -115,21 +128,21 @@ const TM02: Workflow = {
     'Reminders respect business hours in Central time.',
   ],
   nodes: [
-    node('a1', 'trigger', 'Survey booked', 'Cal.com', 'CalendarCheck', 'Webhook (Cal.com)', [['Event', 'BOOKING_CREATED'], ['Path', '/tm/survey']]),
-    node('a2', 'action', 'Stage 1', 'Supabase', 'Database', 'Supabase', [['Sets', 'stage = 1, survey_at']]),
-    node('a3', 'helper', 'Business hours', 'TM-H03', 'Stack', 'Execute Workflow', [['Workflow', 'TM-H03 · Business-hours gate'], ['Window', '08:00–19:00 CT, Mon–Sat']]),
-    node('a4', 'wait', 'Until 24 h before', 'Wait', 'Timer', 'Wait', [['Resume', 'At a set time'], ['Time', 'survey_at minus 24 h']]),
-    node('a5', 'action', 'Reminder', 'Gmail', 'EnvelopeSimple', 'Gmail', [['Includes', 'the time, what to have ready, a reschedule link']]),
-    node('a6', 'wait', 'Until the survey ends', 'Wait', 'HourglassMedium', 'Wait', [['Resume', 'On webhook call'], ['Timeout', 'survey_at plus 3 h']]),
-    node('a7', 'branch', 'Survey done?', 'If', 'GitBranch', 'If', [['Condition', 'the inventory form arrived before the timeout']]),
-    node('a8', 'end', 'Rebook link', 'Gmail', 'CalendarCheck', 'Gmail', [['Sends', 'One rebook link, once']]),
-    node('a9', 'action', 'Price from rate card', 'Google Sheets', 'Calculator', 'Google Sheets + Code', [['Tab', 'Rate card'], ['Formula', 'crew × hours × rate + truck + materials'], ['Rounds', 'to the nearest $25']]),
-    node('a10', 'ai', 'Draft estimate', 'Claude', 'Sparkle', 'Anthropic Chat Model', [['Model', 'Claude Sonnet 4.6'], ['Input', 'inventory, price lines, move date'], ['Tone', 'Plain, no upsell']]),
-    node('a11', 'approve', 'Owner approves', 'Wait on form', 'UserCheck', 'Wait (on form submit)', [['Sends', 'the draft with Approve and Edit to the owner'], ['Timeout', '24 h, then a reminder']]),
-    node('a12', 'branch', 'Approved?', 'If', 'GitBranch', 'If', [['Condition', 'decision = approve']]),
-    node('a13', 'end', 'Back to owner', 'Telegram', 'PaperPlaneTilt', 'Telegram', [['Sends', 'the edit note'], ['Job', 'stays at stage 1']]),
-    node('a14', 'action', 'Deposit link', 'Stripe', 'CreditCard', 'Stripe (HTTP Request)', [['Creates', 'a Checkout Session'], ['Amount', '20% of the estimate'], ['Metadata', 'job_id']]),
-    node('a15', 'end', 'Send estimate', 'Gmail', 'EnvelopeSimple', 'Gmail', [['Then', 'stage = 2 Estimate sent']]),
+    node('a1', 'trigger', 'Survey booked', 'Cal.com', 'CalendarCheck', 'Webhook (Cal.com)', [['Event', 'BOOKING_CREATED'], ['Path', '/tm/survey']], 'The client books their survey in Cal.com, and the booking arrives here.'),
+    node('a2', 'action', 'Stage 1', 'Supabase', 'Database', 'Supabase', [['Sets', 'stage = 1, survey_at']], 'Moves the job to Survey booked and saves the survey time.'),
+    node('a3', 'helper', 'Business hours', 'TM-H03', 'Stack', 'Execute Workflow', [['Workflow', 'TM-H03 · Business-hours gate'], ['Window', '08:00–19:00 CT, Mon–Sat']], 'Makes any message wait until business hours, so nobody is contacted at night.'),
+    node('a4', 'wait', 'Until 24 h before', 'Wait', 'Timer', 'Wait', [['Resume', 'At a set time'], ['Time', 'survey_at minus 24 h']], 'Pauses the workflow until one day before the survey.'),
+    node('a5', 'action', 'Reminder', 'Gmail', 'EnvelopeSimple', 'Gmail', [['Includes', 'the time, what to have ready, a reschedule link']], 'Emails the client a reminder: the time, what to have ready, and a link to reschedule.'),
+    node('a6', 'wait', 'Until the survey ends', 'Wait', 'HourglassMedium', 'Wait', [['Resume', 'On webhook call'], ['Timeout', 'survey_at plus 3 h']], 'Waits for the estimator to finish the survey and send in the inventory.'),
+    node('a7', 'branch', 'Survey done?', 'If', 'GitBranch', 'If', [['Condition', 'the inventory form arrived before the timeout']], 'Checks whether the inventory arrived in time, or the client didn’t show up.'),
+    node('a8', 'end', 'Rebook link', 'Gmail', 'CalendarCheck', 'Gmail', [['Sends', 'One rebook link, once']], 'If the client missed it, they get one email with a link to book again.'),
+    node('a9', 'action', 'Price from rate card', 'Google Sheets', 'Calculator', 'Google Sheets + Code', [['Tab', 'Rate card'], ['Formula', 'crew × hours × rate + truck + materials'], ['Rounds', 'to the nearest $25']], 'Works out the price from the rate card: crew size, hours, truck and packing materials.'),
+    node('a10', 'ai', 'Draft estimate', 'Claude', 'Sparkle', 'Anthropic Chat Model', [['Model', 'Claude Sonnet 4.6'], ['Input', 'inventory, price lines, move date'], ['Tone', 'Plain, no upsell']], 'Claude writes the estimate email in plain words, listing what is included and the price.'),
+    node('a11', 'approve', 'Owner approves', 'Wait on form', 'UserCheck', 'Wait (on form submit)', [['Sends', 'the draft with Approve and Edit to the owner'], ['Timeout', '24 h, then a reminder']], 'The owner gets the draft and chooses Approve or Edit. Nothing reaches the client before that.'),
+    node('a12', 'branch', 'Approved?', 'If', 'GitBranch', 'If', [['Condition', 'decision = approve']], 'Checks what the owner decided.'),
+    node('a13', 'end', 'Back to owner', 'Telegram', 'PaperPlaneTilt', 'Telegram', [['Sends', 'the edit note'], ['Job', 'stays at stage 1']], 'If the owner wants changes, their note comes back to them on Telegram and the client hears nothing yet.'),
+    node('a14', 'action', 'Deposit link', 'Stripe', 'CreditCard', 'Stripe (HTTP Request)', [['Creates', 'a Checkout Session'], ['Amount', '20% of the estimate'], ['Metadata', 'job_id']], 'Creates a secure Stripe payment link for a 20% deposit.'),
+    node('a15', 'end', 'Send estimate', 'Gmail', 'EnvelopeSimple', 'Gmail', [['Then', 'stage = 2 Estimate sent']], 'Emails the approved estimate with the deposit link, and moves the job to Estimate sent.'),
   ],
   edges: [
     edge('a1', 'a2'), edge('a2', 'a3'), edge('a3', 'a4'), edge('a4', 'a5'), edge('a5', 'a6'), edge('a6', 'a7'),
@@ -152,19 +165,19 @@ const TM03: Workflow = {
     'Nudges stop the moment a deposit lands.',
   ],
   nodes: [
-    node('b1', 'trigger', 'Deposit paid', 'Stripe', 'CreditCard', 'Webhook (Stripe)', [['Event', 'checkout.session.completed'], ['Path', '/tm/stripe']]),
-    node('b2', 'action', 'Verify signature', 'Code', 'ShieldCheck', 'Code', [['Checks', 'Stripe-Signature against the signing secret'], ['Rejects', 'anything unsigned, with 400']]),
-    node('b3', 'action', 'Find job', 'Supabase', 'MagnifyingGlass', 'Supabase', [['Match', 'metadata.job_id'], ['Skips', 'jobs already at stage 3']]),
-    node('b4', 'action', 'Stage 3 · Booked', 'Supabase', 'Database', 'Supabase', [['Sets', 'stage = 3, deposit_paid_at']]),
-    node('b5', 'action', 'Add to crew schedule', 'Google Sheets', 'Table', 'Google Sheets', [['Tab', 'Crew schedule'], ['Row', 'date, size, from, to, crew (blank)']]),
-    node('b6', 'action', 'Confirmation', 'Gmail', 'EnvelopeSimple', 'Gmail', [['Includes', 'the date, arrival window, prep checklist']]),
-    node('b7', 'helper', 'Notify ops', 'TM-H02', 'Stack', 'Execute Workflow', [['Workflow', 'TM-H02 · Notify ops']]),
-    node('s1', 'trigger', 'Every hour', 'Schedule', 'Clock', 'Schedule Trigger', [['Interval', 'Every hour']]),
-    node('s2', 'action', 'Unpaid estimates', 'Supabase', 'MagnifyingGlass', 'Supabase', [['Filter', 'stage = 2, sent over 72 h ago']]),
-    node('s3', 'branch', 'Nudges sent?', 'Switch', 'ArrowsSplit', 'Switch', [['Routes', '0, 1, 2']]),
-    node('s4', 'end', 'Nudge 1', 'Gmail', 'EnvelopeSimple', 'Gmail', [['Sets', 'nudges_sent = 1']]),
-    node('s5', 'end', 'Nudge 2', 'Gmail', 'EnvelopeSimple', 'Gmail', [['Sets', 'nudges_sent = 2']]),
-    node('s6', 'end', 'Stage · Lost', 'Supabase', 'XCircle', 'Supabase', [['Sets', 'stage = Lost']]),
+    node('b1', 'trigger', 'Deposit paid', 'Stripe', 'CreditCard', 'Webhook (Stripe)', [['Event', 'checkout.session.completed'], ['Path', '/tm/stripe']], 'Stripe reports that a client has paid their deposit.'),
+    node('b2', 'action', 'Verify signature', 'Code', 'ShieldCheck', 'Code', [['Checks', 'Stripe-Signature against the signing secret'], ['Rejects', 'anything unsigned, with 400']], 'Confirms the message really came from Stripe before anything else happens.'),
+    node('b3', 'action', 'Find job', 'Supabase', 'MagnifyingGlass', 'Supabase', [['Match', 'metadata.job_id'], ['Skips', 'jobs already at stage 3']], 'Finds the job this payment belongs to, and skips it if it is already booked.'),
+    node('b4', 'action', 'Stage 3 · Booked', 'Supabase', 'Database', 'Supabase', [['Sets', 'stage = 3, deposit_paid_at']], 'Marks the job as Booked and records when the deposit was paid.'),
+    node('b5', 'action', 'Add to crew schedule', 'Google Sheets', 'Table', 'Google Sheets', [['Tab', 'Crew schedule'], ['Row', 'date, size, from, to, crew (blank)']], 'Adds the move to the Crew schedule sheet, ready for a crew to be assigned.'),
+    node('b6', 'action', 'Confirmation', 'Gmail', 'EnvelopeSimple', 'Gmail', [['Includes', 'the date, arrival window, prep checklist']], 'Emails the client their move date, arrival window and a checklist to get ready.'),
+    node('b7', 'helper', 'Notify ops', 'TM-H02', 'Stack', 'Execute Workflow', [['Workflow', 'TM-H02 · Notify ops']], 'Lets the team know on Telegram that a move was booked.'),
+    node('s1', 'trigger', 'Every hour', 'Schedule', 'Clock', 'Schedule Trigger', [['Interval', 'Every hour']], 'Every hour, a second check runs on its own.'),
+    node('s2', 'action', 'Unpaid estimates', 'Supabase', 'MagnifyingGlass', 'Supabase', [['Filter', 'stage = 2, sent over 72 h ago']], 'Finds estimates sent more than three days ago that still have no deposit.'),
+    node('s3', 'branch', 'Nudges sent?', 'Switch', 'ArrowsSplit', 'Switch', [['Routes', '0, 1, 2']], 'Checks how many reminders each of those clients has already had.'),
+    node('s4', 'end', 'Nudge 1', 'Gmail', 'EnvelopeSimple', 'Gmail', [['Sets', 'nudges_sent = 1']], 'None yet: sends a first friendly reminder.'),
+    node('s5', 'end', 'Nudge 2', 'Gmail', 'EnvelopeSimple', 'Gmail', [['Sets', 'nudges_sent = 2']], 'One already: sends a second and final reminder.'),
+    node('s6', 'end', 'Stage · Lost', 'Supabase', 'XCircle', 'Supabase', [['Sets', 'stage = Lost']], 'Two already: marks the job as Lost, so it stops taking up attention.'),
   ],
   edges: [
     edge('b1', 'b2'), edge('b2', 'b3'), edge('b3', 'b4'), edge('b4', 'b5'), edge('b5', 'b6'), edge('b6', 'b7'),
@@ -184,15 +197,15 @@ const TM04: Workflow = {
     'Dates are compared in Central time, not UTC.',
   ],
   nodes: [
-    node('c1', 'trigger', 'Every day, 07:00', 'Schedule', 'Clock', 'Schedule Trigger', [['Cron', '0 7 * * *'], ['Timezone', 'America/Chicago']]),
-    node('c2', 'action', 'Upcoming moves', 'Supabase', 'MagnifyingGlass', 'Supabase', [['Filter', 'stage 3–4, move_date in 1, 2 or 7 days']]),
-    node('c3', 'branch', 'Days out?', 'Switch', 'ArrowsSplit', 'Switch', [['Routes', '7, 2, 1']]),
-    node('c4', 'action', 'Stage 4 · Move week', 'Supabase', 'Database', 'Supabase', [['Sets', 'stage = 4']]),
-    node('c5', 'end', 'Packing guide', 'Gmail', 'Package', 'Gmail', [['Sends', 'packing tips and what the crew brings']]),
-    node('c6', 'branch', 'Crew assigned?', 'If', 'GitBranch', 'If', [['Reads', 'the crew column of the Crew schedule']]),
-    node('c7', 'end', 'Crew confirmation', 'Gmail', 'Truck', 'Gmail', [['To', 'the crew lead and the client']]),
-    node('c8', 'helper', 'Alert ops', 'TM-H02', 'Warning', 'Execute Workflow', [['Workflow', 'TM-H02 · Notify ops'], ['Priority', 'urgent']]),
-    node('c9', 'end', 'Arrival window', 'Gmail', 'Clock', 'Gmail', [['Window', 'from the crew schedule, e.g. 8–10 am']]),
+    node('c1', 'trigger', 'Every day, 07:00', 'Schedule', 'Clock', 'Schedule Trigger', [['Cron', '0 7 * * *'], ['Timezone', 'America/Chicago']], 'Every morning at 7:00, this workflow starts on its own.'),
+    node('c2', 'action', 'Upcoming moves', 'Supabase', 'MagnifyingGlass', 'Supabase', [['Filter', 'stage 3–4, move_date in 1, 2 or 7 days']], 'Finds every booked move happening in 7, 2 or 1 days.'),
+    node('c3', 'branch', 'Days out?', 'Switch', 'ArrowsSplit', 'Switch', [['Routes', '7, 2, 1']], 'Sends each move down the right path, depending on how many days are left.'),
+    node('c4', 'action', 'Stage 4 · Move week', 'Supabase', 'Database', 'Supabase', [['Sets', 'stage = 4']], 'A week out: moves the job to Move week.'),
+    node('c5', 'end', 'Packing guide', 'Gmail', 'Package', 'Gmail', [['Sends', 'packing tips and what the crew brings']], 'Emails the client packing tips and what the crew will bring.'),
+    node('c6', 'branch', 'Crew assigned?', 'If', 'GitBranch', 'If', [['Reads', 'the crew column of the Crew schedule']], 'Two days out: checks the Crew schedule for an assigned crew.'),
+    node('c7', 'end', 'Crew confirmation', 'Gmail', 'Truck', 'Gmail', [['To', 'the crew lead and the client']], 'If there is a crew, the crew lead and the client both get a confirmation.'),
+    node('c8', 'helper', 'Alert ops', 'TM-H02', 'Warning', 'Execute Workflow', [['Workflow', 'TM-H02 · Notify ops'], ['Priority', 'urgent']], 'If there is no crew yet, the team gets an urgent Telegram alert.'),
+    node('c9', 'end', 'Arrival window', 'Gmail', 'Clock', 'Gmail', [['Window', 'from the crew schedule, e.g. 8–10 am']], 'The day before: emails the client the crew’s arrival window.'),
   ],
   edges: [
     edge('c1', 'c2'), edge('c2', 'c3'),
@@ -213,20 +226,20 @@ const TM05: Workflow = {
     'The review link is only sent after the invoice is paid.',
   ],
   nodes: [
-    node('d1', 'trigger', 'Crew marks done', 'Google Sheets', 'Table', 'Google Sheets Trigger', [['Event', 'Row updated'], ['Column', 'status = Done']]),
-    node('d2', 'action', 'Stage 5 · Moved', 'Supabase', 'Database', 'Supabase', [['Sets', 'stage = 5']]),
-    node('d3', 'action', 'Final invoice', 'Stripe', 'Receipt', 'Stripe', [['Amount', 'estimate minus deposit, plus any extra hours'], ['Due', 'on receipt']]),
-    node('d4', 'wait', 'Until paid', 'Wait', 'HourglassMedium', 'Wait (on webhook)', [['Resumes on', 'invoice.paid'], ['Timeout', '7 days, then TM-H02']]),
-    node('d5', 'wait', '1 day', 'Wait', 'Timer', 'Wait', [['Amount', '1 day']]),
-    node('d6', 'action', 'Feedback question', 'Gmail', 'EnvelopeSimple', 'Gmail', [['Asks', '“How did the move go?”, one line']]),
-    node('d7', 'wait', 'Until reply', 'Wait', 'ChatCircleText', 'Wait (on webhook)', [['Resumes on', 'a Gmail reply'], ['Timeout', '5 days, then close']]),
-    node('d8', 'ai', 'Sort the reply', 'Claude', 'Sparkle', 'Text Classifier', [['Model', 'Claude Haiku 4.5'], ['Classes', 'damage, complaint, praise']]),
-    node('d9', 'branch', 'Kind?', 'Switch', 'ArrowsSplit', 'Switch', [['Routes', 'praise, damage, complaint']]),
-    node('d10', 'action', 'Review link', 'Gmail', 'Star', 'Gmail', [['Link', 'the Google review page']]),
-    node('d11', 'end', 'Stage 6 · Closed', 'Supabase', 'FlagCheckered', 'Supabase', [['Sets', 'stage = 6']]),
-    node('d12', 'action', 'Open a claim', 'Supabase', 'Warning', 'Supabase', [['Writes', 'events: type = claim'], ['Holds', 'the job at stage 5 until resolved']]),
-    node('d13', 'helper', 'Alert ops', 'TM-H02', 'Stack', 'Execute Workflow', [['Priority', 'urgent']]),
-    node('d14', 'end', 'Task for the owner', 'Telegram', 'PaperPlaneTilt', 'Telegram', [['Sends', 'the reply and a link to the job']]),
+    node('d1', 'trigger', 'Crew marks done', 'Google Sheets', 'Table', 'Google Sheets Trigger', [['Event', 'Row updated'], ['Column', 'status = Done']], 'The crew marks the move as Done on the Crew schedule sheet.'),
+    node('d2', 'action', 'Stage 5 · Moved', 'Supabase', 'Database', 'Supabase', [['Sets', 'stage = 5']], 'Moves the job to Moved.'),
+    node('d3', 'action', 'Final invoice', 'Stripe', 'Receipt', 'Stripe', [['Amount', 'estimate minus deposit, plus any extra hours'], ['Due', 'on receipt']], 'Sends the final invoice through Stripe: the balance after the deposit, plus any extra hours.'),
+    node('d4', 'wait', 'Until paid', 'Wait', 'HourglassMedium', 'Wait (on webhook)', [['Resumes on', 'invoice.paid'], ['Timeout', '7 days, then TM-H02']], 'Waits until the invoice is paid, and alerts the team if it is still unpaid after a week.'),
+    node('d5', 'wait', '1 day', 'Wait', 'Timer', 'Wait', [['Amount', '1 day']], 'Waits one more day before asking for feedback.'),
+    node('d6', 'action', 'Feedback question', 'Gmail', 'EnvelopeSimple', 'Gmail', [['Asks', '“How did the move go?”, one line']], 'Emails the client one simple question: how did the move go?'),
+    node('d7', 'wait', 'Until reply', 'Wait', 'ChatCircleText', 'Wait (on webhook)', [['Resumes on', 'a Gmail reply'], ['Timeout', '5 days, then close']], 'Waits for their reply, for up to five days.'),
+    node('d8', 'ai', 'Sort the reply', 'Claude', 'Sparkle', 'Text Classifier', [['Model', 'Claude Haiku 4.5'], ['Classes', 'damage, complaint, praise']], 'Claude reads the reply and decides whether it is praise, a complaint or a damage report.'),
+    node('d9', 'branch', 'Kind?', 'Switch', 'ArrowsSplit', 'Switch', [['Routes', 'praise, damage, complaint']], 'Sends the reply down the right path.'),
+    node('d10', 'action', 'Review link', 'Gmail', 'Star', 'Gmail', [['Link', 'the Google review page']], 'Happy clients get a link to leave a Google review.'),
+    node('d11', 'end', 'Stage 6 · Closed', 'Supabase', 'FlagCheckered', 'Supabase', [['Sets', 'stage = 6']], 'Moves the job to Closed: paid, reviewed and done.'),
+    node('d12', 'action', 'Open a claim', 'Supabase', 'Warning', 'Supabase', [['Writes', 'events: type = claim'], ['Holds', 'the job at stage 5 until resolved']], 'A damage report opens a claim on the job, so it stays open until it is sorted.'),
+    node('d13', 'helper', 'Alert ops', 'TM-H02', 'Stack', 'Execute Workflow', [['Priority', 'urgent']], 'The team gets an urgent Telegram alert about the claim.'),
+    node('d14', 'end', 'Task for the owner', 'Telegram', 'PaperPlaneTilt', 'Telegram', [['Sends', 'the reply and a link to the job']], 'A complaint goes straight to the owner on Telegram, to follow up personally.'),
   ],
   edges: [
     edge('d1', 'd2'), edge('d2', 'd3'), edge('d3', 'd4'), edge('d4', 'd5'), edge('d5', 'd6'), edge('d6', 'd7'), edge('d7', 'd8'), edge('d8', 'd9'),
@@ -247,17 +260,17 @@ const TM06: Workflow = {
     'A $0 refund skips Stripe but still confirms.',
   ],
   nodes: [
-    node('e1', 'trigger', 'Change request', 'POST /tm/change', 'WebhooksLogo', 'Webhook', [['From', 'the reschedule form on the site'], ['Carries', 'job_id, type, new date']]),
-    node('e2', 'action', 'Find job', 'Supabase', 'MagnifyingGlass', 'Supabase', [['Match', 'job_id']]),
-    node('e3', 'branch', 'Type?', 'Switch', 'ArrowsSplit', 'Switch', [['Routes', 'reschedule, cancel']]),
-    node('e4', 'action', 'Check crew calendar', 'Google Sheets', 'Table', 'Google Sheets', [['Tab', 'Crew schedule']]),
-    node('e5', 'branch', 'Slot free?', 'If', 'GitBranch', 'If', [['Condition', 'a crew is free on the new date']]),
-    node('e6', 'end', 'Move the date', 'Supabase + Sheets', 'ArrowsClockwise', 'Supabase + Google Sheets', [['Updates', 'move_date and the schedule row'], ['Sends', 'a confirmation']]),
-    node('e7', 'end', 'Offer 3 dates', 'Gmail', 'CalendarCheck', 'Gmail', [['Offers', 'the next three free dates']]),
-    node('e8', 'action', 'Refund by policy', 'Code', 'Calculator', 'Code', [['14 days or more', '100% of the deposit'], ['7–13 days', '50%'], ['Under 7 days', 'deposit kept']]),
-    node('e9', 'action', 'Stripe refund', 'Stripe', 'CreditCard', 'Stripe', [['Operation', 'Create refund'], ['Skips', 'when the amount is $0']]),
-    node('e10', 'action', 'Stage · Cancelled', 'Supabase', 'XCircle', 'Supabase', [['Sets', 'stage = Cancelled'], ['Also', 'clears the crew schedule row']]),
-    node('e11', 'end', 'Confirm', 'Gmail', 'EnvelopeSimple', 'Gmail', [['Includes', 'the refund amount, if any']]),
+    node('e1', 'trigger', 'Change request', 'POST /tm/change', 'WebhooksLogo', 'Webhook', [['From', 'the reschedule form on the site'], ['Carries', 'job_id, type, new date']], 'The client asks to move or cancel their booking with the form on the site.'),
+    node('e2', 'action', 'Find job', 'Supabase', 'MagnifyingGlass', 'Supabase', [['Match', 'job_id']], 'Finds the job the request is about.'),
+    node('e3', 'branch', 'Type?', 'Switch', 'ArrowsSplit', 'Switch', [['Routes', 'reschedule, cancel']], 'Checks whether they want a new date or to cancel.'),
+    node('e4', 'action', 'Check crew calendar', 'Google Sheets', 'Table', 'Google Sheets', [['Tab', 'Crew schedule']], 'Looks at the Crew schedule for the new date.'),
+    node('e5', 'branch', 'Slot free?', 'If', 'GitBranch', 'If', [['Condition', 'a crew is free on the new date']], 'Checks whether a crew is free that day.'),
+    node('e6', 'end', 'Move the date', 'Supabase + Sheets', 'ArrowsClockwise', 'Supabase + Google Sheets', [['Updates', 'move_date and the schedule row'], ['Sends', 'a confirmation']], 'If one is, the move date and the schedule are updated and the client gets a confirmation.'),
+    node('e7', 'end', 'Offer 3 dates', 'Gmail', 'CalendarCheck', 'Gmail', [['Offers', 'the next three free dates']], 'If not, the client is offered the next three free dates.'),
+    node('e8', 'action', 'Refund by policy', 'Code', 'Calculator', 'Code', [['14 days or more', '100% of the deposit'], ['7–13 days', '50%'], ['Under 7 days', 'deposit kept']], 'Works out the refund from the notice given: all of the deposit at 14 days or more, half at 7 to 13, none under 7.'),
+    node('e9', 'action', 'Stripe refund', 'Stripe', 'CreditCard', 'Stripe', [['Operation', 'Create refund'], ['Skips', 'when the amount is $0']], 'Sends the refund through Stripe, or skips this when there is nothing to refund.'),
+    node('e10', 'action', 'Stage · Cancelled', 'Supabase', 'XCircle', 'Supabase', [['Sets', 'stage = Cancelled'], ['Also', 'clears the crew schedule row']], 'Marks the job as Cancelled and frees the crew’s slot.'),
+    node('e11', 'end', 'Confirm', 'Gmail', 'EnvelopeSimple', 'Gmail', [['Includes', 'the refund amount, if any']], 'Emails the client a confirmation, with the refund amount if there is one.'),
   ],
   edges: [
     edge('e1', 'e2'), edge('e2', 'e3'),
@@ -274,9 +287,9 @@ const H01: Workflow = {
   exits: ['Logged and sent'],
   watch: ['It never retries on its own. A person decides.'],
   nodes: [
-    node('h1', 'trigger', 'Any failure', 'Error Trigger', 'Warning', 'Error Trigger', [['Covers', 'every TM workflow (Settings → Error workflow)']]),
-    node('h2', 'action', 'Log it', 'Google Sheets', 'Table', 'Google Sheets', [['Tab', 'Errors'], ['Row', 'workflow, node, message, execution URL']]),
-    node('h3', 'end', 'Tell ops', 'Telegram', 'PaperPlaneTilt', 'Telegram', [['Includes', 'the execution link']]),
+    node('h1', 'trigger', 'Any failure', 'Error Trigger', 'Warning', 'Error Trigger', [['Covers', 'every TM workflow (Settings → Error workflow)']], 'Starts whenever any Trusted Mover workflow fails.'),
+    node('h2', 'action', 'Log it', 'Google Sheets', 'Table', 'Google Sheets', [['Tab', 'Errors'], ['Row', 'workflow, node, message, execution URL']], 'Writes the failure to the Errors sheet: which workflow, which step and what went wrong.'),
+    node('h3', 'end', 'Tell ops', 'Telegram', 'PaperPlaneTilt', 'Telegram', [['Includes', 'the execution link']], 'Sends the team a Telegram message with a link to the failed run.'),
   ],
   edges: [edge('h1', 'h2'), edge('h2', 'h3')],
 }
@@ -289,9 +302,9 @@ const H02: Workflow = {
   exits: ['Message sent'],
   watch: ['Urgent messages are pinned in the group.'],
   nodes: [
-    node('g1', 'trigger', 'Called by a workflow', 'Execute Workflow Trigger', 'Stack', 'Execute Workflow Trigger', [['Inputs', 'text, priority, job_id']]),
-    node('g2', 'action', 'Format', 'Edit Fields', 'PencilSimple', 'Edit Fields (Set)', [['Adds', 'the job link and the stage']]),
-    node('g3', 'end', 'Send', 'Telegram', 'PaperPlaneTilt', 'Telegram', [['Chat', 'the ops group'], ['Urgent', 'pinned, with sound']]),
+    node('g1', 'trigger', 'Called by a workflow', 'Execute Workflow Trigger', 'Stack', 'Execute Workflow Trigger', [['Inputs', 'text, priority, job_id']], 'Another workflow hands over a message for the team.'),
+    node('g2', 'action', 'Format', 'Edit Fields', 'PencilSimple', 'Edit Fields (Set)', [['Adds', 'the job link and the stage']], 'Adds the job link and its current stage to the message.'),
+    node('g3', 'end', 'Send', 'Telegram', 'PaperPlaneTilt', 'Telegram', [['Chat', 'the ops group'], ['Urgent', 'pinned, with sound']], 'Posts it in the team’s Telegram group. Urgent ones are pinned.'),
   ],
   edges: [edge('g1', 'g2'), edge('g2', 'g3')],
 }
@@ -304,9 +317,9 @@ const H03: Workflow = {
   exits: ['Resumes inside business hours'],
   watch: ['Business hours are 08:00–19:00 Central, Monday to Saturday.'],
   nodes: [
-    node('k1', 'trigger', 'Called by a workflow', 'Execute Workflow Trigger', 'Stack', 'Execute Workflow Trigger', [['Inputs', 'the time a message wants to go out']]),
-    node('k2', 'action', 'Next allowed time', 'Code', 'Clock', 'Code', [['Window', '08:00–19:00 CT, Mon–Sat']]),
-    node('k3', 'wait', 'Wait until then', 'Wait', 'Timer', 'Wait', [['Resume', 'At a set time']]),
+    node('k1', 'trigger', 'Called by a workflow', 'Execute Workflow Trigger', 'Stack', 'Execute Workflow Trigger', [['Inputs', 'the time a message wants to go out']], 'Another workflow asks when it is allowed to message a client.'),
+    node('k2', 'action', 'Next allowed time', 'Code', 'Clock', 'Code', [['Window', '08:00–19:00 CT, Mon–Sat']], 'Works out the next time inside business hours: 8 am to 7 pm Central, Monday to Saturday.'),
+    node('k3', 'wait', 'Wait until then', 'Wait', 'Timer', 'Wait', [['Resume', 'At a set time']], 'Holds the message until then.'),
   ],
   edges: [edge('k1', 'k2'), edge('k2', 'k3')],
 }
@@ -358,8 +371,19 @@ export const plan: Plan = {
       { name: 'jobs', fields: ['id', 'contact_id', 'stage', 'move_date', 'size', 'from_zip', 'to_zip', 'estimate_usd', 'deposit_paid_at', 'crew', 'nudges_sent', 'source'], note: 'One row per move.' },
       { name: 'events', fields: ['job_id', 'type', 'payload', 'at'], note: 'Every workflow writes one, so the next run knows what already happened.' },
     ],
-    stages: ['0 New lead', '1 Survey booked', '2 Estimate sent', '3 Booked', '4 Move week', '5 Moved', '6 Closed'],
-    exitStages: ['Lost', 'Cancelled'],
+    stages: [
+      ['0 New lead', 'A quote request came in and is being qualified.'],
+      ['1 Survey booked', 'The client booked a video or in-home survey.'],
+      ['2 Estimate sent', 'The approved estimate and the deposit link are with the client.'],
+      ['3 Booked', 'The deposit is paid and the move is on the calendar.'],
+      ['4 Move week', 'The move is less than a week away. Reminders and crew checks are running.'],
+      ['5 Moved', 'The crew has finished. The final invoice and the feedback question are on their way.'],
+      ['6 Closed', 'Paid, reviewed and done.'],
+    ],
+    exitStages: [
+      ['Lost', 'No deposit after two reminders.'],
+      ['Cancelled', 'The client cancelled. Any refund followed the policy.'],
+    ],
     sheets: [
       ['Quote log', 'Every request, as it arrived'],
       ['Rate card', 'Hourly rates, truck fees and materials'],

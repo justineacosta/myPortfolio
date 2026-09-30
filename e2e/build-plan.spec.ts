@@ -172,3 +172,35 @@ test('on its own, the plan links back to the portfolio', async ({ page }) => {
   await home.click()
   await expect(page).toHaveURL(/\/$/)
 })
+
+test('a step panel says in plain words what happens there, before its settings', async ({ page }) => {
+  await page.goto(PAGE)
+  await page.locator('[data-node="tm-01:n6"]').click()
+  const panel = page.getByRole('dialog', { name: 'Extract move details' })
+  await expect(panel.locator('[data-p=what]')).toHaveText(/^Claude reads the request/)
+  await expect(panel.locator('dl')).toBeVisible()
+})
+
+test('the diagram key and the job stages explain themselves when clicked', async ({ page }) => {
+  await page.goto(PAGE)
+  const panel = page.locator('#node-panel')
+  await page.getByRole('button', { name: 'Person approves', exact: true }).click()
+  await expect(panel).toContainText('A person has to say yes')
+  await expect(panel.locator('dl')).toBeHidden()
+  await page.keyboard.press('Escape')
+  await page.getByRole('button', { name: '3 Booked', exact: true }).click()
+  await expect(panel).toContainText('The deposit is paid')
+})
+
+
+test("a step's panel opens clear of the step's own name", async ({ page }) => {
+  await page.goto(PAGE)
+  const node = page.locator('[data-node="tm-02:a11"]')
+  await node.scrollIntoViewIfNeeded()
+  await node.click()
+  const step = (await node.boundingBox())!
+  const panel = (await page.locator('#node-panel').boundingBox())!
+  const below = panel.y >= step.y + step.height
+  const above = panel.y + panel.height <= step.y
+  expect(below || above).toBe(true)
+})
