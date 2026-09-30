@@ -23,6 +23,12 @@ describe('About', () => {
     }
   })
 
+  it('labels the medals row Badges', () => {
+    render(<AboutPage />)
+    expect(screen.getByText('BADGES')).toBeInTheDocument()
+    expect(screen.queryByText('CERTIFIED')).not.toBeInTheDocument()
+  })
+
   it('shows each certification as a small badge.svg medal', () => {
     render(<AboutPage />)
     for (const name of ['AWS Cloud Practitioner Essentials', 'HackerRank Software Engineer']) {
