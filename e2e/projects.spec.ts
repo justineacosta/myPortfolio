@@ -162,7 +162,32 @@ test('other pages never load the Projects write-ups up front', async ({ request 
   const srcs = [...html.matchAll(/<script[^>]+src="([^"]+)"/g)].map((m) => m[1])
   expect(srcs.length).toBeGreaterThan(0)
   const bodies = await Promise.all(srcs.map(async (src) => (await request.get(src)).text()))
-  expect(bodies.filter((b) => b.includes('Name the outcome')).length).toBe(0)
+  expect(bodies.filter((b) => b.includes('Write the spec first')).length).toBe(0)
+})
+
+test('the build plan window shows the plan and follows the site theme, dark by default', async ({ page }) => {
+  await page.goto('/projects#build-plan')
+  await hydrated(page)
+  const view = page.getByRole('dialog', { name: 'The build plan' })
+  await expect(view.getByRole('link', { name: 'Open in new tab' })).toHaveAttribute('href', '/build-plan.html')
+  const frame = page.frameLocator('iframe[title="Trusted Mover build plan"]')
+  await expect(frame.getByRole('heading', { level: 1 })).toBeVisible()
+  const theme = () => frame.locator('html').getAttribute('data-theme')
+  await page.evaluate(() => delete document.documentElement.dataset.theme)
+  await expect.poll(theme).toBe('dark')
+  await page.evaluate(() => (document.documentElement.dataset.theme = 'light'))
+  await expect.poll(theme).toBe('light')
+  await page.evaluate(() => (document.documentElement.dataset.theme = 'dark'))
+  await expect.poll(theme).toBe('dark')
+})
+
+test('/projects never fetches the plan page until its window opens', async ({ page }) => {
+  const asked: string[] = []
+  page.on('request', (r) => asked.push(new URL(r.url()).pathname))
+  await page.goto('/projects')
+  await hydrated(page)
+  await page.waitForLoadState('networkidle')
+  expect(asked).not.toContain('/build-plan.html')
 })
 
 test('a write-up window keeps its margin', async ({ page }) => {

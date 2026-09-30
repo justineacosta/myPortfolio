@@ -13,7 +13,7 @@ import {
 /** Every sub-view the board opens. Each id is also its URL hash (/projects#build-plan). */
 export const PROJECT_VIEWS = ['reel', 'build-plan', 'support-desk', 'agentic-framework', 'end-to-end', 'sites', 'ai-agents'] as const
 export type ProjectView = (typeof PROJECT_VIEWS)[number]
-export const DOC_VIEWS = ['build-plan', 'support-desk', 'agentic-framework', 'end-to-end'] as const
+export const DOC_VIEWS = ['support-desk', 'agentic-framework', 'end-to-end'] as const
 export type DocView = (typeof DOC_VIEWS)[number]
 
 export type Chip = { name: string; icon: Icon }
@@ -78,8 +78,9 @@ export const projects = {
     plan: {
       title: 'The build plan', icon: BlueprintIcon, cue: 'VIEW THE PLAN',
       body: 'A real automation plan, before a workflow is clicked together.',
-      kicker: 'GOHIGHLEVEL BUILD PLAN', heading: 'The full automation blueprint.',
-      steps: ['Trigger', 'Wait', 'Score?', 'Convert'],
+      kicker: 'N8N BUILD PLAN', heading: 'The full automation blueprint.',
+      steps: ['Webhook', 'Claude', 'Approve?', 'Stripe'],
+      page: '/build-plan.html', frameTitle: 'Trusted Mover build plan',
     },
     sites: {
       title: 'Funnels and sites', icon: BrowsersIcon, cue: 'VIEW THE SITES', cta: 'SPIN THE CAROUSEL',

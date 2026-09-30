@@ -16,9 +16,6 @@ describe('Projects data', () => {
 
   it("keeps Kraft's roster, the build plan's sections, the reel and the sites", () => {
     expect(agentsView.groups.map((g) => g.name)).toEqual(['KapeAI', 'AI Agents', 'RAG Chatbots', 'Chatbots', 'Hermes'])
-    expect(DOCS['build-plan'].sections.map((s) => s.name)).toEqual([
-      'Before anything is clicked', 'The flow', 'What ships with it',
-    ])
     expect(projects.reel.shots.map((s) => s.label)).toEqual([
       '01 - Support | New Ticket', 'Workflows list', '02 - Post-Purchase Delivery', 'Global workflow settings', 'Execution logs',
     ])
@@ -69,6 +66,13 @@ describe('Board', () => {
     expect(screen.getByText('CLICK A CARD TO OPEN IT')).toBeInTheDocument()
   })
 
+  it('shows the build plan card as an n8n plan', () => {
+    render(<Board />)
+    const card = screen.getByRole('link', { name: /^The build plan/ })
+    expect(within(card).getByText('N8N BUILD PLAN')).toBeInTheDocument()
+    expect(['Webhook', 'Claude', 'Approve?', 'Stripe'].every((s) => within(card).queryByText(s))).toBe(true)
+  })
+
   it('names the card under the pointer in the cursor cue', () => {
     render(<Board />)
     fireEvent.pointerMove(screen.getByRole('link', { name: /^The build plan/ }), { clientX: 40, clientY: 40 })
@@ -109,7 +113,7 @@ describe('ProjectViews', () => {
     // Every sub-view, plus the site preview that stacks on the sites view.
     expect(dialogs).toHaveLength(PROJECT_VIEWS.length + 1)
     dialogs.forEach((d) => expect(d).not.toHaveAttribute('open'))
-    expect(document.body).toHaveTextContent('Name the outcome')
+    expect(document.body).toHaveTextContent('Write the spec first')
   })
 
   it('opens the write-up a shared link names, and Close drops the hash', () => {
@@ -120,6 +124,25 @@ describe('ProjectViews', () => {
     fireEvent.click(within(view).getByRole('button', { name: 'Close' }))
     expect(window.location.hash).toBe('')
     expect(view).not.toHaveAttribute('open')
+  })
+
+  it('has no iframe while the build plan is closed, so /projects never fetches it up front', () => {
+    render(<ProjectViews />)
+    expect(document.querySelector('iframe')).toBeNull()
+  })
+
+  it('shows the build plan page in its window, with a way out to a new tab and Close focused', () => {
+    window.history.replaceState(null, '', '/projects#build-plan')
+    render(<ProjectViews />)
+    const view = screen.getByRole('dialog', { name: 'The build plan' })
+    expect(view).toHaveAttribute('open')
+    const frame = within(view).getByTitle('Trusted Mover build plan')
+    expect(frame.tagName).toBe('IFRAME')
+    expect(frame).toHaveAttribute('src', '/build-plan.html')
+    const out = within(view).getByRole('link', { name: 'Open in new tab' })
+    expect(out).toHaveAttribute('href', '/build-plan.html')
+    expect(out).toHaveAttribute('target', '_blank')
+    expect(within(view).getByRole('button', { name: 'Close' })).toHaveFocus()
   })
 
   it('marks which systems are live and which are internal', () => {

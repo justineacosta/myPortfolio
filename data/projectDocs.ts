@@ -1,5 +1,5 @@
 import {
-  ArrowsClockwiseIcon, ArticleIcon, BellSimpleIcon, BooksIcon, BrowsersIcon, ChartBarIcon, ChatCircleIcon, CheckCircleIcon, ClockCountdownIcon, CodeIcon, CoffeeIcon, CursorIcon, DatabaseIcon, EnvelopeSimpleIcon, FileJsIcon, FileTextIcon, FilmStripIcon, FlowArrowIcon, GitBranchIcon, HandshakeIcon, HashIcon, HourglassMediumIcon, LifebuoyIcon, LightningIcon, ListChecksIcon, MagnifyingGlassIcon, MicrophoneIcon, NoteIcon, PackageIcon, PaperPlaneTiltIcon, PhoneCallIcon, PuzzlePieceIcon, ScissorsIcon, SealCheckIcon, ShieldCheckIcon, ShippingContainerIcon, SignOutIcon, SparkleIcon, TargetIcon, TerminalWindowIcon, TextboxIcon, TimerIcon, TrayIcon, TrendUpIcon, UserCircleIcon, UserFocusIcon, UsersThreeIcon, WaveformIcon, WrenchIcon,
+  ArrowsClockwiseIcon, ArticleIcon, BellSimpleIcon, BooksIcon, BrowsersIcon, ChartBarIcon, ChatCircleIcon, CheckCircleIcon, ClockCountdownIcon, CodeIcon, CoffeeIcon, CursorIcon, DatabaseIcon, EnvelopeSimpleIcon, FileJsIcon, FileTextIcon, FilmStripIcon, FlowArrowIcon, HashIcon, HourglassMediumIcon, LifebuoyIcon, LightningIcon, ListChecksIcon, MagnifyingGlassIcon, MicrophoneIcon, PackageIcon, PaperPlaneTiltIcon, PhoneCallIcon, PuzzlePieceIcon, ScissorsIcon, SealCheckIcon, ShieldCheckIcon, ShippingContainerIcon, SparkleIcon, TargetIcon, TerminalWindowIcon, TimerIcon, TrayIcon, TrendUpIcon, UserCircleIcon, UserFocusIcon, UsersThreeIcon, WaveformIcon, WrenchIcon,
 } from '@phosphor-icons/react/ssr'
 import type { AgentGroup, Chip, Doc, DocView } from './projects'
 
@@ -48,39 +48,6 @@ const GROUPS: AgentGroup[] = [
 ]
 
 export const DOCS: Record<DocView, Doc> = {
-  'build-plan': {
-    kicker: 'GOHIGHLEVEL BUILD PLAN',
-    title: 'The build plan',
-    lede: 'A real automation plan, written out before a single workflow is clicked together.',
-    stack: [{ name: 'GoHighLevel', icon: FlowArrowIcon }, { name: 'Claude Code', icon: TerminalWindowIcon }, { name: 'Notion', icon: NoteIcon }],
-    sections: [
-      {
-        name: 'Before anything is clicked', blurb: 'The part most builds skip.',
-        cards: [
-          { step: '01', icon: TargetIcon, title: 'Name the outcome', desc: 'One sentence the client agrees with: what should be true after this runs.', meta: 'One outcome per workflow' },
-          { step: '02', icon: LightningIcon, title: 'Pin the trigger', desc: 'Exactly what fires it, and every condition that must be false for it not to fire.', meta: 'Trigger + guard conditions' },
-          { step: '03', icon: SignOutIcon, title: 'List the exits', desc: 'Every way a contact leaves the flow: converted, disqualified, replied, timed out.', meta: 'No silent dead ends' },
-        ],
-      },
-      {
-        name: 'The flow', blurb: 'Four node classes, in order. Everything else is a variation.',
-        cards: [
-          { step: 'TRIGGER', icon: LightningIcon, title: 'Entry', desc: 'Form, stage change, tag, inbound message, or a scheduled sweep of a smart list.', meta: 'Re-entry off by default' },
-          { step: 'WAIT', icon: TimerIcon, title: 'Timing', desc: 'Waits are business hours aware. Nobody gets a 2am SMS because a form fired late.', meta: 'Window: 08:00–19:00 local' },
-          { step: 'SCORE?', icon: GitBranchIcon, title: 'Branch', desc: 'One condition per branch, read top to bottom. If it needs three ANDs, it needs its own workflow.', meta: 'Max 3 branches per node' },
-          { step: 'CONVERT', icon: CheckCircleIcon, title: 'Action', desc: 'Move the opportunity, send the branded email, notify the owner, write back the result.', meta: 'Every action logged' },
-        ],
-      },
-      {
-        name: 'What ships with it', blurb: 'The plan is not done when the workflow runs.',
-        cards: [
-          { step: '01', icon: TextboxIcon, title: 'Naming convention', desc: 'Numbered prefixes so the workflow list reads as an order of operations, not an inbox.', meta: '01 - Support | New Ticket' },
-          { step: '02', icon: ListChecksIcon, title: 'Test matrix', desc: 'Each branch walked with a real test contact before handover, results pasted into the doc.', meta: 'Pass/fail per branch' },
-          { step: '03', icon: HandshakeIcon, title: 'Handover doc', desc: 'One page: what it does, what breaks it, who to call. Written for the client, not for me.', meta: 'Delivered with every build' },
-        ],
-      },
-    ],
-  },
   'support-desk': {
     kicker: 'GOHIGHLEVEL BLUEPRINT',
     title: 'Support Ticketing System',
