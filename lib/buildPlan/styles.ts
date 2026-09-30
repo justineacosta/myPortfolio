@@ -102,13 +102,13 @@ tr:last-child td{border-bottom:0}
 .canvas-scroll{overflow-x:auto;border:1px solid var(--b1);border-radius:16px;background-color:var(--s0);background-image:radial-gradient(var(--b2) 1px,transparent 1px);background-size:20px 20px;overscroll-behavior-x:contain}
 .stage{position:relative}
 .edges{position:absolute;inset:0}
-.edge{fill:none;stroke:var(--b2);stroke-width:1.6}
-.edge-label{position:absolute;transform:translate(-50%,-50%);padding:1px 6px;border-radius:6px;border:1px solid var(--b1);background:var(--s0);font-family:var(--mono);font-size:.625rem;color:var(--ink2);white-space:nowrap}
+.edge{fill:none;stroke:var(--b2);stroke-width:1.6;transition:stroke .35s ease}
+.edge.lit{stroke:var(--accent);transition-duration:.08s}
+.edge-label{position:absolute;z-index:1;transform:translate(-50%,-50%);padding:1px 6px;border-radius:6px;border:1px solid var(--b1);background:var(--s0);font-family:var(--mono);font-size:.625rem;color:var(--ink2);white-space:nowrap}
 .run-dot{position:absolute;left:0;top:0;width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px var(--wash),0 0 14px 2px var(--glow);offset-anchor:50% 50%;offset-rotate:0deg;opacity:0;pointer-events:none}
-.canvas.playing .run-dot{opacity:1;animation:run var(--run-s,8s) linear infinite}
-@keyframes run{from{offset-distance:0%}to{offset-distance:100%}}
-.node{position:absolute;width:56px;display:flex;flex-direction:column;align-items:center;gap:6px;padding:0;border:0;background:none;color:var(--ink);font:inherit;text-align:center;cursor:pointer}
-.node-card{position:relative;display:grid;place-items:center;width:56px;height:56px;border-radius:14px;border:1.5px solid var(--b2);background:var(--s2);color:var(--ink2);transition:border-color .2s,transform .2s}
+.node{position:absolute;z-index:1;width:56px;display:flex;flex-direction:column;align-items:center;gap:6px;padding:0;border:0;background:none;color:var(--ink);font:inherit;text-align:center;cursor:pointer}
+.node-card{position:relative;display:grid;place-items:center;width:56px;height:56px;border-radius:14px;border:1.5px solid var(--b2);background:var(--s2);color:var(--ink2);transition:border-color .2s,transform .2s,box-shadow .35s ease}
+.node.lit .node-card{border-color:var(--accent);box-shadow:0 0 0 3px var(--wash),0 0 20px -2px var(--glow);transition-duration:.08s}
 .node-card::before,.node-card::after{content:"";position:absolute;top:50%;width:8px;height:8px;margin-top:-4px;border-radius:50%;border:1.5px solid var(--b2);background:var(--s0)}
 .node-card::before{left:-5px}
 .node-card::after{right:-5px}

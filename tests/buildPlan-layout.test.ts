@@ -39,6 +39,32 @@ describe('layout', () => {
     expect(l.run.match(/C/g)).toHaveLength(2)
   })
 
+  it('finds every route from a start to an end, the main route first', () => {
+    const l = layout(flow(['a', 'b', 'c', 'd', 'x'], [e('a', 'b', 'yes'), e('a', 'c', 'no'), e('b', 'd'), e('c', 'x')]))
+    expect(l.routes.map((r) => r.nodes)).toEqual([['a', 'b', 'd'], ['a', 'c', 'x']])
+    expect(l.routes[0].run).toBe(l.run)
+  })
+
+  it('measures a route: a straight hop is one column long, and each step is reached at its centre', () => {
+    const r = layout(flow(['a', 'b'], [e('a', 'b')])).routes[0]
+    expect(r.length).toBeCloseTo(GEOM.col, 0)
+    expect(r.stops).toEqual([['a', 0], ['b', expect.closeTo(GEOM.col, 0)]])
+    expect(r.spans).toEqual([[0, GEOM.node / 2, expect.closeTo(GEOM.col - GEOM.node / 2, 0)]])
+  })
+
+  it('gives every workflow in the plan one route per ending, each measured in order', () => {
+    for (const w of [...plan.workflows, ...plan.helpers.list]) {
+      const ends = w.nodes.filter((n) => !w.edges.some((x) => x.from === n.id)).length
+      const { routes } = layout(w)
+      expect(routes.length, w.code).toBe(ends)
+      for (const r of routes) {
+        const at = r.stops.map(([, d]) => d)
+        expect(at, w.code).toEqual([...at].sort((p, q) => p - q))
+        expect(at[at.length - 1], w.code).toBeCloseTo(r.length, 0)
+      }
+    }
+  })
+
   it('refuses a loop and a connector to a missing node', () => {
     expect(() => layout(flow(['a', 'b'], [e('a', 'b'), e('b', 'a')]))).toThrow(/loop/)
     expect(() => layout(flow(['a'], [e('a', 'z')]))).toThrow(/missing/)

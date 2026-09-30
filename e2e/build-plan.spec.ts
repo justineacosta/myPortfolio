@@ -97,7 +97,9 @@ test('the run dot plays only while motion is allowed', async ({ browser }) => {
   const calm = await browser.newContext({ reducedMotion: 'reduce' })
   const still = await calm.newPage()
   await still.goto(`${PAGE}#tm-01`)
-  await expect(still.locator('#tm-01 .run-dot')).toBeHidden()
+  for (const dot of await still.locator('#tm-01 .run-dot').all()) await expect(dot).toBeHidden()
+  await still.waitForTimeout(1500)
+  await expect(still.locator('#tm-01 .lit')).toHaveCount(0)
   await calm.close()
 })
 
@@ -204,3 +206,15 @@ test("a step's panel opens clear of the step's own name", async ({ page }) => {
   const above = panel.y + panel.height <= step.y
   expect(below || above).toBe(true)
 })
+
+test('balls run every route and split at decisions, lighting steps and connectors as they pass', async ({ page }) => {
+  await page.goto(`${PAGE}#tm-01`)
+  const fig = page.locator('#tm-01 .canvas')
+  await expect(fig.locator('.run-dot')).toHaveCount(3)
+  await expect(fig.locator('.node.lit').first()).toBeAttached({ timeout: 10_000 })
+  await expect(fig.locator('.edge.lit').first()).toBeAttached({ timeout: 10_000 })
+  const spots = () =>
+    fig.locator('.run-dot').evaluateAll((dots) => new Set(dots.map((d) => { const r = d.getBoundingClientRect(); return `${Math.round(r.x)},${Math.round(r.y)}` })).size)
+  await expect.poll(spots, { timeout: 15_000 }).toBeGreaterThan(1)
+})
+

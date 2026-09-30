@@ -4,15 +4,41 @@ import type { PlanEdge, PlanNode } from '../../data/buildPlan.ts'
 export const GEOM = { col: 156, row: 116, node: 56, padX: 48, padY: 28, label: 44 } as const
 
 export type Placed = { col: number; row: number; x: number; y: number }
-export type LaidEdge = PlanEdge & { d: string; mid: [number, number] }
-export type Layout = { nodes: Record<string, Placed>; edges: LaidEdge[]; width: number; height: number; main: string[]; run: string }
+export type LaidEdge = PlanEdge & { d: string; mid: [number, number]; len: number }
+/**
+ * One way through a workflow, from a start to an end, as the run balls see it:
+ * the line a ball follows, its length in px, how far along each step's centre
+ * is (`stops`), and where along the line each connector begins and ends
+ * (`spans`: [edge index, from, to]).
+ */
+export type Route = { nodes: string[]; run: string; length: number; stops: [string, number][]; spans: [number, number, number][] }
+export type Layout = { nodes: Record<string, Placed>; edges: LaidEdge[]; width: number; height: number; main: string[]; run: string; routes: Route[] }
+
+const round = (n: number) => Math.round(n * 10) / 10
+
+/** A cubic Bézier's length, walked in 32 straight steps: close enough to time a ball by. */
+function curveLength(p: number[][]): number {
+  const at = (t: number) => {
+    const u = 1 - t
+    return [0, 1].map((k) => u * u * u * p[0][k] + 3 * u * u * t * p[1][k] + 3 * u * t * t * p[2][k] + t * t * t * p[3][k])
+  }
+  let len = 0
+  let prev = at(0)
+  for (let i = 1; i <= 32; i++) {
+    const next = at(i / 32)
+    len += Math.hypot(next[0] - prev[0], next[1] - prev[1])
+    prev = next
+  }
+  return len
+}
 
 /**
  * Places an n8n-style canvas, left to right (spec §4.2). A node's column is
  * its longest path from a start. Its first way out stays on its row, and
  * every other branch opens a new row below everything placed so far, so two
- * nodes can never share a spot. `main` follows the first way out from the
- * first start; `run` is that path as one SVG line for the live-run dot.
+ * nodes can never share a spot. `routes` lists every way from a start to an
+ * end, the main one (always the first way out) first; `main` and `run` are
+ * that main route's steps and line.
  */
 export function layout({ nodes, edges }: { nodes: PlanNode[]; edges: PlanEdge[] }): Layout {
   const ids = nodes.map((n) => n.id)
@@ -65,18 +91,38 @@ export function layout({ nodes, edges }: { nodes: PlanNode[]; edges: PlanEdge[] 
     const x2 = placed[e.to].x
     const y2 = cy(e.to)
     const dx = Math.max(28, (x2 - x1) / 2)
-    return { ...e, d: `M${x1} ${y1}C${x1 + dx} ${y1} ${x2 - dx} ${y2} ${x2} ${y2}`, mid: [(x1 + x2) / 2, (y1 + y2) / 2] }
+    const len = curveLength([[x1, y1], [x1 + dx, y1], [x2 - dx, y2], [x2, y2]])
+    return { ...e, d: `M${x1} ${y1}C${x1 + dx} ${y1} ${x2 - dx} ${y2} ${x2} ${y2}`, mid: [(x1 + x2) / 2, (y1 + y2) / 2], len }
   })
 
-  const main = [roots[0]]
-  for (let next = outs(roots[0])[0]; next; next = outs(next.to)[0]) main.push(next.to)
-  let run = `M${placed[main[0]].x + N / 2} ${cy(main[0])}`
-  for (let i = 1; i < main.length; i++) {
-    const e = laid.find((x) => x.from === main[i - 1] && x.to === main[i])!
-    run += `L${placed[main[i - 1]].x + N} ${cy(main[i - 1])}${e.d.replace(/^M[^C]*/, '')}`
+  // A route's line starts at its first step's centre, crosses each step
+  // through its ports, and stops at its last step's centre.
+  const measure = (path: string[]): Route => {
+    let run = `M${placed[path[0]].x + N / 2} ${cy(path[0])}`
+    let at = N / 2
+    const stops: [string, number][] = [[path[0], 0]]
+    const spans: [number, number, number][] = []
+    for (let i = 1; i < path.length; i++) {
+      const k = laid.findIndex((x) => x.from === path[i - 1] && x.to === path[i])
+      run += `L${placed[path[i - 1]].x + N} ${cy(path[i - 1])}${laid[k].d.replace(/^M[^C]*/, '')}`
+      spans.push([k, round(at), round(at + laid[k].len)])
+      at += laid[k].len
+      stops.push([path[i], round(at + N / 2)])
+      at += N
+    }
+    const end = path[path.length - 1]
+    run += `L${placed[end].x + N / 2} ${cy(end)}`
+    return { nodes: path, run, length: round(path.length === 1 ? 0 : at - N / 2), stops, spans }
   }
-  const end = main[main.length - 1]
-  run += `L${placed[end].x + N / 2} ${cy(end)}`
+  const routes: Route[] = []
+  const walk = (path: string[]) => {
+    const out = outs(path[path.length - 1])
+    if (!out.length) routes.push(measure(path))
+    for (const e of out) walk([...path, e.to])
+  }
+  for (const r of roots) walk([r])
+  const main = routes[0].nodes
+  const run = routes[0].run
 
   const maxCol = Math.max(...ids.map((id) => col.get(id)!))
   return {
@@ -86,5 +132,6 @@ export function layout({ nodes, edges }: { nodes: PlanNode[]; edges: PlanEdge[] 
     height: padY * 2 + last * R + N + label,
     main,
     run,
+    routes,
   }
 }

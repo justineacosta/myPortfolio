@@ -45,7 +45,10 @@ function canvas(w: Workflow, index: NodeIndex) {
   for (const n of w.nodes) index[key(n.id)] = { label: n.label, type: n.type, what: n.what, settings: n.settings }
   const entered = new Set(w.edges.map((e) => e.to))
   const left = new Set(w.edges.map((e) => e.from))
-  const paths = l.edges.map((e) => `<path class="edge" d="${e.d}"/>`).join('')
+  const paths = l.edges.map((e, i) => `<path class="edge" data-edge="${i}" d="${e.d}"/>`).join('')
+  // One ball per route. They leave together, so they split at each decision (client.js).
+  const balls = l.routes.map((r) => `<span class="run-dot" aria-hidden="true" style="offset-path:path('${r.run}')"></span>`).join('')
+  const timing = l.routes.map((r) => ({ len: r.length, stops: r.stops.map(([id, at]) => [key(id), at]), spans: r.spans }))
   const labels = l.edges
     .filter((e) => e.label)
     .map((e) => `<span class="edge-label" style="left:${e.mid[0]}px;top:${e.mid[1]}px">${esc(e.label!)}</span>`)
@@ -64,7 +67,7 @@ function canvas(w: Workflow, index: NodeIndex) {
       return `<li>${esc(n.label)} (${esc(KIND_LABELS[n.kind])}, ${esc(n.sub)})${next.length ? `, then ${esc(next.join('; '))}` : ''}</li>`
     })
     .join('')
-  return `<figure class="canvas" data-run style="--run-s:${(l.main.length * 1.1).toFixed(1)}s"><figcaption><span>${esc(w.code)} · ${esc(w.title)}</span><span class="swipe" aria-hidden="true">Scroll sideways →</span></figcaption><div class="canvas-scroll" tabindex="0" role="group" aria-label="${esc(w.code)} diagram, scrolls sideways"><div class="stage" style="width:${l.width}px;height:${l.height}px"><svg class="edges" width="${l.width}" height="${l.height}" viewBox="0 0 ${l.width} ${l.height}" aria-hidden="true">${paths}</svg>${labels}<span class="run-dot" aria-hidden="true" style="offset-path:path('${l.run}')"></span>${buttons}</div></div><ol class="steps sr-only">${steps}</ol></figure>`
+  return `<figure class="canvas" data-run data-routes="${esc(JSON.stringify(timing))}"><figcaption><span>${esc(w.code)} · ${esc(w.title)}</span><span class="swipe" aria-hidden="true">Scroll sideways →</span></figcaption><div class="canvas-scroll" tabindex="0" role="group" aria-label="${esc(w.code)} diagram, scrolls sideways"><div class="stage" style="width:${l.width}px;height:${l.height}px"><svg class="edges" width="${l.width}" height="${l.height}" viewBox="0 0 ${l.width} ${l.height}" aria-hidden="true">${paths}</svg>${labels}${balls}${buttons}</div></div><ol class="steps sr-only">${steps}</ol></figure>`
 }
 
 function workflowSection(w: Workflow, index: NodeIndex) {
