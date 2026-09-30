@@ -1,14 +1,12 @@
 import { contact } from '@/data/contact'
-import { profile } from '@/data/profile'
 
 /**
- * Contact without a backend (spec §6, §12), ported from kape's lib/contact.ts.
- * By default a valid message opens the visitor's mail client, addressed to
- * profile.email. Set NEXT_PUBLIC_CONTACT_ENDPOINT to a URL that accepts a
- * JSON POST of `Lead`, and it is sent there instead. A non-2xx answer with
- * { "error": "…" } shows that sentence to the visitor.
+ * The contact form's rules, shared by the form and its route
+ * (app/api/contact/route.ts, which sends through Resend). The form POSTs a
+ * `Lead` as JSON to /api/contact. A non-2xx answer with { "error": "…" }
+ * shows that sentence to the visitor.
  */
-export const ENDPOINT: string = process.env.NEXT_PUBLIC_CONTACT_ENDPOINT ?? ''
+export const ENDPOINT = '/api/contact'
 
 export const MAX_NAME = 80
 export const MAX_EMAIL = 254
@@ -58,7 +56,7 @@ export function checkLead(data: FormData): { lead: Lead; errors: null } | { lead
   return Object.keys(errors).length ? { lead: null, errors } : { lead, errors: null }
 }
 
-/** The subject and body a message goes out with, whether through the mail app or copied by hand. */
+/** The subject and body of the email I get. */
 export function composeMessage(lead: Lead): { subject: string; body: string } {
   return {
     subject: `Project inquiry from ${lead.firstName} ${lead.lastName}`,
@@ -66,39 +64,17 @@ export function composeMessage(lead: Lead): { subject: string; body: string } {
   }
 }
 
-/** The mail-client link. Every value is encoded, which blocks header injection (CR/LF) and parameter smuggling (& or ?). */
-export function mailtoHref(lead: Lead, to: string = profile.email): string {
-  const { subject, body } = composeMessage(lead)
-  return `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-}
-
 export class SubmitError extends Error {}
-export type Via = 'webhook' | 'mailto'
 
-type Options = { endpoint?: string; open?: (url: string) => void }
-
-export async function submitLead(
-  lead: Lead,
-  {
-    endpoint = ENDPOINT,
-    open = (url) => {
-      window.location.href = url
-    },
-  }: Options = {},
-): Promise<Via> {
-  if (endpoint) {
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(lead),
-    })
-    if (!res.ok) {
-      const body = (await res.json().catch(() => null)) as { error?: unknown } | null
-      const said = typeof body?.error === 'string' && body.error ? body.error : ''
-      throw new SubmitError(said || `The server answered ${res.status}.`)
-    }
-    return 'webhook'
+export async function submitLead(lead: Lead): Promise<void> {
+  const res = await fetch(ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(lead),
+  })
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as { error?: unknown } | null
+    const said = typeof body?.error === 'string' && body.error ? body.error : ''
+    throw new SubmitError(said || `The server answered ${res.status}.`)
   }
-  open(mailtoHref(lead))
-  return 'mailto'
 }
