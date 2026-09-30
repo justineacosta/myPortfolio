@@ -35,7 +35,28 @@ export const contact = {
   /** The confirmation the visitor gets by email. It never quotes their message. */
   reply: {
     subject: 'Got your message',
+    kicker: 'MESSAGE RECEIVED',
+    title: 'Got your message.',
     body: "Thanks for writing. Your message reached me, and I'll reply within one business day.",
+    next: 'WHAT HAPPENS NEXT',
+    steps: [
+      'I read it myself, within one business day.',
+      "You get a short plan back, or an honest no if it isn't a fit.",
+      'If it fits, we book a call to scope it.',
+    ],
+    cta: 'See recent work',
+    footer: "You're getting this because you wrote through the contact form.",
+  },
+  /** The email I get for each message (lib/emails.ts). */
+  notify: {
+    kicker: 'NEW INQUIRY',
+    wrote: 'wrote in.',
+    name: 'NAME',
+    email: 'EMAIL',
+    received: 'RECEIVED',
+    message: 'MESSAGE',
+    reply: 'Reply to',
+    footer: 'Sent by the contact form on your site. Replying goes straight to them.',
   },
   faqs: {
     id: 'faqs',

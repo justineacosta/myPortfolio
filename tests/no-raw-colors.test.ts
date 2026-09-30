@@ -3,7 +3,8 @@ import { join, sep } from 'node:path'
 import { expect, it } from 'vitest'
 
 const ROOTS = ['app', 'components', 'data', 'hooks', 'lib']
-const ALLOWED = new Set(['app/globals.css'])
+// Emails cannot read CSS variables; lib/emails.ts copies the light tokens as hex, and tests/emails.test.ts keeps them in step.
+const ALLOWED = new Set(['app/globals.css', 'lib/emails.ts'])
 const RAW_COLOR = /#[0-9a-fA-F]{3,8}\b|rgba?\(\s*\d/g
 
 function walk(dir: string): string[] {

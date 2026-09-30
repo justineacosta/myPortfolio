@@ -45,8 +45,11 @@ describe('POST /api/contact', () => {
       subject: 'Project inquiry from Ana Reyes',
     })
     expect(mine.text).toContain('Our intake is manual.')
+    expect(mine.html).toContain('Reply to Ana')
     expect(theirs).toMatchObject({ to: ['ana@example.com'], reply_to: 'me@kraft.dev', subject: contact.reply.subject })
     expect(theirs.text).toContain('Hi Ana,')
+    expect(theirs.html).toContain('/projects"')
+    expect(theirs.html).not.toContain('Our intake is manual.')
     // The confirmation never repeats what was typed, so the form cannot be used to mail someone else's words.
     expect(theirs.text).not.toContain('Our intake is manual.')
   })
