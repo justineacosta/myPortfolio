@@ -51,11 +51,12 @@ describe('Sidebar', () => {
     expect(within(aside).queryByRole('button', { name: 'Accessibility options' })).not.toBeInTheDocument()
   })
 
-  it('points placeholder social links at # and never opens a new tab for them', () => {
+  it('opens the real social links in a new tab, safely', () => {
     renderSidebar()
     const gh = screen.getByRole('link', { name: 'GitHub' })
-    expect(gh).toHaveAttribute('href', '#')
-    expect(gh).not.toHaveAttribute('target')
+    expect(gh).toHaveAttribute('href', 'https://github.com/justineacosta')
+    expect(gh).toHaveAttribute('target', '_blank')
+    expect(gh).toHaveAttribute('rel', 'noopener noreferrer')
   })
 
   it('is dealt back in row by row after the intro', () => {

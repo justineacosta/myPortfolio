@@ -45,7 +45,7 @@ export const home = {
     },
     services: { title: 'Services', hint: 'SCROLL FOR ALL FIVE', href: '/services' },
     testimonials: { title: 'Testimonials', meta: 'AWAITING REAL QUOTES', href: '/testimonials' },
-    credentials: { title: 'Credentials', body: 'AWS Cloud Practitioner. HackerRank Software Engineer.' },
+    credentials: { title: 'Badges', body: 'AWS Cloud Practitioner. HackerRank Software Engineer.' },
   },
   intro: {
     steps,
