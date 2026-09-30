@@ -80,6 +80,26 @@ describe('renderPlan', () => {
     expect(JSON.parse(d.getElementById('plan-nodes')!.textContent!)['tm-01:n1'].label).toBe('</script><script>alert(1)</script>')
   })
 
+  it('escapes ids too, so even a stray quote in the data cannot become markup', () => {
+    const w = plan.workflows[0]
+    const bad = 'n1"><i>y</i>'
+    const odd: Plan = {
+      ...plan,
+      workflows: [
+        {
+          ...w,
+          code: 'TM-01"><b>x</b>',
+          nodes: w.nodes.map((n) => (n.id === 'n1' ? { ...n, id: bad } : n)),
+          edges: w.edges.map((e) => (e.from === 'n1' ? { ...e, from: bad } : e)),
+        },
+        ...plan.workflows.slice(1),
+      ],
+    }
+    const d = new DOMParser().parseFromString(renderPlan(odd), 'text/html')
+    const injected = [...d.querySelectorAll('b, i')].filter((el) => el.textContent === 'x' || el.textContent === 'y')
+    expect(injected).toEqual([])
+  })
+
   it('renders every icon the plan names', () => {
     for (const w of flows) for (const n of w.nodes) expect(iconSvg(n.icon), n.icon).toMatch(/^<svg /)
   })

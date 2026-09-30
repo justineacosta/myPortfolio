@@ -21,7 +21,7 @@ const rail = (items: Rail[]) =>
   items.map((r) => `<div><h3>${esc(r.heading)}</h3>${r.body ? `<p>${esc(r.body)}</p>` : ''}${r.list ? list(r.list) : ''}</div>`).join('')
 
 function section(id: string, kicker: string, title: string, blurb: string, side: Rail[], main: string, wide = '') {
-  return `<section id="${id}" aria-labelledby="${id}-h"><header class="shead"><span class="kicker">${esc(kicker)}</span><h2 id="${id}-h">${esc(title)}</h2><p>${esc(blurb)}</p></header><aside class="rail">${rail(side)}</aside><div class="main">${main}</div>${wide}</section>`
+  return `<section id="${esc(id)}" aria-labelledby="${esc(id)}-h"><header class="shead"><span class="kicker">${esc(kicker)}</span><h2 id="${esc(id)}-h">${esc(title)}</h2><p>${esc(blurb)}</p></header><aside class="rail">${rail(side)}</aside><div class="main">${main}</div>${wide}</section>`
 }
 
 function hero(p: Plan) {
@@ -49,7 +49,7 @@ function canvas(w: Workflow, index: NodeIndex) {
   const buttons = w.nodes
     .map((n) => {
       const at = l.nodes[n.id]
-      return `<button type="button" class="node k-${n.kind}" style="left:${at.x}px;top:${at.y}px" data-node="${key(n.id)}" data-in="${entered.has(n.id) ? 1 : 0}" data-out="${left.has(n.id) ? 1 : 0}" aria-haspopup="dialog"><span class="node-card" aria-hidden="true">${iconSvg(n.icon)}</span><span class="node-label">${esc(n.label)}</span><span class="node-sub">${esc(n.sub)}</span></button>`
+      return `<button type="button" class="node k-${n.kind}" style="left:${at.x}px;top:${at.y}px" data-node="${esc(key(n.id))}" data-in="${entered.has(n.id) ? 1 : 0}" data-out="${left.has(n.id) ? 1 : 0}" aria-haspopup="dialog"><span class="node-card" aria-hidden="true">${iconSvg(n.icon)}</span><span class="node-label">${esc(n.label)}</span><span class="node-sub">${esc(n.sub)}</span></button>`
     })
     .join('')
   const steps = w.nodes
@@ -69,7 +69,7 @@ function workflowSection(w: Workflow, index: NodeIndex) {
   return section(slug(w.code), w.code, w.title, `${w.nodes.length} nodes, ${decisions} ${decisions === 1 ? 'decision' : 'decisions'}.`, [{ heading: 'Watch for', list: w.watch }], main, canvas(w, index))
 }
 
-const wfLink = (code: string) => `<a href="#${code.startsWith('TM-H') ? 'helpers' : slug(code)}">${esc(code)}</a>`
+const wfLink = (code: string) => `<a href="#${esc(code.startsWith('TM-H') ? 'helpers' : slug(code))}">${esc(code)}</a>`
 
 function sections(p: Plan, index: NodeIndex) {
   const s = p.start
@@ -108,7 +108,7 @@ export function renderPlan(p: Plan = PLAN, themes: Themes = { dark: readTokens('
 <style>${pageCss(themes)}</style>
 </head>
 <body>
-<nav class="toc" aria-label="Sections">${parts.map((s) => `<a href="#${s.id}">${esc(s.nav)}</a>`).join('')}</nav>
+<nav class="toc" aria-label="Sections">${parts.map((s) => `<a href="#${esc(s.id)}">${esc(s.nav)}</a>`).join('')}</nav>
 <main class="page">
 ${hero(p)}
 ${parts.map((s) => s.html).join('\n')}
