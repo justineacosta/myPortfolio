@@ -27,7 +27,9 @@ const FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabi
  */
 function focusFallback() {
   const under = Array.from(document.querySelectorAll<HTMLDialogElement>('dialog.view[open]')).pop()
-  const target = under ? (under.querySelector<HTMLElement>(FOCUSABLE) ?? under) : document.getElementById(PANEL_ID)
+  const target = under
+    ? (under.querySelector<HTMLElement>('[data-autofocus]') ?? under.querySelector<HTMLElement>(FOCUSABLE) ?? under)
+    : document.getElementById(PANEL_ID)
   target?.focus({ preventScroll: true })
 }
 
