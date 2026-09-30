@@ -21,8 +21,8 @@ export const profile = {
   tzLabel: 'GMT+8',
   availability: { label: 'Available for work', regions: ['US', 'EU', 'CA'] },
   socials: [
-    { label: 'GitHub', href: 'PLACEHOLDER - GitHub profile URL', icon: GithubLogoIcon },
-    { label: 'LinkedIn', href: 'PLACEHOLDER - LinkedIn profile URL', icon: LinkedinLogoIcon },
+    { label: 'GitHub', href: 'https://github.com/justineacosta', icon: GithubLogoIcon },
+    { label: 'LinkedIn', href: 'https://www.linkedin.com/in/justinesam023', icon: LinkedinLogoIcon },
   ] satisfies { label: string; href: string; icon: Icon }[],
   copyright: '© 2026 KRAFT · JUSTINE ACOSTA',
 }

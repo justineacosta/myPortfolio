@@ -2,16 +2,15 @@
 
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { flushSync } from 'react-dom'
-import { ArrowRightIcon, CheckCircleIcon, CopyIcon, WarningCircleIcon } from '@phosphor-icons/react/ssr'
+import { ArrowRightIcon, CheckCircleIcon, WarningCircleIcon } from '@phosphor-icons/react/ssr'
 import { contact } from '@/data/contact'
 import { profile } from '@/data/profile'
 import {
-  checkLead, composeMessage, FIELDS, MAX_EMAIL, MAX_MESSAGE, MAX_NAME, SubmitError, submitLead,
-  type Errors, type Field, type Lead, type Via,
+  checkLead, FIELDS, MAX_EMAIL, MAX_MESSAGE, MAX_NAME, SubmitError, submitLead,
+  type Errors, type Field,
 } from '@/lib/contact'
 
-type Status = { kind: 'idle' } | { kind: 'sending' } | { kind: 'error'; note: string } | { kind: 'sent'; via: Via; lead: Lead }
-type Props = { endpoint?: string; open?: (url: string) => void }
+type Status = { kind: 'idle' } | { kind: 'sending' } | { kind: 'error'; note: string } | { kind: 'sent' }
 
 const LABEL = 'font-mono text-[9.5px] tracking-[.14em] text-ink3'
 const INPUT =
@@ -25,7 +24,7 @@ const INPUT =
  * - The first bad field takes focus.
  * - A refused send keeps everything typed and shows the server's reason.
  */
-export default function ContactForm({ endpoint, open }: Props) {
+export default function ContactForm() {
   const f = contact.fields
   const [status, setStatus] = useState<Status>({ kind: 'idle' })
   const [errors, setErrors] = useState<Errors>({})
@@ -54,7 +53,8 @@ export default function ContactForm({ endpoint, open }: Props) {
     setErrors({})
     setStatus({ kind: 'sending' })
     try {
-      setStatus({ kind: 'sent', via: await submitLead(result.lead, { endpoint, open }), lead: result.lead })
+      await submitLead(result.lead)
+      setStatus({ kind: 'sent' })
     } catch (err) {
       setStatus({ kind: 'error', note: err instanceof SubmitError ? err.message : contact.errors.failed })
     }
@@ -68,8 +68,6 @@ export default function ContactForm({ endpoint, open }: Props) {
   if (status.kind === 'sent') {
     return (
       <Sent
-        via={status.via}
-        lead={status.lead}
         onAgain={() => {
           checked.current = false
           again.current = true
@@ -148,32 +146,14 @@ export default function ContactForm({ endpoint, open }: Props) {
   )
 }
 
-type Copy = 'idle' | 'done' | 'failed'
-
-/**
- * Kraft's "Message queued." card (KraftScreens.dc.html:475-482), truthful for
- * how the message left. After a mail-app send it keeps the message: if no
- * mail app opened, the visitor copies the address and the text by hand.
- */
-function Sent({ via, lead, onAgain }: { via: Via; lead: Lead; onAgain: () => void }) {
+/** Kraft's "Message queued." card (KraftScreens.dc.html:475-482). */
+function Sent({ onAgain }: { onAgain: () => void }) {
   const s = contact.sent
   const heading = useRef<HTMLHeadingElement>(null)
-  const [copy, setCopy] = useState<Copy>('idle')
-  const [copyMsg, setCopyMsg] = useState<Copy>('idle')
 
   useEffect(() => {
     heading.current?.focus()
   }, [])
-
-  const copyText = async (text: string, done: (c: Copy) => void) => {
-    try {
-      await navigator.clipboard.writeText(text)
-      done('done')
-    } catch {
-      done('failed')
-    }
-  }
-  const { subject, body } = composeMessage(lead)
 
   return (
     <div role="status" className="flex min-h-80 animate-rise flex-col items-start justify-center gap-3.5">
@@ -183,28 +163,7 @@ function Sent({ via, lead, onAgain }: { via: Via; lead: Lead; onAgain: () => voi
       <h2 ref={heading} tabIndex={-1} className="text-[22px] font-bold tracking-[-.03em] outline-none">
         {s.title}
       </h2>
-      <p className="max-w-[340px] text-[13.5px] leading-[1.55] text-ink3">{via === 'mailto' ? s.mailto : s.webhook}</p>
-      {via === 'mailto' && (
-        <p className="flex flex-wrap items-center gap-2 text-[12.5px] text-ink3">
-          {s.fallback} <span className="font-mono break-all text-ink2 select-all">{profile.email}</span>
-          <button
-            type="button"
-            onClick={() => copyText(profile.email, setCopy)}
-            className="flex min-h-9 cursor-pointer items-center gap-1.5 rounded-[10px] border border-b1 px-2.5 py-1.5 text-xs text-ink2 transition-colors duration-250 hover:border-b2"
-          >
-            <CopyIcon size={14} aria-hidden />
-            {copy === 'done' ? s.copied : copy === 'failed' ? s.copyFailed : s.copy}
-          </button>
-          <button
-            type="button"
-            onClick={() => copyText(`${subject}\n\n${body}`, setCopyMsg)}
-            className="flex min-h-9 cursor-pointer items-center gap-1.5 rounded-[10px] border border-b1 px-2.5 py-1.5 text-xs text-ink2 transition-colors duration-250 hover:border-b2"
-          >
-            <CopyIcon size={14} aria-hidden />
-            {copyMsg === 'done' ? s.copiedMessage : copyMsg === 'failed' ? s.copyFailed : s.copyMessage}
-          </button>
-        </p>
-      )}
+      <p className="max-w-[340px] text-[13.5px] leading-[1.55] text-ink3">{s.body}</p>
       <button
         type="button"
         onClick={onAgain}

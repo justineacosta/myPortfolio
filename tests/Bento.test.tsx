@@ -20,7 +20,7 @@ describe('Bento', () => {
   it("renders Kraft's cards in order", () => {
     renderBento()
     expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
-      'Projects', 'About', 'Stack', 'Services', 'Testimonials', 'Credentials',
+      'Projects', 'About', 'Stack', 'Services', 'Testimonials', 'Badges',
     ])
   })
 

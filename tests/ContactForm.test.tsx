@@ -21,7 +21,7 @@ describe('ContactForm', () => {
 
   it('names each missing field and focuses the first one', async () => {
     const user = userEvent.setup()
-    render(<ContactForm open={vi.fn()} />)
+    render(<ContactForm />)
     await user.click(submit())
     const first = screen.getByLabelText(f.firstName.label)
     expect(first).toHaveAttribute('aria-invalid', 'true')
@@ -32,7 +32,7 @@ describe('ContactForm', () => {
 
   it('the first bad field already names its error when it takes focus', async () => {
     const user = userEvent.setup()
-    render(<ContactForm open={vi.fn()} />)
+    render(<ContactForm />)
     const first = screen.getByLabelText(f.firstName.label)
     let described: string | null = 'never focused'
     first.addEventListener('focus', () => {
@@ -42,42 +42,32 @@ describe('ContactForm', () => {
     expect(described).toBe('contact-firstName-error')
   })
 
-  it('keeps the message after a mail-app send, ready to copy if no app opened', async () => {
-    const user = userEvent.setup()
-    render(<ContactForm open={vi.fn()} />)
-    await fill(user)
-    await user.click(submit())
-    await user.click(await screen.findByRole('button', { name: contact.sent.copyMessage }))
-    expect(await navigator.clipboard.readText()).toContain(GOOD.message)
-    expect(screen.getByRole('button', { name: contact.sent.copiedMessage })).toBeInTheDocument()
-  })
-
   it('clears an error as soon as the field is fixed', async () => {
     const user = userEvent.setup()
-    render(<ContactForm open={vi.fn()} />)
+    render(<ContactForm />)
     await user.click(submit())
     await user.type(screen.getByLabelText(f.firstName.label), 'Ana')
     expect(screen.getByLabelText(f.firstName.label)).not.toHaveAttribute('aria-invalid')
     expect(screen.getByLabelText(f.lastName.label)).toHaveAttribute('aria-invalid', 'true')
   })
 
-  it('queues the message in the mail app and offers the address as a fallback', async () => {
+  it('sends the message to the contact route and says it arrived', async () => {
+    const fetch = vi.fn().mockResolvedValue(Response.json({ ok: true }))
+    vi.stubGlobal('fetch', fetch)
     const user = userEvent.setup()
-    const open = vi.fn()
-    render(<ContactForm open={open} />)
+    render(<ContactForm />)
     await fill(user)
     await user.click(submit())
     expect(await screen.findByRole('heading', { name: contact.sent.title })).toHaveFocus()
-    expect(open).toHaveBeenCalledWith(expect.stringMatching(/^mailto:/))
-    expect(screen.getByText(contact.sent.mailto)).toBeInTheDocument()
-    expect(screen.getByText(profile.email)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: contact.sent.copy })).toBeInTheDocument()
+    expect(fetch).toHaveBeenCalledWith('/api/contact', expect.objectContaining({ method: 'POST' }))
+    expect(JSON.parse(fetch.mock.calls[0][1].body)).toMatchObject({ firstName: GOOD.first, email: GOOD.email, message: GOOD.message })
+    expect(screen.getByText(contact.sent.body)).toBeInTheDocument()
   })
 
   it('keeps what was typed when the endpoint refuses, and shows why', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ error: 'Inbox is full.' }), { status: 503 })))
     const user = userEvent.setup()
-    render(<ContactForm endpoint="https://hooks.example/lead" />)
+    render(<ContactForm />)
     await fill(user)
     await user.click(submit())
     expect(await screen.findByRole('alert')).toHaveTextContent('Inbox is full.')
@@ -86,8 +76,9 @@ describe('ContactForm', () => {
   })
 
   it('Send another brings back an empty form, ready to type', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ ok: true })))
     const user = userEvent.setup()
-    render(<ContactForm open={vi.fn()} />)
+    render(<ContactForm />)
     await fill(user)
     await user.click(submit())
     await user.click(await screen.findByRole('button', { name: contact.sent.again }))
@@ -99,7 +90,7 @@ describe('ContactForm', () => {
   it('offers the address to write to when sending fails', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ error: 'Inbox is full.' }), { status: 503 })))
     const user = userEvent.setup()
-    render(<ContactForm endpoint="https://hooks.example/lead" />)
+    render(<ContactForm />)
     await fill(user)
     await user.click(submit())
     await screen.findByRole('alert')

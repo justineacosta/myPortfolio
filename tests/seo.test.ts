@@ -56,7 +56,7 @@ describe('Person JSON-LD', () => {
     const p = personJsonLd('https://kraft.dev')
     expect(p).toMatchObject({ '@type': 'Person', name: 'Justine Acosta', url: 'https://kraft.dev', image: 'https://kraft.dev/assets/portrait.jpg' })
     expect(p).not.toHaveProperty('email')
-    expect(p.sameAs).toEqual([])
+    expect(p.sameAs).toEqual(['https://github.com/justineacosta', 'https://www.linkedin.com/in/justinesam023'])
   })
   it('cannot break out of its script tag', () => {
     expect(jsonLd({ a: '</script><script>' })).not.toContain('</script>')
