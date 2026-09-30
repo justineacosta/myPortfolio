@@ -1,24 +1,30 @@
 /** Kraft's tokens for one theme, as read by lib/tokens.ts. */
-export type Themes = { dark: Record<string, string>; light: Record<string, string> }
+export type Themes = {
+  dark: Record<string, string>
+  light: Record<string, string>
+  /** The site's High contrast overrides for each theme (lib/tokens.ts readContrast). */
+  contrast: { dark: Record<string, string>; light: Record<string, string> }
+}
 
 const KEYS = ['bg', 'frame', 's0', 's1', 's2', 's3', 'chip', 'hover', 'b1', 'b2', 'ink', 'ink2', 'ink3', 'ink4', 'accent', 'onAccent', 'wash', 'washB', 'glow'] as const
 const vars = (t: Record<string, string>) => KEYS.map((k) => `--${k}:${t[k]}`).join(';')
+const decls = (t: Record<string, string>) => Object.entries(t).map(([k, v]) => `--${k}:${v}`).join(';')
 
 /**
  * The build plan's CSS (spec §4). Dark first, like the site. Inside the
  * portfolio's dialog, client.js copies the site's data-theme, so the
  * [data-theme] blocks win. Opened on its own, the device theme decides.
  */
-export function pageCss({ dark, light }: Themes): string {
+export function pageCss({ dark, light, contrast }: Themes): string {
   return `
 :root{${vars(dark)};color-scheme:dark;--sans:"Geist",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 @media (prefers-color-scheme: light){:root:not([data-theme=dark]){${vars(light)};color-scheme:light}}
 :root[data-theme=light]{${vars(light)};color-scheme:light}
 :root[data-theme=dark]{${vars(dark)};color-scheme:dark}
+:root[data-a11y-contrast=true]:not([data-theme=light]){${decls(contrast.dark)}}
+:root[data-a11y-contrast=true][data-theme=light]{${decls(contrast.light)}}
 *{box-sizing:border-box}
 html{font-size:100%;scroll-behavior:smooth;scroll-padding-top:64px}
-:root[data-a11y-text=lg]{font-size:112.5%}
-:root[data-a11y-text=xl]{font-size:125%}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:.9375rem;line-height:1.6;-webkit-font-smoothing:antialiased;text-wrap:pretty}
 a{color:var(--accent)}
 :root[data-a11y-links=true] a{text-decoration:underline}

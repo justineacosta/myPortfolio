@@ -268,3 +268,39 @@ test('an old #support-desk link just shows Projects', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Real builds you can open.')
   await expect(page.locator('dialog.view[open]')).toHaveCount(0)
 })
+
+test('inside the build plan window, Escape still closes it after a click in the plan', async ({ page }) => {
+  await page.goto('/projects#build-plan')
+  await hydrated(page)
+  const view = page.getByRole('dialog', { name: 'The build plan' })
+  const frame = page.frameLocator('iframe[title="Trusted Mover build plan"]')
+  await frame.getByRole('heading', { level: 1 }).click()
+  await page.keyboard.press('Escape')
+  await expect(view).toBeHidden()
+  await expect(page).toHaveURL(/\/projects$/)
+})
+
+test('section links in the plan add no history, so one Back closes the window', async ({ page }) => {
+  await page.goto('/projects')
+  await hydrated(page)
+  await page.getByRole('link', { name: /^The build plan/ }).click()
+  const view = page.getByRole('dialog', { name: 'The build plan' })
+  const nav = page.frameLocator('iframe[title="Trusted Mover build plan"]').getByRole('navigation', { name: 'Sections' })
+  await nav.getByRole('link', { name: 'Tests' }).click()
+  await nav.getByRole('link', { name: 'Data' }).click()
+  await page.goBack()
+  await expect(view).toBeHidden()
+  await expect(page).toHaveURL(/\/projects$/)
+})
+
+test("the site's larger text is not applied twice inside the plan", async ({ page }) => {
+  await page.goto('/projects#build-plan')
+  await hydrated(page)
+  const frame = page.frameLocator('iframe[title="Trusted Mover build plan"]')
+  await expect(frame.getByRole('heading', { level: 1 })).toBeVisible()
+  await page.evaluate(() => (document.documentElement.dataset.a11yText = 'xl'))
+  await page.evaluate(() => (document.documentElement.dataset.a11yMotion = 'true'))
+  await expect.poll(() => frame.locator('html').getAttribute('data-a11y-motion')).toBe('true')
+  expect(await frame.locator('html').getAttribute('data-a11y-text')).toBeNull()
+})
+

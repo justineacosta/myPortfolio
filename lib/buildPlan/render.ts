@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { KIND_LABELS, plan as PLAN, type NodeKind, type Plan, type Rail, type Workflow } from '../../data/buildPlan.ts'
-import { readTokens } from '../tokens.ts'
+import { readContrast, readTokens } from '../tokens.ts'
 import { iconSvg } from './icons.ts'
 import { layout } from './layout.ts'
 import { pageCss, type Themes } from './styles.ts'
@@ -89,7 +89,7 @@ function sections(p: Plan, index: NodeIndex) {
 }
 
 /** The whole build plan page (spec §3–4): one self-contained HTML file. */
-export function renderPlan(p: Plan = PLAN, themes: Themes = { dark: readTokens('dark'), light: readTokens('light') }): string {
+export function renderPlan(p: Plan = PLAN, themes: Themes = { dark: readTokens('dark'), light: readTokens('light'), contrast: readContrast() }): string {
   const index: NodeIndex = {}
   const parts = sections(p, index)
   // Git may check the script out with CRLF on Windows; the page is the same everywhere.

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { plan, type Plan } from '@/data/buildPlan'
 import { iconSvg } from '@/lib/buildPlan/icons'
 import { renderPlan } from '@/lib/buildPlan/render'
-import { readTokens } from '@/lib/tokens'
+import { readContrast, readTokens } from '@/lib/tokens'
 
 const html = renderPlan()
 const doc = new DOMParser().parseFromString(html, 'text/html')
@@ -34,6 +34,12 @@ describe('renderPlan', () => {
       expect(html).toContain(`--accent:${t.accent}`)
       expect(html).toContain(`--bg:${t.bg}`)
     }
+  })
+
+  it("turns up contrast the way the site does, in both themes", () => {
+    const c = readContrast()
+    expect(html).toContain(`:root[data-a11y-contrast=true]:not([data-theme=light]){--ink2:${c.dark.ink2};--ink3:${c.dark.ink3}`)
+    expect(html).toContain(`:root[data-a11y-contrast=true][data-theme=light]{--ink2:${c.light.ink2};--ink3:${c.light.ink3}`)
   })
 
   it('draws every node as a button that has settings to show', () => {
