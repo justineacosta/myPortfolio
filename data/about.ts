@@ -31,6 +31,6 @@ export const about = {
     height: 1080,
     caption: 'THE WORKSTATION · ALWAYS ON',
   },
-  certified: 'CERTIFIED',
+  certified: 'BADGES',
   location: { title: 'Based in Manila, Philippines', detail: 'GMT+8 · US / EU / CA OVERLAP' },
 }
