@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { plan, type Plan } from '@/data/buildPlan'
 import { iconSvg } from '@/lib/buildPlan/icons'
+import { layout } from '@/lib/buildPlan/layout'
 import { renderPlan } from '@/lib/buildPlan/render'
 import { readContrast, readTokens } from '@/lib/tokens'
 
@@ -87,6 +88,20 @@ describe('renderPlan', () => {
     }
     const what = doc.querySelector('#node-panel [data-p=what]')!
     expect(what.compareDocumentPosition(doc.querySelector('#node-panel dl')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('sends a ball down every route, with the timing the page needs to light steps up', () => {
+    const figures = [...doc.querySelectorAll<HTMLElement>('figure.canvas')]
+    figures.forEach((f, i) => {
+      const routes = JSON.parse(f.dataset.routes!) as { len: number; stops: [string, number][]; spans: [number, number, number][] }[]
+      expect(routes, flows[i].code).toHaveLength(layout(flows[i]).routes.length)
+      expect(f.querySelectorAll('.run-dot')).toHaveLength(routes.length)
+      const edges = f.querySelectorAll('.edge[data-edge]').length
+      for (const r of routes) {
+        for (const [key] of r.stops) expect(f.querySelector(`[data-node="${key}"]`), key).not.toBeNull()
+        for (const [edge] of r.spans) expect(edge).toBeLessThan(edges)
+      }
+    })
   })
 
   it('gives every diagram a caption, a scrolling frame and a step list for screen readers', () => {

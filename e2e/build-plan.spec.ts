@@ -97,7 +97,10 @@ test('the run dot plays only while motion is allowed', async ({ browser }) => {
   const calm = await browser.newContext({ reducedMotion: 'reduce' })
   const still = await calm.newPage()
   await still.goto(`${PAGE}#tm-01`)
-  await expect(still.locator('#tm-01 .run-dot')).toBeHidden()
+  for (const dot of await still.locator('#tm-01 .run-dot').all()) await expect(dot).toBeHidden()
+  await still.waitForTimeout(1500)
+  await expect(still.locator('#tm-01 .lit')).toHaveCount(0)
+  await expect(still.locator('#tm-01 .run-ball')).toHaveCount(0)
   await calm.close()
 })
 
@@ -203,4 +206,89 @@ test("a step's panel opens clear of the step's own name", async ({ page }) => {
   const below = panel.y >= step.y + step.height
   const above = panel.y + panel.height <= step.y
   expect(below || above).toBe(true)
+})
+
+test('balls leave one at a time, each on one random route, lighting what they pass', async ({ page }) => {
+  await page.addInitScript(() => {
+    const w = window as unknown as { __balls: { route: string; at: number }[] }
+    w.__balls = []
+    new MutationObserver((list) => {
+      for (const m of list)
+        for (const n of m.addedNodes)
+          if (n instanceof HTMLElement && n.classList.contains('run-ball') && n.closest('#tm-01'))
+            w.__balls.push({ route: n.dataset.route!, at: performance.now() })
+    }).observe(document, { childList: true, subtree: true })
+  })
+  await page.goto(`${PAGE}#tm-01`)
+  const fig = page.locator('#tm-01 .canvas')
+  await expect(fig.locator('.node.lit').first()).toBeAttached({ timeout: 10_000 })
+  await expect(fig.locator('.edge.lit').first()).toBeAttached({ timeout: 10_000 })
+  const seen = () => page.evaluate(() => (window as unknown as { __balls: { route: string; at: number }[] }).__balls)
+  await expect.poll(async () => new Set((await seen()).map((b) => b.route)).size, { timeout: 20_000 }).toBeGreaterThan(1)
+  const balls = await seen()
+  for (let i = 1; i < balls.length; i++) expect(balls[i].at - balls[i - 1].at).toBeGreaterThan(500)
+  expect(await fig.locator('.run-ball').count()).toBeLessThanOrEqual(3)
+})
+
+
+test('no scrollbars show on the page, the diagrams, the tables or the code blocks', async ({ page }) => {
+  await page.goto(PAGE)
+  const hidden = (sel: string) => page.locator(sel).first().evaluate((el) => getComputedStyle(el).scrollbarWidth)
+  for (const sel of ['html', '.canvas-scroll', '.table-wrap', 'pre.code']) expect(await hidden(sel), sel).toBe('none')
+})
+
+test('diagram frames have no outline, and no inner box inside them', async ({ page }) => {
+  await page.goto(PAGE)
+  for (const frame of await page.locator('.canvas-scroll').all()) {
+    expect(await frame.evaluate((el) => getComputedStyle(el).borderTopWidth)).toBe('0px')
+    const inner = await frame.locator('> .stage').evaluate((el) => [getComputedStyle(el).borderTopWidth, getComputedStyle(el).backgroundColor])
+    expect(inner).toEqual(['0px', 'rgba(0, 0, 0, 0)'])
+  }
+})
+
+test('a diagram narrower than its frame sits in the middle', async ({ page }) => {
+  await page.goto(PAGE)
+  const frame = page.locator('#tm-04 .canvas-scroll')
+  await frame.scrollIntoViewIfNeeded()
+  const outer = (await frame.boundingBox())!
+  const inner = (await frame.locator('> .stage').boundingBox())!
+  expect(inner.width).toBeLessThan(outer.width)
+  const left = inner.x - outer.x
+  const right = outer.x + outer.width - (inner.x + inner.width)
+  expect(Math.abs(left - right)).toBeLessThanOrEqual(2)
+})
+
+test('a diagram pans by dragging, and a drag never opens a step', async ({ page }) => {
+  await page.goto(PAGE)
+  const frame = page.locator('#tm-01 .canvas-scroll')
+  await frame.scrollIntoViewIfNeeded()
+  const box = (await frame.boundingBox())!
+  const y = box.y + box.height - 30
+  await page.mouse.move(box.x + box.width - 60, y)
+  await page.mouse.down()
+  await page.mouse.move(box.x + 100, y, { steps: 8 })
+  await page.mouse.up()
+  expect(await frame.evaluate((el) => el.scrollLeft)).toBeGreaterThan(200)
+  const node = page.locator('[data-node="tm-01:n6"]')
+  const n = (await node.boundingBox())!
+  await page.mouse.move(n.x + 28, n.y + 28)
+  await page.mouse.down()
+  await page.mouse.move(n.x + 140, n.y + 28, { steps: 8 })
+  await page.mouse.up()
+  await expect(page.locator('#node-panel')).toBeHidden()
+})
+
+test('arrow buttons scroll a diagram, and fade edges show there is more to see', async ({ page }) => {
+  await page.goto(`${PAGE}#tm-01`)
+  const fig = page.locator('#tm-01 .canvas')
+  const frame = fig.locator('.canvas-scroll')
+  const left = fig.getByRole('button', { name: 'Scroll diagram left' })
+  const right = fig.getByRole('button', { name: 'Scroll diagram right' })
+  await expect(left).toBeDisabled()
+  await expect(frame).toHaveAttribute('data-more-right', '')
+  await expect(frame).not.toHaveAttribute('data-more-left')
+  await right.click()
+  await expect.poll(() => frame.evaluate((el) => el.scrollLeft)).toBeGreaterThan(100)
+  await expect(frame).toHaveAttribute('data-more-left', '')
+  await expect(left).toBeEnabled()
 })
