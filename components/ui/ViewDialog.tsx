@@ -27,7 +27,9 @@ const FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabi
  */
 function focusFallback() {
   const under = Array.from(document.querySelectorAll<HTMLDialogElement>('dialog.view[open]')).pop()
-  const target = under ? (under.querySelector<HTMLElement>(FOCUSABLE) ?? under) : document.getElementById(PANEL_ID)
+  const target = under
+    ? (under.querySelector<HTMLElement>('[data-autofocus]') ?? under.querySelector<HTMLElement>(FOCUSABLE) ?? under)
+    : document.getElementById(PANEL_ID)
   target?.focus({ preventScroll: true })
 }
 
@@ -60,6 +62,8 @@ export default function ViewDialog({ open, onClose, label, className = '', child
     if (open && !d.open) {
       returnTo.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
       d.showModal()
+      // The browser focuses the first focusable element; a view can name a better one.
+      d.querySelector<HTMLElement>('[data-autofocus]')?.focus()
       document.documentElement.setAttribute('data-dialog', '')
     } else if (!open && d.open) {
       d.close()

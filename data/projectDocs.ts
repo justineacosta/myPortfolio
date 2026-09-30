@@ -1,5 +1,5 @@
 import {
-  ArrowsClockwiseIcon, ArticleIcon, BellSimpleIcon, BooksIcon, BrowsersIcon, ChartBarIcon, ChatCircleIcon, CheckCircleIcon, ClockCountdownIcon, CodeIcon, CoffeeIcon, CursorIcon, DatabaseIcon, EnvelopeSimpleIcon, FileJsIcon, FileTextIcon, FilmStripIcon, FlowArrowIcon, GitBranchIcon, HandshakeIcon, HashIcon, HourglassMediumIcon, LifebuoyIcon, LightningIcon, ListChecksIcon, MagnifyingGlassIcon, MicrophoneIcon, NoteIcon, PackageIcon, PaperPlaneTiltIcon, PhoneCallIcon, PuzzlePieceIcon, ScissorsIcon, SealCheckIcon, ShieldCheckIcon, ShippingContainerIcon, SignOutIcon, SparkleIcon, TargetIcon, TerminalWindowIcon, TextboxIcon, TimerIcon, TrayIcon, TrendUpIcon, UserCircleIcon, UserFocusIcon, UsersThreeIcon, WaveformIcon, WrenchIcon,
+  ArrowsClockwiseIcon, ArticleIcon, BooksIcon, BrowsersIcon, ChartBarIcon, ChatCircleIcon, CodeIcon, CoffeeIcon, CursorIcon, DatabaseIcon, FileJsIcon, FileTextIcon, FilmStripIcon, FlowArrowIcon, HashIcon, LightningIcon, ListChecksIcon, MagnifyingGlassIcon, MicrophoneIcon, PackageIcon, PaperPlaneTiltIcon, PhoneCallIcon, PuzzlePieceIcon, ScissorsIcon, ShieldCheckIcon, ShippingContainerIcon, SparkleIcon, TargetIcon, TerminalWindowIcon, TimerIcon, UsersThreeIcon, WaveformIcon,
 } from '@phosphor-icons/react/ssr'
 import type { AgentGroup, Chip, Doc, DocView } from './projects'
 
@@ -20,7 +20,7 @@ const GROUPS: AgentGroup[] = [
     cards: [
       { title: 'KapeSEO', icon: ArticleIcon, live: false, icons: [SparkleIcon, TerminalWindowIcon], desc: 'A keyword in, a 3,000-word article out. It grades itself before handing over.', meta: 'Claude Code skill + subagent · multi-tenant', tags: ['Claude', 'Claude Code'] },
       { title: 'KAPE Reel worker', icon: FilmStripIcon, live: false, icons: [FileJsIcon, WaveformIcon, MicrophoneIcon, PaperPlaneTiltIcon], desc: 'One Telegram message. It scripts, voices, captions, renders, and returns for approval.', meta: 'Node worker · ElevenLabs, Whisper, Remotion', tags: ['Node.js', 'ElevenLabs', 'OpenAI Whisper', 'Telegram'] },
-      { title: 'BrewedOps OS roster', icon: UsersThreeIcon, live: false, icons: [SparkleIcon, TerminalWindowIcon], desc: 'Ten specialists, one job each, from GHL audits to client deliverables. Every write is approval-gated.', meta: 'Claude Code subagents · Opus and Sonnet', tags: ['Claude', 'Claude Code'] },
+      { title: 'BrewedOps OS roster', icon: UsersThreeIcon, live: false, icons: [SparkleIcon, TerminalWindowIcon], desc: 'Ten specialists, one job each, from n8n audits to client deliverables. Every write is approval-gated.', meta: 'Claude Code subagents · Opus and Sonnet', tags: ['Claude', 'Claude Code'] },
     ],
   },
   {
@@ -33,7 +33,6 @@ const GROUPS: AgentGroup[] = [
   {
     name: 'Chatbots', blurb: 'Shipped inside BrewedOps.com. Each does one job well.',
     cards: [
-      { title: 'Workflow Creator', icon: FlowArrowIcon, live: true, icons: [SparkleIcon, TrendUpIcon], desc: 'Describe a GoHighLevel workflow in plain English, get the diagram back.', meta: 'Claude Sonnet 4.6', tags: ['Claude', 'GoHighLevel'] },
       { title: 'Voice Call Tester', icon: PhoneCallIcon, live: true, icons: [SparkleIcon, WaveformIcon], desc: 'Hold a real spoken call with your voice agent before a customer does.', meta: 'Claude Sonnet 4.6 · ElevenLabs speech', tags: ['Claude', 'ElevenLabs'] },
       { title: 'Copy Website', icon: BrowsersIcon, live: true, icons: [SparkleIcon], desc: 'Point it at a page, get an editable rebuild streamed back.', meta: 'Claude Sonnet 4.6 · streaming', tags: ['Claude'] },
     ],
@@ -48,73 +47,6 @@ const GROUPS: AgentGroup[] = [
 ]
 
 export const DOCS: Record<DocView, Doc> = {
-  'build-plan': {
-    kicker: 'GOHIGHLEVEL BUILD PLAN',
-    title: 'The build plan',
-    lede: 'A real automation plan, written out before a single workflow is clicked together.',
-    stack: [{ name: 'GoHighLevel', icon: FlowArrowIcon }, { name: 'Claude Code', icon: TerminalWindowIcon }, { name: 'Notion', icon: NoteIcon }],
-    sections: [
-      {
-        name: 'Before anything is clicked', blurb: 'The part most builds skip.',
-        cards: [
-          { step: '01', icon: TargetIcon, title: 'Name the outcome', desc: 'One sentence the client agrees with: what should be true after this runs.', meta: 'One outcome per workflow' },
-          { step: '02', icon: LightningIcon, title: 'Pin the trigger', desc: 'Exactly what fires it, and every condition that must be false for it not to fire.', meta: 'Trigger + guard conditions' },
-          { step: '03', icon: SignOutIcon, title: 'List the exits', desc: 'Every way a contact leaves the flow: converted, disqualified, replied, timed out.', meta: 'No silent dead ends' },
-        ],
-      },
-      {
-        name: 'The flow', blurb: 'Four node classes, in order. Everything else is a variation.',
-        cards: [
-          { step: 'TRIGGER', icon: LightningIcon, title: 'Entry', desc: 'Form, stage change, tag, inbound message, or a scheduled sweep of a smart list.', meta: 'Re-entry off by default' },
-          { step: 'WAIT', icon: TimerIcon, title: 'Timing', desc: 'Waits are business hours aware. Nobody gets a 2am SMS because a form fired late.', meta: 'Window: 08:00–19:00 local' },
-          { step: 'SCORE?', icon: GitBranchIcon, title: 'Branch', desc: 'One condition per branch, read top to bottom. If it needs three ANDs, it needs its own workflow.', meta: 'Max 3 branches per node' },
-          { step: 'CONVERT', icon: CheckCircleIcon, title: 'Action', desc: 'Move the opportunity, send the branded email, notify the owner, write back the result.', meta: 'Every action logged' },
-        ],
-      },
-      {
-        name: 'What ships with it', blurb: 'The plan is not done when the workflow runs.',
-        cards: [
-          { step: '01', icon: TextboxIcon, title: 'Naming convention', desc: 'Numbered prefixes so the workflow list reads as an order of operations, not an inbox.', meta: '01 - Support | New Ticket' },
-          { step: '02', icon: ListChecksIcon, title: 'Test matrix', desc: 'Each branch walked with a real test contact before handover, results pasted into the doc.', meta: 'Pass/fail per branch' },
-          { step: '03', icon: HandshakeIcon, title: 'Handover doc', desc: 'One page: what it does, what breaks it, who to call. Written for the client, not for me.', meta: 'Delivered with every build' },
-        ],
-      },
-    ],
-  },
-  'support-desk': {
-    kicker: 'GOHIGHLEVEL BLUEPRINT',
-    title: 'Support Ticketing System',
-    lede: 'A full support desk inside GoHighLevel. One pipeline, five stages, four branded emails.',
-    stack: [{ name: 'GoHighLevel', icon: LifebuoyIcon }, { name: 'Email builder', icon: EnvelopeSimpleIcon }, { name: 'Workflows', icon: FlowArrowIcon }],
-    sections: [
-      {
-        name: 'The pipeline', blurb: 'Five stages, and a ticket can only move forward one at a time.',
-        cards: [
-          { step: '01', icon: TrayIcon, title: 'New', desc: 'Every inbound form, email, or chat lands here with a generated ticket ID.', meta: 'Auto-assigned on create' },
-          { step: '02', icon: UserFocusIcon, title: 'Assigned', desc: 'Round-robin to the on-duty owner, with a first-response timer started.', meta: 'First response target: 2h' },
-          { step: '03', icon: WrenchIcon, title: 'In progress', desc: 'Owner is working it. Client replies bump the ticket back to the top of the list.', meta: 'Reply detection on inbound' },
-          { step: '04', icon: HourglassMediumIcon, title: 'Waiting on client', desc: 'Two nudges, then it auto-closes with a reopen link that puts it back in New.', meta: 'Nudge at 48h and 96h' },
-          { step: '05', icon: CheckCircleIcon, title: 'Resolved', desc: 'Closing email goes out, a satisfaction question is attached, the timer stops.', meta: 'CSAT captured at close' },
-        ],
-      },
-      {
-        name: 'The four emails', blurb: 'Branded, plain-spoken, and each one tied to a stage change.',
-        cards: [
-          { step: 'E1', icon: EnvelopeSimpleIcon, title: 'Ticket received', desc: 'Confirms the ID, restates the problem in the client’s own words, sets the response window.', meta: 'Fires on: New' },
-          { step: 'E2', icon: UserCircleIcon, title: 'Owner assigned', desc: 'Names a human and how to reach them. No "your ticket is important to us".', meta: 'Fires on: Assigned' },
-          { step: 'E3', icon: BellSimpleIcon, title: 'We need you', desc: 'One clear question, one reply-to. Sent at most twice per ticket.', meta: 'Fires on: Waiting on client' },
-          { step: 'E4', icon: SealCheckIcon, title: 'Resolved', desc: 'What was done, what changed, and the link that reopens it if it was not fixed.', meta: 'Fires on: Resolved' },
-        ],
-      },
-      {
-        name: 'What changed after', blurb: 'Measured against the four weeks before launch.',
-        cards: [
-          { step: 'RESULT', icon: ClockCountdownIcon, title: 'First response, not first reply', desc: 'The timer starts on create, so a ticket cannot sit unowned over a weekend.', meta: 'Same-day response became the floor' },
-          { step: 'RESULT', icon: MagnifyingGlassIcon, title: 'Nothing gets lost', desc: 'Three inboxes collapsed into one pipeline with one ID per issue.', meta: 'One ticket, one thread' },
-        ],
-      },
-    ],
-  },
   'agentic-framework': {
     kicker: 'HOW I BUILD WITH AI',
     title: 'The Agentic Framework',
@@ -153,12 +85,12 @@ export const DOCS: Record<DocView, Doc> = {
     kicker: 'HOW I SHIP, END TO END',
     title: 'The End-to-End Workflow',
     lede: 'Every trigger, node, skill, and agent wired as one live graph — from a form fill to a delivered asset.',
-    stack: [{ name: 'GoHighLevel', icon: FlowArrowIcon }, { name: 'Claude Code', icon: TerminalWindowIcon }, { name: 'Node.js', icon: FileJsIcon }, { name: 'Telegram', icon: PaperPlaneTiltIcon }],
+    stack: [{ name: 'n8n', icon: FlowArrowIcon }, { name: 'Claude Code', icon: TerminalWindowIcon }, { name: 'Node.js', icon: FileJsIcon }, { name: 'Telegram', icon: PaperPlaneTiltIcon }],
     sections: [
       {
         name: 'Triggers', blurb: 'Where work enters the graph.',
         cards: [
-          { step: 'IN', icon: LightningIcon, title: 'Client-side events', desc: 'Form fills, pipeline moves, inbound messages, and booked calls inside GoHighLevel.', meta: 'GoHighLevel workflows' },
+          { step: 'IN', icon: LightningIcon, title: 'Client-side events', desc: 'Form fills, stage changes, inbound messages and booked calls, caught by n8n webhooks.', meta: 'n8n webhooks' },
           { step: 'IN', icon: PaperPlaneTiltIcon, title: 'A message to me', desc: 'One Telegram line is enough to start a build, a reel, or an audit.', meta: 'Hermes on my VPS' },
           { step: 'IN', icon: TimerIcon, title: 'Schedules', desc: 'Sweeps that check for work rather than waiting to be told there is some.', meta: 'Skips the model when nothing changed' },
         ],

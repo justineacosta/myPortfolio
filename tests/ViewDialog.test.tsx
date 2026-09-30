@@ -130,10 +130,45 @@ describe('ViewDialog', () => {
     expect(screen.getByRole('button', { name: 'Under' })).toHaveFocus()
   })
 
+  it('hands focus to the view under it at its data-autofocus element, when it has one', () => {
+    const ui = (top: boolean) => (
+      <main id="main-content" tabIndex={-1}>
+        <ViewDialog open onClose={onClose} label="Plan">
+          <a href="/x">Open in new tab</a>
+          <button type="button" data-autofocus>
+            Close
+          </button>
+        </ViewDialog>
+        <ViewDialog open={top} onClose={onClose} label="Preview">
+          <p>Top</p>
+        </ViewDialog>
+      </main>
+    )
+    const { rerender } = render(ui(false))
+    ;(document.activeElement as HTMLElement | null)?.blur()
+    rerender(ui(true))
+    rerender(ui(false))
+    expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus()
+  })
+
   it('never leaves the page locked when it unmounts while open', () => {
     const { rerender, unmount } = render(ui(false))
     rerender(ui(true))
     unmount()
     expect(document.documentElement).not.toHaveAttribute('data-dialog')
+  })
+
+  it('on open, focuses the element marked data-autofocus instead of the first one', () => {
+    const view = (open: boolean) => (
+      <ViewDialog open={open} onClose={onClose} label="Page">
+        <a href="/x">First</a>
+        <button type="button" data-autofocus>
+          Close
+        </button>
+      </ViewDialog>
+    )
+    const { rerender } = render(view(false))
+    rerender(view(true))
+    expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus()
   })
 })

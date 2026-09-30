@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import robots from '@/app/robots'
 import sitemap from '@/app/sitemap'
 import { jsonLd, personJsonLd } from '@/lib/jsonld'
-import { indexedPaths, ledeOr, pageMetadata, SITE_NAME } from '@/lib/seo'
+import { indexedPaths, ledeOr, pageMetadata, SITE_NAME, STATIC_PAGES } from '@/lib/seo'
 import { SITE_URL, siteUrl } from '@/lib/site'
 import { readTokens } from '@/lib/tokens'
 import { SHARE_ALT, SHARE_SIZE } from '@/lib/share-meta'
@@ -39,9 +39,10 @@ describe('pageMetadata', () => {
 })
 
 describe('sitemap and robots', () => {
-  it('lists every public page once, and leaves the thank-you page out', () => {
+  it('lists every public page once, the build plan too, and leaves the thank-you page out', () => {
     const urls = sitemap().map((e) => e.url)
-    expect(urls).toEqual(indexedPaths().map((p) => `${SITE_URL}${p === '/' ? '' : p}`))
+    expect(urls).toEqual([...indexedPaths(), ...STATIC_PAGES].map((p) => `${SITE_URL}${p === '/' ? '' : p}`))
+    expect(urls).toContain(`${SITE_URL}/build-plan.html`)
     expect(urls.some((u) => u.includes('thank-you'))).toBe(false)
   })
   it('points crawlers at the sitemap and keeps them out of the sample sites', () => {

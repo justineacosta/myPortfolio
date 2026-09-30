@@ -11,6 +11,9 @@ export const OG_BASE = { siteName: profile.studio, type: 'website', locale: 'en_
 /** Every page search engines should know about: the switched-on ones and the legal pages. The thank-you page is left out on purpose. */
 export const indexedPaths = () => [...visibleNav().map((n) => n.href), ...legalLinks.map((l) => l.href)]
 
+/** Stand-alone pages in public/ that search engines should find too (spec 2026-09-30: the build plan). */
+export const STATIC_PAGES = ['/build-plan.html']
+
 /**
  * A route's metadata (spec §13): the title (Home carries the full site name),
  * its own description, and its canonical link. The share image comes from

@@ -22,7 +22,7 @@ test('the share image, sitemap, robots file and favicon are served', async ({ re
   expect(og.status()).toBe(200)
   expect(og.headers()['content-type']).toContain('image/png')
   const sitemap = await (await request.get('/sitemap.xml')).text()
-  for (const p of ['/projects', '/showcase', '/privacy']) expect(sitemap).toContain(p)
+  for (const p of ['/projects', '/showcase', '/privacy', '/build-plan.html']) expect(sitemap).toContain(p)
   expect(sitemap).not.toContain('thank-you')
   expect(await (await request.get('/robots.txt')).text()).toContain('Sitemap:')
   await page.goto('/')

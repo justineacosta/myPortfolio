@@ -4,7 +4,7 @@ import { fireEvent, render, screen, within } from '@testing-library/react'
 import Board from '@/components/projects/Board'
 import ProjectViews from '@/components/projects/ProjectViews'
 import { agentsView, DOCS } from '@/data/projectDocs'
-import { DOC_VIEWS, PROJECT_VIEWS, projects } from '@/data/projects'
+import { BUILDS, DOC_VIEWS, PROJECT_VIEWS, projects } from '@/data/projects'
 import { installMatchMedia } from '@/test/matchMedia'
 
 describe('Projects data', () => {
@@ -16,13 +16,17 @@ describe('Projects data', () => {
 
   it("keeps Kraft's roster, the build plan's sections, the reel and the sites", () => {
     expect(agentsView.groups.map((g) => g.name)).toEqual(['KapeAI', 'AI Agents', 'RAG Chatbots', 'Chatbots', 'Hermes'])
-    expect(DOCS['build-plan'].sections.map((s) => s.name)).toEqual([
-      'Before anything is clicked', 'The flow', 'What ships with it',
-    ])
     expect(projects.reel.shots.map((s) => s.label)).toEqual([
-      '01 - Support | New Ticket', 'Workflows list', '02 - Post-Purchase Delivery', 'Global workflow settings', 'Execution logs',
+      'TM-01 · Quote request', 'Workflows list', 'TM-02 · Survey → Estimate', 'Workflow settings', 'Executions',
     ])
+    expect(projects.reel.shots.every((s) => s.src.includes('n8n workflow screenshot'))).toBe(true)
     expect(projects.sitesView.sites).toHaveLength(8)
+  })
+
+  it('shows a real 16:10 screenshot of the build plan on Home', () => {
+    const plan = BUILDS.find((b) => b.view === 'build-plan')!
+    expect(plan.shot).toBe('/shots/build-plan.jpeg')
+    expect(jpegSize(readFileSync(`public${plan.shot}`))).toEqual({ width: 640, height: 400 })
   })
 
   it('has a page and a thumbnail on disk for every sample site', () => {
@@ -64,9 +68,16 @@ describe('Board', () => {
   it('links every card to its sub-view by hash, in board order', () => {
     render(<Board />)
     expect(screen.getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual([
-      '#reel', '#build-plan', '#support-desk', '#agentic-framework', '#end-to-end', '#sites', '#ai-agents',
+      '#reel', '#build-plan', '#agentic-framework', '#end-to-end', '#sites', '#ai-agents',
     ])
     expect(screen.getByText('CLICK A CARD TO OPEN IT')).toBeInTheDocument()
+  })
+
+  it('shows the build plan card as an n8n plan', () => {
+    render(<Board />)
+    const card = screen.getByRole('link', { name: /^The build plan/ })
+    expect(within(card).getByText('N8N BUILD PLAN')).toBeInTheDocument()
+    expect(['Webhook', 'Claude', 'Approve?', 'Stripe'].every((s) => within(card).queryByText(s))).toBe(true)
   })
 
   it('names the card under the pointer in the cursor cue', () => {
@@ -109,24 +120,49 @@ describe('ProjectViews', () => {
     // Every sub-view, plus the site preview that stacks on the sites view.
     expect(dialogs).toHaveLength(PROJECT_VIEWS.length + 1)
     dialogs.forEach((d) => expect(d).not.toHaveAttribute('open'))
-    expect(document.body).toHaveTextContent('Name the outcome')
+    expect(document.body).toHaveTextContent('Write the spec first')
   })
 
   it('opens the write-up a shared link names, and Close drops the hash', () => {
-    window.history.replaceState(null, '', '/projects#support-desk')
+    window.history.replaceState(null, '', '/projects#agentic-framework')
     render(<ProjectViews />)
-    const view = screen.getByRole('dialog', { name: 'Support Ticketing System' })
+    const view = screen.getByRole('dialog', { name: 'The Agentic Framework' })
     expect(view).toHaveAttribute('open')
     fireEvent.click(within(view).getByRole('button', { name: 'Close' }))
     expect(window.location.hash).toBe('')
     expect(view).not.toHaveAttribute('open')
   })
 
+  it('has no iframe while the build plan is closed, so /projects never fetches it up front', () => {
+    render(<ProjectViews />)
+    expect(document.querySelector('iframe')).toBeNull()
+  })
+
+  it('shows the build plan page in its window, with a way out to a new tab and Close focused', () => {
+    window.history.replaceState(null, '', '/projects#build-plan')
+    render(<ProjectViews />)
+    const view = screen.getByRole('dialog', { name: 'The build plan' })
+    expect(view).toHaveAttribute('open')
+    const frame = within(view).getByTitle('Trusted Mover build plan')
+    expect(frame.tagName).toBe('IFRAME')
+    expect(frame).toHaveAttribute('src', '/build-plan.html')
+    const out = within(view).getByRole('link', { name: 'Open in new tab' })
+    expect(out).toHaveAttribute('href', '/build-plan.html')
+    expect(out).toHaveAttribute('target', '_blank')
+    expect(within(view).getByRole('button', { name: 'Close' })).toHaveFocus()
+  })
+
+  it('has no Support Ticketing write-up and no Workflow Creator any more', () => {
+    render(<ProjectViews />)
+    expect(document.body).not.toHaveTextContent('Support Ticketing System')
+    expect(document.body).not.toHaveTextContent('Workflow Creator')
+  })
+
   it('marks which systems are live and which are internal', () => {
     window.history.replaceState(null, '', '/projects#ai-agents')
     render(<ProjectViews />)
     const view = screen.getByRole('dialog', { name: 'AI agents and RAG chatbots' })
-    expect(within(view).getAllByText('LIVE')).toHaveLength(8)
+    expect(within(view).getAllByText('LIVE')).toHaveLength(7)
     expect(within(view).getAllByText('INTERNAL')).toHaveLength(3)
   })
 })

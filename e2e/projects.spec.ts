@@ -17,9 +17,9 @@ test('a board card opens its write-up, and Back closes it', async ({ page }) => 
 })
 
 test('a shared link opens the view; Close stays on the page', async ({ page }) => {
-  await page.goto('/projects#support-desk')
+  await page.goto('/projects#agentic-framework')
   await hydrated(page)
-  const view = page.getByRole('dialog', { name: 'Support Ticketing System' })
+  const view = page.getByRole('dialog', { name: 'The Agentic Framework' })
   await expect(view).toBeVisible()
   await view.getByRole('button', { name: 'Close' }).click()
   await expect(view).toBeHidden()
@@ -162,7 +162,32 @@ test('other pages never load the Projects write-ups up front', async ({ request 
   const srcs = [...html.matchAll(/<script[^>]+src="([^"]+)"/g)].map((m) => m[1])
   expect(srcs.length).toBeGreaterThan(0)
   const bodies = await Promise.all(srcs.map(async (src) => (await request.get(src)).text()))
-  expect(bodies.filter((b) => b.includes('Name the outcome')).length).toBe(0)
+  expect(bodies.filter((b) => b.includes('Write the spec first')).length).toBe(0)
+})
+
+test('the build plan window shows the plan and follows the site theme, dark by default', async ({ page }) => {
+  await page.goto('/projects#build-plan')
+  await hydrated(page)
+  const view = page.getByRole('dialog', { name: 'The build plan' })
+  await expect(view.getByRole('link', { name: 'Open in new tab' })).toHaveAttribute('href', '/build-plan.html')
+  const frame = page.frameLocator('iframe[title="Trusted Mover build plan"]')
+  await expect(frame.getByRole('heading', { level: 1 })).toBeVisible()
+  const theme = () => frame.locator('html').getAttribute('data-theme')
+  await page.evaluate(() => delete document.documentElement.dataset.theme)
+  await expect.poll(theme).toBe('dark')
+  await page.evaluate(() => (document.documentElement.dataset.theme = 'light'))
+  await expect.poll(theme).toBe('light')
+  await page.evaluate(() => (document.documentElement.dataset.theme = 'dark'))
+  await expect.poll(theme).toBe('dark')
+})
+
+test('/projects never fetches the plan page until its window opens', async ({ page }) => {
+  const asked: string[] = []
+  page.on('request', (r) => asked.push(new URL(r.url()).pathname))
+  await page.goto('/projects')
+  await hydrated(page)
+  await page.waitForLoadState('networkidle')
+  expect(asked).not.toContain('/build-plan.html')
 })
 
 test('a write-up window keeps its margin', async ({ page }) => {
@@ -235,4 +260,55 @@ test('the Funnels card still opens the sites view on a click', async ({ page }) 
   await hydrated(page)
   await page.locator('[data-fan]').click()
   await expect(page.getByRole('dialog', { name: 'Funnels and sites' })).toBeVisible()
+})
+
+test('an old #support-desk link just shows Projects', async ({ page }) => {
+  await page.goto('/projects#support-desk')
+  await hydrated(page)
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Real builds you can open.')
+  await expect(page.locator('dialog.view[open]')).toHaveCount(0)
+})
+
+test('inside the build plan window, Escape still closes it after a click in the plan', async ({ page }) => {
+  await page.goto('/projects#build-plan')
+  await hydrated(page)
+  const view = page.getByRole('dialog', { name: 'The build plan' })
+  const frame = page.frameLocator('iframe[title="Trusted Mover build plan"]')
+  await frame.getByRole('heading', { level: 1 }).click()
+  await page.keyboard.press('Escape')
+  await expect(view).toBeHidden()
+  await expect(page).toHaveURL(/\/projects$/)
+})
+
+test('section links in the plan add no history, so one Back closes the window', async ({ page }) => {
+  await page.goto('/projects')
+  await hydrated(page)
+  await page.getByRole('link', { name: /^The build plan/ }).click()
+  const view = page.getByRole('dialog', { name: 'The build plan' })
+  const nav = page.frameLocator('iframe[title="Trusted Mover build plan"]').getByRole('navigation', { name: 'Sections' })
+  await nav.getByRole('link', { name: 'Tests' }).click()
+  await nav.getByRole('link', { name: 'Data' }).click()
+  await page.goBack()
+  await expect(view).toBeHidden()
+  await expect(page).toHaveURL(/\/projects$/)
+})
+
+test("the site's larger text is not applied twice inside the plan", async ({ page }) => {
+  await page.goto('/projects#build-plan')
+  await hydrated(page)
+  const frame = page.frameLocator('iframe[title="Trusted Mover build plan"]')
+  await expect(frame.getByRole('heading', { level: 1 })).toBeVisible()
+  await page.evaluate(() => (document.documentElement.dataset.a11yText = 'xl'))
+  await page.evaluate(() => (document.documentElement.dataset.a11yMotion = 'true'))
+  await expect.poll(() => frame.locator('html').getAttribute('data-a11y-motion')).toBe('true')
+  expect(await frame.locator('html').getAttribute('data-a11y-text')).toBeNull()
+})
+
+
+test('inside the site window the plan hides its link back to the portfolio', async ({ page }) => {
+  await page.goto('/projects#build-plan')
+  await hydrated(page)
+  const frame = page.frameLocator('iframe[title="Trusted Mover build plan"]')
+  await expect(frame.getByRole('heading', { level: 1 })).toBeVisible()
+  await expect(frame.locator('a.home')).toBeHidden()
 })
