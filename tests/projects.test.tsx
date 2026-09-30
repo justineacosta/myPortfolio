@@ -11,7 +11,7 @@ describe('Projects data', () => {
   it('names every sub-view once, and every write-up opens a document', () => {
     expect(new Set(PROJECT_VIEWS).size).toBe(PROJECT_VIEWS.length)
     expect(Object.keys(DOCS).sort()).toEqual([...DOC_VIEWS].sort())
-    expect(projects.writeups.every((w) => (DOC_VIEWS as readonly string[]).includes(w.view))).toBe(true)
+    expect(projects.writeups.every((w) => w.page || (DOC_VIEWS as readonly string[]).includes(w.view))).toBe(true)
   })
 
   it("keeps Kraft's roster, the build plan's sections, the reel and the sites", () => {
@@ -27,6 +27,15 @@ describe('Projects data', () => {
     const plan = BUILDS.find((b) => b.view === 'build-plan')!
     expect(plan.shot).toBe('/shots/build-plan.jpeg')
     expect(jpegSize(readFileSync(`public${plan.shot}`))).toEqual({ width: 640, height: 400 })
+  })
+
+  it('opens the End-to-End Workflow as its own page, with a real 16:10 screenshot on Home', () => {
+    const w = projects.writeups.find((x) => x.view === 'end-to-end')!
+    expect(w).toMatchObject({ page: '/end-to-end.html', frameTitle: 'End-to-End Workflow graph', cue: 'READ THE WORKFLOW' })
+    expect(DOC_VIEWS).toEqual(['agentic-framework'])
+    const shot = BUILDS.find((b) => b.view === 'end-to-end')!.shot
+    expect(shot).toBe('/shots/end-to-end.jpeg')
+    expect(jpegSize(readFileSync(`public${shot}`))).toEqual({ width: 640, height: 400 })
   })
 
   it('has a page and a thumbnail on disk for every sample site', () => {

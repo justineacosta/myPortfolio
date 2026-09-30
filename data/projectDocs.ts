@@ -1,5 +1,5 @@
 import {
-  ArrowsClockwiseIcon, ArticleIcon, BooksIcon, BrowsersIcon, ChartBarIcon, ChatCircleIcon, CodeIcon, CoffeeIcon, CursorIcon, DatabaseIcon, FileJsIcon, FileTextIcon, FilmStripIcon, FlowArrowIcon, HashIcon, LightningIcon, ListChecksIcon, MagnifyingGlassIcon, MicrophoneIcon, PackageIcon, PaperPlaneTiltIcon, PhoneCallIcon, PuzzlePieceIcon, ScissorsIcon, ShieldCheckIcon, ShippingContainerIcon, SparkleIcon, TargetIcon, TerminalWindowIcon, TimerIcon, UsersThreeIcon, WaveformIcon,
+  ArrowsClockwiseIcon, ArticleIcon, BooksIcon, BrowsersIcon, ChartBarIcon, ChatCircleIcon, CodeIcon, CoffeeIcon, CursorIcon, DatabaseIcon, FileJsIcon, FileTextIcon, FilmStripIcon, HashIcon, LightningIcon, ListChecksIcon, MagnifyingGlassIcon, MicrophoneIcon, PaperPlaneTiltIcon, PhoneCallIcon, ScissorsIcon, ShieldCheckIcon, ShippingContainerIcon, SparkleIcon, TargetIcon, TerminalWindowIcon, TimerIcon, UsersThreeIcon, WaveformIcon,
 } from '@phosphor-icons/react/ssr'
 import type { AgentGroup, Chip, Doc, DocView } from './projects'
 
@@ -77,38 +77,6 @@ export const DOCS: Record<DocView, Doc> = {
           { step: '02', icon: LightningIcon, title: 'Build', desc: 'Agent works. I do not interrupt mid-task to add requirements.', meta: 'One brief per run' },
           { step: '03', icon: MagnifyingGlassIcon, title: 'Check', desc: 'Run it, read it, and hand the diff to a second model before I trust it.', meta: 'Two-model review' },
           { step: '04', icon: ArrowsClockwiseIcon, title: 'Fold back', desc: 'Whatever went wrong becomes a rule, so the next run does not repeat it.', meta: 'The framework grows' },
-        ],
-      },
-    ],
-  },
-  'end-to-end': {
-    kicker: 'HOW I SHIP, END TO END',
-    title: 'The End-to-End Workflow',
-    lede: 'Every trigger, node, skill, and agent wired as one live graph — from a form fill to a delivered asset.',
-    stack: [{ name: 'n8n', icon: FlowArrowIcon }, { name: 'Claude Code', icon: TerminalWindowIcon }, { name: 'Node.js', icon: FileJsIcon }, { name: 'Telegram', icon: PaperPlaneTiltIcon }],
-    sections: [
-      {
-        name: 'Triggers', blurb: 'Where work enters the graph.',
-        cards: [
-          { step: 'IN', icon: LightningIcon, title: 'Client-side events', desc: 'Form fills, stage changes, inbound messages and booked calls, caught by n8n webhooks.', meta: 'n8n webhooks' },
-          { step: 'IN', icon: PaperPlaneTiltIcon, title: 'A message to me', desc: 'One Telegram line is enough to start a build, a reel, or an audit.', meta: 'Hermes on my VPS' },
-          { step: 'IN', icon: TimerIcon, title: 'Schedules', desc: 'Sweeps that check for work rather than waiting to be told there is some.', meta: 'Skips the model when nothing changed' },
-        ],
-      },
-      {
-        name: 'Nodes and skills', blurb: 'The middle of the graph, where the actual work happens.',
-        cards: [
-          { step: '01', icon: FlowArrowIcon, title: 'Automation nodes', desc: 'Waits, branches, and actions inside the client account. Deterministic, logged, reversible.', meta: 'No model in the hot path' },
-          { step: '02', icon: PuzzlePieceIcon, title: 'Skills', desc: 'Reusable procedures an agent can load: audit a sub-account, draft an article, cut a reel.', meta: 'Versioned, multi-tenant' },
-          { step: '03', icon: UsersThreeIcon, title: 'Agents', desc: 'Ten specialists with one job each. They pick their own tools and finish the task.', meta: 'Claude Code subagents' },
-        ],
-      },
-      {
-        name: 'Out', blurb: 'Nothing leaves the graph without a human yes.',
-        cards: [
-          { step: 'OUT', icon: ShieldCheckIcon, title: 'Approval gate', desc: 'The deliverable comes back for review before it reaches a client, a repo, or a send button.', meta: 'Approve or send back with a note' },
-          { step: 'OUT', icon: PackageIcon, title: 'Delivery', desc: 'Article, reel, workflow, or report — handed over with the doc that explains it.', meta: 'Same handover doc every time' },
-          { step: 'OUT', icon: ChartBarIcon, title: 'Write-back', desc: 'The result lands back on the contact record, so the next run knows what already happened.', meta: 'One source of truth' },
         ],
       },
     ],
