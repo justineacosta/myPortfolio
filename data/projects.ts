@@ -64,6 +64,7 @@ export const projects = {
   lede: 'Everything here shipped. Open a card to read the problem, the system behind it, and what changed after.',
   nudge: 'CLICK A CARD TO OPEN IT',
   close: 'Close',
+  openNewTab: 'Open in new tab',
   builtWith: 'BUILT WITH',
   live: 'LIVE',
   internal: 'INTERNAL',

@@ -60,6 +60,8 @@ export default function ViewDialog({ open, onClose, label, className = '', child
     if (open && !d.open) {
       returnTo.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
       d.showModal()
+      // The browser focuses the first focusable element; a view can name a better one.
+      d.querySelector<HTMLElement>('[data-autofocus]')?.focus()
       document.documentElement.setAttribute('data-dialog', '')
     } else if (!open && d.open) {
       d.close()

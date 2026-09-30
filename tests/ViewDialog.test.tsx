@@ -136,4 +136,18 @@ describe('ViewDialog', () => {
     unmount()
     expect(document.documentElement).not.toHaveAttribute('data-dialog')
   })
+
+  it('on open, focuses the element marked data-autofocus instead of the first one', () => {
+    const view = (open: boolean) => (
+      <ViewDialog open={open} onClose={onClose} label="Page">
+        <a href="/x">First</a>
+        <button type="button" data-autofocus>
+          Close
+        </button>
+      </ViewDialog>
+    )
+    const { rerender } = render(view(false))
+    rerender(view(true))
+    expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus()
+  })
 })
