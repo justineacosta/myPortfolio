@@ -40,7 +40,7 @@ p{margin:0}
 .meta dt,.card h3,.rail h3,.sub{font-family:var(--mono);font-size:.625rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
 .card h3,.rail h3,.sub{color:var(--accent)}
 .meta dd{margin:0;font-size:.875rem}
-.legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin:0;padding:0;list-style:none;font-size:.8125rem;color:var(--ink3)}
+.legend{display:flex;flex-direction:row;flex-wrap:wrap;gap:8px 18px;margin:0;padding:0;list-style:none;font-size:.8125rem;color:var(--ink3)}
 .legend li{display:flex;align-items:center;gap:8px}
 section{display:grid;grid-template-columns:minmax(0,240px) minmax(0,1fr);gap:20px 40px;scroll-margin-top:64px}
 @media (max-width:820px){section{grid-template-columns:minmax(0,1fr)}}

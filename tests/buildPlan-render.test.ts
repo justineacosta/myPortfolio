@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { plan, type Plan } from '@/data/buildPlan'
 import { iconSvg } from '@/lib/buildPlan/icons'
@@ -82,5 +83,11 @@ describe('renderPlan', () => {
     expect(html).not.toMatch(/gohighlevel|highlevel|\bghl\b/i)
     const external = [...html.matchAll(/(?:src|href)="(https?:[^"]+)"/g)].map((m) => new URL(m[1]).host)
     expect(new Set(external)).toEqual(new Set(['fonts.googleapis.com', 'fonts.gstatic.com']))
+  })
+})
+
+describe('public/build-plan.html', () => {
+  it('is up to date with its data (run npm run plan after any change)', () => {
+    expect(readFileSync('public/build-plan.html', 'utf8').replace(/\r\n/g, '\n')).toBe(renderPlan())
   })
 })

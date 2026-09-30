@@ -92,7 +92,8 @@ function sections(p: Plan, index: NodeIndex) {
 export function renderPlan(p: Plan = PLAN, themes: Themes = { dark: readTokens('dark'), light: readTokens('light') }): string {
   const index: NodeIndex = {}
   const parts = sections(p, index)
-  const client = readFileSync(join(process.cwd(), 'lib/buildPlan/client.js'), 'utf8')
+  // Git may check the script out with CRLF on Windows; the page is the same everywhere.
+  const client = readFileSync(join(process.cwd(), 'lib/buildPlan/client.js'), 'utf8').replace(/\r\n/g, '\n')
   return `<!doctype html>
 <html lang="en">
 <head>
