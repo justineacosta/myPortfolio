@@ -67,7 +67,7 @@ function canvas(w: Workflow, index: NodeIndex) {
       return `<li>${esc(n.label)} (${esc(KIND_LABELS[n.kind])}, ${esc(n.sub)})${next.length ? `, then ${esc(next.join('; '))}` : ''}</li>`
     })
     .join('')
-  return `<figure class="canvas" data-run data-routes="${esc(JSON.stringify(timing))}"><figcaption><span>${esc(w.code)} · ${esc(w.title)}</span><span class="swipe" aria-hidden="true">Scroll sideways →</span></figcaption><div class="canvas-scroll" tabindex="0" role="group" aria-label="${esc(w.code)} diagram, scrolls sideways"><div class="stage" style="width:${l.width}px;height:${l.height}px"><svg class="edges" width="${l.width}" height="${l.height}" viewBox="0 0 ${l.width} ${l.height}" aria-hidden="true">${paths}</svg>${labels}${balls}${buttons}</div></div><ol class="steps sr-only">${steps}</ol></figure>`
+  return `<figure class="canvas" data-run data-routes="${esc(JSON.stringify(timing))}"><figcaption><span>${esc(w.code)} · ${esc(w.title)}</span><span class="pan"><span class="pan-hint" aria-hidden="true">Drag to explore</span><button type="button" class="pan-btn" data-pan="-1" aria-label="Scroll diagram left">‹</button><button type="button" class="pan-btn" data-pan="1" aria-label="Scroll diagram right">›</button></span></figcaption><div class="canvas-scroll" tabindex="0" role="group" aria-label="${esc(w.code)} diagram, scrolls sideways"><div class="stage" style="width:${l.width}px;height:${l.height}px"><svg class="edges" width="${l.width}" height="${l.height}" viewBox="0 0 ${l.width} ${l.height}" aria-hidden="true">${paths}</svg>${labels}${balls}${buttons}</div></div><ol class="steps sr-only">${steps}</ol></figure>`
 }
 
 function workflowSection(w: Workflow, index: NodeIndex) {

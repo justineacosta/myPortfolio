@@ -230,3 +230,44 @@ test('balls leave one at a time, each on one random route, lighting what they pa
   expect(await fig.locator('.run-ball').count()).toBeLessThanOrEqual(3)
 })
 
+
+test('no scrollbars show on the page, the diagrams, the tables or the code blocks', async ({ page }) => {
+  await page.goto(PAGE)
+  const hidden = (sel: string) => page.locator(sel).first().evaluate((el) => getComputedStyle(el).scrollbarWidth)
+  for (const sel of ['html', '.canvas-scroll', '.table-wrap', 'pre.code']) expect(await hidden(sel), sel).toBe('none')
+})
+
+test('a diagram pans by dragging, and a drag never opens a step', async ({ page }) => {
+  await page.goto(PAGE)
+  const frame = page.locator('#tm-01 .canvas-scroll')
+  await frame.scrollIntoViewIfNeeded()
+  const box = (await frame.boundingBox())!
+  const y = box.y + box.height - 30
+  await page.mouse.move(box.x + box.width - 60, y)
+  await page.mouse.down()
+  await page.mouse.move(box.x + 100, y, { steps: 8 })
+  await page.mouse.up()
+  expect(await frame.evaluate((el) => el.scrollLeft)).toBeGreaterThan(200)
+  const node = page.locator('[data-node="tm-01:n6"]')
+  const n = (await node.boundingBox())!
+  await page.mouse.move(n.x + 28, n.y + 28)
+  await page.mouse.down()
+  await page.mouse.move(n.x + 140, n.y + 28, { steps: 8 })
+  await page.mouse.up()
+  await expect(page.locator('#node-panel')).toBeHidden()
+})
+
+test('arrow buttons scroll a diagram, and fade edges show there is more to see', async ({ page }) => {
+  await page.goto(`${PAGE}#tm-01`)
+  const fig = page.locator('#tm-01 .canvas')
+  const frame = fig.locator('.canvas-scroll')
+  const left = fig.getByRole('button', { name: 'Scroll diagram left' })
+  const right = fig.getByRole('button', { name: 'Scroll diagram right' })
+  await expect(left).toBeDisabled()
+  await expect(frame).toHaveAttribute('data-more-right', '')
+  await expect(frame).not.toHaveAttribute('data-more-left')
+  await right.click()
+  await expect.poll(() => frame.evaluate((el) => el.scrollLeft)).toBeGreaterThan(100)
+  await expect(frame).toHaveAttribute('data-more-left', '')
+  await expect(left).toBeEnabled()
+})

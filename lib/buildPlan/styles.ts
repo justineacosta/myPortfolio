@@ -24,6 +24,13 @@ export function pageCss({ dark, light, contrast }: Themes): string {
 :root[data-a11y-contrast=true]:not([data-theme=light]){${decls(contrast.dark)}}
 :root[data-a11y-contrast=true][data-theme=light]{${decls(contrast.light)}}
 *{box-sizing:border-box}
+html,.canvas-scroll,.table-wrap,.code{scrollbar-width:none}
+html::-webkit-scrollbar,.canvas-scroll::-webkit-scrollbar,.table-wrap::-webkit-scrollbar,.code::-webkit-scrollbar{display:none}
+[data-more-right]{mask-image:linear-gradient(to right,black calc(100% - 56px),transparent)}
+[data-more-left]{mask-image:linear-gradient(to left,black calc(100% - 56px),transparent)}
+[data-more-left][data-more-right]{mask-image:linear-gradient(to right,transparent,black 56px,black calc(100% - 56px),transparent)}
+.canvas[data-overflow] .canvas-scroll{cursor:grab}
+.canvas-scroll.dragging,.canvas-scroll.dragging .node{cursor:grabbing;user-select:none}
 html{font-size:100%;scroll-behavior:smooth;scroll-padding-top:64px}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:.9375rem;line-height:1.6;-webkit-font-smoothing:antialiased;text-wrap:pretty}
 a{color:var(--accent)}
@@ -97,8 +104,12 @@ tr:last-child td{border-bottom:0}
 .helper p{color:var(--ink2);font-size:.875rem}
 .canvas{margin:0;display:flex;flex-direction:column;gap:10px;min-width:0}
 .canvas figcaption{display:flex;justify-content:space-between;gap:12px;font-family:var(--mono);font-size:.6875rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
-.swipe{display:none}
-.canvas[data-overflow] .swipe{display:inline}
+.pan{display:none;align-items:center;gap:6px}
+.canvas[data-overflow] .pan{display:flex}
+.pan-hint{margin-right:4px}
+.pan-btn{display:grid;place-items:center;width:28px;height:28px;border-radius:8px;border:1px solid var(--b2);background:var(--s1);color:var(--ink);font:inherit;font-size:1rem;line-height:1;cursor:pointer}
+.pan-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.pan-btn:disabled{opacity:.35;cursor:default}
 .canvas-scroll{overflow-x:auto;border:1px solid var(--b1);border-radius:16px;background-color:var(--s0);background-image:radial-gradient(var(--b2) 1px,transparent 1px);background-size:20px 20px;overscroll-behavior-x:contain}
 .stage{position:relative}
 .edges{position:absolute;inset:0}
@@ -147,7 +158,8 @@ tr:last-child td{border-bottom:0}
 @media print{
 :root,:root[data-theme]{${vars(light)};color-scheme:light}
 body{background:var(--frame)}
-.toc,.run-ball,.panel,.btn,.swipe{display:none!important}
+.toc,.run-ball,.panel,.btn,.pan{display:none!important}
+[data-more-left],[data-more-right]{mask-image:none!important}
 .page{gap:40px;padding-top:0}
 section,.canvas,.card,tr{break-inside:avoid}
 .canvas-scroll{overflow:visible;border:0;background:none}
