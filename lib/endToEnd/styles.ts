@@ -17,6 +17,7 @@ export function e2eCss(themes: Themes): string {
 .lane-head{position:sticky;left:12px;z-index:2;display:inline-flex;align-items:baseline;gap:10px;margin:12px 0 0 12px;padding:5px 12px;border-radius:999px;border:1px solid var(--b1);background:var(--s0);white-space:nowrap}
 .lane-head b{font-family:var(--mono);font-size:.625rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
 .lane-head span{font-size:.75rem;color:var(--ink3)}
+@media (max-width:560px){.lane-head span{display:none}}
 .edge.loop{stroke:color-mix(in srgb,var(--accent) 55%,var(--b2));stroke-dasharray:5 5}
 .edge.loop.lit{stroke:var(--accent)}
 .edge-label.start{transform:translate(0,-50%)}
@@ -32,6 +33,10 @@ export function e2eCss(themes: Themes): string {
 .gloss dl div{display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr);gap:12px;padding:12px 0;border-bottom:1px solid var(--b1)}
 .gloss dt{font-family:var(--mono);font-size:.75rem;color:var(--accent)}
 .gloss dd{margin:0;font-size:.875rem;color:var(--ink2)}
-@media print{.lane-head{position:static}}
+@media print{
+.lane-head{position:static}
+.lane .steps.sr-only{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.lane,.node-card,.badge-n,.badge-auto,.badge-lock{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+}
 `
 }

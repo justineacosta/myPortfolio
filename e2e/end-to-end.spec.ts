@@ -134,3 +134,39 @@ test('on its own it follows the device theme and links back to the portfolio', a
     await ctx.close()
   }
 })
+
+test('printing keeps the screen-reader step lists out of the graph', async ({ page }) => {
+  await page.goto(PAGE)
+  await page.emulateMedia({ media: 'print' })
+  for (const list of await page.locator('.lane ol.steps').all()) expect(await list.evaluate((el) => el.getBoundingClientRect().width)).toBeLessThanOrEqual(1)
+})
+
+test('printing keeps the lane tints and the gate fill', async ({ page }) => {
+  await page.goto(PAGE)
+  await page.emulateMedia({ media: 'print' })
+  for (const sel of ['.lane', '[data-node="i1"] .node-card']) expect(await page.locator(sel).first().evaluate((el) => getComputedStyle(el).printColorAdjust), sel).toBe('exact')
+})
+
+test('a ball moves at one steady speed, so the lights keep up with it', async ({ page }) => {
+  await page.goto(`${PAGE}#lane-a`)
+  const ball = page.locator('.run-ball').first()
+  await expect(ball).toBeAttached({ timeout: 10_000 })
+  const frames = await ball.evaluate((el) =>
+    (el.getAnimations()[0].effect as KeyframeEffect).getKeyframes().map((k: ComputedKeyframe) => [k.computedOffset, String(k.offsetDistance)]),
+  )
+  for (const [at, distance] of frames) expect(distance).toBe(`${Math.round(Number(at) * 100)}%`)
+})
+
+test('at phone width every lane label fits the frame, before and while panning', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto(PAGE)
+  const frame = page.locator('.canvas-scroll')
+  const box = (await frame.boundingBox())!
+  for (const left of [0, 300]) {
+    await frame.evaluate((el, x) => (el.scrollLeft = x), left)
+    for (const head of await page.locator('.lane-head').all()) {
+      const b = await head.evaluate((el) => el.getBoundingClientRect().toJSON())
+      expect(b.right, `${await head.textContent()} at ${left}`).toBeLessThanOrEqual(box.x + box.width)
+    }
+  }
+})
