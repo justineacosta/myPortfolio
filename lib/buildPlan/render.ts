@@ -74,7 +74,6 @@ const wfLink = (code: string) => `<a href="#${esc(code.startsWith('TM-H') ? 'hel
 function sections(p: Plan, index: NodeIndex) {
   const s = p.start
   const d = p.data
-  const hours = p.build.phases.reduce((a, ph) => a + ph.hours, 0)
   return [
     { id: 'start', nav: 'Start', html: section('start', '01', s.title, s.blurb, s.rail, `<div class="ote">${card('Outcome', `<p>${esc(s.outcome)}</p>`)}${card('Entry points', `<p>${esc(s.trigger)}</p>`)}${card('Every way a job ends', list(s.exits))}</div>${card('Out of scope', list(s.outOfScope))}`) },
     { id: 'naming', nav: 'Naming', html: section('naming', '02', p.naming.title, p.naming.blurb, p.naming.rail, `<div class="rules">${p.naming.rules.map((r) => `<div class="rule"><h3>${esc(r.name)}</h3><pre class="code"><b>${esc(r.pattern)}</b>\n${r.examples.map(esc).join('\n')}</pre><p>${esc(r.rule)}</p></div>`).join('')}</div>`) },
@@ -83,7 +82,7 @@ function sections(p: Plan, index: NodeIndex) {
     ...p.workflows.map((w) => ({ id: slug(w.code), nav: w.code, html: workflowSection(w, index) })),
     { id: 'helpers', nav: 'Helpers', html: section('helpers', '05', p.helpers.title, p.helpers.blurb, p.helpers.rail, p.helpers.list.map((h) => `<div class="helper"><h3>${esc(h.code)} · ${esc(h.title)}</h3><p>${esc(h.outcome)}</p>${canvas(h, index)}</div>`).join('')) },
     { id: 'tests', nav: 'Tests', html: section('tests', '06', p.tests.title, p.tests.blurb, p.tests.rail, `<div class="tests-bar"><span id="tests-count" aria-live="polite">0 of ${p.tests.rows.length} passed</span><button type="button" class="btn" id="tests-reset">Reset</button></div><div class="table-wrap"><table class="tests"><thead><tr><th scope="col">Passed</th><th scope="col">ID</th><th scope="col">Workflow</th><th scope="col">Branch</th><th scope="col">Test</th><th scope="col">Expected</th></tr></thead><tbody>${p.tests.rows.map((r) => `<tr><td><input type="checkbox" id="t-${esc(r.id)}" value="${esc(r.id)}" aria-label="Passed: ${esc(r.id)} ${esc(r.branch)}"></td><td><code>${esc(r.id)}</code></td><td>${wfLink(r.workflow)}</td><td>${esc(r.branch)}</td><td>${esc(r.input)}</td><td>${esc(r.expected)}</td></tr>`).join('')}</tbody></table></div>`) },
-    { id: 'build', nav: 'Build order', html: section('build', '07', p.build.title, p.build.blurb, p.build.rail, `<ol class="phases">${p.build.phases.map((ph) => `<li class="card"><div class="phase-head"><h3>${esc(ph.name)}</h3><span class="hours">${ph.hours} h</span></div>${list(ph.tasks)}</li>`).join('')}</ol><p class="total">Total: about ${hours} hours</p>`) },
+    { id: 'build', nav: 'Build order', html: section('build', '07', p.build.title, p.build.blurb, p.build.rail, `<ol class="phases">${p.build.phases.map((ph) => `<li class="card"><div class="phase-head"><h3>${esc(ph.name)}</h3></div>${list(ph.tasks)}</li>`).join('')}</ol>`) },
     { id: 'handover', nav: 'Handover', html: section('handover', '08', p.handover.title, p.handover.blurb, p.handover.rail, `<div class="cards">${card('What it does', list(p.handover.does))}${card('What breaks it', list(p.handover.breaks))}${card('Who to call', `<p>${esc(p.handover.call)}</p>`)}${card('Where the logs are', `<p>${esc(p.handover.logs)}</p>`)}</div>`) },
   ]
 }

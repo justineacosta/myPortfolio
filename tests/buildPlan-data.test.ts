@@ -61,9 +61,11 @@ describe('the build plan content', () => {
     for (const r of plan.tests.rows) expect(plan.workflows.map((w) => w.code)).toContain(r.workflow)
   })
 
-  it('adds up to about eleven hours over five phases', () => {
+  it('lists five build phases without saying how long the build takes', () => {
     expect(plan.build.phases).toHaveLength(5)
-    expect(plan.build.phases.reduce((a, p) => a + p.hours, 0)).toBe(11)
+    for (const p of plan.build.phases) expect(Object.keys(p).sort()).toEqual(['name', 'tasks'])
+    expect(plan.meta.map(([k]) => k)).not.toContain('Build time')
+    expect(plan.build.blurb).not.toMatch(/hour/i)
   })
 
   it('labels every node kind for the legend', () => {

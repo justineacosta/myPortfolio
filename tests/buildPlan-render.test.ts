@@ -43,6 +43,11 @@ describe('renderPlan', () => {
     expect(by.getAttribute('target')).toBe('_top')
   })
 
+  it('never shows how long the build takes', () => {
+    expect(doc.querySelector('.meta')!.textContent).not.toContain('Build time')
+    expect(doc.getElementById('build')!.textContent).not.toMatch(/\d+(\.\d+)? ?h\b|hours/)
+  })
+
   it('ends with the fictional-client note', () => {
     expect(doc.querySelector('footer')!.textContent).toContain('A worked example. Trusted Mover is a fictional client.')
   })
