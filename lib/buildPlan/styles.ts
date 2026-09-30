@@ -90,8 +90,6 @@ tr:last-child td{border-bottom:0}
 .phases{display:grid;gap:12px;margin:0;padding:0;list-style:none}
 .phase-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
 .phase-head h3{font-family:var(--sans);font-size:1rem;letter-spacing:-.01em;text-transform:none;color:var(--ink)}
-.hours{font-family:var(--mono);font-size:.75rem;color:var(--accent)}
-.total{font-family:var(--mono);font-size:.8125rem;color:var(--ink2)}
 .helper{display:flex;flex-direction:column;gap:10px}
 .helper h3{font-size:1rem}
 .helper p{color:var(--ink2);font-size:.875rem}

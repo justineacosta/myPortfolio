@@ -27,7 +27,7 @@ export type Workflow = {
 }
 export type Rail = { heading: string; body?: string; list?: string[] }
 export type TestRow = { id: string; workflow: string; branch: string; input: string; expected: string }
-export type Phase = { name: string; hours: number; tasks: string[] }
+export type Phase = { name: string; tasks: string[] }
 type Head = { title: string; blurb: string; rail: Rail[] }
 export type Plan = {
   title: string
@@ -322,7 +322,6 @@ export const plan: Plan = {
     ['Client', 'Trusted Mover · Austin, TX'],
     ['Platform', 'n8n'],
     ['Workflows', '6 + 3 helpers'],
-    ['Build time', 'About 11 hours'],
     ['Prepared by', 'Justine Acosta'],
   ],
   start: {
@@ -420,14 +419,14 @@ export const plan: Plan = {
   },
   build: {
     title: 'Build order',
-    blurb: 'Five phases, about 11 hours.',
+    blurb: 'Five phases, in the order they are built.',
     rail: [{ heading: 'Order', body: 'Foundation first, then the workflows that take money, then the ones that run on their own.' }],
     phases: [
-      { name: '1 · Foundation', hours: 2, tasks: ['Create the Supabase tables: contacts, jobs, events', 'Add the credentials: TM · Supabase, TM · Stripe (test), TM · Gmail, TM · Telegram, TM · Anthropic', 'Create the Sheets tabs: Quote log, Rate card, Crew schedule, Test matrix, Errors', 'Build TM-H01, TM-H02 and TM-H03, and set TM-H01 as the error workflow'] },
-      { name: '2 · Intake', hours: 3, tasks: ['Build TM-01 and point the site’s quote form at /tm/quote', 'Build TM-02 with the Cal.com webhook and the approval form', 'Run tests t01–t08'] },
-      { name: '3 · Money', hours: 2.5, tasks: ['Build TM-03 with the Stripe webhook and the hourly sweep', 'Build TM-05 with the invoice and the feedback steps', 'Run tests t09–t12, t16 and t17'] },
-      { name: '4 · Operations', hours: 2, tasks: ['Build TM-04', 'Build TM-06 with the refund policy', 'Run tests t13–t15 and t18–t20'] },
-      { name: '5 · Test and hand over', hours: 1.5, tasks: ['Switch Stripe to live keys', 'Run the whole matrix again with a real card and a real refund', 'Walk the owner through the handover page', 'Turn every workflow on'] },
+      { name: '1 · Foundation', tasks: ['Create the Supabase tables: contacts, jobs, events', 'Add the credentials: TM · Supabase, TM · Stripe (test), TM · Gmail, TM · Telegram, TM · Anthropic', 'Create the Sheets tabs: Quote log, Rate card, Crew schedule, Test matrix, Errors', 'Build TM-H01, TM-H02 and TM-H03, and set TM-H01 as the error workflow'] },
+      { name: '2 · Intake', tasks: ['Build TM-01 and point the site’s quote form at /tm/quote', 'Build TM-02 with the Cal.com webhook and the approval form', 'Run tests t01–t08'] },
+      { name: '3 · Money', tasks: ['Build TM-03 with the Stripe webhook and the hourly sweep', 'Build TM-05 with the invoice and the feedback steps', 'Run tests t09–t12, t16 and t17'] },
+      { name: '4 · Operations', tasks: ['Build TM-04', 'Build TM-06 with the refund policy', 'Run tests t13–t15 and t18–t20'] },
+      { name: '5 · Test and hand over', tasks: ['Switch Stripe to live keys', 'Run the whole matrix again with a real card and a real refund', 'Walk the owner through the handover page', 'Turn every workflow on'] },
     ],
   },
   handover: {
