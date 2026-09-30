@@ -4,7 +4,7 @@ import { fireEvent, render, screen, within } from '@testing-library/react'
 import Board from '@/components/projects/Board'
 import ProjectViews from '@/components/projects/ProjectViews'
 import { agentsView, DOCS } from '@/data/projectDocs'
-import { DOC_VIEWS, PROJECT_VIEWS, projects } from '@/data/projects'
+import { BUILDS, DOC_VIEWS, PROJECT_VIEWS, projects } from '@/data/projects'
 import { installMatchMedia } from '@/test/matchMedia'
 
 describe('Projects data', () => {
@@ -21,6 +21,12 @@ describe('Projects data', () => {
     ])
     expect(projects.reel.shots.every((s) => s.src.includes('n8n workflow screenshot'))).toBe(true)
     expect(projects.sitesView.sites).toHaveLength(8)
+  })
+
+  it('shows a real 16:10 screenshot of the build plan on Home', () => {
+    const plan = BUILDS.find((b) => b.view === 'build-plan')!
+    expect(plan.shot).toBe('/shots/build-plan.jpeg')
+    expect(jpegSize(readFileSync(`public${plan.shot}`))).toEqual({ width: 640, height: 400 })
   })
 
   it('has a page and a thumbnail on disk for every sample site', () => {
