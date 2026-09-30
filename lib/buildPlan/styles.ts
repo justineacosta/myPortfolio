@@ -105,7 +105,8 @@ tr:last-child td{border-bottom:0}
 .edge{fill:none;stroke:var(--b2);stroke-width:1.6;transition:stroke .35s ease}
 .edge.lit{stroke:var(--accent);transition-duration:.08s}
 .edge-label{position:absolute;z-index:1;transform:translate(-50%,-50%);padding:1px 6px;border-radius:6px;border:1px solid var(--b1);background:var(--s0);font-family:var(--mono);font-size:.625rem;color:var(--ink2);white-space:nowrap}
-.run-dot{position:absolute;left:0;top:0;width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px var(--wash),0 0 14px 2px var(--glow);offset-anchor:50% 50%;offset-rotate:0deg;opacity:0;pointer-events:none}
+.run-dot{display:none}
+.run-ball{position:absolute;left:0;top:0;width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px var(--wash),0 0 14px 2px var(--glow);offset-anchor:50% 50%;offset-rotate:0deg;opacity:0;pointer-events:none}
 .node{position:absolute;z-index:1;width:56px;display:flex;flex-direction:column;align-items:center;gap:6px;padding:0;border:0;background:none;color:var(--ink);font:inherit;text-align:center;cursor:pointer}
 .node-card{position:relative;display:grid;place-items:center;width:56px;height:56px;border-radius:14px;border:1.5px solid var(--b2);background:var(--s2);color:var(--ink2);transition:border-color .2s,transform .2s,box-shadow .35s ease}
 .node.lit .node-card{border-color:var(--accent);box-shadow:0 0 0 3px var(--wash),0 0 20px -2px var(--glow);transition-duration:.08s}
@@ -139,14 +140,14 @@ tr:last-child td{border-bottom:0}
 .panel-close{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:9px;border:1px solid var(--b1);background:var(--s2);color:var(--ink);font-size:1.1rem;line-height:1;cursor:pointer}
 .foot a{color:var(--ink2)}
 .foot{max-width:1100px;margin:0 auto;padding:24px 16px 48px;border-top:1px solid var(--b1);display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;font-size:.8125rem;color:var(--ink3)}
-@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}.run-dot{display:none}.node-card{transition:none}}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}.run-ball{display:none}.node-card{transition:none}}
 :root[data-a11y-motion=true]{scroll-behavior:auto}
-:root[data-a11y-motion=true] .run-dot{display:none}
+:root[data-a11y-motion=true] .run-ball{display:none}
 :root[data-a11y-motion=true] .node-card{transition:none}
 @media print{
 :root,:root[data-theme]{${vars(light)};color-scheme:light}
 body{background:var(--frame)}
-.toc,.run-dot,.panel,.btn,.swipe{display:none!important}
+.toc,.run-ball,.panel,.btn,.swipe{display:none!important}
 .page{gap:40px;padding-top:0}
 section,.canvas,.card,tr{break-inside:avoid}
 .canvas-scroll{overflow:visible;border:0;background:none}

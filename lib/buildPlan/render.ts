@@ -46,8 +46,8 @@ function canvas(w: Workflow, index: NodeIndex) {
   const entered = new Set(w.edges.map((e) => e.to))
   const left = new Set(w.edges.map((e) => e.from))
   const paths = l.edges.map((e, i) => `<path class="edge" data-edge="${i}" d="${e.d}"/>`).join('')
-  // One ball per route. They leave together, so they split at each decision (client.js).
-  const balls = l.routes.map((r) => `<span class="run-dot" aria-hidden="true" style="offset-path:path('${r.run}')"></span>`).join('')
+  // One hidden template ball per route; client.js sends copies down random routes.
+  const balls = l.routes.map((r, i) => `<span class="run-dot" aria-hidden="true" data-route="${i}" style="offset-path:path('${r.run}')"></span>`).join('')
   const timing = l.routes.map((r) => ({ len: r.length, stops: r.stops.map(([id, at]) => [key(id), at]), spans: r.spans }))
   const labels = l.edges
     .filter((e) => e.label)

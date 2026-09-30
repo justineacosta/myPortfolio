@@ -100,6 +100,7 @@ test('the run dot plays only while motion is allowed', async ({ browser }) => {
   for (const dot of await still.locator('#tm-01 .run-dot').all()) await expect(dot).toBeHidden()
   await still.waitForTimeout(1500)
   await expect(still.locator('#tm-01 .lit')).toHaveCount(0)
+  await expect(still.locator('#tm-01 .run-ball')).toHaveCount(0)
   await calm.close()
 })
 
@@ -207,14 +208,25 @@ test("a step's panel opens clear of the step's own name", async ({ page }) => {
   expect(below || above).toBe(true)
 })
 
-test('balls run every route and split at decisions, lighting steps and connectors as they pass', async ({ page }) => {
+test('balls leave one at a time, each on one random route, lighting what they pass', async ({ page }) => {
+  await page.addInitScript(() => {
+    const w = window as unknown as { __balls: { route: string; at: number }[] }
+    w.__balls = []
+    new MutationObserver((list) => {
+      for (const m of list)
+        for (const n of m.addedNodes)
+          if (n instanceof HTMLElement && n.classList.contains('run-ball') && n.closest('#tm-01'))
+            w.__balls.push({ route: n.dataset.route!, at: performance.now() })
+    }).observe(document, { childList: true, subtree: true })
+  })
   await page.goto(`${PAGE}#tm-01`)
   const fig = page.locator('#tm-01 .canvas')
-  await expect(fig.locator('.run-dot')).toHaveCount(3)
   await expect(fig.locator('.node.lit').first()).toBeAttached({ timeout: 10_000 })
   await expect(fig.locator('.edge.lit').first()).toBeAttached({ timeout: 10_000 })
-  const spots = () =>
-    fig.locator('.run-dot').evaluateAll((dots) => new Set(dots.map((d) => { const r = d.getBoundingClientRect(); return `${Math.round(r.x)},${Math.round(r.y)}` })).size)
-  await expect.poll(spots, { timeout: 15_000 }).toBeGreaterThan(1)
+  const seen = () => page.evaluate(() => (window as unknown as { __balls: { route: string; at: number }[] }).__balls)
+  await expect.poll(async () => new Set((await seen()).map((b) => b.route)).size, { timeout: 20_000 }).toBeGreaterThan(1)
+  const balls = await seen()
+  for (let i = 1; i < balls.length; i++) expect(balls[i].at - balls[i - 1].at).toBeGreaterThan(500)
+  expect(await fig.locator('.run-ball').count()).toBeLessThanOrEqual(3)
 })
 
