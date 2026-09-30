@@ -195,7 +195,7 @@ test('desktop: every live automation sits centred in its panel', async ({ page }
     })
   for (const width of [1440, 1680]) {
     await page.setViewportSize({ width, height: 900 })
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 20; i++) {
       expect(Math.abs(await offCentre()), `${width}px, flow ${i + 1}`).toBeLessThanOrEqual(12)
       await page.getByRole('button', { name: 'Next automation' }).click()
     }

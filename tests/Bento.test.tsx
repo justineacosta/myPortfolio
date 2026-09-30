@@ -99,7 +99,7 @@ describe('Bento', () => {
       expect(medal.querySelector('[data-cert-badge] img')?.getAttribute('src')).toContain(logo)
       expect(medal.querySelector('.medal-rosette, .medal-disc, .medal-tail')).toBeNull()
     }
-    expect(screen.getByText('AWS Cloud Practitioner. HackerRank Software Engineer.')).toBeInTheDocument()
+    expect(screen.getByText('AWS Cloud Practitioner Essentials. HackerRank Software Engineer.')).toBeInTheDocument()
   })
 
   it('is held back for the intro', () => {

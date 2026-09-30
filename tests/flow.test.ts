@@ -41,8 +41,9 @@ describe('wrap', () => {
 })
 
 describe('FLOWS', () => {
-  it("has Kraft's ten flows, every edge joining two real nodes", () => {
-    expect(FLOWS).toHaveLength(10)
+  it("has twenty flows: Kraft's ten, then ten more, every edge joining two real nodes", () => {
+    expect(FLOWS).toHaveLength(20)
+    expect(new Set(FLOWS.map((f) => f.label)).size).toBe(20)
     expect(FLOWS[0].label).toBe('LEAD → BOOKED CALL')
     for (const f of FLOWS) {
       for (const e of f.edges) {
