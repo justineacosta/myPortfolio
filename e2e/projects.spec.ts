@@ -17,9 +17,9 @@ test('a board card opens its write-up, and Back closes it', async ({ page }) => 
 })
 
 test('a shared link opens the view; Close stays on the page', async ({ page }) => {
-  await page.goto('/projects#support-desk')
+  await page.goto('/projects#agentic-framework')
   await hydrated(page)
-  const view = page.getByRole('dialog', { name: 'Support Ticketing System' })
+  const view = page.getByRole('dialog', { name: 'The Agentic Framework' })
   await expect(view).toBeVisible()
   await view.getByRole('button', { name: 'Close' }).click()
   await expect(view).toBeHidden()
@@ -260,4 +260,11 @@ test('the Funnels card still opens the sites view on a click', async ({ page }) 
   await hydrated(page)
   await page.locator('[data-fan]').click()
   await expect(page.getByRole('dialog', { name: 'Funnels and sites' })).toBeVisible()
+})
+
+test('an old #support-desk link just shows Projects', async ({ page }) => {
+  await page.goto('/projects#support-desk')
+  await hydrated(page)
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Real builds you can open.')
+  await expect(page.locator('dialog.view[open]')).toHaveCount(0)
 })

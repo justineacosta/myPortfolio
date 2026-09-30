@@ -24,7 +24,7 @@ describe('SECTIONS', () => {
   it('follow the pages, each a hash link on its page', () => {
     expect(COMMANDS.slice(0, NAV.length).map((c) => c.href)).toEqual(NAV.map((n) => n.href))
     expect(SECTIONS.map((s) => s.href)).toEqual([
-      '/projects#reel', '/projects#build-plan', '/projects#support-desk', '/projects#agentic-framework',
+      '/projects#reel', '/projects#build-plan', '/projects#agentic-framework',
       '/projects#end-to-end', '/projects#sites', '/projects#ai-agents',
       '/services#method', '/services#automation', '/contact#faqs',
     ])

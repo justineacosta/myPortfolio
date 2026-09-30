@@ -17,8 +17,9 @@ describe('Projects data', () => {
   it("keeps Kraft's roster, the build plan's sections, the reel and the sites", () => {
     expect(agentsView.groups.map((g) => g.name)).toEqual(['KapeAI', 'AI Agents', 'RAG Chatbots', 'Chatbots', 'Hermes'])
     expect(projects.reel.shots.map((s) => s.label)).toEqual([
-      '01 - Support | New Ticket', 'Workflows list', '02 - Post-Purchase Delivery', 'Global workflow settings', 'Execution logs',
+      'TM-01 · Quote request', 'Workflows list', 'TM-02 · Survey → Estimate', 'Workflow settings', 'Executions',
     ])
+    expect(projects.reel.shots.every((s) => s.src.includes('n8n workflow screenshot'))).toBe(true)
     expect(projects.sitesView.sites).toHaveLength(8)
   })
 
@@ -61,7 +62,7 @@ describe('Board', () => {
   it('links every card to its sub-view by hash, in board order', () => {
     render(<Board />)
     expect(screen.getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual([
-      '#reel', '#build-plan', '#support-desk', '#agentic-framework', '#end-to-end', '#sites', '#ai-agents',
+      '#reel', '#build-plan', '#agentic-framework', '#end-to-end', '#sites', '#ai-agents',
     ])
     expect(screen.getByText('CLICK A CARD TO OPEN IT')).toBeInTheDocument()
   })
@@ -117,9 +118,9 @@ describe('ProjectViews', () => {
   })
 
   it('opens the write-up a shared link names, and Close drops the hash', () => {
-    window.history.replaceState(null, '', '/projects#support-desk')
+    window.history.replaceState(null, '', '/projects#agentic-framework')
     render(<ProjectViews />)
-    const view = screen.getByRole('dialog', { name: 'Support Ticketing System' })
+    const view = screen.getByRole('dialog', { name: 'The Agentic Framework' })
     expect(view).toHaveAttribute('open')
     fireEvent.click(within(view).getByRole('button', { name: 'Close' }))
     expect(window.location.hash).toBe('')
@@ -145,11 +146,17 @@ describe('ProjectViews', () => {
     expect(within(view).getByRole('button', { name: 'Close' })).toHaveFocus()
   })
 
+  it('has no Support Ticketing write-up and no Workflow Creator any more', () => {
+    render(<ProjectViews />)
+    expect(document.body).not.toHaveTextContent('Support Ticketing System')
+    expect(document.body).not.toHaveTextContent('Workflow Creator')
+  })
+
   it('marks which systems are live and which are internal', () => {
     window.history.replaceState(null, '', '/projects#ai-agents')
     render(<ProjectViews />)
     const view = screen.getByRole('dialog', { name: 'AI agents and RAG chatbots' })
-    expect(within(view).getAllByText('LIVE')).toHaveLength(8)
+    expect(within(view).getAllByText('LIVE')).toHaveLength(7)
     expect(within(view).getAllByText('INTERNAL')).toHaveLength(3)
   })
 })

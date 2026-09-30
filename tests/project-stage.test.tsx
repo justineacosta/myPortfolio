@@ -12,7 +12,7 @@ describe('Projects stage views', () => {
     const figures = view.querySelectorAll('figure')
     expect(figures).toHaveLength(10)
     expect(view.querySelectorAll('figure[aria-hidden="true"]')).toHaveLength(5)
-    expect(within(figures[0] as HTMLElement).getByText('01 - Support | New Ticket')).toBeInTheDocument()
+    expect(within(figures[0] as HTMLElement).getByText('TM-01 · Quote request')).toBeInTheDocument()
     expect((view.querySelector('.reel-row') as HTMLElement).style.getPropertyValue('--marq')).toBe('20s')
   })
 

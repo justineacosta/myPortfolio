@@ -1,6 +1,6 @@
 import type { Icon } from '@phosphor-icons/react'
 import {
-  BlueprintIcon, BooksIcon, BrainIcon, BrowsersIcon, EyeIcon, FilmStripIcon, FlowArrowIcon, GraphIcon, LifebuoyIcon, MagnifyingGlassIcon, RobotIcon, SparkleIcon,
+  BlueprintIcon, BooksIcon, BrainIcon, BrowsersIcon, EyeIcon, FilmStripIcon, FlowArrowIcon, GraphIcon, MagnifyingGlassIcon, RobotIcon, SparkleIcon,
 } from '@phosphor-icons/react/ssr'
 
 /**
@@ -11,9 +11,9 @@ import {
  */
 
 /** Every sub-view the board opens. Each id is also its URL hash (/projects#build-plan). */
-export const PROJECT_VIEWS = ['reel', 'build-plan', 'support-desk', 'agentic-framework', 'end-to-end', 'sites', 'ai-agents'] as const
+export const PROJECT_VIEWS = ['reel', 'build-plan', 'agentic-framework', 'end-to-end', 'sites', 'ai-agents'] as const
 export type ProjectView = (typeof PROJECT_VIEWS)[number]
-export const DOC_VIEWS = ['support-desk', 'agentic-framework', 'end-to-end'] as const
+export const DOC_VIEWS = ['agentic-framework', 'end-to-end'] as const
 export type DocView = (typeof DOC_VIEWS)[number]
 
 export type Chip = { name: string; icon: Icon }
@@ -27,12 +27,12 @@ export type Site = { name: string; file: string; src: string; thumb: string; tal
 type Writeup = { view: DocView; kicker: string; title: string; desc: string; icon: Icon; cue: string }
 
 const REEL: Screenshot[] = [
-  '01 - Support | New Ticket',
+  'TM-01 · Quote request',
   'Workflows list',
-  '02 - Post-Purchase Delivery',
-  'Global workflow settings',
-  'Execution logs',
-].map((label) => ({ label, src: `PLACEHOLDER - GoHighLevel workflow screenshot: ${label} (16:10)` }))
+  'TM-02 · Survey → Estimate',
+  'Workflow settings',
+  'Executions',
+].map((label) => ({ label, src: `PLACEHOLDER - n8n workflow screenshot: ${label} (16:10)` }))
 
 /**
  * Kraft's sample sites, in its order. Every page is a PLACEHOLDER written by
@@ -54,7 +54,6 @@ const SITES: Site[] = [
 })
 
 const WRITEUPS: Writeup[] = [
-  { view: 'support-desk', kicker: 'GOHIGHLEVEL BLUEPRINT', title: 'Support Ticketing System', desc: 'A full support desk inside GoHighLevel. One pipeline, five stages, four branded emails.', icon: LifebuoyIcon, cue: 'READ THE WRITE-UP' },
   { view: 'agentic-framework', kicker: 'HOW I BUILD WITH AI', title: 'The Agentic Framework', desc: 'The tools, the rules and the loop I use to ship apps with AI.', icon: BrainIcon, cue: 'READ THE FRAMEWORK' },
   { view: 'end-to-end', kicker: 'HOW I SHIP, END TO END', title: 'The End-to-End Workflow', desc: 'Every trigger, node, skill and agent wired as one live graph.', icon: GraphIcon, cue: 'READ THE WORKFLOW' },
 ]
@@ -71,7 +70,7 @@ export const projects = {
   cards: {
     reel: {
       title: 'Automations', icon: FlowArrowIcon, cue: 'VIEW THE REEL', cta: 'OPEN THE REEL',
-      body: 'Real screens from the GoHighLevel workflows I build.',
+      body: 'Real screens from the n8n workflows I build.',
       peek: ['PLACEHOLDER - workflow screen behind (Automations card)', 'PLACEHOLDER - workflow screen in front (Automations card)'],
       peekHint: 'Workflow screen',
     },
