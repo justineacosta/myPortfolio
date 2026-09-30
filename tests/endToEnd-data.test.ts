@@ -24,6 +24,13 @@ describe('the End-to-End Workflow data', () => {
     }
   })
 
+  it('keeps every step’s name and sub-line to one short line, so cables never cross a second line', () => {
+    for (const s of g.steps) {
+      expect(s.label.length, s.label).toBeLessThanOrEqual(22)
+      expect(s.sub.length, `${s.label}: ${s.sub}`).toBeLessThanOrEqual(22)
+    }
+  })
+
   it('joins every cable to real steps', () => {
     const ids = new Set(g.steps.map((s) => s.id))
     for (const c of g.cables) expect(ids.has(c.from) && ids.has(c.to), `${c.from} → ${c.to}`).toBe(true)

@@ -91,13 +91,13 @@ const STEPS: Step[] = [
 
   step('d1', 'D', [0, 0], 'step', 'Pick one small piece', 'one task, one context', 'PuzzlePiece', 'Takes the next small piece from the spec. After a piece passes its checks, the next one starts here.'),
   step('d2', 'D', [1, 0], 'ai', 'Claude Code builds', 'the builder', 'TerminalWindow', 'Claude Code writes the real files for this piece: planning on Opus, volume on Sonnet.'),
-  step('d3', 'D', [2, 0], 'ai', 'Subagents in parallel', 'anything that can run at once', 'UsersThree', 'Parts that don’t depend on each other are handed to subagents, which work on them at the same time.'),
-  step('d4', 'D', [3, 0], 'step', 'Cursor takes over', 'when precision beats speed', 'Cursor', 'I read what was written in Cursor and take over by hand wherever precision matters more than speed.'),
+  step('d3', 'D', [2, 0], 'ai', 'Subagents in parallel', 'parts run at once', 'UsersThree', 'Parts that don’t depend on each other are handed to subagents, which work on them at the same time.'),
+  step('d4', 'D', [3, 0], 'step', 'Cursor takes over', 'precision over speed', 'Cursor', 'I read what was written in Cursor and take over by hand wherever precision matters more than speed.'),
 
   step('e1', 'E', [0, 0], 'step', 'Run it', 'tests and a real run', 'Play', 'The tests and the app itself actually run. A result that has not run does not count.', true),
-  step('e2', 'E', [1, 0], 'ai', 'Grade against the criteria', 'the model grades itself', 'ListChecks', 'The output is checked against the acceptance criteria from the spec before I look at it.'),
+  step('e2', 'E', [1, 0], 'ai', 'Grade the result', 'against the criteria', 'ListChecks', 'The output is checked against the acceptance criteria from the spec before I look at it.'),
   step('e3', 'E', [2, 0], 'ai', 'Codex second opinion', 'a fresh model reviews', 'Code', 'A different model reads the diff. A fresh reviewer catches what the author missed.'),
-  step('e4', 'E', [3, 0], 'decision', 'Pass?', 'fails · breaks · passes', 'CheckCircle', 'Three ways out: a miss goes back to be rebuilt, a real failure goes to debugging, and a pass goes to the approval gate.'),
+  step('e4', 'E', [3, 0], 'decision', 'Pass?', 'three ways out', 'CheckCircle', 'Three ways out: a miss goes back to be rebuilt, a real failure goes to debugging, and a pass goes to the approval gate.'),
 
   step('f1', 'F', [0, 0], 'step', 'Bug or failure', 'reproduce it first', 'Bug', 'Something broke. First it is made to happen again on purpose, so the fix can be proven.'),
   step('f2', 'F', [1, 0], 'step', 'Rank the causes', 'likeliest first', 'ListNumbers', 'The possible causes are listed and ranked by how likely they are, before anything is changed.'),
@@ -119,13 +119,13 @@ const STEPS: Step[] = [
 
   step('j1', 'J', [0, 0], 'step', 'Commit', 'small, clear commits', 'GitCommit', 'The change is saved in small commits that each say what they do.'),
   step('j2', 'J', [1, 0], 'step', 'Push', 'to GitHub', 'CloudArrowUp', 'The commits go up to GitHub.'),
-  step('j3', 'J', [2, 0], 'step', 'Deploy', 'Vercel · Docker on my VPS', 'Rocket', 'Sites deploy on Vercel. Hermes and the workers run in Docker on my VPS.'),
-  step('j4', 'J', [3, 0], 'decision', 'Verify live', 'checked on the real URL', 'Globe', 'The live site or service is checked for real. If it fails, the last good version goes back up and it deploys again.', true),
+  step('j3', 'J', [2, 0], 'step', 'Deploy', 'Vercel and my VPS', 'Rocket', 'Sites deploy on Vercel. Hermes and the workers run in Docker on my VPS.'),
+  step('j4', 'J', [3, 0], 'decision', 'Verify live', 'on the real URL', 'Globe', 'The live site or service is checked for real. If it fails, the last good version goes back up and it deploys again.', true),
 
   step('k1', 'K', [0, 0], 'step', 'Write back', 'to the contact record', 'AddressBook', 'The result lands on the contact record, so the next run knows what already happened.'),
   step('k2', 'K', [1, 0], 'step', 'Save progress', 'watcher every 15 min', 'FloppyDisk', 'Progress is saved. A watcher pings me every fifteen minutes, but only when there is real work to save.', true),
-  step('k3', 'K', [2, 0], 'step', 'Fold back', 'a mistake becomes a rule', 'ArrowBendUpLeft', 'Whatever went wrong becomes a written rule, so the next run does not repeat it.'),
-  step('k4', 'K', [3, 0], 'end', 'Fresh session', 'reset early, reset often', 'Sparkle', 'The next task starts in a clean session. A fresh session beats a long one every time.'),
+  step('k3', 'K', [2, 0], 'step', 'Fold back', 'mistakes become rules', 'ArrowBendUpLeft', 'Whatever went wrong becomes a written rule, so the next run does not repeat it.'),
+  step('k4', 'K', [3, 0], 'end', 'Fresh session', 'reset early and often', 'Sparkle', 'The next task starts in a clean session. A fresh session beats a long one every time.'),
 ]
 
 /** Lanes whose steps read in order carry numbers (spec §3.2). */

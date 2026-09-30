@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { endToEnd as g, type EndToEnd } from '@/data/endToEnd'
 import { iconSvg } from '@/lib/endToEnd/icons'
@@ -114,5 +115,11 @@ describe('renderEndToEnd', () => {
     expect(html).not.toMatch(/gohighlevel|highlevel|\bghl\b/i)
     const external = [...html.matchAll(/(?:src|href)="(https?:[^"]+)"/g)].map((m) => new URL(m[1]).host)
     expect(new Set(external)).toEqual(new Set(['fonts.googleapis.com', 'fonts.gstatic.com']))
+  })
+})
+
+describe('public/end-to-end.html', () => {
+  it('is up to date with its data (run npm run e2e-page after any change)', () => {
+    expect(readFileSync('public/end-to-end.html', 'utf8').replace(/\r\n/g, '\n')).toBe(renderEndToEnd())
   })
 })
