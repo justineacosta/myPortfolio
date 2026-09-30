@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { KIND_LABELS, plan as PLAN, type NodeKind, type Plan, type Rail, type Workflow } from '../../data/buildPlan.ts'
+import { KIND_LABELS, KIND_NOTES, plan as PLAN, type NodeKind, type Plan, type Rail, type Workflow } from '../../data/buildPlan.ts'
 import { readContrast, readTokens } from '../tokens.ts'
 import { iconSvg } from './icons.ts'
 import { layout } from './layout.ts'
@@ -9,7 +9,8 @@ import { pageCss, type Themes } from './styles.ts'
 /** Where the page is served (public/build-plan.html). */
 export const PAGE_PATH = '/build-plan.html'
 
-type NodeIndex = Record<string, { label: string; type: string; settings: [string, string][] }>
+/** What each clickable item's panel shows: its name, a kind line, what happens there, and any settings. */
+type NodeIndex = Record<string, { label: string; type: string; what: string; settings: [string, string][] }>
 
 export const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 /** JSON inside <script>: no "<" survives, so nothing in it can close the tag. */
@@ -24,9 +25,12 @@ function section(id: string, kicker: string, title: string, blurb: string, side:
   return `<section id="${esc(id)}" aria-labelledby="${esc(id)}-h"><header class="shead"><span class="kicker">${esc(kicker)}</span><h2 id="${esc(id)}-h">${esc(title)}</h2><p>${esc(blurb)}</p></header><aside class="rail">${rail(side)}</aside><div class="main">${main}</div>${wide}</section>`
 }
 
-function hero(p: Plan) {
+function hero(p: Plan, index: NodeIndex) {
   const legend = (Object.keys(KIND_LABELS) as NodeKind[])
-    .map((k) => `<li><span class="k-${k}"><span class="node-card"></span></span>${esc(KIND_LABELS[k])}</li>`)
+    .map((k) => {
+      index[`key:${k}`] = { label: KIND_LABELS[k], type: 'DIAGRAM KEY', what: KIND_NOTES[k], settings: [] }
+      return `<li><button type="button" class="key" data-node="key:${k}" aria-haspopup="dialog" aria-expanded="false"><span class="k-${k}"><span class="node-card"></span></span>${esc(KIND_LABELS[k])}</button></li>`
+    })
     .join('')
   return `<header class="hero"><a class="home" href="/" target="_top">← ${esc(p.home)}</a><span class="kicker">${esc(p.kicker)}</span><h1>${esc(p.heading)}</h1><p class="lede">${esc(p.lede)}</p><dl class="meta">${p.meta
     .map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`)
@@ -38,7 +42,7 @@ function canvas(w: Workflow, index: NodeIndex) {
   const l = layout(w)
   const key = (id: string) => `${slug(w.code)}:${id}`
   const byId = new Map(w.nodes.map((n) => [n.id, n]))
-  for (const n of w.nodes) index[key(n.id)] = { label: n.label, type: n.type, settings: n.settings }
+  for (const n of w.nodes) index[key(n.id)] = { label: n.label, type: n.type, what: n.what, settings: n.settings }
   const entered = new Set(w.edges.map((e) => e.to))
   const left = new Set(w.edges.map((e) => e.from))
   const paths = l.edges.map((e) => `<path class="edge" d="${e.d}"/>`).join('')
@@ -77,7 +81,7 @@ function sections(p: Plan, index: NodeIndex) {
   return [
     { id: 'start', nav: 'Start', html: section('start', '01', s.title, s.blurb, s.rail, `<div class="ote">${card('Outcome', `<p>${esc(s.outcome)}</p>`)}${card('Entry points', `<p>${esc(s.trigger)}</p>`)}${card('Every way a job ends', list(s.exits))}</div>${card('Out of scope', list(s.outOfScope))}`) },
     { id: 'naming', nav: 'Naming', html: section('naming', '02', p.naming.title, p.naming.blurb, p.naming.rail, `<div class="rules">${p.naming.rules.map((r) => `<div class="rule"><h3>${esc(r.name)}</h3><pre class="code"><b>${esc(r.pattern)}</b>\n${r.examples.map(esc).join('\n')}</pre><p>${esc(r.rule)}</p></div>`).join('')}</div>`) },
-    { id: 'data', nav: 'Data', html: section('data', '03', d.title, d.blurb, d.rail, `<div class="cards">${d.tables.map((t) => card(t.name, `<p class="fields">${t.fields.map((f) => `<code>${esc(f)}</code>`).join(' ')}</p><p class="note">${esc(t.note)}</p>`)).join('')}</div><h3 class="sub">Job stages</h3><ol class="stages">${d.stages.map((st) => `<li>${esc(st)}</li>`).join('')}${d.exitStages.map((st) => `<li class="exit">${esc(st)}</li>`).join('')}</ol><div class="table-wrap"><table><thead><tr><th scope="col">Sheets tab</th><th scope="col">What it holds</th></tr></thead><tbody>${d.sheets.map(([t, what]) => `<tr><td>${esc(t)}</td><td>${esc(what)}</td></tr>`).join('')}</tbody></table></div>`) },
+    { id: 'data', nav: 'Data', html: section('data', '03', d.title, d.blurb, d.rail, `<div class="cards">${d.tables.map((t) => card(t.name, `<p class="fields">${t.fields.map((f) => `<code>${esc(f)}</code>`).join(' ')}</p><p class="note">${esc(t.note)}</p>`)).join('')}</div><h3 class="sub">Job stages</h3><ol class="stages">${[...d.stages, ...d.exitStages].map(([st, what], i) => { index[`stage:${i}`] = { label: st, type: 'JOB STAGE', what, settings: [] }; return `<li${i >= d.stages.length ? ' class="exit"' : ''}><button type="button" class="stage" data-node="stage:${i}" aria-haspopup="dialog" aria-expanded="false">${esc(st)}</button></li>` }).join('')}</ol><div class="table-wrap"><table><thead><tr><th scope="col">Sheets tab</th><th scope="col">What it holds</th></tr></thead><tbody>${d.sheets.map(([t, what]) => `<tr><td>${esc(t)}</td><td>${esc(what)}</td></tr>`).join('')}</tbody></table></div>`) },
     { id: 'triggers', nav: 'Triggers', html: section('triggers', '04', p.triggers.title, p.triggers.blurb, p.triggers.rail, `<div class="table-wrap"><table><thead><tr><th scope="col">Source</th><th scope="col">Event</th><th scope="col">Workflow</th></tr></thead><tbody>${p.triggers.rows.map(([src, ev, wf]) => `<tr><td>${esc(src)}</td><td><code>${esc(ev)}</code></td><td>${wfLink(wf)}</td></tr>`).join('')}</tbody></table></div>`) },
     ...p.workflows.map((w) => ({ id: slug(w.code), nav: w.code, html: workflowSection(w, index) })),
     { id: 'helpers', nav: 'Helpers', html: section('helpers', '05', p.helpers.title, p.helpers.blurb, p.helpers.rail, p.helpers.list.map((h) => `<div class="helper"><h3>${esc(h.code)} · ${esc(h.title)}</h3><p>${esc(h.outcome)}</p>${canvas(h, index)}</div>`).join('')) },
@@ -113,11 +117,11 @@ export function renderPlan(p: Plan = PLAN, themes: Themes = { dark: readTokens('
 <body>
 <nav class="toc" aria-label="Sections">${parts.map((s) => `<a href="#${esc(s.id)}">${esc(s.nav)}</a>`).join('')}</nav>
 <main class="page">
-${hero(p)}
+${hero(p, index)}
 ${parts.map((s) => s.html).join('\n')}
 </main>
 <footer class="foot"><span>${esc(p.footer.note)}</span><a href="/" target="_top">${esc(p.footer.by)}</a></footer>
-<div id="node-panel" class="panel" popover role="dialog" aria-labelledby="panel-label"><span class="ptype" data-p="type"></span><h3 id="panel-label" data-p="label"></h3><dl></dl><button type="button" class="panel-close" data-p="close" aria-label="Close settings">×</button></div>
+<div id="node-panel" class="panel" popover role="dialog" aria-labelledby="panel-label"><span class="ptype" data-p="type"></span><h3 id="panel-label" data-p="label"></h3><p class="pwhat" data-p="what"></p><dl></dl><button type="button" class="panel-close" data-p="close" aria-label="Close settings">×</button></div>
 <script type="application/json" id="plan-nodes">${safeJson(index)}</script>
 <script>${client}</script>
 </body>

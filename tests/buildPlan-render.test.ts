@@ -74,6 +74,21 @@ describe('renderPlan', () => {
     expect(data['tm-01:n6'].settings).toContainEqual(['Model', 'Claude Haiku 4.5'])
   })
 
+  it('puts a plain description in every panel, and makes the key and the stages clickable too', () => {
+    const data = JSON.parse(doc.getElementById('plan-nodes')!.textContent!)
+    expect(data['tm-01:n6'].what).toMatch(/^Claude reads the request/)
+    const keys = [...doc.querySelectorAll<HTMLElement>('.legend button[data-node]')]
+    const stages = [...doc.querySelectorAll<HTMLElement>('.stages button[data-node]')]
+    expect(keys).toHaveLength(8)
+    expect(stages).toHaveLength(9)
+    for (const b of [...keys, ...stages]) {
+      expect(data[b.dataset.node!].what, b.dataset.node).toMatch(/.$/)
+      expect(b.getAttribute('aria-haspopup')).toBe('dialog')
+    }
+    const what = doc.querySelector('#node-panel [data-p=what]')!
+    expect(what.compareDocumentPosition(doc.querySelector('#node-panel dl')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
   it('gives every diagram a caption, a scrolling frame and a step list for screen readers', () => {
     const figures = [...doc.querySelectorAll('figure.canvas')]
     expect(figures).toHaveLength(9)
