@@ -21,7 +21,8 @@ describe('no kape content', () => {
     it(`data/${file} exports none`, async () => {
       const mod = await import(`../data/${file.replace(/\.ts$/, '')}`)
       expect(strings(mod).filter((s) => BANNED.test(s))).toEqual([])
-    })
+      // A cold import of a large data file can pass 5 s while the whole suite runs.
+    }, 30_000)
   }
 
   for (const file of readdirSync('public').filter((f) => f.endsWith('.html'))) {

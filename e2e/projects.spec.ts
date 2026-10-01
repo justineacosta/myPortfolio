@@ -430,9 +430,12 @@ test('the AI agents card’s preview plays only on screen, and holds still under
       expect((await state()).name).toBe('none')
       await expect(q).toBeVisible()
     } else {
-      expect((await state()).play).toBe('paused')
+      // Off screen it rests on the finished chat, not an empty frame.
+      expect((await state()).name).toBe('none')
+      expect(await page.locator('.agents-preview .ap-a').evaluate((el) => getComputedStyle(el).opacity)).toBe('1')
       await page.locator('.agents-preview').scrollIntoViewIfNeeded()
-      await expect.poll(async () => (await state()).play).toBe('running')
+      await expect.poll(async () => (await state()).name).toBe('apQ')
+      expect((await state()).play).toBe('running')
     }
     await ctx.close()
   }

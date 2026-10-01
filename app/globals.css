@@ -337,18 +337,18 @@ html[data-a11y-motion=true] .reel-pause{display:none}
 @media (prefers-reduced-motion:reduce){.flow-ball{display:none}}
 html[data-a11y-motion=true] .flow-ball{display:none}
 /* ---- Agents card preview (components/projects/AgentsPreview.tsx, spec 2026-10-01-agents-page §5.2) ---- */
-/* At rest: the finished chat. On screen with motion allowed: the chat builds, then an agent run takes over, 12 s a turn. */
+/* At rest (off screen, no JS, print): the finished chat. On screen with motion allowed: the chat builds, then an agent run takes over, 12 s a turn.
+   The animations exist only while on screen, so the resting look is the plain markup, never a paused first frame. */
 .agents-preview .ap-run{opacity:0}
-.agents-preview :is(.ap-chat,.ap-q,.ap-search,.ap-a,.ap-run,.ap-step-1,.ap-step-2,.ap-approve){animation-duration:12s;animation-timing-function:ease-in-out;animation-iteration-count:infinite;animation-fill-mode:both;animation-play-state:paused}
-.agents-preview[data-on] :is(.ap-chat,.ap-q,.ap-search,.ap-a,.ap-run,.ap-step-1,.ap-step-2,.ap-approve){animation-play-state:running}
-.agents-preview .ap-chat{animation-name:apChat}
-.agents-preview .ap-q{animation-name:apQ}
-.agents-preview .ap-search{animation-name:apSearch}
-.agents-preview .ap-a{animation-name:apAnswer}
-.agents-preview .ap-run{animation-name:apRun}
-.agents-preview .ap-step-1{animation-name:apStep1}
-.agents-preview .ap-step-2{animation-name:apStep2}
-.agents-preview .ap-approve{animation-name:apApprove}
+.agents-preview :is(.ap-chat,.ap-q,.ap-search,.ap-a,.ap-run,.ap-step-1,.ap-step-2,.ap-approve){animation-duration:12s;animation-timing-function:ease-in-out;animation-iteration-count:infinite;animation-fill-mode:both}
+.agents-preview[data-on] .ap-chat{animation-name:apChat}
+.agents-preview[data-on] .ap-q{animation-name:apQ}
+.agents-preview[data-on] .ap-search{animation-name:apSearch}
+.agents-preview[data-on] .ap-a{animation-name:apAnswer}
+.agents-preview[data-on] .ap-run{animation-name:apRun}
+.agents-preview[data-on] .ap-step-1{animation-name:apStep1}
+.agents-preview[data-on] .ap-step-2{animation-name:apStep2}
+.agents-preview[data-on] .ap-approve{animation-name:apApprove}
 @keyframes apChat{0%,44%{opacity:1}50%,94%{opacity:0}100%{opacity:1}}
 @keyframes apQ{0%{opacity:0;transform:translateY(6px)}6%,100%{opacity:1;transform:none}}
 @keyframes apSearch{0%,10%{opacity:0;transform:translateY(6px)}16%,100%{opacity:1;transform:none}}

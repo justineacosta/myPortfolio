@@ -188,12 +188,12 @@ test('every step’s name and sub-line sit on one line', async ({ page }) => {
 
 test('pins are big enough to tap (24 px) and never overlap', async ({ page }) => {
   await page.goto(`${PAGE}#agent`)
-  const boxes = []
-  for (const pin of await page.locator('.pin').all()) {
-    const b = (await pin.boundingBox())!
+  // Measure every pin in one go, so a scroll still settling cannot shift some boxes and not others.
+  const boxes = await page.locator('.pin').evaluateAll((els) => els.map((e) => { const r = e.getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height } }))
+  expect(boxes).toHaveLength(18)
+  for (const b of boxes) {
     expect(b.width).toBeGreaterThanOrEqual(24)
     expect(b.height).toBeGreaterThanOrEqual(24)
-    boxes.push(b)
   }
   for (let i = 0; i < boxes.length; i++)
     for (let j = i + 1; j < boxes.length; j++) {
