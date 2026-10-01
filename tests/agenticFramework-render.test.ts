@@ -4,6 +4,7 @@ import { agenticFramework as g, type AgenticFramework } from '@/data/agenticFram
 import { layoutLoop } from '@/lib/agenticFramework/layout'
 import { renderAgenticFramework } from '@/lib/agenticFramework/render'
 import { iconSvg } from '@/lib/endToEnd/icons'
+import { TOOLS } from '@/lib/brand/tools'
 import { readContrast, readTokens } from '@/lib/tokens'
 
 const html = renderAgenticFramework()
@@ -16,7 +17,7 @@ describe('renderAgenticFramework', () => {
     expect(doc.querySelector('h1')!.textContent).toBe('The Agentic Framework')
     expect(doc.querySelector('.lede')!.textContent).toBe(g.lede)
     expect(doc.querySelector('.stance')!.textContent).toBe('I make the calls. The AI does the typing.')
-    expect(doc.querySelector('.stack')).toBeNull()
+    expect([...doc.querySelectorAll('.hero .tool-chip')].map((li) => li.textContent)).toEqual(['Claude Code', 'VS Code', 'Codex'])
     expect(doc.querySelector('link[rel=canonical]')!.getAttribute('href')).toBe('/agentic-framework.html')
     expect(doc.querySelector('meta[property="og:title"]')!.getAttribute('content')).toBe(g.title)
   })
@@ -152,5 +153,38 @@ describe('renderAgenticFramework', () => {
 describe('public/agentic-framework.html', () => {
   it('is up to date with its data (run npm run af-page after any change)', () => {
     expect(readFileSync('public/agentic-framework.html', 'utf8').replace(/\r\n/g, '\n')).toBe(renderAgenticFramework())
+  })
+})
+
+describe('the Agentic page’s logos and colour', () => {
+  it('badges Frame and Build with Claude Code, and Check with Codex then VS Code', () => {
+    const hrefs = (id: string) => [...doc.querySelectorAll(`[data-node="${id}"] .logo-badge`)].map((b) => b.querySelector('use')!.getAttribute('href'))
+    expect(hrefs('frame')).toEqual(['#logo-claude-code'])
+    expect(hrefs('build')).toEqual(['#logo-claude-code'])
+    expect(hrefs('check')).toEqual(['#logo-codex', '#logo-vs-code'])
+    expect(hrefs('gate')).toEqual([])
+  })
+
+  it('shows the real logo on each tool tile, and the Phosphor icon everywhere else', () => {
+    const tiles = [...doc.querySelectorAll('#tools .tile-icon')]
+    expect(tiles.map((t) => t.querySelector('use')!.getAttribute('href'))).toEqual(['#logo-claude-code', '#logo-vs-code', '#logo-codex'])
+    expect(doc.querySelector('#rules .tile-icon use')).toBeNull()
+  })
+
+  it('draws each logo once, with Codex’s dark version, and puts logos before the tool terms in the glossary', () => {
+    expect([...doc.querySelectorAll('.logo-sheet symbol')].map((s) => s.id)).toEqual(['logo-claude-code', 'logo-vs-code', 'logo-codex', 'logo-codex-dark'])
+    expect([...doc.querySelectorAll('#glossary dt')].filter((dt) => dt.querySelector('.gl-logo')).map((dt) => dt.textContent)).toEqual(['Claude Code', 'VS Code', 'Codex'])
+  })
+
+  it('gives the panel a tools slot and the index each step’s tools', () => {
+    expect(doc.querySelector('#node-panel > [data-p=tools]')!.hasAttribute('hidden')).toBe(true)
+    expect(data().check.tools).toEqual(['codex', 'vs-code'])
+    expect(data()['rule:R1'].tools).toBeUndefined()
+  })
+
+  it('adds the lively layer with the Claude and VS Code glow, the reveal script last, and grows by no more than 40 KB', () => {
+    expect(doc.querySelector('style')!.textContent).toContain(`--halo-b:${TOOLS['vs-code'].brand}`)
+    expect([...doc.querySelectorAll('script')].at(-1)!.textContent).toContain("root.classList.add('reveal-on')")
+    expect(html.length).toBeLessThan(68_774 + 40_000)
   })
 })

@@ -9,9 +9,6 @@ export function afCss(themes: Themes): string {
   return `${pageCss(themes)}
 .page>section{display:flex;flex-direction:column;gap:20px}
 .stance{font-weight:600;color:var(--ink)}
-.stack{display:flex;flex-direction:row;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
-.stack li{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;border:1px solid var(--b1);background:var(--s1);font-size:.8125rem;color:var(--ink2)}
-.stack svg{color:var(--accent)}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:12px;margin:0;padding:0;list-style:none}
 .tile{display:flex;flex-direction:column;gap:8px;min-width:0;padding:18px;border-radius:16px;border:1px solid var(--b1);background:var(--s1)}
 .tile-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
