@@ -162,7 +162,7 @@ test('other pages never load the Projects write-ups up front', async ({ request 
   const srcs = [...html.matchAll(/<script[^>]+src="([^"]+)"/g)].map((m) => m[1])
   expect(srcs.length).toBeGreaterThan(0)
   const bodies = await Promise.all(srcs.map(async (src) => (await request.get(src)).text()))
-  expect(bodies.filter((b) => b.includes('Write the spec first')).length).toBe(0)
+  expect(bodies.filter((b) => b.includes('Refuses to guess.')).length).toBe(0)
 })
 
 test('the build plan window shows the plan and follows the site theme, dark by default', async ({ page }) => {
@@ -226,6 +226,7 @@ test('/projects never fetches the plan page until its window opens', async ({ pa
   await page.waitForLoadState('networkidle')
   expect(asked).not.toContain('/build-plan.html')
   expect(asked).not.toContain('/end-to-end.html')
+  expect(asked).not.toContain('/agentic-framework.html')
 })
 
 test('a write-up window keeps its margin', async ({ page }) => {
@@ -349,4 +350,32 @@ test('inside the site window the plan hides its link back to the portfolio', asy
   const frame = page.frameLocator('iframe[title="Trusted Mover build plan"]')
   await expect(frame.getByRole('heading', { level: 1 })).toBeVisible()
   await expect(frame.locator('a.home')).toBeHidden()
+})
+
+test('the Agentic Framework window shows its page and follows the site theme', async ({ page }) => {
+  await page.goto('/projects#agentic-framework')
+  await hydrated(page)
+  const view = page.getByRole('dialog', { name: 'The Agentic Framework' })
+  await expect(view.getByRole('link', { name: 'Open in new tab' })).toHaveAttribute('href', '/agentic-framework.html')
+  const frame = page.frameLocator('iframe[title="Agentic Framework page"]')
+  await expect(frame.getByRole('heading', { level: 1 })).toHaveText('The Agentic Framework')
+  await expect(frame.locator('a.home')).toBeHidden()
+  const theme = () => frame.locator('html').getAttribute('data-theme')
+  await page.evaluate(() => (document.documentElement.dataset.theme = 'light'))
+  await expect.poll(theme).toBe('light')
+  await page.evaluate(() => (document.documentElement.dataset.theme = 'dark'))
+  await expect.poll(theme).toBe('dark')
+})
+
+test('section chips in the Agentic Framework add no history, so one Back closes the window', async ({ page }) => {
+  await page.goto('/projects')
+  await hydrated(page)
+  await page.getByRole('link', { name: /The Agentic Framework/ }).first().click()
+  const view = page.getByRole('dialog', { name: 'The Agentic Framework' })
+  const chips = page.frameLocator('iframe[title="Agentic Framework page"]').getByRole('navigation', { name: 'Sections' })
+  await chips.getByRole('link', { name: 'The loop' }).click()
+  await chips.getByRole('link', { name: 'Rules' }).click()
+  await page.goBack()
+  await expect(view).toBeHidden()
+  await expect(page).toHaveURL(/\/projects$/)
 })
