@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { KIND_LABELS, KIND_NOTES, plan as PLAN, type NodeKind, type Plan, type Rail, type Workflow } from '../../data/buildPlan.ts'
 import { livelyCss } from '../brand/lively.ts'
-import { backdropHtml, logoBadges, logoSheet, revealJs, toolStrip, toolTemplates, toolsUsed, themeHeadJs } from '../brand/render.ts'
+import { contourJs, backdropHtml, logoBadges, logoSheet, revealJs, toolStrip, toolTemplates, toolsUsed, themeHeadJs } from '../brand/render.ts'
 import type { ToolId } from '../brand/tools.ts'
 import { readContrast, readTokens } from '../tokens.ts'
 import { iconSvg } from './icons.ts'
@@ -134,6 +134,7 @@ ${parts.map((s) => s.html).join('\n')}
 ${toolTemplates(used)}
 <script type="application/json" id="plan-nodes">${safeJson(index)}</script>
 <script>${client}</script>
+<script>${contourJs()}</script>
 <script>${revealJs()}</script>
 </body>
 </html>

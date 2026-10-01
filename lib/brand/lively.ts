@@ -75,6 +75,7 @@ ${siteGlow()}
 ${STILL} .page-glow > *{animation:none}
 ${HC} .page-glow{display:none}
 .page,.foot{position:relative;z-index:1}
+canvas[data-contour]{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
 .reveal-on [data-reveal]{transition:opacity .6s ease,transform .6s ease}
 .reveal-on [data-reveal]:not(.in){opacity:0;transform:translateY(12px)}
 ${STILL} [data-reveal]{opacity:1!important;transform:none!important;transition:none!important}
@@ -82,6 +83,7 @@ ${STILL} [data-reveal]{opacity:1!important;transform:none!important;transition:n
 @media print{
 :root,:root[data-theme]{${LIGHT}}
 .page-glow{display:none}
+canvas[data-contour]{display:none}
 [data-reveal]{opacity:1!important;transform:none!important;transition:none!important}
 .logo,.logo-badge,.tool-chip,${TINTED}{print-color-adjust:exact;-webkit-print-color-adjust:exact}
 }

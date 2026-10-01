@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { CONTOUR_FRAG, CONTOUR_TIMING } from '../contour.ts'
 import { TOOLS, type ToolId } from './tools.ts'
 
 /**
@@ -75,3 +76,7 @@ export const backdropHtml = () => '<div class="page-glow" aria-hidden="true"><di
 
 /** The theme head script (spec 2026-10-01-light-backdrop §3.2), ready to inline first in <head>. */
 export const themeHeadJs = () => readFileSync(join(process.cwd(), 'lib/brand/theme.js'), 'utf8').replace(/\r\n/g, '\n')
+
+/** The pages' contour (spec 2026-10-01-light-backdrop §4.2): the site's shader and timing, then the script. No "<" survives in the JSON. */
+export const contourJs = () =>
+  `const CONTOUR = ${JSON.stringify({ frag: CONTOUR_FRAG, ...CONTOUR_TIMING }).replace(/</g, '\\u003c')}\n${readFileSync(join(process.cwd(), 'lib/brand/contour.js'), 'utf8').replace(/\r\n/g, '\n')}`

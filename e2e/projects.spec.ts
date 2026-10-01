@@ -379,3 +379,12 @@ test('section chips in the Agentic Framework add no history, so one Back closes 
   await expect(view).toBeHidden()
   await expect(page).toHaveURL(/\/projects$/)
 })
+
+test('a standalone page in its dialog copies the site’s performance setting', async ({ page }) => {
+  await page.goto('/projects#build-plan')
+  await hydrated(page)
+  const frame = page.frameLocator('iframe[title="Trusted Mover build plan"]')
+  await expect(frame.getByRole('heading', { level: 1 })).toBeVisible()
+  await page.evaluate(() => (document.documentElement.dataset.perf = 'low'))
+  await expect.poll(() => frame.locator('html').getAttribute('data-perf')).toBe('low')
+})

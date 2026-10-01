@@ -5,7 +5,7 @@ import { esc } from '../buildPlan/render.ts'
 import type { Themes } from '../buildPlan/styles.ts'
 import { iconSvg } from '../endToEnd/icons.ts'
 import { livelyCss } from '../brand/lively.ts'
-import { backdropHtml, glossaryLogo, logo, logoBadges, logoSheet, revealJs, toolByName, toolStrip, toolTemplates, toolsUsed, themeHeadJs } from '../brand/render.ts'
+import { contourJs, backdropHtml, glossaryLogo, logo, logoBadges, logoSheet, revealJs, toolByName, toolStrip, toolTemplates, toolsUsed, themeHeadJs } from '../brand/render.ts'
 import type { ToolId } from '../brand/tools.ts'
 import { readContrast, readTokens } from '../tokens.ts'
 import { layoutLoop } from './layout.ts'
@@ -153,6 +153,7 @@ ${body}
 ${toolTemplates(used)}
 <script type="application/json" id="graph-nodes">${safeJson(index)}</script>
 <script>${client}</script>
+<script>${contourJs()}</script>
 <script>${revealJs()}</script>
 </body>
 </html>

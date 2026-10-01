@@ -237,7 +237,9 @@ test('Check’s two badges sit together on its top-right corner, clear of its ru
 })
 
 test('Check’s badges read in the sub-line’s order, Codex then VS Code, with the first on top', async ({ page }) => {
-  await page.goto(`${PAGE}#loop`)
+  // No hash: a smooth jump would still be scrolling when the badges are measured.
+  await page.goto(PAGE)
+  await page.locator('[data-node="check"]').scrollIntoViewIfNeeded()
   const [first, second] = await page.locator('[data-node="check"] .logo-badge').all()
   const a = (await first.boundingBox())!
   const b = (await second.boundingBox())!

@@ -212,6 +212,7 @@ describe('the build plan’s logos and colour', () => {
   })
 
   it('grows by no more than 40 KB', () => {
-    expect(html.length).toBeLessThan(172_274 + 40_000)
+    // 40 KB for the lively layer, 12 KB for the site's backdrop (contour shader and script, spec 2026-10-01-light-backdrop).
+    expect(html.length).toBeLessThan(172_274 + 40_000 + 12_000)
   })
 })

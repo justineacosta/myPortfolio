@@ -253,6 +253,7 @@ a[href^="http"]::after{content:" (" attr(href) ")";font-size:.75em;color:var(--i
 :root[data-a11y-motion=true] .page-glow > *{animation:none}
 :root[data-a11y-contrast=true] .page-glow{display:none}
 .page,.foot{position:relative;z-index:1}
+canvas[data-contour]{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
 .reveal-on [data-reveal]{transition:opacity .6s ease,transform .6s ease}
 .reveal-on [data-reveal]:not(.in){opacity:0;transform:translateY(12px)}
 :root[data-a11y-motion=true] [data-reveal]{opacity:1!important;transform:none!important;transition:none!important}
@@ -260,6 +261,7 @@ a[href^="http"]::after{content:" (" attr(href) ")";font-size:.75em;color:var(--i
 @media print{
 :root,:root[data-theme]{--k-trigger:#B45309;--k-ai:#6D28D9;--k-branch:#1D4ED8;--k-helper:#0F766E;--logo-light:inline;--logo-dark:none}
 .page-glow{display:none}
+canvas[data-contour]{display:none}
 [data-reveal]{opacity:1!important;transform:none!important;transition:none!important}
 .logo,.logo-badge,.tool-chip,:is(.k-trigger,.k-ai,.k-branch,.k-helper) .node-card{print-color-adjust:exact;-webkit-print-color-adjust:exact}
 }
@@ -283,10 +285,10 @@ a[href^="http"]::after{content:" (" attr(href) ")";font-size:.75em;color:var(--i
 ;(() => {
   const root = document.documentElement
 
-  // Inside the portfolio's dialog, wear the site's theme and access settings.
+  // Inside the portfolio's dialog, wear the site's theme, access settings and performance setting.
   // The site treats a missing data-theme as dark. Its text size is left out:
   // the site already zooms the whole window, iframe included.
-  const MIRROR = ['data-a11y-motion', 'data-a11y-contrast', 'data-a11y-links']
+  const MIRROR = ['data-a11y-motion', 'data-a11y-contrast', 'data-a11y-links', 'data-perf']
   let host = null
   try {
     if (window.parent !== window) host = window.parent.document.documentElement
@@ -612,6 +614,163 @@ a[href^="http"]::after{content:" (" attr(href) ")";font-size:.75em;color:var(--i
     },
     true,
   )
+})()
+</script>
+<script>const CONTOUR = {"frag":"\n  uniform float uTime;\n  uniform vec2  uMouse;\n  uniform float uMousePace;\n  uniform float uAspect;\n  uniform vec3  uBg;    // Kraft --bg\n  uniform vec3  uLine;  // Kraft --amb\n  varying vec2 vUv;\n  \n  vec3 mod289(vec3 x){return x-floor(x*(1./289.))*289.;}\n  vec4 mod289(vec4 x){return x-floor(x*(1./289.))*289.;}\n  vec4 permute(vec4 x){return mod289(((x*34.)+1.)*x);}\n  vec4 taylorInvSqrt(vec4 r){return 1.79284291400159-.85373472095314*r;}\n  float snoise(vec3 v){\n    const vec2 C=vec2(1./6.,1./3.);const vec4 D=vec4(0.,.5,1.,2.);\n    vec3 i=floor(v+dot(v,C.yyy));vec3 x0=v-i+dot(i,C.xxx);\n    vec3 g=step(x0.yzx,x0.xyz);vec3 l=1.-g;\n    vec3 i1=min(g.xyz,l.zxy);vec3 i2=max(g.xyz,l.zxy);\n    vec3 x1=x0-i1+C.xxx;vec3 x2=x0-i2+C.yyy;vec3 x3=x0-D.yyy;\n    i=mod289(i);\n    vec4 p=permute(permute(permute(i.z+vec4(0.,i1.z,i2.z,1.))+i.y+vec4(0.,i1.y,i2.y,1.))+i.x+vec4(0.,i1.x,i2.x,1.));\n    float n_=.142857142857;vec3 ns=n_*D.wyz-D.xzx;\n    vec4 j=p-49.*floor(p*ns.z*ns.z);vec4 x_=floor(j*ns.z);vec4 y_=floor(j-7.*x_);\n    vec4 x=x_*ns.x+ns.yyyy;vec4 y=y_*ns.x+ns.yyyy;vec4 h=1.-abs(x)-abs(y);\n    vec4 b0=vec4(x.xy,y.xy);vec4 b1=vec4(x.zw,y.zw);\n    vec4 s0=floor(b0)*2.+1.;vec4 s1=floor(b1)*2.+1.;\n    vec4 sh=-step(h,vec4(0.));\n    vec4 a0=b0.xzyw+s0.xzyw*sh.xxyy;vec4 a1=b1.xzyw+s1.xzyw*sh.zzww;\n    vec3 p0=vec3(a0.xy,h.x);vec3 p1=vec3(a0.zw,h.y);vec3 p2=vec3(a1.xy,h.z);vec3 p3=vec3(a1.zw,h.w);\n    vec4 norm=taylorInvSqrt(vec4(dot(p0,p0),dot(p1,p1),dot(p2,p2),dot(p3,p3)));\n    p0*=norm.x;p1*=norm.y;p2*=norm.z;p3*=norm.w;\n    vec4 m=max(.6-vec4(dot(x0,x0),dot(x1,x1),dot(x2,x2),dot(x3,x3)),0.);m=m*m;\n    return 42.*dot(m*m,vec4(dot(p0,x0),dot(p1,x1),dot(p2,x2),dot(p3,x3)));\n  }\n\n\n  const float SCALE             = 0.72;\n  const float NOISE_DETAIL      = 3.0;\n  const float DISTORT_SCALE     = 0.55;\n  const float DISTORT_INTENSITY = 0.50;\n  const float HAIRLINE_PIXELS   = 1.5;\n  const float CURSOR_SCALE      = 1.5;\n  const float CURSOR_INTENSITY  = 0.05;\n  const float LINE_ALPHA        = 0.55; // tuned in Task 11 against both themes\n  const vec2  ANISOTROPY        = vec2(1.0, 1.0);\n\n  void main(){\n    vec2 uv = vUv;\n    uv.x *= uAspect;\n    vec2 mouse = uMouse * 0.5 + 0.5;\n    mouse.x *= uAspect;\n    float cursor = 1.0 - distance(mouse, uv) * CURSOR_SCALE;\n    cursor *= uMousePace;\n    cursor = clamp(cursor, 0.0, 1.0);\n\n    float noiseDistort = 0.5 + snoise(vec3(uv * DISTORT_SCALE, uTime * 0.1)) * 0.5;\n    vec2 warpedUv = (uv + cursor * CURSOR_INTENSITY + noiseDistort * DISTORT_INTENSITY) * SCALE * ANISOTROPY;\n    float n = snoise(vec3(warpedUv, uTime));\n    float bands = (n * 0.5 + 0.5) * NOISE_DETAIL;\n\n    float contour = fract(bands);\n    float dist    = abs(contour - 0.5);\n    float w       = fwidth(bands) * HAIRLINE_PIXELS * 0.5;\n    float line    = 1.0 - smoothstep(0.0, w, dist);\n\n    vec3 lineCol = uLine + cursor * 0.04;\n    gl_FragColor = vec4(mix(uBg, lineCol, line * LINE_ALPHA), 1.0);\n  }\n","frameInterval":33.333333333333336,"drift":0.09,"follow":4,"pace":8,"theme":7}
+// The portfolio's contour lines behind a standalone page (spec 2026-10-01-light-backdrop §4.2), drawn with
+// plain WebGL 1 instead of three.js. CONTOUR (the site's shader and timing, lib/contour.ts) is declared just
+// above by the renderer. Same limits as the site: after load, at idle, fine pointer, motion allowed, not the
+// low performance setting. If anything is missing, the flat --bg carries the page. The browser pauses
+// requestAnimationFrame in a hidden tab, so the contour rests there too.
+;(() => {
+  const root = document.documentElement
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)')
+  const coarse = matchMedia('(pointer: coarse) and (hover: none)')
+  const perf = () => {
+    if (root.dataset.perf) return root.dataset.perf
+    try {
+      return sessionStorage.getItem('kraft-perf')
+    } catch {
+      return null
+    }
+  }
+  const allowed = () => !reduce.matches && root.dataset.a11yMotion !== 'true' && !coarse.matches && perf() !== 'low'
+  /** A token (`#rrggbb`, or Kraft's bare `r,g,b` for --amb) as 0–1 channels. */
+  const color = (name) => {
+    const v = getComputedStyle(root).getPropertyValue(name).trim()
+    const hex = /^#([0-9a-f]{6})$/i.exec(v)
+    if (hex) return [0, 2, 4].map((i) => parseInt(hex[1].slice(i, i + 2), 16) / 255)
+    const t = v.split(',').map((n) => Number(n.trim()))
+    return t.length === 3 && t.every((n) => Number.isFinite(n) && n >= 0) ? t.map((n) => Math.min(255, n) / 255) : null
+  }
+
+  let stop = null
+  let ready = false
+  const start = () => {
+    if (stop || !ready || !allowed()) return
+    const bg = color('--bg')
+    const line = color('--amb')
+    if (!bg || !line) return
+    const canvas = document.createElement('canvas')
+    canvas.setAttribute('data-contour', '')
+    canvas.setAttribute('aria-hidden', 'true')
+    const gl = canvas.getContext('webgl', { antialias: false, alpha: false, depth: false })
+    if (!gl || !gl.getExtension('OES_standard_derivatives')) return
+    const compile = (type, src) => {
+      const s = gl.createShader(type)
+      gl.shaderSource(s, src)
+      gl.compileShader(s)
+      return gl.getShaderParameter(s, gl.COMPILE_STATUS) ? s : null
+    }
+    const vs = compile(gl.VERTEX_SHADER, 'attribute vec2 p;varying vec2 vUv;void main(){vUv=p*.5+.5;gl_Position=vec4(p,0.,1.);}')
+    const fs = compile(gl.FRAGMENT_SHADER, `#extension GL_OES_standard_derivatives : enable\nprecision highp float;\n${CONTOUR.frag}`)
+    if (!vs || !fs) return
+    const prog = gl.createProgram()
+    gl.attachShader(prog, vs)
+    gl.attachShader(prog, fs)
+    gl.linkProgram(prog)
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return
+    gl.useProgram(prog)
+    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer())
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), gl.STATIC_DRAW)
+    const at = gl.getAttribLocation(prog, 'p')
+    gl.enableVertexAttribArray(at)
+    gl.vertexAttribPointer(at, 2, gl.FLOAT, false, 0, 0)
+    const u = Object.fromEntries(['uTime', 'uMouse', 'uMousePace', 'uAspect', 'uBg', 'uLine'].map((n) => [n, gl.getUniformLocation(prog, n)]))
+
+    // 1x pixel density, like the site.
+    const size = () => {
+      canvas.width = innerWidth
+      canvas.height = innerHeight
+      gl.viewport(0, 0, canvas.width, canvas.height)
+      gl.uniform1f(u.uAspect, innerWidth / innerHeight)
+    }
+    size()
+    // The theme (or high contrast) changes the tokens; the colours ease to them on the contour's own clock.
+    let target = { bg, line }
+    const themeWatch = new MutationObserver(() => {
+      const nb = color('--bg')
+      const nl = color('--amb')
+      if (nb && nl) target = { bg: nb, line: nl }
+    })
+    themeWatch.observe(root, { attributes: true, attributeFilter: ['data-theme', 'data-a11y-contrast'] })
+    const tgt = { x: 0, y: 0 }
+    const cur = { x: 0, y: 0 }
+    const onMove = (e) => {
+      tgt.x = (e.clientX / innerWidth) * 2 - 1
+      tgt.y = -(e.clientY / innerHeight) * 2 + 1
+    }
+    addEventListener('mousemove', onMove)
+    addEventListener('resize', size)
+
+    let raf = 0
+    let time = 0
+    let last = performance.now() - CONTOUR.frameInterval
+    let lastX = 0
+    let lastY = 0
+    let pace = 0
+    const ease = (from, to, k) => from.forEach((v, i) => (from[i] = v + (to[i] - v) * k))
+    const frame = (now) => {
+      raf = requestAnimationFrame(frame)
+      if (now - last < CONTOUR.frameInterval - 1) return
+      const dt = Math.min(0.05, (now - last) / 1000)
+      last = now
+      time += CONTOUR.drift * dt
+      const follow = 1 - Math.exp(-CONTOUR.follow * dt)
+      cur.x += (tgt.x - cur.x) * follow
+      cur.y += (tgt.y - cur.y) * follow
+      const speed = Math.min(1, Math.hypot((cur.x - lastX) / Math.max(dt, 0.001), (cur.y - lastY) / Math.max(dt, 0.001)) * 0.4)
+      pace += (speed - pace) * (1 - Math.exp(-CONTOUR.pace * dt))
+      lastX = cur.x
+      lastY = cur.y
+      const k = 1 - Math.exp(-CONTOUR.theme * dt)
+      ease(bg, target.bg, k)
+      ease(line, target.line, k)
+      gl.uniform1f(u.uTime, time)
+      gl.uniform2f(u.uMouse, cur.x, cur.y)
+      gl.uniform1f(u.uMousePace, pace)
+      gl.uniform3fv(u.uBg, bg)
+      gl.uniform3fv(u.uLine, line)
+      gl.drawArrays(gl.TRIANGLES, 0, 6)
+    }
+    const halt = () => {
+      cancelAnimationFrame(raf)
+      themeWatch.disconnect()
+      removeEventListener('mousemove', onMove)
+      removeEventListener('resize', size)
+      canvas.removeEventListener('webglcontextlost', lost)
+      canvas.remove()
+      const lose = gl.getExtension('WEBGL_lose_context')
+      if (lose) lose.loseContext()
+      stop = null
+    }
+    const lost = (e) => {
+      e.preventDefault()
+      halt()
+    }
+    canvas.addEventListener('webglcontextlost', lost)
+    stop = halt
+    document.body.prepend(canvas)
+    raf = requestAnimationFrame(frame)
+  }
+
+  const recheck = () => {
+    if (stop && !allowed()) stop()
+    else start()
+  }
+  const begin = () => {
+    const go = () => {
+      ready = true
+      start()
+    }
+    if ('requestIdleCallback' in window) requestIdleCallback(go, { timeout: 3000 })
+    else setTimeout(go, 1500)
+  }
+  if (document.readyState === 'complete') begin()
+  else addEventListener('load', begin, { once: true })
+  reduce.addEventListener('change', recheck)
+  coarse.addEventListener('change', recheck)
+  new MutationObserver(recheck).observe(root, { attributes: true, attributeFilter: ['data-a11y-motion', 'data-perf'] })
 })()
 </script>
 <script>// Scroll-in reveal for the standalone pages (spec 2026-10-01-lively-pages §6).
