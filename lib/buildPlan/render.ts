@@ -1,6 +1,9 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { KIND_LABELS, KIND_NOTES, plan as PLAN, type NodeKind, type Plan, type Rail, type Workflow } from '../../data/buildPlan.ts'
+import { livelyCss } from '../brand/lively.ts'
+import { logoBadges, logoSheet, revealJs, toolStrip, toolTemplates, toolsUsed } from '../brand/render.ts'
+import type { ToolId } from '../brand/tools.ts'
 import { readContrast, readTokens } from '../tokens.ts'
 import { iconSvg } from './icons.ts'
 import { layout } from './layout.ts'
@@ -10,7 +13,7 @@ import { pageCss, type Themes } from './styles.ts'
 export const PAGE_PATH = '/build-plan.html'
 
 /** What each clickable item's panel shows: its name, a kind line, what happens there, and any settings. */
-type NodeIndex = Record<string, { label: string; type: string; what: string; settings: [string, string][] }>
+type NodeIndex = Record<string, { label: string; type: string; what: string; settings: [string, string][]; tools?: ToolId[] }>
 
 export const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 /** JSON inside <script>: no "<" survives, so nothing in it can close the tag. */
@@ -25,14 +28,14 @@ function section(id: string, kicker: string, title: string, blurb: string, side:
   return `<section id="${esc(id)}" aria-labelledby="${esc(id)}-h"><header class="shead"><span class="kicker">${esc(kicker)}</span><h2 id="${esc(id)}-h">${esc(title)}</h2><p>${esc(blurb)}</p></header><aside class="rail">${rail(side)}</aside><div class="main">${main}</div>${wide}</section>`
 }
 
-function hero(p: Plan, index: NodeIndex) {
+function hero(p: Plan, index: NodeIndex, used: ToolId[]) {
   const legend = (Object.keys(KIND_LABELS) as NodeKind[])
     .map((k) => {
       index[`key:${k}`] = { label: KIND_LABELS[k], type: 'DIAGRAM KEY', what: KIND_NOTES[k], settings: [] }
       return `<li><button type="button" class="key" data-node="key:${k}" aria-haspopup="dialog" aria-expanded="false"><span class="k-${k}"><span class="node-card"></span></span>${esc(KIND_LABELS[k])}</button></li>`
     })
     .join('')
-  return `<header class="hero"><a class="home" href="/" target="_top">← ${esc(p.home)}</a><span class="kicker">${esc(p.kicker)}</span><h1>${esc(p.heading)}</h1><p class="lede">${esc(p.lede)}</p><dl class="meta">${p.meta
+  return `<header class="hero"><a class="home" href="/" target="_top">← ${esc(p.home)}</a><span class="kicker">${esc(p.kicker)}</span><h1>${esc(p.heading)}</h1><p class="lede">${esc(p.lede)}</p>${toolStrip(used)}<dl class="meta">${p.meta
     .map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`)
     .join('')}</dl><ul class="legend" aria-label="Diagram key">${legend}</ul></header>`
 }
@@ -42,7 +45,7 @@ function canvas(w: Workflow, index: NodeIndex) {
   const l = layout(w)
   const key = (id: string) => `${slug(w.code)}:${id}`
   const byId = new Map(w.nodes.map((n) => [n.id, n]))
-  for (const n of w.nodes) index[key(n.id)] = { label: n.label, type: n.type, what: n.what, settings: n.settings }
+  for (const n of w.nodes) index[key(n.id)] = { label: n.label, type: n.type, what: n.what, settings: n.settings, tools: n.tools }
   const entered = new Set(w.edges.map((e) => e.to))
   const left = new Set(w.edges.map((e) => e.from))
   const paths = l.edges.map((e, i) => `<path class="edge" data-edge="${i}" d="${e.d}"/>`).join('')
@@ -56,7 +59,7 @@ function canvas(w: Workflow, index: NodeIndex) {
   const buttons = w.nodes
     .map((n) => {
       const at = l.nodes[n.id]
-      return `<button type="button" class="node k-${n.kind}" style="left:${at.x}px;top:${at.y}px" data-node="${esc(key(n.id))}" data-in="${entered.has(n.id) ? 1 : 0}" data-out="${left.has(n.id) ? 1 : 0}" aria-haspopup="dialog" aria-expanded="false"><span class="node-card" aria-hidden="true">${iconSvg(n.icon)}</span><span class="node-label">${esc(n.label)}</span><span class="node-sub">${esc(n.sub)}</span></button>`
+      return `<button type="button" class="node k-${n.kind}" style="left:${at.x}px;top:${at.y}px" data-node="${esc(key(n.id))}" data-in="${entered.has(n.id) ? 1 : 0}" data-out="${left.has(n.id) ? 1 : 0}" aria-haspopup="dialog" aria-expanded="false"><span class="node-card" aria-hidden="true">${iconSvg(n.icon)}${logoBadges(n.tools)}</span><span class="node-label">${esc(n.label)}</span><span class="node-sub">${esc(n.sub)}</span></button>`
     })
     .join('')
   const steps = w.nodes
@@ -98,6 +101,7 @@ function sections(p: Plan, index: NodeIndex) {
 export function renderPlan(p: Plan = PLAN, themes: Themes = { dark: readTokens('dark'), light: readTokens('light'), contrast: readContrast() }): string {
   const index: NodeIndex = {}
   const parts = sections(p, index)
+  const used = toolsUsed([...p.workflows, ...p.helpers.list].flatMap((w) => w.nodes.map((n) => n.tools)))
   // Git may check the script out with CRLF on Windows; the page is the same everywhere.
   const client = readFileSync(join(process.cwd(), 'lib/buildPlan/client.js'), 'utf8').replace(/\r\n/g, '\n')
   return `<!doctype html>
@@ -115,18 +119,21 @@ export function renderPlan(p: Plan = PLAN, themes: Themes = { dark: readTokens('
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
-<style>${pageCss(themes)}</style>
+<style>${pageCss(themes)}${livelyCss(['n8n', 'supabase'])}</style>
 </head>
 <body>
+${logoSheet(used)}
 <nav class="toc" aria-label="Sections">${parts.map((s) => `<a href="#${esc(s.id)}">${esc(s.nav)}</a>`).join('')}</nav>
 <main class="page">
-${hero(p, index)}
+${hero(p, index, used)}
 ${parts.map((s) => s.html).join('\n')}
 </main>
 <footer class="foot"><span>${esc(p.footer.note)}</span><a href="/" target="_top">${esc(p.footer.by)}</a></footer>
-<div id="node-panel" class="panel" popover role="dialog" aria-labelledby="panel-label"><span class="ptype" data-p="type"></span><h3 id="panel-label" data-p="label"></h3><p class="pwhat" data-p="what"></p><dl></dl><button type="button" class="panel-close" data-p="close" aria-label="Close settings">×</button></div>
+<div id="node-panel" class="panel" popover role="dialog" aria-labelledby="panel-label"><span class="ptools" data-p="tools" hidden></span><span class="ptype" data-p="type"></span><h3 id="panel-label" data-p="label"></h3><p class="pwhat" data-p="what"></p><dl></dl><button type="button" class="panel-close" data-p="close" aria-label="Close settings">×</button></div>
+${toolTemplates(used)}
 <script type="application/json" id="plan-nodes">${safeJson(index)}</script>
 <script>${client}</script>
+<script>${revealJs()}</script>
 </body>
 </html>
 `

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { plan, type PlanEdge, type PlanNode } from '@/data/buildPlan'
 import { GEOM, layout } from '@/lib/buildPlan/layout'
 
-const n = (id: string): PlanNode => ({ id, kind: 'action', label: id, sub: '', icon: 'Stack', type: 'x', settings: [['a', 'b']], what: 'A test step.' })
+const n = (id: string): PlanNode => ({ id, kind: 'action', label: id, sub: '', icon: 'Stack', type: 'x', settings: [['a', 'b']], what: 'A test step.', tools: ['n8n'] })
 const e = (from: string, to: string, label?: string): PlanEdge => ({ from, to, label })
 const flow = (ids: string[], edges: PlanEdge[]) => ({ nodes: ids.map(n), edges })
 

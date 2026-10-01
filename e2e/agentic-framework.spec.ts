@@ -209,3 +209,52 @@ test('the worked example links to the End-to-End page', async ({ page }) => {
   await expect(see).toHaveAttribute('href', '/end-to-end.html')
   await expect(page.locator('#example .timeline li')).toHaveCount(6)
 })
+
+test('Check’s panel names both its tools; a rule pin names none', async ({ page }) => {
+  await page.goto(`${PAGE}#loop`)
+  await page.locator('[data-node="check"]').click()
+  const tools = page.locator('#node-panel [data-p=tools]')
+  await expect(tools).toHaveText('CodexVS Code')
+  await page.keyboard.press('Escape')
+  await page.getByRole('button', { name: 'Rule R4: The model grades itself' }).click()
+  await expect(tools).toBeHidden()
+})
+
+test('Check’s two badges sit together on its top-right corner, clear of its rule pin', async ({ page }) => {
+  await page.goto(`${PAGE}#loop`)
+  const card = (await page.locator('[data-node="check"] .node-card').boundingBox())!
+  const pin = (await page.getByRole('button', { name: 'Rule R4: The model grades itself' }).boundingBox())!
+  const badges = await page.locator('[data-node="check"] .logo-badge').all()
+  expect(badges).toHaveLength(2)
+  for (const b of badges) {
+    const box = (await b.boundingBox())!
+    expect(box.x + box.width / 2).toBeGreaterThan(card.x + card.width / 2)
+    expect(box.y + box.height / 2).toBeLessThan(card.y + card.height / 2)
+    const apart = box.x >= pin.x + pin.width || pin.x >= box.x + box.width || box.y >= pin.y + pin.height || pin.y >= box.y + box.height
+    expect(apart).toBe(true)
+  }
+})
+
+test('Check’s badges read in the sub-line’s order, Codex then VS Code, with the first on top', async ({ page }) => {
+  await page.goto(`${PAGE}#loop`)
+  const [first, second] = await page.locator('[data-node="check"] .logo-badge').all()
+  const a = (await first.boundingBox())!
+  const b = (await second.boundingBox())!
+  expect(a.x).toBeLessThan(b.x)
+  expect(await first.locator('use').first().getAttribute('href')).toBe('#logo-codex')
+  // Where the two overlap, the first badge is the one you see.
+  const hit = await page.evaluate(([x, y]) => document.elementFromPoint(x, y)!.closest('.logo-badge')!.querySelector('use')!.getAttribute('href'), [b.x + 3, b.y + b.height / 2])
+  expect(hit).toBe('#logo-codex')
+})
+
+test('the example shows Frame’s tag once, and its second row’s text lines up with the rest', async ({ page }) => {
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 })
+    await page.goto(`${PAGE}#example`)
+    const rows = page.locator('#example .timeline li')
+    await expect(rows.locator('.tag')).toHaveCount(5)
+    const x = async (i: number) => (await rows.nth(i).locator('p').boundingBox())!.x
+    expect(await x(1), `${width}px`).toBe(await x(0))
+    expect(await x(1), `${width}px`).toBe(await x(2))
+  }
+})

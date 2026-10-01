@@ -4,6 +4,9 @@ import { agenticFramework as AF, KIND_TYPES, type AgenticFramework, type Card, t
 import { esc } from '../buildPlan/render.ts'
 import type { Themes } from '../buildPlan/styles.ts'
 import { iconSvg } from '../endToEnd/icons.ts'
+import { livelyCss } from '../brand/lively.ts'
+import { glossaryLogo, logo, logoBadges, logoSheet, revealJs, toolByName, toolStrip, toolTemplates, toolsUsed } from '../brand/render.ts'
+import type { ToolId } from '../brand/tools.ts'
 import { readContrast, readTokens } from '../tokens.ts'
 import { layoutLoop } from './layout.ts'
 import { afCss } from './styles.ts'
@@ -12,7 +15,7 @@ import { afCss } from './styles.ts'
 export const PAGE_PATH = '/agentic-framework.html'
 
 /** What each clickable item's panel shows. `settings` stays empty; the panel hides it. */
-type NodeIndex = Record<string, { label: string; type: string; what: string; settings: [string, string][] }>
+type NodeIndex = Record<string, { label: string; type: string; what: string; settings: [string, string][]; tools?: ToolId[] }>
 
 /** JSON inside <script>: no "<" survives, so nothing in it can close the tag. */
 const safeJson = (v: unknown) => JSON.stringify(v).replace(/</g, '\\u003c')
@@ -28,12 +31,11 @@ function section(g: AgenticFramework, id: SectionId, body: string) {
 
 const tiles = (list: Card[]) =>
   `<ul class="tiles">${list
-    .map((c) => `<li class="tile"><span class="tile-top"><span class="tile-icon" aria-hidden="true">${iconSvg(c.icon, 18)}</span><span class="tile-mark">${esc(c.mark)}</span></span><h3>${esc(c.title)}</h3><p>${esc(c.text)}</p>${c.note ? `<span class="tile-note">${esc(c.note)}</span>` : ''}</li>`)
+    .map((c) => `<li class="tile"><span class="tile-top"><span class="tile-icon" aria-hidden="true">${c.tool ? logo(c.tool, 20) : iconSvg(c.icon, 18)}</span><span class="tile-mark">${esc(c.mark)}</span></span><h3>${esc(c.title)}</h3><p>${esc(c.text)}</p>${c.note ? `<span class="tile-note">${esc(c.note)}</span>` : ''}</li>`)
     .join('')}</ul>`
 
-function hero(g: AgenticFramework) {
-  const stack = g.stack.map((t) => `<li><span aria-hidden="true">${iconSvg(t.icon, 16)}</span>${esc(t.name)}</li>`).join('')
-  return `<header class="hero"><a class="home" href="/" target="_top">← ${esc(g.home)}</a><span class="kicker">${esc(g.kicker)}</span><h1>${esc(g.heading)}</h1><p class="lede">${esc(g.lede)}</p><p class="stance">${esc(g.stance)}</p><ul class="stack" aria-label="Built with">${stack}</ul></header>`
+function hero(g: AgenticFramework, used: ToolId[]) {
+  return `<header class="hero"><a class="home" href="/" target="_top">← ${esc(g.home)}</a><span class="kicker">${esc(g.kicker)}</span><h1>${esc(g.heading)}</h1><p class="lede">${esc(g.lede)}</p><p class="stance">${esc(g.stance)}</p>${toolStrip(used)}</header>`
 }
 
 function jobs(g: AgenticFramework) {
@@ -47,7 +49,7 @@ function loop(g: AgenticFramework, index: NodeIndex) {
   const l = layoutLoop(g.loop)
   const byId = new Map(steps.map((s) => [s.id, s]))
   const rules = new Map(g.rules.map((r) => [r.mark, r]))
-  for (const s of steps) index[s.id] = { label: s.label, type: KIND_TYPES[s.kind], what: s.what, settings: [] }
+  for (const s of steps) index[s.id] = { label: s.label, type: KIND_TYPES[s.kind], what: s.what, settings: [], ...(s.tools ? { tools: s.tools } : {}) }
   const sample: Record<string, string> = {
     cable: '<span class="line"></span>',
     signal: '<span class="line line-signal"></span>',
@@ -84,7 +86,7 @@ function loop(g: AgenticFramework, index: NodeIndex) {
   const buttons = steps
     .map((s) => {
       const at = l.nodes[s.id]
-      return `<button type="button" class="node k-${LOOK[s.kind]}" style="left:${at.x}px;top:${at.y}px" data-node="${esc(s.id)}" data-in="${entered.has(s.id) ? 1 : 0}" data-out="${left.has(s.id) ? 1 : 0}" aria-haspopup="dialog" aria-expanded="false"><span class="node-card" aria-hidden="true">${iconSvg(s.icon)}${s.kind === 'gate' ? LOCK() : ''}</span><span class="node-label">${esc(s.label)}</span><span class="node-sub">${esc(s.sub)}</span></button>${pin(s)}`
+      return `<button type="button" class="node k-${LOOK[s.kind]}" style="left:${at.x}px;top:${at.y}px" data-node="${esc(s.id)}" data-in="${entered.has(s.id) ? 1 : 0}" data-out="${left.has(s.id) ? 1 : 0}" aria-haspopup="dialog" aria-expanded="false"><span class="node-card" aria-hidden="true">${iconSvg(s.icon)}${s.kind === 'gate' ? LOCK() : ''}${logoBadges(s.tools)}</span><span class="node-label">${esc(s.label)}</span><span class="node-sub">${esc(s.sub)}</span></button>${pin(s)}`
     })
     .join('')
   const read = steps
@@ -98,16 +100,22 @@ function loop(g: AgenticFramework, index: NodeIndex) {
 
 function example(g: AgenticFramework) {
   const items = g.example.items
-    .map((it, i) => `<li><span class="tl-n">${i + 1}</span><span class="tag ${tagClass(it.stage)}">${esc(it.stage)}</span><p>${esc(it.text)}</p></li>`)
+    // A stage that runs on from the row above shows its tag once; screen readers still hear it.
+    .map((it, i, all) =>
+      i > 0 && all[i - 1].stage === it.stage
+        ? `<li class="cont"><span class="tl-n">${i + 1}</span><span class="sr-only">${esc(it.stage)}, continued</span><p>${esc(it.text)}</p></li>`
+        : `<li><span class="tl-n">${i + 1}</span><span class="tag ${tagClass(it.stage)}">${esc(it.stage)}</span><p>${esc(it.text)}</p></li>`,
+    )
     .join('')
   return `<ol class="timeline">${items}</ol><a class="see" href="${esc(g.example.link.href)}" target="_top">${esc(g.example.link.label)}</a>`
 }
 
-const glossary = (g: AgenticFramework) => `<dl class="gl">${g.glossary.map(([t, m]) => `<div><dt>${esc(t)}</dt><dd>${esc(m)}</dd></div>`).join('')}</dl>`
+const glossary = (g: AgenticFramework) => `<dl class="gl">${g.glossary.map(([t, m]) => `<div><dt>${glossaryLogo(t)}${esc(t)}</dt><dd>${esc(m)}</dd></div>`).join('')}</dl>`
 
 /** The whole Agentic Framework page (spec §3–4): one self-contained HTML file. */
 export function renderAgenticFramework(g: AgenticFramework = AF, themes: Themes = { dark: readTokens('dark'), light: readTokens('light'), contrast: readContrast() }): string {
   const index: NodeIndex = {}
+  const used = toolsUsed([...g.tools.map((c) => (c.tool ? [c.tool] : undefined)), ...g.loop.steps.map((s) => s.tools), ...g.glossary.map(([t]) => { const id = toolByName(t); return id ? [id] : undefined })])
   const body = [
     section(g, 'glance', tiles(g.stages)),
     section(g, 'jobs', jobs(g)),
@@ -135,18 +143,21 @@ export function renderAgenticFramework(g: AgenticFramework = AF, themes: Themes 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
-<style>${afCss(themes)}</style>
+<style>${afCss(themes)}${livelyCss(['claude', 'vs-code'])}</style>
 </head>
 <body>
+${logoSheet(used)}
 <nav class="toc" aria-label="Sections">${g.sections.map((s) => `<a href="#${esc(s.id)}">${esc(s.chip)}</a>`).join('')}</nav>
 <main class="page">
-${hero(g)}
+${hero(g, used)}
 ${body}
 </main>
 <footer class="foot"><span>${esc(g.footer.note)}</span><a href="/" target="_top">${esc(g.footer.by)}</a></footer>
-<div id="node-panel" class="panel" popover role="dialog" aria-labelledby="panel-label"><span class="ptype" data-p="type"></span><h3 id="panel-label" data-p="label"></h3><p class="pwhat" data-p="what"></p><dl></dl><button type="button" class="panel-close" data-p="close" aria-label="Close details">×</button></div>
+<div id="node-panel" class="panel" popover role="dialog" aria-labelledby="panel-label"><span class="ptools" data-p="tools" hidden></span><span class="ptype" data-p="type"></span><h3 id="panel-label" data-p="label"></h3><p class="pwhat" data-p="what"></p><dl></dl><button type="button" class="panel-close" data-p="close" aria-label="Close details">×</button></div>
+${toolTemplates(used)}
 <script type="application/json" id="graph-nodes">${safeJson(index)}</script>
 <script>${client}</script>
+<script>${revealJs()}</script>
 </body>
 </html>
 `
