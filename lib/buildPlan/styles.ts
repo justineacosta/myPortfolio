@@ -6,7 +6,7 @@ export type Themes = {
   contrast: { dark: Record<string, string>; light: Record<string, string> }
 }
 
-const KEYS = ['bg', 'frame', 's0', 's1', 's2', 's3', 'chip', 'hover', 'b1', 'b2', 'ink', 'ink2', 'ink3', 'ink4', 'accent', 'onAccent', 'wash', 'washB', 'glow'] as const
+const KEYS = ['bg', 'frame', 's0', 's1', 's2', 's3', 'chip', 'hover', 'b1', 'b2', 'ink', 'ink2', 'ink3', 'ink4', 'accent', 'onAccent', 'wash', 'washB', 'glow', 'amb'] as const
 const vars = (t: Record<string, string>) => KEYS.map((k) => `--${k}:${t[k]}`).join(';')
 const decls = (t: Record<string, string>) => Object.entries(t).map(([k, v]) => `--${k}:${v}`).join(';')
 

@@ -6,10 +6,7 @@ const TARGETS = '.tools-strip,.tiles,.jobs,.timeline,.gl,.gloss dl,.ote,.cards,.
 const allShown = (page: import('@playwright/test').Page) =>
   page.evaluate((sel) => [...document.querySelectorAll(sel)].every((el) => getComputedStyle(el).opacity === '1'), TARGETS)
 const glowOf = (page: import('@playwright/test').Page) =>
-  page.locator('.hero').evaluate((el) => {
-    const s = getComputedStyle(el, '::before')
-    return { display: s.display, animation: s.animationName }
-  })
+  page.locator('.page-glow').evaluate((el) => ({ display: getComputedStyle(el).display, animation: getComputedStyle(el.firstElementChild!).animationName }))
 
 for (const PAGE of PAGES) {
   test(`${PAGE}: every logo it points at is in its sheet, and the strip shows`, async ({ page }) => {
@@ -28,7 +25,7 @@ for (const PAGE of PAGES) {
     await last.scrollIntoViewIfNeeded()
     await expect(last).toHaveClass(/\bin\b/)
     await expect.poll(() => last.evaluate((el) => getComputedStyle(el).opacity)).toBe('1')
-    expect(await glowOf(page)).toEqual({ display: 'block', animation: 'halo' })
+    expect(await glowOf(page)).toEqual({ display: 'block', animation: 'kDrift' })
   })
 
   test(`${PAGE}: hides nothing under reduced motion or with JavaScript off, and the glow holds still`, async ({ browser }) => {

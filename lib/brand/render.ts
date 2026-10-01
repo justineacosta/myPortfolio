@@ -69,3 +69,6 @@ export const toolsUsed = (lists: (ToolId[] | undefined)[]): ToolId[] => [...new 
 
 /** The scroll-in reveal script, ready to inline. Git may check it out with CRLF on Windows. */
 export const revealJs = () => readFileSync(join(process.cwd(), 'lib/brand/reveal.js'), 'utf8').replace(/\r\n/g, '\n')
+
+/** The site's drifting glow, first in <body>, behind everything (spec 2026-10-01-light-backdrop §4.1). */
+export const backdropHtml = () => '<div class="page-glow" aria-hidden="true"><div></div></div>'

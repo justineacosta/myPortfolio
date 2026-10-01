@@ -201,8 +201,7 @@ describe('the build plan’s logos and colour', () => {
 
   it('adds the lively layer with the n8n and Supabase glow, and the reveal script last', () => {
     const css = doc.querySelector('style')!.textContent!
-    expect(css).toContain(`--halo-a:${TOOLS.n8n.brand}`)
-    expect(css).toContain(`--halo-b:${TOOLS.supabase.brand}`)
+    expect(doc.body.firstElementChild!.outerHTML).toBe('<div class="page-glow" aria-hidden="true"><div></div></div>')
     expect([...doc.querySelectorAll('script')].at(-1)!.textContent).toContain("root.classList.add('reveal-on')")
   })
 

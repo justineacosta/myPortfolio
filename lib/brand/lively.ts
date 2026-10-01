@@ -1,4 +1,5 @@
-import { TOOLS, type ToolId } from './tools.ts'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 
 /** Each tinted step look's colour, per theme (spec 2026-10-01-lively-pages §5.1). Each reaches 3:1 on its tinted card (tests/brand-lively.test.ts). */
 export const KINDS = {
@@ -6,26 +7,34 @@ export const KINDS = {
   light: { trigger: '#B45309', ai: '#6D28D9', branch: '#1D4ED8', helper: '#0F766E' },
 } as const
 
-/** The hero glow’s strength, in percent, per theme. Light keeps the quietest hero text within 5% of its contrast (tests/brand-lively.test.ts). */
-export const HALO = { dark: 22, light: 4 } as const
-
 const kinds = (t: Record<string, string>) => Object.entries(t).map(([k, v]) => `--k-${k}:${v}`).join(';')
-const DARK = `${kinds(KINDS.dark)};--halo:${HALO.dark}%;--logo-light:none;--logo-dark:inline`
-const LIGHT = `${kinds(KINDS.light)};--halo:${HALO.light}%;--logo-light:inline;--logo-dark:none`
+const DARK = `${kinds(KINDS.dark)};--logo-light:none;--logo-dark:inline`
+const LIGHT = `${kinds(KINDS.light)};--logo-light:inline;--logo-dark:none`
 const TINTED = ':is(.k-trigger,.k-ai,.k-branch,.k-helper) .node-card'
 const HC = ':root[data-a11y-contrast=true]'
 const STILL = ':root[data-a11y-motion=true]'
+
+/** The site's drifting green glow, read word for word from app/globals.css (spec 2026-10-01-light-backdrop §4.1). */
+function siteGlow(): string {
+  const css = readFileSync(join(process.cwd(), 'app/globals.css'), 'utf8').replace(/\r\n/g, '\n')
+  return [/^\.page-glow\{.*\}$/m, /^\.page-glow > \*\{.*\}$/m, /^@keyframes kDrift\{.*\}$/m]
+    .map((re) => {
+      const m = re.exec(css)
+      if (!m) throw new Error(`app/globals.css has no ${re}`)
+      return m[0]
+    })
+    .join('\n')
+}
 
 /**
  * The shared lively layer (spec 2026-10-01-lively-pages §4–6), added after a
  * page's own CSS so it wins ties. Its theme blocks mirror pageCss: dark first,
  * the device theme when the page is opened alone, the site's data-theme inside
- * its dialog, and light in print. `glow` names the two tools whose colours
- * tint the hero.
+ * its dialog, and light in print. The site's drifting glow sits behind the page.
  */
-export function livelyCss(glow: [ToolId, ToolId]): string {
+export function livelyCss(): string {
   return `
-:root{${DARK};--halo-a:${TOOLS[glow[0]].brand};--halo-b:${TOOLS[glow[1]].brand}}
+:root{${DARK}}
 @media (prefers-color-scheme: light){:root:not([data-theme=dark]){${LIGHT}}}
 :root[data-theme=light]{${LIGHT}}
 :root[data-theme=dark]{${DARK}}
@@ -63,18 +72,18 @@ ${HC} :is(.node.lit,.node:hover) .node-card{border-color:var(--accent)}
 :root:not([data-a11y-motion=true]) .node:hover .node-card{transform:translateY(-2px)}
 :root:not([data-a11y-motion=true]) .node:not(.lit,.k-helper):hover .node-card{box-shadow:0 10px 20px -12px color-mix(in srgb,var(--k,var(--accent)) 70%,transparent)}
 }
-.hero{position:relative;isolation:isolate}
-.hero::before{content:"";position:absolute;z-index:-1;left:0;right:0;top:-96px;height:440px;pointer-events:none;background:radial-gradient(17% 35% at 30% 45%,color-mix(in srgb,var(--halo-a) var(--halo),transparent),transparent),radial-gradient(19% 32% at 68% 40%,color-mix(in srgb,var(--halo-b) var(--halo),transparent),transparent);background-size:115% 115%;background-position:0% 0%;animation:halo 20s ease-in-out infinite alternate}
-@keyframes halo{to{background-position:100% 60%}}
-${HC} .hero::before{display:none}
+${siteGlow()}
+:root[data-perf=low] .page-glow > *{animation:none}
+${STILL} .page-glow > *{animation:none}
+${HC} .page-glow{display:none}
+.page,.foot{position:relative;z-index:1}
 .reveal-on [data-reveal]{transition:opacity .6s ease,transform .6s ease}
 .reveal-on [data-reveal]:not(.in){opacity:0;transform:translateY(12px)}
 ${STILL} [data-reveal]{opacity:1!important;transform:none!important;transition:none!important}
-${STILL} .hero::before{animation:none}
-@media (prefers-reduced-motion: reduce){.hero::before{animation:none}[data-reveal]{opacity:1!important;transform:none!important}}
+@media (prefers-reduced-motion: reduce){.page-glow > *{animation:none}[data-reveal]{opacity:1!important;transform:none!important}}
 @media print{
 :root,:root[data-theme]{${LIGHT}}
-.hero::before{display:none}
+.page-glow{display:none}
 [data-reveal]{opacity:1!important;transform:none!important;transition:none!important}
 .logo,.logo-badge,.tool-chip,${TINTED}{print-color-adjust:exact;-webkit-print-color-adjust:exact}
 }

@@ -5,7 +5,7 @@ import { esc } from '../buildPlan/render.ts'
 import type { Themes } from '../buildPlan/styles.ts'
 import { iconSvg } from '../endToEnd/icons.ts'
 import { livelyCss } from '../brand/lively.ts'
-import { glossaryLogo, logo, logoBadges, logoSheet, revealJs, toolByName, toolStrip, toolTemplates, toolsUsed } from '../brand/render.ts'
+import { backdropHtml, glossaryLogo, logo, logoBadges, logoSheet, revealJs, toolByName, toolStrip, toolTemplates, toolsUsed } from '../brand/render.ts'
 import type { ToolId } from '../brand/tools.ts'
 import { readContrast, readTokens } from '../tokens.ts'
 import { layoutLoop } from './layout.ts'
@@ -138,10 +138,10 @@ export function renderAgenticFramework(g: AgenticFramework = AF, themes: Themes 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
-<style>${afCss(themes)}${livelyCss(['claude', 'vs-code'])}</style>
+<style>${afCss(themes)}${livelyCss()}</style>
 </head>
 <body>
-${logoSheet(used)}
+${backdropHtml()}${logoSheet(used)}
 <nav class="toc" aria-label="Sections">${g.sections.map((s) => `<a href="#${esc(s.id)}">${esc(s.chip)}</a>`).join('')}</nav>
 <main class="page">
 ${hero(g, used)}

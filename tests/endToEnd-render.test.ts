@@ -156,7 +156,7 @@ describe('the End-to-End page’s logos and colour', () => {
   })
 
   it('adds the lively layer with the Claude and Telegram glow, the reveal script last, and grows by no more than 40 KB', () => {
-    expect(doc.querySelector('style')!.textContent).toContain(`--halo-b:${TOOLS.telegram.brand}`)
+    expect(doc.body.firstElementChild!.outerHTML).toBe('<div class="page-glow" aria-hidden="true"><div></div></div>')
     expect([...doc.querySelectorAll('script')].at(-1)!.textContent).toContain("root.classList.add('reveal-on')")
     expect(html.length).toBeLessThan(190_923 + 40_000)
   })

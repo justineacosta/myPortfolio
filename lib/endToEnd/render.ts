@@ -4,7 +4,7 @@ import { endToEnd as E2E, KIND_TYPES, type EndToEnd, type StepKind } from '../..
 import { esc } from '../buildPlan/render.ts'
 import type { Themes } from '../buildPlan/styles.ts'
 import { livelyCss } from '../brand/lively.ts'
-import { glossaryLogo, logoBadges, logoSheet, revealJs, toolByName, toolStrip, toolTemplates, toolsUsed } from '../brand/render.ts'
+import { backdropHtml, glossaryLogo, logoBadges, logoSheet, revealJs, toolByName, toolStrip, toolTemplates, toolsUsed } from '../brand/render.ts'
 import type { ToolId } from '../brand/tools.ts'
 import { readContrast, readTokens } from '../tokens.ts'
 import { iconSvg } from './icons.ts'
@@ -108,10 +108,10 @@ export function renderEndToEnd(g: EndToEnd = E2E, themes: Themes = { dark: readT
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
-<style>${e2eCss(themes)}${livelyCss(['claude', 'telegram'])}</style>
+<style>${e2eCss(themes)}${livelyCss()}</style>
 </head>
 <body>
-${logoSheet(used)}
+${backdropHtml()}${logoSheet(used)}
 <nav class="toc" aria-label="Lanes">${g.lanes.map((lane) => `<a href="#${esc(anchor(lane.id))}"><b>${esc(lane.id)}</b> ${esc(lane.name)}</a>`).join('')}</nav>
 <main class="page">
 ${top}
