@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-const PAGES = ['/build-plan.html', '/end-to-end.html', '/agentic-framework.html']
+const PAGES = ['/build-plan.html', '/end-to-end.html', '/agentic-framework.html', '/ai-agents.html']
 // The same list lib/brand/reveal.js marks.
 const TARGETS = '.tools-strip,.tiles,.jobs,.timeline,.gl,.gloss dl,.ote,.cards,.rules,.phases,.stages,.closing'
 const allShown = (page: import('@playwright/test').Page) =>

@@ -65,7 +65,7 @@ const JOBS: [string, string, string, string][] = [
   ['Researcher', 'finds sources', 'MagnifyingGlass', 'Gathers sources and facts for a task and reports what it found, with where each fact came from.'],
   ['Auditor', 'n8n audits', 'ClipboardText', 'Reviews an n8n setup and lists what is broken, risky or missing, ranked by impact.'],
   ['Builder', 'workflows', 'FlowArrow', 'Builds n8n workflows from an approved plan, one node at a time.'],
-  ['Writer', 'articles', 'Article', 'Writes long articles, like KapeSEO’s 3,000-word posts, and grades itself before handing over.'],
+  ['Writer', 'articles', 'Article', 'Writes long articles, like a 3,000-word blog post, and grades itself before handing over.'],
   ['Reel maker', 'scripts to renders', 'FilmStrip', 'The reel worker: scripts, voices, captions and renders a short video from one message.'],
   ['Reviewer', 'second pair of eyes', 'Eye', 'Checks another agent’s work against its brief before it moves on.'],
   ['Deliverables', 'client-ready files', 'Package', 'Turns finished work into client-ready files and the handover doc.'],
