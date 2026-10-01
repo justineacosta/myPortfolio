@@ -4,29 +4,30 @@ import { contact } from '@/data/contact'
 import { isHidden, NAV } from '@/data/nav'
 import { projects, type ProjectView } from '@/data/projects'
 import { servicesPage } from '@/data/services'
+import type { Brand } from '@/data/stack'
 
-/** ⌘K entries (spec §7): every page, then the key sections. */
-export type Command = { id: string; label: string; hint: string; href: string; icon: Icon }
+/** ⌘K entries (spec §7): every page, then the key sections. A Projects entry shows its card's lead logo (a slug in public/icons/brands/), the rest an icon. */
+export type Command = { id: string; label: string; hint: string; href: string } & ({ icon: Icon; logo?: never } | { logo: string; icon?: never })
 
 const PAGES: Command[] = NAV.map((n) => ({ id: n.href, label: n.label, hint: n.hint, href: n.href, icon: n.icon }))
 
 const hintOf = (href: string) => NAV.find((n) => n.href === href)!.hint
-const view = (id: ProjectView, label: string, icon: Icon): Command => ({
+const view = (id: ProjectView, label: string, logos: Brand[]): Command => ({
   id,
   label,
   hint: hintOf('/projects'),
   href: `/projects#${id}`,
-  icon,
+  logo: logos[0].slug,
 })
 const c = projects.cards
 
 /** The board's sub-views open in place (hooks/useHashView.ts); the rest scroll into view (lib/scroller.ts). */
 export const SECTIONS: Command[] = [
-  view('reel', c.reel.title, c.reel.icon),
-  view('build-plan', c.plan.title, c.plan.icon),
-  ...projects.writeups.map((w) => view(w.view, w.title, w.icon)),
-  view('sites', c.sites.title, c.sites.icon),
-  view('ai-agents', c.agents.title, c.agents.icon),
+  view('reel', c.reel.title, c.reel.logos),
+  view('build-plan', c.plan.title, c.plan.logos),
+  ...projects.writeups.map((w) => view(w.view, w.title, w.logos)),
+  view('sites', c.sites.title, c.sites.logos),
+  view('ai-agents', c.agents.title, c.agents.logos),
   { id: servicesPage.method.id, label: servicesPage.method.label, hint: hintOf('/services'), href: `/services#${servicesPage.method.id}`, icon: TreeStructureIcon },
   { id: servicesPage.automation.id, label: servicesPage.automation.label, hint: hintOf('/services'), href: `/services#${servicesPage.automation.id}`, icon: LightningIcon },
   { id: contact.faqs.id, label: contact.faqs.label, hint: hintOf('/contact'), href: `/contact#${contact.faqs.id}`, icon: ChatCircleDotsIcon },

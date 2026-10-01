@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { NAV } from '@/data/nav'
-import { PROJECT_VIEWS } from '@/data/projects'
+import { PROJECT_VIEWS, projects } from '@/data/projects'
 import { COMMANDS, filterCommands, SECTIONS } from '@/lib/commands'
 import { splitHref } from '@/lib/hash'
 
@@ -35,6 +35,14 @@ describe('SECTIONS', () => {
     for (const s of SECTIONS.filter((c) => c.href.startsWith('/projects#'))) {
       expect(PROJECT_VIEWS).toContain(splitHref(s.href).hash)
     }
+  })
+
+  it('show each Projects entry with its card’s lead logo; the rest keep an icon', () => {
+    const c = projects.cards
+    const lead = [c.reel, c.plan, ...projects.writeups, c.sites, c.agents].map((x) => x.logos[0].slug)
+    const views = SECTIONS.filter((s) => s.href.startsWith('/projects#'))
+    expect(views.map((s) => s.logo)).toEqual(lead)
+    for (const s of COMMANDS.filter((x) => !x.href.startsWith('/projects#'))) expect(s.icon, s.id).toBeDefined()
   })
 
   it('find a sub-view by name', () => {

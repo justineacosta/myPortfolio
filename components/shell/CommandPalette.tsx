@@ -11,7 +11,9 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
 } from 'react'
+import Image from 'next/image'
 import { MagnifyingGlassIcon } from '@phosphor-icons/react/ssr'
+import { brandIcon } from '@/data/stack'
 import { filterCommands, type Command } from '@/lib/commands'
 import { introLive, skipIntro } from '@/lib/intro'
 import { useShellNav } from './NavigationProvider'
@@ -199,7 +201,11 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
                   onMouseMove={() => setActive(i)}
                   className={`flex min-h-[46px] w-full cursor-pointer items-center gap-3 rounded-xl border-0 px-[13px] py-3 text-left transition-colors duration-200 ${i === active ? 'bg-hover' : 'bg-transparent'}`}
                 >
-                  <Icon size={16} aria-hidden className="text-accent" />
+                  {Icon ? (
+                    <Icon size={16} aria-hidden className="text-accent" />
+                  ) : (
+                    <Image src={brandIcon(c.logo!)} alt="" width={16} height={16} className="block shrink-0" />
+                  )}
                   <span className="text-sm font-medium text-ink">{c.label}</span>
                   <span className="ml-auto font-mono text-[9.5px] text-ink3">{c.hint}</span>
                 </button>

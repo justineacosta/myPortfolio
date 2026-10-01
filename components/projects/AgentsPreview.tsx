@@ -1,8 +1,10 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { CheckIcon, LightningIcon, MagnifyingGlassIcon, PencilSimpleIcon } from '@phosphor-icons/react/ssr'
+import Image from 'next/image'
+import { CheckIcon, MagnifyingGlassIcon, PencilSimpleIcon } from '@phosphor-icons/react/ssr'
 import { projects } from '@/data/projects'
+import { brandIcon } from '@/data/stack'
 
 /**
  * The AI agents card's preview (spec 2026-10-01-agents-page §5.2): a small
@@ -37,7 +39,7 @@ export default function AgentsPreview() {
       </div>
       <div className="ap-run absolute inset-3 flex flex-col gap-2">
         <span className={`ap-step-1 ${chip}`}>
-          <LightningIcon size={11} className="text-accent" />
+          <Image src={brandIcon(p.runLogo)} alt="" width={11} height={11} className="block" />
           {p.run[0]}
         </span>
         <span className={`ap-step-2 ${chip}`}>

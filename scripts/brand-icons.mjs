@@ -15,7 +15,11 @@ const BRANDS = {
   airtable: '18BFFF', notion: 'A3AAB2', postman: 'FF6C37', googlechrome: '4285F4', express: 'A3AAB2',
   github: 'A3AAB2', googlesheets: '34A853', hackerrank: '00EA64',
   gmail: 'EA4335', telegram: '26A5E4', caldotcom: 'A3AAB2',
+  // Only on the Projects board's cream logo chips, so the brand's own black.
+  cursor: '111111',
 }
+// Not in simple-icons: copied from the standalone pages' logos (lib/brand/logos/CREDITS.md).
+const COPIED = { codex: 'codex.svg' }
 
 const src = path.join('node_modules', 'simple-icons', 'icons')
 const out = path.join('public', 'icons', 'brands')
@@ -24,4 +28,5 @@ for (const [slug, hex] of Object.entries(BRANDS)) {
   const svg = readFileSync(path.join(src, `${slug}.svg`), 'utf8')
   writeFileSync(path.join(out, `${slug}.svg`), svg.replace('<svg ', `<svg fill="#${hex}" `))
 }
-console.log(`wrote ${Object.keys(BRANDS).length} brand icons to ${out}`)
+for (const [slug, file] of Object.entries(COPIED)) writeFileSync(path.join(out, `${slug}.svg`), readFileSync(path.join('lib', 'brand', 'logos', file), 'utf8'))
+console.log(`wrote ${Object.keys(BRANDS).length + Object.keys(COPIED).length} brand icons to ${out}`)

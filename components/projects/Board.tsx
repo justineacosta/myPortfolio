@@ -11,7 +11,8 @@ import { pushHash } from '@/lib/hash'
 import { prefersReducedMotion } from '@/lib/motion'
 import AgentsPreview from './AgentsPreview'
 import SitesCard from './SitesCard'
-import { BODY, CARD, CTA, TILE, TITLE } from './styles'
+import LogoStack from './LogoStack'
+import { BODY, CARD, CTA, TITLE } from './styles'
 
 const GAP = 'gap-[clamp(11px,1.3cqw,18px)]'
 
@@ -62,9 +63,7 @@ export default function Board() {
 
         <div className={`flex flex-wrap ${GAP}`}>
           <a href="#reel" onClick={openView} data-case={c.reel.cue} className={`${CARD} min-w-[min(270px,100%)] flex-[3_1_420px]`}>
-            <span aria-hidden className={TILE}>
-              <c.reel.icon size={20} className="text-accent" />
-            </span>
+            <LogoStack logos={c.reel.logos} />
             <h2 className={TITLE}>{c.reel.title}</h2>
             <p className={`${BODY} max-w-[340px]`}>{c.reel.body}</p>
             <span className={CTA}>
@@ -81,9 +80,7 @@ export default function Board() {
           </a>
 
           <a href="#build-plan" onClick={openView} data-case={c.plan.cue} className={`${CARD} min-w-[min(250px,100%)] flex-[2_1_300px]`}>
-            <span aria-hidden className={TILE}>
-              <c.plan.icon size={20} className="text-accent" />
-            </span>
+            <LogoStack logos={c.plan.logos} />
             <h2 className={TITLE}>{c.plan.title}</h2>
             <p className={BODY}>{c.plan.body}</p>
             <div className="mt-auto flex flex-col gap-3 rounded-[14px] border border-b1 bg-s0 p-4">
@@ -92,10 +89,13 @@ export default function Board() {
               <div className="flex flex-wrap gap-1.5">
                 {c.plan.steps.map((s, i) => (
                   <span
-                    key={s}
-                    className={`rounded-lg border px-2.5 py-[5px] text-[11.5px] font-medium ${i === c.plan.steps.length - 1 ? 'border-accent bg-accent text-on-accent' : 'border-b1 bg-s1 text-ink2'}`}
+                    key={s.label}
+                    className={`flex items-center gap-1.5 rounded-lg border py-[5px] pr-2.5 pl-[5px] text-[11.5px] font-medium ${i === c.plan.steps.length - 1 ? 'border-accent bg-accent text-on-accent' : 'border-b1 bg-s1 text-ink2'}`}
                   >
-                    {s}
+                    <span aria-hidden className="grid size-[18px] place-items-center rounded-[5px] bg-logo-chip">
+                      <Image src={brandIcon(s.logo)} alt="" width={12} height={12} className="block" />
+                    </span>
+                    {s.label}
                   </span>
                 ))}
               </div>
@@ -113,11 +113,9 @@ export default function Board() {
                 href={`#${w.view}`}
                 onClick={openView}
                 data-case={w.cue}
-                className="flex flex-1 items-start gap-3 rounded-[18px] border border-b1 bg-linear-to-b from-s1 to-s2 p-4 text-left text-ink transition-[translate,border-color,box-shadow] duration-350 hover:-translate-y-0.5 hover:border-b2 hover:from-s2 hover:to-hover hover:shadow-[0_22px_50px_-32px_var(--washB)]"
+                className="group/card flex flex-1 items-start gap-3 rounded-[18px] border border-b1 bg-linear-to-b from-s1 to-s2 p-4 text-left text-ink transition-[translate,border-color,box-shadow] duration-350 hover:-translate-y-0.5 hover:border-b2 hover:from-s2 hover:to-hover hover:shadow-[0_22px_50px_-32px_var(--washB)]"
               >
-                <span aria-hidden className="grid size-8 shrink-0 place-items-center rounded-[10px] border border-b1 bg-chip">
-                  <w.icon size={17} className="text-accent" />
-                </span>
+                <LogoStack logos={w.logos} size="sm" />
                 <div className="flex min-w-0 flex-col gap-1">
                   <span className="font-mono text-[9px] tracking-[.14em] text-accent">{w.kicker}</span>
                   <h2 className="text-[14.5px] font-semibold tracking-[-.02em]">{w.title}</h2>
@@ -135,21 +133,19 @@ export default function Board() {
           <SitesCard onOpen={openView} />
 
           <a href="#ai-agents" onClick={openView} data-case={c.agents.cue} className={`${CARD} min-w-[min(270px,100%)] flex-[3_1_380px]`}>
-            <span aria-hidden className={TILE}>
-              <c.agents.icon size={20} className="text-accent" />
-            </span>
+            <LogoStack logos={c.agents.logos} />
             <h2 className={TITLE}>{c.agents.title}</h2>
             <p className={`${BODY} max-w-[420px]`}>{c.agents.body}</p>
             <AgentsPreview />
             <div className="mt-auto flex flex-wrap items-center gap-2 pt-3.5">
               {c.agents.counts.map((a) => (
                 <span key={a.name} className="flex items-center gap-2 rounded-full border border-b1 bg-s0 px-3 py-2 text-[12.5px] text-ink2">
-                  <a.icon size={14} aria-hidden className="text-accent" />
+                  <Image src={brandIcon(a.logo)} alt="" width={14} height={14} className="block" />
                   {a.name}
                 </span>
               ))}
               <span className="ml-1 flex flex-wrap items-center gap-2">
-                {c.agents.logos.map((l) => (
+                {c.agents.tools.map((l) => (
                   <Image key={l.slug} src={brandIcon(l.slug)} alt="" width={16} height={16} className="block" />
                 ))}
               </span>
