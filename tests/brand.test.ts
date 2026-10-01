@@ -88,7 +88,10 @@ describe('logos on the page', () => {
   it('lists the page’s tools as chips under a label', () => {
     const d = parse(toolStrip(['telegram', 'n8n']))
     expect(d.querySelector('.tools-strip-label')!.textContent).toBe('Tools on this page')
-    expect(d.querySelector('ul')!.getAttribute('aria-label')).toBe('Tools on this page')
+    // Named once, by the visible label, so screen readers do not hear it twice.
+    const ul = d.querySelector('ul')!
+    expect(ul.hasAttribute('aria-label')).toBe(false)
+    expect(d.getElementById(ul.getAttribute('aria-labelledby')!)!.textContent).toBe('Tools on this page')
     expect([...d.querySelectorAll('.tool-chip')].map((li) => li.textContent)).toEqual(['Telegram', 'n8n'])
   })
 

@@ -39,9 +39,10 @@ ${HC} :is(.node.lit,.node:hover) .node-card{border-color:var(--accent)}
 .logo.mono{color:var(--ink)}
 .logo-light{display:var(--logo-light)}
 .logo-dark{display:var(--logo-dark)}
-.logo-badges{position:absolute;top:-8px;right:-8px;display:flex;flex-direction:row-reverse}
-.logo-badge{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;border:1px solid var(--b2);background:var(--s0);transition:box-shadow .35s ease}
-.logo-badge+.logo-badge{margin-right:-8px}
+.logo-badges{position:absolute;top:-8px;right:-8px;display:flex}
+.logo-badge{position:relative;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;border:1px solid var(--b2);background:var(--s0);transition:box-shadow .35s ease}
+.logo-badge+.logo-badge{margin-left:-8px}
+.logo-badge:first-child{z-index:1}
 .node.lit .logo-badge{box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 30%,transparent),0 0 14px -2px var(--brand);transition-duration:.08s}
 .tools-strip{display:flex;flex-direction:column;gap:8px}
 .tools-strip-label{font-family:var(--mono);font-size:.625rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}

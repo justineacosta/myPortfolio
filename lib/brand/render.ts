@@ -48,7 +48,7 @@ export function logoBadges(ids: ToolId[] | undefined): string {
 
 /** “Tools on this page”: one chip per tool, in the order given. */
 export function toolStrip(ids: ToolId[]): string {
-  return `<div class="tools-strip"><span class="tools-strip-label">Tools on this page</span><ul aria-label="Tools on this page">${ids.map((id) => `<li class="tool-chip">${logo(id, 16)}${TOOLS[id].name}</li>`).join('')}</ul></div>`
+  return `<div class="tools-strip"><span class="tools-strip-label" id="tools-strip-label">Tools on this page</span><ul aria-labelledby="tools-strip-label">${ids.map((id) => `<li class="tool-chip">${logo(id, 16)}${TOOLS[id].name}</li>`).join('')}</ul></div>`
 }
 
 /** One <template> per tool. The page script copies it into the details panel. */

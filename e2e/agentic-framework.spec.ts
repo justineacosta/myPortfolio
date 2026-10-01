@@ -234,3 +234,15 @@ test('Check’s two badges sit together on its top-right corner, clear of its ru
     expect(apart).toBe(true)
   }
 })
+
+test('Check’s badges read in the sub-line’s order, Codex then VS Code, with the first on top', async ({ page }) => {
+  await page.goto(`${PAGE}#loop`)
+  const [first, second] = await page.locator('[data-node="check"] .logo-badge').all()
+  const a = (await first.boundingBox())!
+  const b = (await second.boundingBox())!
+  expect(a.x).toBeLessThan(b.x)
+  expect(await first.locator('use').first().getAttribute('href')).toBe('#logo-codex')
+  // Where the two overlap, the first badge is the one you see.
+  const hit = await page.evaluate(([x, y]) => document.elementFromPoint(x, y)!.closest('.logo-badge')!.querySelector('use')!.getAttribute('href'), [b.x + 3, b.y + b.height / 2])
+  expect(hit).toBe('#logo-codex')
+})
