@@ -66,3 +66,6 @@ export function glossaryLogo(term: string): string {
 
 /** Every tool in these lists, once each, in order of first appearance. */
 export const toolsUsed = (lists: (ToolId[] | undefined)[]): ToolId[] => [...new Set(lists.flatMap((l) => l ?? []))]
+
+/** The scroll-in reveal script, ready to inline. Git may check it out with CRLF on Windows. */
+export const revealJs = () => readFileSync(join(process.cwd(), 'lib/brand/reveal.js'), 'utf8').replace(/\r\n/g, '\n')
