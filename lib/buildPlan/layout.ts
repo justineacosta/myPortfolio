@@ -1,4 +1,4 @@
-import type { PlanEdge, PlanNode } from '../../data/buildPlan.ts'
+import type { PlanEdge } from '../../data/buildPlan.ts'
 
 /** The canvas grid, in px: column and row pitch, node size, stage padding, and room for a label under the last row. */
 export const GEOM = { col: 156, row: 116, node: 56, padX: 48, padY: 28, label: 44 } as const
@@ -40,7 +40,7 @@ function curveLength(p: number[][]): number {
  * end, the main one (always the first way out) first; `main` and `run` are
  * that main route's steps and line.
  */
-export function layout({ nodes, edges }: { nodes: PlanNode[]; edges: PlanEdge[] }): Layout {
+export function layout({ nodes, edges }: { nodes: { id: string }[]; edges: PlanEdge[] }): Layout {
   const ids = nodes.map((n) => n.id)
   const known = new Set(ids)
   if (known.size !== ids.length) throw new Error('Two nodes share an id')
