@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { KINDS, livelyCss } from '@/lib/brand/lively'
+import { HALO, KINDS, livelyCss } from '@/lib/brand/lively'
 import { revealJs } from '@/lib/brand/render'
 import { TOOLS } from '@/lib/brand/tools'
 import { readTokens } from '@/lib/tokens'
@@ -57,5 +57,16 @@ describe('the reveal script', () => {
   it('marks its targets and switches the page into reveal mode last', () => {
     expect(js).toContain("el.setAttribute('data-reveal', '')")
     expect(js.trim().split('\n').at(-2)).toContain("root.classList.add('reveal-on')")
+  })
+})
+
+describe('the hero glow in light mode', () => {
+  it('keeps the quietest hero text (ink3) within 5% of its contrast, even at the glow’s brightest point', () => {
+    const t = readTokens('light')
+    const plain = ratio(rgb(t.ink3), rgb(t.bg))
+    for (const tool of ['n8n', 'supabase', 'claude', 'telegram', 'vs-code'] as const) {
+      const peak = mix(rgb(TOOLS[tool].brand), rgb(t.bg), HALO.light / 100)
+      expect(ratio(rgb(t.ink3), peak), tool).toBeGreaterThanOrEqual(plain * 0.95)
+    }
   })
 })

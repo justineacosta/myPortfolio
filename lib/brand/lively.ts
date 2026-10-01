@@ -6,9 +6,12 @@ export const KINDS = {
   light: { trigger: '#B45309', ai: '#6D28D9', branch: '#1D4ED8', helper: '#0F766E' },
 } as const
 
+/** The hero glow’s strength, in percent, per theme. Light keeps the quietest hero text within 5% of its contrast (tests/brand-lively.test.ts). */
+export const HALO = { dark: 22, light: 4 } as const
+
 const kinds = (t: Record<string, string>) => Object.entries(t).map(([k, v]) => `--k-${k}:${v}`).join(';')
-const DARK = `${kinds(KINDS.dark)};--halo:22%;--logo-light:none;--logo-dark:inline`
-const LIGHT = `${kinds(KINDS.light)};--halo:14%;--logo-light:inline;--logo-dark:none`
+const DARK = `${kinds(KINDS.dark)};--halo:${HALO.dark}%;--logo-light:none;--logo-dark:inline`
+const LIGHT = `${kinds(KINDS.light)};--halo:${HALO.light}%;--logo-light:inline;--logo-dark:none`
 const TINTED = ':is(.k-trigger,.k-ai,.k-branch,.k-helper) .node-card'
 const HC = ':root[data-a11y-contrast=true]'
 const STILL = ':root[data-a11y-motion=true]'
