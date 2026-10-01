@@ -36,9 +36,8 @@ All copy uses curly quotes and apostrophes. Step labels and sub-lines are 22 cha
 - Title: `How my AI agents and RAG chatbots work`
 - Lede: "Eight sample builds on one stack, and the two patterns underneath every one of them."
 - Sample note (small, with an info icon): "These are sample builds: examples of what I build, not client projects."
-- Tool chips: Claude · n8n · Supabase.
 - A home link back to the portfolio (`target="_top"`), hidden inside the window, as on the other pages.
-- The "Tools on this page" strip, as on the other pages.
+- The "Tools on this page" strip, as on the other pages. It lists all eight tools, starting Claude · n8n · Supabase.
 
 ### 3.2 Section chips
 A sticky row under the hero: **At a glance · RAG chatbots · Agents · The builds · Guardrails · Glossary**. Scroll-spy and click behaviour are the same as the other pages.
@@ -174,7 +173,7 @@ RAG, Chunk, Embedding, Vector search, pgvector, Passage, Hand-off, Agent, Trigge
 ### 4.2 Diagrams
 - The same frame, 56 px step cards, labels, cables, legend and pan behaviour as the Agentic Framework loop.
 - A **branch** step has a diamond badge. The **gate** has the accent outline and lock badge.
-- **Pins** are small 22 px round badges in one row directly under a step's label: a logo for a branded tool, an icon otherwise. Each is a button that opens the details panel with its name and one line.
+- **Pins** are 24 px round badges (big enough to tap, like the Agentic Framework's rule pins) in one row directly under a step's label: a logo for a branded tool, an icon otherwise. Each is a button that opens the details panel with its name and one line.
 - Pins never overlap a card, a label, a cable label or another pin (tested).
 
 ### 4.3 Interactions
@@ -187,14 +186,14 @@ RAG, Chunk, Embedding, Vector search, pgvector, Passage, Hand-off, Agent, Trigge
   - A caption bar above the diagram shows the build's name and caption, with a **Show all** button. The caption is a polite live region.
   - Focus moves to **Show all**. **Show all** clears the focus and returns keyboard focus to the build's button.
   - Showing another build replaces the focus. A build in the other diagram clears this one first.
-  - **Esc** clears a focus first. With no focus set, Esc does what it does today: it closes the details panel, then the window.
+  - **Esc** closes the innermost thing first: an open details panel, then a route focus, then (inside the window) the window.
   - The button has `aria-pressed` while its build is shown.
 - **Phones:** diagrams pan inside their frames with faded edges, drag and ‹ › buttons. The page never scrolls sideways.
 
 ### 4.4 Accessibility
 - Steps, pins, legend items and route buttons are buttons with accessible names.
 - Each diagram has a screen-reader-only ordered list of its steps and where each leads.
-- The two count chips and the logo row on the board card are real text and images with alt text. The animated preview is `aria-hidden`.
+- The two count chips on the board card are real text. The logo row is decorative (`alt=""`), as in the site's other logo rows, so the card link's name stays short; the page names every tool. The animated preview is `aria-hidden`.
 
 ## 5. Site integration
 
@@ -250,7 +249,7 @@ RAG, Chunk, Embedding, Vector search, pgvector, Passage, Hand-off, Agent, Trigge
 - **No kape (`tests/no-kape.test.ts`):** every string value exported from `data/*.ts` (walked recursively, functions skipped) and every file in `public/*.html` is free of `kape`, `brewedops` and `Ken AI`, case-insensitively.
 - **Layout (`tests/agents-layout.test.ts`):** cards and pins don't overlap each other or any label; every cable label sits inside the frame; each diagram's routes together pass every step and cable.
 - **Render (`tests/agents-render.test.ts`):** the head script, backdrop and logo sheet are there; text and ids are escaped; the six section chips point at real sections; there are eight build cards with route buttons, and each diagram has one button per step and pin; home and footer links go to the top window; a size guard; and freshness: `public/ai-agents.html` equals `renderAgents()`.
-- **Shared client:** a unit test shows `data-only` limits the routes picked, and that without it all routes stay possible.
+- **Shared client:** the client is browser code inlined into the pages, so the `data-only` hook is tested in the browser: while a build is shown, every ball on its diagram is on one of its routes. End-to-End's and the Agentic Framework's freshness and browser tests prove nothing else changed.
 - **Site:** `tests/projects.test.tsx` covers the card's counts, logos, no live dots and the hidden preview. `tests/seo.test.ts` is updated. The card opens the iframe.
 - **Browser (`e2e/agents.spec.ts`, desktop and phone):**
   - The page loads with no errors. It opens light, and dark when dark is saved.
