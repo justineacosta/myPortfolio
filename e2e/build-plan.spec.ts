@@ -306,3 +306,26 @@ test('a node’s panel shows the tool it uses; a key item shows none', async ({ 
   await page.locator('[data-node="key:trigger"]').click()
   await expect(tools).toBeHidden()
 })
+
+test('a panel’s tools and type line never run under its close button', async ({ page }) => {
+  await page.goto(PAGE)
+  const panel = page.locator('#node-panel')
+  for (const id of ['tm-06:e6', 'tm-02:a9', 'tm-05:d1', 'tm-01:n6']) {
+    const step = page.locator(`[data-node="${id}"]`)
+    await step.scrollIntoViewIfNeeded()
+    await step.click()
+    await expect(panel).toBeVisible()
+    const hits = await panel.evaluate((p) => {
+      const x = p.querySelector('.panel-close')!.getBoundingClientRect()
+      const boxes: DOMRect[] = []
+      for (const el of p.querySelectorAll('[data-p=tools] .ptool, [data-p=type]')) {
+        const r = document.createRange()
+        r.selectNodeContents(el)
+        boxes.push(...r.getClientRects())
+      }
+      return boxes.filter((b) => b.width > 0 && b.right > x.left && b.left < x.right && b.bottom > x.top && b.top < x.bottom).length
+    })
+    expect(hits, id).toBe(0)
+    await page.keyboard.press('Escape')
+  }
+})

@@ -190,9 +190,10 @@ a[href^="http"]::after{content:" (" attr(href) ")";font-size:.75em;color:var(--i
 .tools-strip-label{font-family:var(--mono);font-size:.625rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
 .tools-strip ul{display:flex;flex-direction:row;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
 .tool-chip{display:inline-flex;align-items:center;gap:7px;padding:5px 11px 5px 8px;border-radius:999px;border:1px solid var(--b1);background:var(--s1);font-size:.8125rem;color:var(--ink2)}
-.ptools{display:inline-flex;flex-wrap:wrap;gap:4px 10px;margin:0 8px 4px 0;vertical-align:middle}
+.ptools{float:left;display:flex;flex-wrap:wrap;gap:4px 10px;max-width:calc(100% - 36px);margin:0 8px 4px 0}
 .ptools[hidden]{display:none}
-.ptools:not([hidden])+.ptype{display:inline}
+.panel .ptype{padding-right:36px}
+.panel h3{clear:left}
 .ptool{display:inline-flex;align-items:center;gap:6px;font-size:.75rem;font-weight:500;color:var(--ink2)}
 .gl-logo{display:inline-flex;margin-right:6px;vertical-align:-2px}
 .tile,.card,.tool-chip{transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
