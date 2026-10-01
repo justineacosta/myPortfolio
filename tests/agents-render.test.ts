@@ -152,6 +152,13 @@ describe('renderAgents', () => {
     expect(by.getAttribute('target')).toBe('_top')
   })
 
+  it('runs Show its route straight after the client', () => {
+    const scripts = [...doc.querySelectorAll('script:not([type])')].map((s) => s.textContent!)
+    const at = scripts.findIndex((s) => s.includes("getElementById('agent-builds')"))
+    expect(at).toBeGreaterThan(0)
+    expect(scripts[at - 1]).toBe(readFileSync('lib/endToEnd/client.js', 'utf8').replace(/\r\n/g, '\n'))
+  })
+
   it('runs End-to-End’s client as it is', () => {
     expect(html).toContain(readFileSync('lib/endToEnd/client.js', 'utf8').replace(/\r\n/g, '\n'))
   })

@@ -157,6 +157,8 @@ export function renderAgents(g: Agents = A, themes: Themes = { dark: readTokens(
   ].join('\n')
   // End-to-End's client, as it is (read-only). Git may check it out with CRLF on Windows.
   const client = readFileSync(join(process.cwd(), 'lib/endToEnd/client.js'), 'utf8').replace(/\r\n/g, '\n')
+  // Show its route. Git may check it out with CRLF on Windows.
+  const focusJs = readFileSync(join(process.cwd(), 'lib/agents/focus.js'), 'utf8').replace(/\r\n/g, '\n')
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -188,6 +190,7 @@ ${toolTemplates(used)}
 <script type="application/json" id="graph-nodes">${safeJson(index)}</script>
 <script type="application/json" id="agent-builds">${safeJson(focus)}</script>
 <script>${client}</script>
+<script>${focusJs}</script>
 <script>${contourJs()}</script>
 <script>${revealJs()}</script>
 </body>
