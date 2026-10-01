@@ -90,6 +90,13 @@ describe('renderAutomations', () => {
     expect(scripts.some((s) => s.includes('graph-nodes'))).toBe(true)
   })
 
+  it('inlines the tabs script after the client', () => {
+    const scripts = [...doc.querySelectorAll('body script:not([type])')].map((s) => s.textContent!)
+    const client = scripts.findIndex((s) => s.includes('graph-nodes'))
+    const tabs = scripts.findIndex((s) => s.includes('[role=tab]'))
+    expect(tabs).toBeGreaterThan(client)
+  })
+
   it('hides a flow the hidden attribute hides, though sections are grids', () => {
     expect(automationsCss({ dark: readTokens('dark'), light: readTokens('light'), contrast: readContrast() })).toContain('.flow[hidden]{display:none}')
   })

@@ -2,6 +2,8 @@ import type { PlanEdge } from '../../data/buildPlan.ts'
 
 /** The canvas grid, in px: column and row pitch, node size, stage padding, and room for a label under the last row. */
 export const GEOM = { col: 156, row: 116, node: 56, padX: 48, padY: 28, label: 44 } as const
+/** A grid like GEOM; the Automations page packs a Zap's steps closer. */
+export type Geom = { readonly [K in keyof typeof GEOM]: number }
 
 export type Placed = { col: number; row: number; x: number; y: number }
 export type LaidEdge = PlanEdge & { d: string; mid: [number, number]; len: number }
@@ -40,7 +42,7 @@ function curveLength(p: number[][]): number {
  * end, the main one (always the first way out) first; `main` and `run` are
  * that main route's steps and line.
  */
-export function layout({ nodes, edges }: { nodes: { id: string }[]; edges: PlanEdge[] }): Layout {
+export function layout({ nodes, edges }: { nodes: { id: string }[]; edges: PlanEdge[] }, geom: Geom = GEOM): Layout {
   const ids = nodes.map((n) => n.id)
   const known = new Set(ids)
   if (known.size !== ids.length) throw new Error('Two nodes share an id')
@@ -76,7 +78,7 @@ export function layout({ nodes, edges }: { nodes: { id: string }[]; edges: PlanE
   }
   for (const r of roots) visit(r, ++last)
 
-  const { col: C, row: R, node: N, padX, padY, label } = GEOM
+  const { col: C, row: R, node: N, padX, padY, label } = geom
   const placed: Record<string, Placed> = {}
   for (const id of ids) {
     const c = col.get(id)!

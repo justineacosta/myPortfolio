@@ -33,6 +33,8 @@ describe('layoutFlow', () => {
     const ys = automations.flows[3].nodes.map((n) => mw.nodes[n.id].y)
     expect(new Set(xs).size).toBe(1)
     expect(ys).toEqual([...ys].sort((p, q) => p - q))
+    // Closer than a canvas column: a Zap reads as a list of steps.
+    expect(ys.slice(1).map((y, i) => y - ys[i])).toEqual([104, 104, 104, 104])
     expect(hp.width).toBeGreaterThan(hp.height)
     expect(me.width).toBeGreaterThan(me.height)
   })

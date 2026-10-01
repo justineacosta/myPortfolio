@@ -25,5 +25,8 @@ export function transpose(l: Layout, side = SIDE): Layout {
   }
 }
 
+/** A Zap's grid: steps 104px apart (a 56px card and a 48px wire), so it reads as a list, not a canvas. */
+const ZAP = { ...GEOM, col: 104 }
+
 /** A flow's canvas: Zapier top to bottom, n8n and Make left to right. */
-export const layoutFlow = (f: Flow): Layout => (f.platform === 'zapier' ? transpose(layout(f)) : layout(f))
+export const layoutFlow = (f: Flow): Layout => (f.platform === 'zapier' ? transpose(layout(f, ZAP)) : layout(f))
