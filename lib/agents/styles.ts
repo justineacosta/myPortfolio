@@ -33,6 +33,11 @@ export function agentsCss(themes: Themes): string {
 .builds-kind{font-family:var(--mono);font-size:.6875rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
 .build h4{margin:0;font-size:1rem;letter-spacing:-.01em}
 .sample{font-family:var(--mono);font-size:.5625rem;letter-spacing:.14em;color:var(--accent)}
+.build .build-for{margin:0;font-family:var(--mono);font-size:.6875rem;letter-spacing:.04em;color:var(--ink3)}
+.build-example{display:flex;flex-direction:column;gap:6px;margin:2px 0 0;padding:10px 12px;border-radius:10px;border:1px solid var(--b1);background:var(--s0)}
+.build-example div{display:flex;flex-direction:column;gap:2px}
+.build-example dt{font-family:var(--mono);font-size:.5625rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.build-example dd{margin:0;font-size:.8125rem;color:var(--ink2)}
 .build-logos{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding-top:4px}
 @media (prefers-reduced-motion:reduce){.canvas :is(.node,.pin,.edge,.edge-label){transition:none}}
 :root[data-a11y-motion=true] .canvas :is(.node,.pin,.edge,.edge-label){transition:none}

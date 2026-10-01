@@ -21,8 +21,23 @@ export type RouteDef = { id: string; nodes: string[] }
 export type LegendId = 'cable' | 'signal' | 'loop' | 'index' | 'branch' | 'gate' | 'pin'
 export type LegendKey = { id: LegendId; label: string; what: string }
 export type Diagram = { id: DiagramId; caption: string; steps: Step[]; cables: Cable[]; routes: RouteDef[]; legend: LegendKey[] }
-/** A sample build. `routes` are its diagram’s route ids; `pins` are "step:pin". */
-export type Build = { id: string; kind: DiagramId; name: string; line: string; tools: ToolId[]; routes: string[]; pins: string[]; caption: string }
+/**
+ * A sample build, set in one of the portfolio’s own fictional businesses
+ * (data/projects.ts SITES): its trade, a real-life situation and one worked
+ * example. `routes` are its diagram’s route ids; `pins` are "step:pin".
+ */
+export type Build = {
+  id: string
+  kind: DiagramId
+  name: string
+  business: { name: string; trade: string }
+  line: string
+  example: { ask: string; answer: string }
+  tools: ToolId[]
+  routes: string[]
+  pins: string[]
+  caption: string
+}
 export type Tile = { mark: string; icon: string; title: string; text: string }
 export type Agents = {
   title: string
@@ -37,7 +52,7 @@ export type Agents = {
   glance: Tile[]
   diagrams: Record<DiagramId, Diagram>
   builds: Build[]
-  buildText: { sample: string; kinds: Record<DiagramId, string>; groups: Record<DiagramId, string>; show: string; showAll: string; tools: string }
+  buildText: { sample: string; kinds: Record<DiagramId, string>; groups: Record<DiagramId, string>; example: Record<DiagramId, [string, string]>; show: string; showAll: string; tools: string }
   guardrails: Tile[]
   glossary: [string, string][]
   footer: { note: string; by: string }
@@ -62,7 +77,7 @@ export const agents: Agents = {
   kicker: 'AI AGENTS AND RAG CHATBOTS',
   heading: 'How I build AI agents and RAG chatbots',
   lede: 'Eight sample builds on one stack, and the two patterns underneath every one of them.',
-  sample: 'These are sample builds: examples of what I build, not client projects.',
+  sample: 'Sample builds for the fictional businesses used across this portfolio, not client projects.',
   heroTools: ['claude', 'n8n', 'supabase'],
   sections: [
     { id: 'glance', chip: 'At a glance', kicker: 'AT A GLANCE', title: 'Two patterns, one rule', blurb: 'Every build below is one of two patterns, and both stop for your yes.' },
@@ -98,7 +113,7 @@ export const agents: Agents = {
           id: 'ask', at: [0, 1], kind: 'start', label: 'A question', sub: 'Chat, Telegram, Gmail', icon: 'ChatCircleText', pinType: 'CHANNEL',
           what: 'Someone asks a question in the website chat, in Telegram or by email. n8n picks it up and starts the run.',
           pins: [
-            { id: 'chat', name: 'Website chat', icon: 'ChatCircleDots', what: 'A chat bubble on the website.' },
+            { id: 'chat', name: 'Chat window', icon: 'ChatCircleDots', what: 'A chat box on a website or an internal page.' },
             { id: 'telegram', name: 'Telegram', tool: 'telegram', what: 'A Telegram bot your team can message.' },
             { id: 'gmail', name: 'Gmail', tool: 'gmail', what: 'Questions that arrive by email.' },
           ],
@@ -205,19 +220,68 @@ export const agents: Agents = {
     },
   },
   builds: [
-    { id: 'helpdesk', kind: 'rag', name: 'Help-desk RAG bot', line: 'Answers customers from your help docs and past tickets, and hands off when it isn’t sure.', tools: ['claude', 'supabase', 'n8n', 'gmail'], routes: ['prepare', 'answered', 'handoff'], pins: ['docs:docs', 'ask:chat', 'ask:gmail'], caption: 'Website chat or Gmail → search the help docs → Claude answers → reply with the source, or hand to a person' },
-    { id: 'team', kind: 'rag', name: 'Team knowledge bot', line: 'Staff ask in Telegram how something is done; it answers from the SOPs and price sheets.', tools: ['claude', 'supabase', 'n8n', 'telegram', 'google-sheets'], routes: ['prepare', 'answered', 'handoff'], pins: ['docs:docs', 'docs:sheets', 'ask:telegram'], caption: 'Telegram → search the SOPs and price sheets → Claude answers → reply with the source, or hand to a person' },
-    { id: 'sales', kind: 'rag', name: 'Website sales bot', line: 'Answers product and pricing questions from the real price list, then offers a call.', tools: ['claude', 'supabase', 'n8n', 'cal-com'], routes: ['prepare', 'answered', 'booked'], pins: ['docs:docs', 'docs:sheets', 'ask:chat'], caption: 'Website chat → search the price list and service pages → Claude answers → reply, then offer a Cal.com call' },
-    { id: 'docqa', kind: 'rag', name: 'Document Q&A bot', line: 'Ask about your contracts or manuals; it answers with the page it used, or says it isn’t there.', tools: ['claude', 'supabase', 'n8n'], routes: ['prepare', 'answered', 'handoff'], pins: ['docs:pdf', 'ask:chat'], caption: 'Website chat → search the uploaded PDFs → Claude answers → reply with the page, or say it isn’t there' },
-    { id: 'inbox', kind: 'agent', name: 'Inbox triage agent', line: 'Reads every new email, sorts it, drafts the reply and offers meeting times. Sends only on your yes.', tools: ['claude', 'n8n', 'gmail', 'cal-com', 'telegram'], routes: ['straight', 'notdone', 'changed'], pins: ['trigger:gmail', 'tool:gmail', 'tool:cal', 'act:gmail', 'act:sheets'], caption: 'New email → Claude sorts and drafts → Gmail and Cal.com → your yes in Telegram → send and log' },
-    { id: 'billing', kind: 'agent', name: 'Billing follow-up agent', line: 'Watches Stripe for failed or overdue payments, picks the next step, writes the email and logs it.', tools: ['claude', 'n8n', 'stripe', 'gmail', 'google-sheets', 'telegram'], routes: ['straight', 'notdone', 'changed'], pins: ['trigger:stripe', 'tool:stripe', 'act:gmail', 'act:sheets'], caption: 'Stripe: payment failed → Claude picks the next step → reminder or retry link → your yes in Telegram → send and log' },
-    { id: 'leads', kind: 'agent', name: 'Lead research agent', line: 'Reads a new lead’s website, scores the fit, saves it to the CRM and drafts a first email for your yes.', tools: ['claude', 'n8n', 'supabase', 'telegram'], routes: ['straight', 'notdone', 'changed'], pins: ['trigger:form', 'tool:web', 'tool:supabase', 'act:gmail', 'act:sheets'], caption: 'New form lead → Claude reads their site → score saved in Supabase → your yes on the first email → send and log' },
-    { id: 'report', kind: 'agent', name: 'Weekly report agent', line: 'Every Monday it pulls Stripe revenue and the pipeline sheet, spots what changed and emails a summary.', tools: ['claude', 'n8n', 'stripe', 'google-sheets', 'gmail'], routes: ['internal'], pins: ['trigger:clock', 'tool:stripe', 'tool:sheets', 'act:gmail', 'act:sheets'], caption: 'Monday 8 am → Claude pulls Stripe and the pipeline sheet → writes the summary → internal, so no yes needed → send and log' },
+    {
+      id: 'helpdesk', kind: 'rag', name: 'Help-desk RAG bot', business: { name: 'Trusted Mover', trade: 'moving company' },
+      line: 'Answers Trusted Mover’s customers from the pricing guide and FAQ, and hands damage claims to a person.',
+      example: { ask: 'Do you move pianos, and what does it add?', answer: 'Yes. Uprights add $150; grands need a site visit first. (Pricing guide §4)' },
+      tools: ['claude', 'supabase', 'n8n', 'gmail'], routes: ['prepare', 'answered', 'handoff'], pins: ['docs:docs', 'ask:chat', 'ask:gmail'],
+      caption: 'Trusted Mover’s site chat or Gmail → search the pricing guide and FAQ → Claude answers → reply with the source, or hand off',
+    },
+    {
+      id: 'team', kind: 'rag', name: 'Team knowledge bot', business: { name: 'Below Ground', trade: 'utility contractor' },
+      line: 'Below Ground’s field crews ask in Telegram; it answers from the field SOPs and the equipment sheet.',
+      example: { ask: 'A locate mark is missing at the dig site. What do I do?', answer: 'Stop, fill in form LM-2 and call the office before you dig. (Field SOP §3.1)' },
+      tools: ['claude', 'supabase', 'n8n', 'telegram', 'google-sheets'], routes: ['prepare', 'answered', 'handoff'], pins: ['docs:docs', 'docs:sheets', 'ask:telegram'],
+      caption: 'Below Ground crew in Telegram → search the field SOPs and kit sheet → Claude answers → reply with the source, or call the office',
+    },
+    {
+      id: 'sales', kind: 'rag', name: 'Website sales bot', business: { name: 'Solar Field', trade: 'solar installer' },
+      line: 'Answers Solar Field visitors’ price and fit questions from the price sheet, then offers a site survey.',
+      example: { ask: 'What would a 6 kW system cost on my roof?', answer: '6 kW starts at $14,800 before incentives (Price sheet). Want a free site survey this week?' },
+      tools: ['claude', 'supabase', 'n8n', 'cal-com'], routes: ['prepare', 'answered', 'booked'], pins: ['docs:docs', 'docs:sheets', 'ask:chat'],
+      caption: 'Solar Field’s site chat → search the price sheet and service pages → Claude answers → reply, then offer a Cal.com site survey',
+    },
+    {
+      id: 'docqa', kind: 'rag', name: 'Document Q&A bot', business: { name: 'Baptiste', trade: 'law firm' },
+      line: 'Baptiste’s paralegals ask about a client’s contracts; it answers with the page, or says it isn’t there.',
+      example: { ask: 'What notice ends the Harlow lease?', answer: '60 days, in writing. (Lease, page 7, §12.2)' },
+      tools: ['claude', 'supabase', 'n8n'], routes: ['prepare', 'answered', 'handoff'], pins: ['docs:pdf', 'ask:chat'],
+      caption: 'Baptiste’s chat window → search the client’s uploaded contracts → Claude answers → reply with the page, or say it isn’t there',
+    },
+    {
+      id: 'inbox', kind: 'agent', name: 'Inbox triage agent', business: { name: 'One Hour Therapy', trade: 'therapy clinic' },
+      line: 'Sorts One Hour Therapy’s booking and cancellation emails and drafts replies; urgent ones go to a person.',
+      example: { ask: 'New email: “Can I move Thursday’s session to next week?”', answer: 'A reply with three open Cal.com times, drafted and waiting for your yes.' },
+      tools: ['claude', 'n8n', 'gmail', 'cal-com', 'telegram'], routes: ['straight', 'notdone', 'changed'], pins: ['trigger:gmail', 'tool:gmail', 'tool:cal', 'act:gmail', 'act:sheets'],
+      caption: 'New email to One Hour Therapy → Claude sorts and drafts → Gmail and Cal.com → your yes in Telegram → send and log',
+    },
+    {
+      id: 'billing', kind: 'agent', name: 'Billing follow-up agent', business: { name: 'Blade Studio', trade: 'brand studio' },
+      line: 'Spots Blade Studio’s overdue client invoices in Stripe, drafts a polite reminder and logs it.',
+      example: { ask: 'Stripe: invoice BS-0142 is 14 days overdue.', answer: 'A friendly reminder with the payment link, drafted and waiting for your yes.' },
+      tools: ['claude', 'n8n', 'stripe', 'gmail', 'google-sheets', 'telegram'], routes: ['straight', 'notdone', 'changed'], pins: ['trigger:stripe', 'tool:stripe', 'act:gmail', 'act:sheets'],
+      caption: 'Stripe: Blade Studio invoice 14 days overdue → Claude picks the next step → reminder with payment link → your yes → send and log',
+    },
+    {
+      id: 'leads', kind: 'agent', name: 'Lead research agent', business: { name: 'Payline', trade: 'fintech' },
+      line: 'Reads each company that books a Payline demo, scores the fit, saves it to the CRM and drafts a first email.',
+      example: { ask: 'New demo request from a 40-person logistics firm.', answer: 'Fit 8 of 10, saved to the CRM, first email drafted for your yes.' },
+      tools: ['claude', 'n8n', 'supabase', 'telegram'], routes: ['straight', 'notdone', 'changed'], pins: ['trigger:form', 'tool:web', 'tool:supabase', 'act:gmail', 'act:sheets'],
+      caption: 'Payline demo request → Claude reads their site → score saved in Supabase → your yes on the first email → send and log',
+    },
+    {
+      id: 'report', kind: 'agent', name: 'Weekly report agent', business: { name: 'Apex Build Co.', trade: 'auto repair shop' },
+      line: 'Every Monday it turns Apex Build Co.’s Stripe revenue and jobs sheet into a summary for the owner.',
+      example: { ask: 'Monday, 8 am.', answer: '“Revenue up 12% on last week; 3 jobs waiting on parts.” Emailed to the owner.' },
+      tools: ['claude', 'n8n', 'stripe', 'google-sheets', 'gmail'], routes: ['internal'], pins: ['trigger:clock', 'tool:stripe', 'tool:sheets', 'act:gmail', 'act:sheets'],
+      caption: 'Apex Build Co., Monday 8 am → Claude pulls Stripe and the jobs sheet → writes the summary → internal, no yes needed → send',
+    },
   ],
   buildText: {
     sample: 'SAMPLE BUILD',
     kinds: { rag: 'RAG chatbot', agent: 'AI agent' },
     groups: { rag: 'RAG chatbots', agent: 'AI agents' },
+    example: { rag: ['Asked', 'Answer'], agent: ['Trigger', 'Result'] },
     show: 'Show its route',
     showAll: 'Show all',
     tools: 'Tools',

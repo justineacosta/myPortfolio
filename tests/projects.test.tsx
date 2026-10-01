@@ -224,9 +224,10 @@ describe('the AI agents card', () => {
     const c = card()
     const p = c.querySelector('.agents-preview')!
     expect(p).toHaveAttribute('aria-hidden', 'true')
-    expect(p.textContent).toContain('Can I switch plans mid-month?')
-    expect(p.textContent).toContain('Billing FAQ §2')
-    expect(p.textContent).toContain('Stripe · payment failed')
+    // The same two scenarios the page's Trusted Mover and Blade Studio builds show.
+    expect(p.textContent).toContain('Do you move pianos, and what does it add?')
+    expect(p.textContent).toContain('Pricing guide §4')
+    expect(p.textContent).toContain('Stripe · invoice 14 days overdue')
     expect(p.querySelector('a, button, input, [tabindex]')).toBeNull()
   })
 

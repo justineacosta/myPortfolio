@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { agents as g, KIND_TYPES, type DiagramId } from '@/data/agents'
+import { projects } from '@/data/projects'
 import { TOOLS } from '@/lib/brand/tools'
 
 const D: DiagramId[] = ['rag', 'agent']
@@ -17,7 +18,7 @@ describe('the agents page data', () => {
   it('opens with the hero the spec sets', () => {
     expect(g.kicker).toBe('AI AGENTS AND RAG CHATBOTS')
     expect(g.heading).toBe('How I build AI agents and RAG chatbots')
-    expect(g.sample).toBe('These are sample builds: examples of what I build, not client projects.')
+    expect(g.sample).toBe('Sample builds for the fictional businesses used across this portfolio, not client projects.')
     expect(g.heroTools).toEqual(['claude', 'n8n', 'supabase'])
   })
 
@@ -111,6 +112,21 @@ describe('the agents page data', () => {
     }
     expect(g.builds.find((b) => b.id === 'report')!.routes).toEqual(['internal'])
     expect(g.builds.find((b) => b.id === 'sales')!.routes).toEqual(['prepare', 'answered', 'booked'])
+  })
+
+  it('sets each build in a different one of the portfolio’s own example businesses, with a worked example', () => {
+    const names = projects.sitesView.sites.map((s) => s.name)
+    expect(g.builds.map((b) => b.business.name)).toEqual(['Trusted Mover', 'Below Ground', 'Solar Field', 'Baptiste', 'One Hour Therapy', 'Blade Studio', 'Payline', 'Apex Build Co.'])
+    for (const b of g.builds) {
+      expect(names, b.id).toContain(b.business.name)
+      expect(b.business.trade.length, b.id).toBeGreaterThan(3)
+      for (const v of [b.example.ask, b.example.answer]) {
+        expect(v.length, `${b.id}: ${v}`).toBeGreaterThan(8)
+        expect(v.length, `${b.id}: ${v}`).toBeLessThanOrEqual(110)
+      }
+      // The line or the caption says whose build it is.
+      expect(`${b.line} ${b.caption}`, b.id).toContain(b.business.name)
+    }
   })
 
   it('names only known tools, with Claude and n8n in every build', () => {

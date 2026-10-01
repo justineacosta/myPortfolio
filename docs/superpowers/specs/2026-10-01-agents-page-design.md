@@ -2,6 +2,7 @@
 
 **Date:** 2026-10-01
 **Status:** Approved 2026-10-01 in chat
+**Change, 2026-10-01 (real-life scenarios):** each sample build is set in one of the portfolio’s own fictional businesses (data/projects.ts SITES), each business once, with a worked example on its card (Asked/Answer for chatbots, Trigger/Result for agents). Helpdesk → Trusted Mover (movers), Team knowledge → Below Ground (utility contractor), Website sales → Solar Field (solar installer), Document Q&A → Baptiste (law firm), Inbox triage → One Hour Therapy (clinic; never clinical, urgent mail to a person), Billing follow-up → Blade Studio (overdue client invoice), Lead research → Payline (demo request), Weekly report → Apex Build Co. (auto repair). Lines and captions name the business. The sample note reads “Sample builds for the fictional businesses used across this portfolio, not client projects.” The “Website chat” pin is now “Chat window”. The board preview plays Trusted Mover’s piano question, then Blade Studio’s overdue invoice. Prices, section numbers and form names are invented for fictional businesses. The words in data/agents.ts supersede §3.7’s table.
 **Why:** The card's content came from the kape reference portfolio (KapeAI, KapeSEO, KAPE Reel worker, Kape AI knowledge search, BrewedOps OS roster, Ken AI Bot, Hermes). None of it is Justine's. It is replaced by labelled sample builds on Justine's stack, and the card gains a page that shows how they work, like the other three write-up cards.
 
 ## 1. Goal

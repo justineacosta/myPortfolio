@@ -122,7 +122,7 @@ function builds(g: Agents) {
           .filter((b) => b.kind === kind)
           .map(
             (b) =>
-              `<li class="tile build" id="build-${esc(b.id)}"><span class="tile-top"><span class="sample">${esc(t.sample)}</span><span class="tile-mark">${esc(t.kinds[kind])}</span></span><h4>${esc(b.name)}</h4><p>${esc(b.line)}</p><span class="build-logos" aria-hidden="true">${b.tools.map((id) => logo(id, 18)).join('')}</span><span class="sr-only">${esc(t.tools)}: ${esc(b.tools.map((id) => TOOLS[id].name).join(', '))}</span><button type="button" class="route-btn" data-build="${esc(b.id)}" aria-pressed="false" aria-label="${esc(t.show)}: ${esc(b.name)}"><span aria-hidden="true">${iconSvg('Path', 14)}</span>${esc(t.show)}</button></li>`,
+              `<li class="tile build" id="build-${esc(b.id)}"><span class="tile-top"><span class="sample">${esc(t.sample)}</span><span class="tile-mark">${esc(t.kinds[kind])}</span></span><h4>${esc(b.name)}</h4><p class="build-for">For ${esc(b.business.name)} · ${esc(b.business.trade)}</p><p>${esc(b.line)}</p><dl class="build-example"><div><dt>${esc(t.example[kind][0])}</dt><dd>${esc(b.example.ask)}</dd></div><div><dt>${esc(t.example[kind][1])}</dt><dd>${esc(b.example.answer)}</dd></div></dl><span class="build-logos" aria-hidden="true">${b.tools.map((id) => logo(id, 18)).join('')}</span><span class="sr-only">${esc(t.tools)}: ${esc(b.tools.map((id) => TOOLS[id].name).join(', '))}</span><button type="button" class="route-btn" data-build="${esc(b.id)}" aria-pressed="false" aria-label="${esc(t.show)}: ${esc(b.name)}"><span aria-hidden="true">${iconSvg('Path', 14)}</span>${esc(t.show)}</button></li>`,
           )
           .join('')}</ul>`,
     )

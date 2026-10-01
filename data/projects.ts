@@ -92,13 +92,13 @@ export const projects = {
         { name: 'Claude', slug: 'claude' }, { name: 'n8n', slug: 'n8n' }, { name: 'Supabase', slug: 'supabase' }, { name: 'Gmail', slug: 'gmail' },
         { name: 'Google Sheets', slug: 'googlesheets' }, { name: 'Telegram', slug: 'telegram' }, { name: 'Stripe', slug: 'stripe' }, { name: 'Cal.com', slug: 'caldotcom' },
       ] satisfies Brand[],
-      /** The card's preview (components/projects/AgentsPreview.tsx): a RAG chat, then an agent run. */
+      /** The card's preview (components/projects/AgentsPreview.tsx): the page's Trusted Mover chat, then Blade Studio's agent run. */
       preview: {
-        question: 'Can I switch plans mid-month?',
+        question: 'Do you move pianos, and what does it add?',
         search: 'Searching 5 passages · Supabase',
-        answer: 'Yes. The change starts today and the difference is prorated on your next invoice.',
-        source: 'Billing FAQ §2',
-        run: ['Stripe · payment failed', 'Drafting a reminder'] as [string, string],
+        answer: 'Yes. Uprights add $150; grands need a site visit first.',
+        source: 'Pricing guide §4',
+        run: ['Stripe · invoice 14 days overdue', 'Drafting a reminder'] as [string, string],
         approve: 'Approve?',
         buttons: ['Approve', 'Edit'] as [string, string],
       },

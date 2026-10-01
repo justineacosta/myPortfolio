@@ -118,6 +118,9 @@ describe('renderAgents', () => {
     for (const [i, c] of cards.entries()) {
       const b = g.builds[i]
       expect(c.querySelector('.sample')!.textContent).toBe('SAMPLE BUILD')
+      expect(c.querySelector('.build-for')!.textContent).toBe(`For ${b.business.name} · ${b.business.trade}`)
+      const ex = [...c.querySelectorAll('.build-example dt, .build-example dd')].map((e) => e.textContent)
+      expect(ex).toEqual([...g.buildText.example[b.kind].slice(0, 1), b.example.ask, g.buildText.example[b.kind][1], b.example.answer])
       expect(c.querySelectorAll('.build-logos svg.logo:not(.logo-dark)')).toHaveLength(b.tools.length)
       const btn = c.querySelector<HTMLButtonElement>('button.route-btn')!
       expect(btn.dataset.build).toBe(b.id)
