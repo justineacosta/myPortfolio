@@ -94,7 +94,10 @@ describe('renderAgenticFramework', () => {
   it('follows the End-to-End page in six tagged steps, linking to it in the top window', () => {
     const items = [...doc.querySelectorAll('#example ol.timeline li')]
     expect(items).toHaveLength(6)
-    expect(items.map((li) => li.querySelector('.tag')!.textContent)).toEqual(['Frame', 'Frame', 'Build', 'Check', 'Fold back', 'Ship'])
+    // A stage that runs on shows its tag once; screen readers still hear it.
+    expect(items.map((li) => li.querySelector('.tag')?.textContent ?? null)).toEqual(['Frame', null, 'Build', 'Check', 'Fold back', 'Ship'])
+    expect(items.map((li) => li.classList.contains('cont'))).toEqual([false, true, false, false, false, false])
+    expect(items[1].querySelector('.sr-only')!.textContent).toBe('Frame, continued')
     expect(items[4].querySelector('.tag')!.classList.contains('t-fold-back')).toBe(true)
     const see = doc.querySelector('#example a.see')!
     expect(see.getAttribute('href')).toBe('/end-to-end.html')

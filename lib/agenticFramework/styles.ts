@@ -41,6 +41,8 @@ export function afCss(themes: Themes): string {
 .timeline li{display:grid;grid-template-columns:28px 92px minmax(0,1fr);gap:12px;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--b1)}
 @media (max-width:560px){.timeline li{grid-template-columns:28px minmax(0,1fr)}.timeline li p{grid-column:2}}
 .timeline p{color:var(--ink2)}
+.timeline li.cont p{grid-column:3}
+@media (max-width:560px){.timeline li.cont p{grid-column:2}}
 .tl-n{font-family:var(--mono);font-size:.75rem;color:var(--ink3)}
 .tag{justify-self:start;padding:2px 8px;border-radius:999px;border:1px solid var(--b2);font-family:var(--mono);font-size:.625rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);white-space:nowrap}
 .t-frame{border-color:var(--accent);color:var(--accent)}

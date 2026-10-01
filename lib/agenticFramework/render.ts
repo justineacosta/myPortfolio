@@ -100,7 +100,12 @@ function loop(g: AgenticFramework, index: NodeIndex) {
 
 function example(g: AgenticFramework) {
   const items = g.example.items
-    .map((it, i) => `<li><span class="tl-n">${i + 1}</span><span class="tag ${tagClass(it.stage)}">${esc(it.stage)}</span><p>${esc(it.text)}</p></li>`)
+    // A stage that runs on from the row above shows its tag once; screen readers still hear it.
+    .map((it, i, all) =>
+      i > 0 && all[i - 1].stage === it.stage
+        ? `<li class="cont"><span class="tl-n">${i + 1}</span><span class="sr-only">${esc(it.stage)}, continued</span><p>${esc(it.text)}</p></li>`
+        : `<li><span class="tl-n">${i + 1}</span><span class="tag ${tagClass(it.stage)}">${esc(it.stage)}</span><p>${esc(it.text)}</p></li>`,
+    )
     .join('')
   return `<ol class="timeline">${items}</ol><a class="see" href="${esc(g.example.link.href)}" target="_top">${esc(g.example.link.label)}</a>`
 }

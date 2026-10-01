@@ -246,3 +246,15 @@ test('Check’s badges read in the sub-line’s order, Codex then VS Code, with 
   const hit = await page.evaluate(([x, y]) => document.elementFromPoint(x, y)!.closest('.logo-badge')!.querySelector('use')!.getAttribute('href'), [b.x + 3, b.y + b.height / 2])
   expect(hit).toBe('#logo-codex')
 })
+
+test('the example shows Frame’s tag once, and its second row’s text lines up with the rest', async ({ page }) => {
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 })
+    await page.goto(`${PAGE}#example`)
+    const rows = page.locator('#example .timeline li')
+    await expect(rows.locator('.tag')).toHaveCount(5)
+    const x = async (i: number) => (await rows.nth(i).locator('p').boundingBox())!.x
+    expect(await x(1), `${width}px`).toBe(await x(0))
+    expect(await x(1), `${width}px`).toBe(await x(2))
+  }
+})
