@@ -4,6 +4,7 @@ import { plan, type Plan } from '@/data/buildPlan'
 import { iconSvg } from '@/lib/buildPlan/icons'
 import { layout } from '@/lib/buildPlan/layout'
 import { renderPlan } from '@/lib/buildPlan/render'
+import { TOOLS } from '@/lib/brand/tools'
 import { readContrast, readTokens } from '@/lib/tokens'
 
 const html = renderPlan()
@@ -169,5 +170,43 @@ describe('renderPlan', () => {
 describe('public/build-plan.html', () => {
   it('is up to date with its data (run npm run plan after any change)', () => {
     expect(readFileSync('public/build-plan.html', 'utf8').replace(/\r\n/g, '\n')).toBe(renderPlan())
+  })
+})
+
+describe('the build plan’s logos and colour', () => {
+  const used = [...new Set(flows.flatMap((w) => w.nodes.flatMap((n) => n.tools)))]
+
+  it('badges every node with its tools, in order', () => {
+    for (const w of flows)
+      for (const n of w.nodes) {
+        const btn = doc.querySelector(`[data-node="${w.code.toLowerCase()}:${n.id}"]`)!
+        const hrefs = [...btn.querySelectorAll('.logo-badge')].map((b) => b.querySelector('use')!.getAttribute('href'))
+        expect(hrefs, `${w.code} ${n.id}`).toEqual(n.tools.map((t) => `#logo-${t}`))
+      }
+  })
+
+  it('lists the tools used in the hero, in order of first appearance', () => {
+    expect([...doc.querySelectorAll('.hero .tool-chip')].map((c) => c.textContent)).toEqual(used.map((t) => TOOLS[t].name))
+  })
+
+  it('draws each logo it uses once, and no other', () => {
+    expect([...doc.querySelectorAll('.logo-sheet symbol')].map((s) => s.id)).toEqual(used.map((t) => `logo-${t}`))
+  })
+
+  it('gives the panel a tools slot and a template per tool, and says which tools each node uses', () => {
+    expect(doc.querySelector('#node-panel > [data-p=tools]')!.hasAttribute('hidden')).toBe(true)
+    expect([...doc.querySelectorAll('template')].map((t) => t.id)).toEqual(used.map((t) => `tool-${t}`))
+    expect(JSON.parse(doc.getElementById('plan-nodes')!.textContent!)['tm-01:n3'].tools).toEqual(['supabase'])
+  })
+
+  it('adds the lively layer with the n8n and Supabase glow, and the reveal script last', () => {
+    const css = doc.querySelector('style')!.textContent!
+    expect(css).toContain(`--halo-a:${TOOLS.n8n.brand}`)
+    expect(css).toContain(`--halo-b:${TOOLS.supabase.brand}`)
+    expect([...doc.querySelectorAll('script')].at(-1)!.textContent).toContain("root.classList.add('reveal-on')")
+  })
+
+  it('grows by no more than 40 KB', () => {
+    expect(html.length).toBeLessThan(172_274 + 40_000)
   })
 })

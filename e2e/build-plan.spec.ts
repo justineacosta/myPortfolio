@@ -292,3 +292,17 @@ test('arrow buttons scroll a diagram, and fade edges show there is more to see',
   await expect(frame).toHaveAttribute('data-more-left', '')
   await expect(left).toBeEnabled()
 })
+
+test('a node’s panel shows the tool it uses; a key item shows none', async ({ page }) => {
+  await page.goto(PAGE)
+  const step = page.locator('[data-node="tm-01:n3"]')
+  await step.scrollIntoViewIfNeeded()
+  await step.click()
+  const tools = page.locator('#node-panel [data-p=tools]')
+  await expect(tools).toBeVisible()
+  await expect(tools).toHaveText('Supabase')
+  await expect(tools.locator('use')).toHaveAttribute('href', '#logo-supabase')
+  await page.keyboard.press('Escape')
+  await page.locator('[data-node="key:trigger"]').click()
+  await expect(tools).toBeHidden()
+})

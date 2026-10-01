@@ -47,8 +47,9 @@ ${HC} :is(.node.lit,.node:hover) .node-card{border-color:var(--accent)}
 .tools-strip-label{font-family:var(--mono);font-size:.625rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
 .tools-strip ul{display:flex;flex-direction:row;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
 .tool-chip{display:inline-flex;align-items:center;gap:7px;padding:5px 11px 5px 8px;border-radius:999px;border:1px solid var(--b1);background:var(--s1);font-size:.8125rem;color:var(--ink2)}
-.ptools{display:flex;flex-wrap:wrap;gap:4px 12px;margin-bottom:6px}
+.ptools{display:inline-flex;flex-wrap:wrap;gap:4px 10px;margin:0 8px 4px 0;vertical-align:middle}
 .ptools[hidden]{display:none}
+.ptools:not([hidden])+.ptype{display:inline}
 .ptool{display:inline-flex;align-items:center;gap:6px;font-size:.75rem;font-weight:500;color:var(--ink2)}
 .gl-logo{display:inline-flex;margin-right:6px;vertical-align:-2px}
 .tile,.card,.tool-chip{transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
@@ -57,7 +58,7 @@ ${HC} :is(.node.lit,.node:hover) .node-card{border-color:var(--accent)}
 :root:not([data-a11y-motion=true]) .node:hover .node-card{transform:translateY(-2px);box-shadow:0 10px 20px -12px color-mix(in srgb,var(--k,var(--accent)) 70%,transparent)}
 }
 .hero{position:relative;isolation:isolate}
-.hero::before{content:"";position:absolute;z-index:-1;left:0;right:0;top:-96px;height:440px;pointer-events:none;background:radial-gradient(45% 55% at 20% 45%,color-mix(in srgb,var(--halo-a) var(--halo),transparent),transparent 72%),radial-gradient(40% 50% at 75% 30%,color-mix(in srgb,var(--halo-b) var(--halo),transparent),transparent 72%);background-size:130% 130%;background-position:0% 0%;animation:halo 20s ease-in-out infinite alternate}
+.hero::before{content:"";position:absolute;z-index:-1;left:0;right:0;top:-96px;height:440px;pointer-events:none;background:radial-gradient(17% 35% at 30% 45%,color-mix(in srgb,var(--halo-a) var(--halo),transparent),transparent),radial-gradient(19% 32% at 68% 40%,color-mix(in srgb,var(--halo-b) var(--halo),transparent),transparent);background-size:115% 115%;background-position:0% 0%;animation:halo 20s ease-in-out infinite alternate}
 @keyframes halo{to{background-position:100% 60%}}
 ${HC} .hero::before{display:none}
 .reveal-on [data-reveal]{transition:opacity .6s ease,transform .6s ease}
