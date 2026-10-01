@@ -91,7 +91,7 @@ export const agenticFramework: AgenticFramework = {
     { mark: 'R4', icon: 'ListChecks', title: 'The model grades itself', text: 'Acceptance criteria go in with the task, and the output is checked against them before I look.', note: 'Self-review built in' },
   ],
   loop: {
-    caption: 'The loop · 7 steps, 3 ways round',
+    caption: 'The loop · 3 ways round',
     steps: [
       { id: 'task', at: [0, 0], kind: 'start', label: 'A task', sub: 'One small piece', icon: 'ClipboardText', what: 'One small piece of work, small enough that I can describe done in a paragraph. Anything bigger gets split first.' },
       { id: 'frame', at: [1, 0], kind: 'step', label: 'Frame', sub: 'Claude Code · Opus', icon: 'Target', rule: 'R1', what: 'I set the outcome, the constraints and the files that matter, then write the spec with its acceptance criteria. Opus helps plan, and nothing else goes into the context.' },

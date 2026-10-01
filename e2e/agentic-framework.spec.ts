@@ -40,12 +40,16 @@ test('a step explains itself; Escape closes it and focus goes back to the step',
   await expect(step).toBeFocused()
 })
 
-test('a rule pin explains its rule', async ({ page }) => {
+test('a rule pin explains its rule; Escape closes it and focus goes back to the pin', async ({ page }) => {
   await page.goto(PAGE)
-  await page.getByRole('button', { name: 'Rule R1: Write the spec first' }).click()
+  const pin = page.getByRole('button', { name: 'Rule R1: Write the spec first' })
+  await pin.click()
   const panel = page.getByRole('dialog', { name: 'Write the spec first' })
   await expect(panel.locator('[data-p=type]')).toHaveText('RULE R1')
   await expect(panel.locator('[data-p=what]')).toHaveText(/^If I cannot describe done/)
+  await page.keyboard.press('Escape')
+  await expect(panel).toBeHidden()
+  await expect(pin).toBeFocused()
 })
 
 test('the legend keys explain themselves', async ({ page }) => {

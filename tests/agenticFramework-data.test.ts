@@ -84,6 +84,11 @@ describe('the Agentic Framework data', () => {
     for (const k of g.loop.legend) expect(k.what, k.id).toMatch(/\.$/)
   })
 
+  it('never counts steps in the loop’s caption, so it cannot contradict “Four steps” in the blurb above it', () => {
+    expect(g.sections.find((s) => s.id === 'loop')!.blurb).toMatch(/^Four steps/)
+    expect(g.loop.caption).not.toMatch(/\d+ steps/)
+  })
+
   it('follows the End-to-End page through the loop in six steps, linking to it', () => {
     expect(g.example.items.map((i) => i.stage)).toEqual(['Frame', 'Frame', 'Build', 'Check', 'Fold back', 'Ship'])
     expect(g.example.items[3].text).toContain('a fresh reviewer model')
