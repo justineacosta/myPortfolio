@@ -58,9 +58,9 @@ describe('the agents page data', () => {
       const kind = new Map(steps.map((s) => [s.id, s.kind]))
       for (const r of routes) {
         expect(kind.get(r.nodes[0]), r.id).toBe('start')
-        // It ends where no flow leaves: an end, or Store, which only the dashed index leaves.
-        expect(cables.some((c) => c.kind !== 'index' && c.from === r.nodes.at(-1)), r.id).toBe(false)
-        if (r.id !== 'prepare') expect(kind.get(r.nodes.at(-1)!), r.id).toBe('end')
+        // Every route ends at an end, except preparing the documents, which ends once they are stored.
+        if (r.id === 'prepare') expect(r.nodes.at(-1)).toBe('store')
+        else expect(kind.get(r.nodes.at(-1)!), r.id).toBe('end')
         for (let i = 1; i < r.nodes.length; i++)
           expect(cables.some((c) => c.kind !== 'index' && c.from === r.nodes[i - 1] && c.to === r.nodes[i]), `${r.id}: ${r.nodes[i - 1]} → ${r.nodes[i]}`).toBe(true)
       }
