@@ -32,8 +32,7 @@ const tiles = (list: Card[]) =>
     .join('')}</ul>`
 
 function hero(g: AgenticFramework) {
-  const stack = g.stack.map((t) => `<li><span aria-hidden="true">${iconSvg(t.icon, 16)}</span>${esc(t.name)}</li>`).join('')
-  return `<header class="hero"><a class="home" href="/" target="_top">← ${esc(g.home)}</a><span class="kicker">${esc(g.kicker)}</span><h1>${esc(g.heading)}</h1><p class="lede">${esc(g.lede)}</p><p class="stance">${esc(g.stance)}</p><ul class="stack" aria-label="Built with">${stack}</ul></header>`
+  return `<header class="hero"><a class="home" href="/" target="_top">← ${esc(g.home)}</a><span class="kicker">${esc(g.kicker)}</span><h1>${esc(g.heading)}</h1><p class="lede">${esc(g.lede)}</p><p class="stance">${esc(g.stance)}</p></header>`
 }
 
 function jobs(g: AgenticFramework) {

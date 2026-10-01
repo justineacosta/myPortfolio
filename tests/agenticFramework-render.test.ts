@@ -16,7 +16,7 @@ describe('renderAgenticFramework', () => {
     expect(doc.querySelector('h1')!.textContent).toBe('The Agentic Framework')
     expect(doc.querySelector('.lede')!.textContent).toBe(g.lede)
     expect(doc.querySelector('.stance')!.textContent).toBe('I make the calls. The AI does the typing.')
-    expect([...doc.querySelectorAll('.stack li')].map((li) => li.textContent)).toEqual(['Claude Code', 'VS Code', 'Codex'])
+    expect(doc.querySelector('.stack')).toBeNull()
     expect(doc.querySelector('link[rel=canonical]')!.getAttribute('href')).toBe('/agentic-framework.html')
     expect(doc.querySelector('meta[property="og:title"]')!.getAttribute('content')).toBe(g.title)
   })
@@ -138,7 +138,7 @@ describe('renderAgenticFramework', () => {
   })
 
   it('renders every icon the page names', () => {
-    for (const name of [...g.stack, ...g.stages, ...g.tools, ...g.rules, ...g.habits, ...g.loop.steps].map((x) => x.icon)) expect(iconSvg(name), name).toMatch(/^<svg /)
+    for (const name of [...g.stages, ...g.tools, ...g.rules, ...g.habits, ...g.loop.steps].map((x) => x.icon)) expect(iconSvg(name), name).toMatch(/^<svg /)
   })
 
   it('stays one self-contained file with no GoHighLevel in it', () => {

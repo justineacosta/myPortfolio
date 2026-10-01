@@ -4,16 +4,18 @@
  * the card's own words. public/agentic-framework.html is generated from it:
  * npm run af-page
  */
+import type { ToolId } from '../lib/brand/tools.ts'
+
 export type SectionId = 'glance' | 'jobs' | 'tools' | 'rules' | 'loop' | 'example' | 'habits' | 'glossary'
 export type Section = { id: SectionId; chip: string; kicker: string; title: string; blurb: string }
 export type RuleId = 'R1' | 'R2' | 'R3' | 'R4'
 export type StepKind = 'start' | 'step' | 'gate' | 'end'
 /** A step on the loop. `at` is its [column, row]. `rule` pins one of the four rules to it. */
-export type LoopStep = { id: string; at: [number, number]; kind: StepKind; label: string; sub: string; icon: string; what: string; rule?: RuleId }
+export type LoopStep = { id: string; at: [number, number]; kind: StepKind; label: string; sub: string; icon: string; what: string; rule?: RuleId; tools?: ToolId[] }
 export type Cable = { from: string; to: string; kind: 'flow' | 'loop'; label?: string }
 export type LegendKey = { id: 'cable' | 'signal' | 'loop' | 'gate' | 'pin'; label: string; what: string }
 /** A tile in a row: its mark (a number or a rule id), a Phosphor icon name, a title, a line, and an optional note. */
-export type Card = { mark: string; icon: string; title: string; text: string; note?: string }
+export type Card = { mark: string; icon: string; title: string; text: string; note?: string; tool?: ToolId }
 export type Rule = Card & { mark: RuleId }
 export type Stage = 'Frame' | 'Build' | 'Check' | 'Fold back' | 'Ship'
 export type AgenticFramework = {
@@ -24,7 +26,6 @@ export type AgenticFramework = {
   heading: string
   lede: string
   stance: string
-  stack: { name: string; icon: string }[]
   sections: Section[]
   stages: Card[]
   jobs: { columns: { title: string; items: string[] }[]; line: string }
@@ -52,11 +53,6 @@ export const agenticFramework: AgenticFramework = {
   heading: 'The Agentic Framework',
   lede: 'The tools, the rules, and the loop I use to ship apps with AI instead of chatting with it.',
   stance: 'I make the calls. The AI does the typing.',
-  stack: [
-    { name: 'Claude Code', icon: 'TerminalWindow' },
-    { name: 'VS Code', icon: 'FileCode' },
-    { name: 'Codex', icon: 'Code' },
-  ],
   sections: [
     { id: 'glance', chip: 'At a glance', kicker: 'AT A GLANCE', title: 'Set up once, then loop, then ship', blurb: 'The whole framework in three lines.' },
     { id: 'jobs', chip: 'Two jobs', kicker: 'TWO JOBS', title: 'Who does what', blurb: 'The split that keeps the loop honest.' },
@@ -80,9 +76,9 @@ export const agenticFramework: AgenticFramework = {
     line: 'When the AI starts deciding scope, or I start typing boilerplate, the loop is broken.',
   },
   tools: [
-    { mark: '01', icon: 'TerminalWindow', title: 'Claude Code', text: 'The builder. Long tasks, real files, subagents for anything that can run in parallel.', note: 'Opus for planning, Sonnet for volume' },
-    { mark: '02', icon: 'FileCode', title: 'VS Code', text: 'The editor. Where I read what was written and take over when precision beats speed.', note: 'Human in the loop' },
-    { mark: '03', icon: 'Code', title: 'Codex', text: 'The second opinion. A fresh model reviewing a diff catches what the author missed.', note: 'Review pass, not a build pass' },
+    { mark: '01', icon: 'TerminalWindow', tool: 'claude-code', title: 'Claude Code', text: 'The builder. Long tasks, real files, subagents for anything that can run in parallel.', note: 'Opus for planning, Sonnet for volume' },
+    { mark: '02', icon: 'FileCode', tool: 'vs-code', title: 'VS Code', text: 'The editor. Where I read what was written and take over when precision beats speed.', note: 'Human in the loop' },
+    { mark: '03', icon: 'Code', tool: 'codex', title: 'Codex', text: 'The second opinion. A fresh model reviewing a diff catches what the author missed.', note: 'Review pass, not a build pass' },
   ],
   rules: [
     { mark: 'R1', icon: 'FileText', title: 'Write the spec first', text: 'If I cannot describe done in a paragraph, the agent will not find it in a thousand tokens.', note: 'Spec before prompt' },
@@ -94,9 +90,9 @@ export const agenticFramework: AgenticFramework = {
     caption: 'The loop · 3 ways round',
     steps: [
       { id: 'task', at: [0, 0], kind: 'start', label: 'A task', sub: 'One small piece', icon: 'ClipboardText', what: 'One small piece of work, small enough that I can describe done in a paragraph. Anything bigger gets split first.' },
-      { id: 'frame', at: [1, 0], kind: 'step', label: 'Frame', sub: 'Claude Code · Opus', icon: 'Target', rule: 'R1', what: 'I set the outcome, the constraints and the files that matter, then write the spec with its acceptance criteria. Opus helps plan, and nothing else goes into the context.' },
-      { id: 'build', at: [2, 0], kind: 'step', label: 'Build', sub: 'Claude Code · Sonnet', icon: 'Lightning', rule: 'R3', what: 'Claude Code builds from the spec, test-first, with subagents for parts that can run at once. I do not add requirements mid-run.' },
-      { id: 'check', at: [3, 0], kind: 'step', label: 'Check', sub: 'Codex · VS Code', icon: 'MagnifyingGlass', rule: 'R4', what: 'It runs, it grades itself against the criteria, and Codex reads the diff as a second opinion. I read it in VS Code before I trust it.' },
+      { id: 'frame', at: [1, 0], kind: 'step', label: 'Frame', sub: 'Claude Code · Opus', icon: 'Target', tools: ['claude-code'], rule: 'R1', what: 'I set the outcome, the constraints and the files that matter, then write the spec with its acceptance criteria. Opus helps plan, and nothing else goes into the context.' },
+      { id: 'build', at: [2, 0], kind: 'step', label: 'Build', sub: 'Claude Code · Sonnet', icon: 'Lightning', tools: ['claude-code'], rule: 'R3', what: 'Claude Code builds from the spec, test-first, with subagents for parts that can run at once. I do not add requirements mid-run.' },
+      { id: 'check', at: [3, 0], kind: 'step', label: 'Check', sub: 'Codex · VS Code', icon: 'MagnifyingGlass', tools: ['codex', 'vs-code'], rule: 'R4', what: 'It runs, it grades itself against the criteria, and Codex reads the diff as a second opinion. I read it in VS Code before I trust it.' },
       { id: 'gate', at: [4, 0], kind: 'gate', label: 'Approval', sub: 'Me', icon: 'UserCheck', rule: 'R2', what: 'Nothing reaches a repo, a client or a send button until I say yes. If something is off, it goes back to Build with a note.' },
       { id: 'live', at: [5, 0], kind: 'end', label: 'Shipped', sub: 'Live on the URL', icon: 'RocketLaunch', what: 'Shipped means live: I open the real URL and use it. Then the next small piece starts.' },
       { id: 'fold', at: [2, 1], kind: 'step', label: 'Fold back', sub: 'Into CLAUDE.md', icon: 'ArrowsClockwise', what: 'Whatever went wrong becomes a rule in CLAUDE.md or a new test, so the next run does not repeat it.' },

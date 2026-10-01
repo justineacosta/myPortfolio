@@ -4,11 +4,13 @@
  * site already says (the End-to-End and Agentic Framework cards, the AI agents
  * list and Hermes). public/end-to-end.html is generated from it: npm run e2e-page
  */
+import type { ToolId } from '../lib/brand/tools.ts'
+
 export type LaneId = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K'
 export type StepKind = 'trigger' | 'step' | 'ai' | 'decision' | 'gate' | 'agent' | 'end'
 export type Lane = { id: LaneId; name: string; note: string }
 /** A step on the graph. `at` is its [column, row] inside its lane (a half row sits between two rows). `n` numbers it inside its lane. */
-export type Step = { id: string; lane: LaneId; at: [number, number]; kind: StepKind; label: string; sub: string; icon: string; what: string; n?: number; enforced?: true }
+export type Step = { id: string; lane: LaneId; at: [number, number]; kind: StepKind; label: string; sub: string; icon: string; what: string; n?: number; enforced?: true; tools?: ToolId[] }
 export type Cable = { from: string; to: string; kind: 'flow' | 'loop'; label?: string }
 export type LegendKey = { id: 'cable' | 'signal' | 'loop' | 'gate' | 'auto'; label: string; what: string }
 export type EndToEnd = {
@@ -168,6 +170,11 @@ const CABLES: Cable[] = [
   loop('k3', 'c1', 'becomes a rule'),
 ]
 
+/** The tools each step names in its label or sub-line (spec 2026-10-01-lively-pages §4.1). */
+const TOOLS_ON: Record<string, ToolId[]> = {
+  a1: ['telegram'], a3: ['n8n'], d2: ['claude-code'], d4: ['vs-code'], e3: ['codex'], g2: ['n8n'], h1: ['n8n'], j2: ['github'], j3: ['vercel'],
+}
+
 export const endToEnd: EndToEnd = {
   title: 'End-to-End Workflow · Justine Acosta',
   description: 'How Justine Acosta ships work: every trigger, lane, agent and loop drawn as one live graph, from a form fill to a delivered asset.',
@@ -178,7 +185,7 @@ export const endToEnd: EndToEnd = {
   stance: 'Nothing leaves the graph without a human yes.',
   caption: 'The end-to-end flow · 11 lanes',
   lanes: LANES,
-  steps: STEPS.map((s) => (NUMBERED.has(s.lane) ? { ...s, n: s.at[0] + 1 } : s)),
+  steps: STEPS.map((s) => ({ ...s, ...(NUMBERED.has(s.lane) ? { n: s.at[0] + 1 } : {}), ...(TOOLS_ON[s.id] ? { tools: TOOLS_ON[s.id] } : {}) })),
   cables: CABLES,
   legend: [
     { id: 'cable', label: 'Cable', what: 'Work flowing from one step to the next.' },

@@ -2,9 +2,10 @@
  * The n8n build plan behind The build plan card (spec
  * docs/superpowers/specs/2026-09-30-n8n-build-plan-design.md). A worked
  * example for Trusted Mover, a fictional moving company in Austin, TX.
- * scripts/make-plan.ts renders it into public/build-plan.html. No imports,
- * so Node can run it directly.
+ * scripts/make-plan.ts renders it into public/build-plan.html. Only a type
+ * import, so Node can run it directly.
  */
+import type { ToolId } from '../lib/brand/tools.ts'
 
 export type IconName =
   | 'ArrowsClockwise' | 'ArrowsSplit' | 'Calculator' | 'CalendarCheck' | 'ChatCircleText' | 'Clock' | 'Copy'
@@ -14,7 +15,7 @@ export type IconName =
 
 export type NodeKind = 'trigger' | 'action' | 'ai' | 'branch' | 'wait' | 'approve' | 'helper' | 'end'
 /** A step: `what` says in plain words what happens there, first in its panel. */
-export type PlanNode = { id: string; kind: NodeKind; label: string; sub: string; icon: IconName; type: string; settings: [string, string][]; what: string }
+export type PlanNode = { id: string; kind: NodeKind; label: string; sub: string; icon: IconName; type: string; settings: [string, string][]; what: string; tools: ToolId[] }
 export type PlanEdge = { from: string; to: string; label?: string }
 export type Workflow = {
   code: string
@@ -75,8 +76,14 @@ export const KIND_NOTES: Record<NodeKind, string> = {
   end: 'The last step on this path.',
 }
 
+/** The services a node’s sub-line names; a node naming none is one of n8n’s own (spec 2026-10-01-lively-pages §4.1). */
+const SERVICES: [string, ToolId][] = [['Supabase', 'supabase'], ['Gmail', 'gmail'], ['Sheets', 'google-sheets'], ['Telegram', 'telegram'], ['Stripe', 'stripe'], ['Claude', 'claude'], ['Cal.com', 'cal-com']]
+const toolsFor = (sub: string): ToolId[] => {
+  const named = SERVICES.filter(([word]) => sub.includes(word)).map(([, id]) => id)
+  return named.length ? named : ['n8n']
+}
 const node = (id: string, kind: NodeKind, label: string, sub: string, icon: IconName, type: string, settings: [string, string][], what: string): PlanNode =>
-  ({ id, kind, label, sub, icon, type, settings, what })
+  ({ id, kind, label, sub, icon, type, settings, what, tools: toolsFor(sub) })
 const edge = (from: string, to: string, label?: string): PlanEdge => (label ? { from, to, label } : { from, to })
 
 const TM01: Workflow = {
