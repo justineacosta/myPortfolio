@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agentic Framework · Justine Acosta</title>
+<meta name="description" content="How Justine Acosta builds with AI: the tools, the rules and the loop, with one real feature taken from spec to live.">
+<meta property="og:title" content="Agentic Framework · Justine Acosta">
+<meta property="og:description" content="How Justine Acosta builds with AI: the tools, the rules and the loop, with one real feature taken from spec to live.">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<link rel="canonical" href="/agentic-framework.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>
+:root{--bg:#050505;--frame:#060607;--s0:#0C0E10;--s1:#0A0B0D;--s2:#0F1113;--s3:#15181A;--chip:#141719;--hover:#101315;--b1:rgba(215,255,224,.075);--b2:rgba(215,255,224,.17);--ink:#F1F5F2;--ink2:#C2CBC5;--ink3:#7C8781;--ink4:#5C655F;--accent:#D7FFE0;--onAccent:#041008;--wash:rgba(215,255,224,.1);--washB:rgba(215,255,224,.2);--glow:rgba(215,255,224,.55);color-scheme:dark;--sans:"Geist",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+@media (prefers-color-scheme: light){:root:not([data-theme=dark]){--bg:#F2F5F1;--frame:#FFFFFF;--s0:#F7F9F5;--s1:#FFFFFF;--s2:#FBFCF9;--s3:#EFF3EC;--chip:#EDF2EB;--hover:#E7EEE6;--b1:rgba(11,46,30,.11);--b2:rgba(11,46,30,.22);--ink:#0B1310;--ink2:#3B4742;--ink3:#69756F;--ink4:#8A938E;--accent:#0E6B44;--onAccent:#F3FFF8;--wash:rgba(14,107,68,.09);--washB:rgba(14,107,68,.22);--glow:rgba(14,107,68,.3);color-scheme:light}}
+:root[data-theme=light]{--bg:#F2F5F1;--frame:#FFFFFF;--s0:#F7F9F5;--s1:#FFFFFF;--s2:#FBFCF9;--s3:#EFF3EC;--chip:#EDF2EB;--hover:#E7EEE6;--b1:rgba(11,46,30,.11);--b2:rgba(11,46,30,.22);--ink:#0B1310;--ink2:#3B4742;--ink3:#69756F;--ink4:#8A938E;--accent:#0E6B44;--onAccent:#F3FFF8;--wash:rgba(14,107,68,.09);--washB:rgba(14,107,68,.22);--glow:rgba(14,107,68,.3);color-scheme:light}
+:root[data-theme=dark]{--bg:#050505;--frame:#060607;--s0:#0C0E10;--s1:#0A0B0D;--s2:#0F1113;--s3:#15181A;--chip:#141719;--hover:#101315;--b1:rgba(215,255,224,.075);--b2:rgba(215,255,224,.17);--ink:#F1F5F2;--ink2:#C2CBC5;--ink3:#7C8781;--ink4:#5C655F;--accent:#D7FFE0;--onAccent:#041008;--wash:rgba(215,255,224,.1);--washB:rgba(215,255,224,.2);--glow:rgba(215,255,224,.55);color-scheme:dark}
+:root[data-a11y-contrast=true]:not([data-theme=light]){--ink2:#DCE3DE;--ink3:#B4BEB8;--ink4:#939D97;--b1:rgba(215,255,224,.18);--b2:rgba(215,255,224,.34)}
+:root[data-a11y-contrast=true][data-theme=light]{--ink2:#1E2824;--ink3:#38433E;--ink4:#56615B;--b1:rgba(11,46,30,.24);--b2:rgba(11,46,30,.42)}
+*{box-sizing:border-box}
+html,.canvas-scroll,.table-wrap,.code{scrollbar-width:none}
+html::-webkit-scrollbar,.canvas-scroll::-webkit-scrollbar,.table-wrap::-webkit-scrollbar,.code::-webkit-scrollbar{display:none}
+[data-more-right]{mask-image:linear-gradient(to right,black calc(100% - 56px),transparent)}
+[data-more-left]{mask-image:linear-gradient(to left,black calc(100% - 56px),transparent)}
+[data-more-left][data-more-right]{mask-image:linear-gradient(to right,transparent,black 56px,black calc(100% - 56px),transparent)}
+.canvas[data-overflow] .canvas-scroll{cursor:grab}
+.canvas-scroll.dragging,.canvas-scroll.dragging .node{cursor:grabbing;user-select:none}
+html{font-size:100%;scroll-behavior:smooth;scroll-padding-top:64px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:.9375rem;line-height:1.6;-webkit-font-smoothing:antialiased;text-wrap:pretty}
+a{color:var(--accent)}
+:root[data-a11y-links=true] a{text-decoration:underline}
+h1,h2,h3{margin:0;text-wrap:balance}
+p{margin:0}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.toc{position:sticky;top:0;z-index:20;display:flex;gap:4px;overflow-x:auto;padding:10px 16px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--b1);scrollbar-width:none}
+.toc a{flex:none;padding:6px 11px;border-radius:999px;font-size:.8125rem;color:var(--ink3);text-decoration:none;white-space:nowrap}
+.toc a:hover{color:var(--ink)}
+.toc a[aria-current=true]{background:var(--wash);color:var(--accent)}
+.page{max-width:1100px;margin:0 auto;padding:32px 16px 80px;display:flex;flex-direction:column;gap:72px}
+.home{align-self:flex-start;font-size:.8125rem;color:var(--ink3);text-decoration:none}
+.home:hover{color:var(--accent)}
+:root[data-embedded] .home{display:none}
+.kicker{font-family:var(--mono);font-size:.6875rem;letter-spacing:.16em;color:var(--accent);text-transform:uppercase}
+.hero{display:flex;flex-direction:column;gap:18px;padding-top:24px}
+.hero h1{font-size:clamp(1.9rem,4.6vw,3rem);line-height:1.08;letter-spacing:-.035em;max-width:22ch}
+.lede{font-size:1.0625rem;color:var(--ink2);max-width:62ch}
+.meta{display:flex;flex-wrap:wrap;gap:10px 28px;margin:0;padding:16px 0;border-block:1px solid var(--b1)}
+.meta div{display:flex;flex-direction:column;gap:2px}
+.meta dt,.card h3,.rail h3,.sub{font-family:var(--mono);font-size:.625rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
+.card h3,.rail h3,.sub{color:var(--accent)}
+.meta dd{margin:0;font-size:.875rem}
+.legend{display:flex;flex-direction:row;flex-wrap:wrap;gap:8px 18px;margin:0;padding:0;list-style:none;font-size:.8125rem;color:var(--ink3)}
+.key{display:flex;align-items:center;gap:8px;padding:3px 6px;margin:-3px -6px;border:0;border-radius:8px;background:none;color:inherit;font:inherit;cursor:pointer}
+.key:hover{color:var(--ink);background:var(--wash)}
+section{display:grid;grid-template-columns:minmax(0,240px) minmax(0,1fr);gap:20px 40px;scroll-margin-top:64px}
+@media (max-width:820px){section{grid-template-columns:minmax(0,1fr)}}
+.shead{grid-column:1/-1;display:flex;flex-direction:column;gap:6px}
+.shead h2{font-size:clamp(1.35rem,2.6vw,1.75rem);letter-spacing:-.02em}
+.shead p{color:var(--ink3)}
+.rail{display:flex;flex-direction:column;gap:16px;font-size:.875rem;color:var(--ink2)}
+.rail div{display:flex;flex-direction:column;gap:6px}
+.main{min-width:0;display:flex;flex-direction:column;gap:18px}
+section>.canvas{grid-column:1/-1}
+ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.card{background:var(--s1);border:1px solid var(--b1);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:12px}
+.ote{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:700px){.ote{grid-template-columns:minmax(0,1fr)}}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:22px}
+.rule{display:flex;flex-direction:column;gap:8px;min-width:0}
+.rule h3{font-size:.9375rem}
+.rule p{font-size:.875rem;color:var(--ink2)}
+.code{margin:0;padding:14px 16px;border-radius:12px;background:var(--s0);border:1px solid var(--b1);font-family:var(--mono);font-size:.8125rem;line-height:1.7;color:var(--ink2);white-space:pre;overflow-x:auto}
+.code b{color:var(--accent);font-weight:500}
+code{font-family:var(--mono);font-size:.85em;background:var(--chip);padding:1px 6px;border-radius:6px}
+.fields{display:flex;flex-wrap:wrap;gap:6px}
+.note{font-size:.8125rem;color:var(--ink3)}
+.stages{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none}
+.stage-btn{padding:6px 10px;border-radius:9px;border:1px solid var(--b2);background:var(--s2);color:var(--ink);font:inherit;font-size:.8125rem;cursor:pointer}
+.stage-btn:hover{border-color:var(--accent)}
+.stages .exit .stage-btn{border-style:dashed;color:var(--ink3)}
+.table-wrap{overflow-x:auto;border:1px solid var(--b1);border-radius:14px;background:var(--s1)}
+table{width:100%;border-collapse:collapse;font-size:.875rem}
+th{padding:10px 14px;border-bottom:1px solid var(--b1);font-family:var(--mono);font-size:.625rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);text-align:left}
+td{padding:10px 14px;border-bottom:1px solid var(--b1);vertical-align:top}
+tr:last-child td{border-bottom:0}
+.tests{min-width:760px}
+.tests tr.done td{color:var(--ink3)}
+.tests input{width:18px;height:18px;accent-color:var(--accent);cursor:pointer}
+.tests-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;font-family:var(--mono);font-size:.75rem;color:var(--ink3)}
+.btn{font:inherit;font-size:.8125rem;font-weight:600;padding:8px 12px;border-radius:10px;border:1px solid var(--b2);background:var(--s1);color:var(--ink);cursor:pointer}
+.phases{display:grid;gap:12px;margin:0;padding:0;list-style:none}
+.phase-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.phase-head h3{font-family:var(--sans);font-size:1rem;letter-spacing:-.01em;text-transform:none;color:var(--ink)}
+.helper{display:flex;flex-direction:column;gap:10px}
+.helper h3{font-size:1rem}
+.helper p{color:var(--ink2);font-size:.875rem}
+.canvas{margin:0;display:flex;flex-direction:column;gap:10px;min-width:0}
+.canvas figcaption{display:flex;justify-content:space-between;gap:12px;font-family:var(--mono);font-size:.6875rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
+.pan{display:none;align-items:center;gap:6px}
+.canvas[data-overflow] .pan{display:flex}
+.pan-hint{margin-right:4px}
+.pan-btn{display:grid;place-items:center;width:28px;height:28px;border-radius:8px;border:1px solid var(--b2);background:var(--s1);color:var(--ink);font:inherit;font-size:1rem;line-height:1;cursor:pointer}
+.pan-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.pan-btn:disabled{opacity:.35;cursor:default}
+.canvas-scroll{overflow-x:auto;border-radius:16px;background-color:var(--s0);background-image:radial-gradient(var(--b2) 1px,transparent 1px);background-size:20px 20px;overscroll-behavior-x:contain}
+.stage{position:relative;margin:0 auto}
+.edges{position:absolute;inset:0}
+.edge{fill:none;stroke:var(--b2);stroke-width:1.6;transition:stroke .35s ease}
+.edge.lit{stroke:var(--accent);transition-duration:.08s}
+.edge-label{position:absolute;z-index:1;transform:translate(-50%,-50%);padding:1px 6px;border-radius:6px;border:1px solid var(--b1);background:var(--s0);font-family:var(--mono);font-size:.625rem;color:var(--ink2);white-space:nowrap}
+.run-dot{display:none}
+.run-ball{position:absolute;left:0;top:0;width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px var(--wash),0 0 14px 2px var(--glow);offset-anchor:50% 50%;offset-rotate:0deg;opacity:0;pointer-events:none}
+.node{position:absolute;z-index:1;width:56px;display:flex;flex-direction:column;align-items:center;gap:6px;padding:0;border:0;background:none;color:var(--ink);font:inherit;text-align:center;cursor:pointer}
+.node-card{position:relative;display:grid;place-items:center;width:56px;height:56px;border-radius:14px;border:1.5px solid var(--b2);background:var(--s2);color:var(--ink2);transition:border-color .2s,transform .2s,box-shadow .35s ease}
+.node.lit .node-card{border-color:var(--accent);box-shadow:0 0 0 3px var(--wash),0 0 20px -2px var(--glow);transition-duration:.08s}
+.node-card::before,.node-card::after{content:"";position:absolute;top:50%;width:8px;height:8px;margin-top:-4px;border-radius:50%;border:1.5px solid var(--b2);background:var(--s0)}
+.node-card::before{left:-5px}
+.node-card::after{right:-5px}
+.node[data-in="0"] .node-card::before,.node[data-out="0"] .node-card::after{display:none}
+.node:hover .node-card{border-color:var(--accent);transform:translateY(-1px)}
+.node-label{width:136px;font-size:.75rem;font-weight:600;line-height:1.25}
+.node-sub{width:136px;margin-top:-3px;font-family:var(--mono);font-size:.625rem;color:var(--ink3)}
+.k-trigger .node-card{border-radius:28px 14px 14px 28px}
+.k-ai .node-card{border-color:var(--accent);background:var(--wash);color:var(--accent)}
+.k-branch .node-card{color:var(--ink)}
+.k-wait .node-card{border-style:dashed}
+.k-approve .node-card{border-color:var(--accent);background:var(--accent);color:var(--onAccent)}
+.k-helper .node-card{box-shadow:4px 4px 0 -1.5px var(--s0),4px 4px 0 0 var(--b2)}
+.k-end .node-card{background:transparent;color:var(--ink3)}
+.legend .node-card{width:18px;height:18px;border-radius:6px}
+.legend .node-card::before,.legend .node-card::after{display:none}
+.legend .k-trigger .node-card{border-radius:9px 6px 6px 9px}
+.legend .k-helper .node-card{box-shadow:2px 2px 0 -1px var(--bg),2px 2px 0 0 var(--b2)}
+.steps{margin:0}
+.panel{position:fixed;inset:auto;margin:0;width:min(320px,calc(100vw - 24px));padding:16px;border-radius:14px;border:1px solid var(--b2);background:var(--s1);color:var(--ink);box-shadow:0 24px 60px -30px var(--glow)}
+.panel h3{font-size:1rem;padding-right:36px}
+.ptype{display:block;margin-bottom:4px;font-family:var(--mono);font-size:.6875rem;letter-spacing:.08em;color:var(--accent)}
+.pwhat{margin:10px 0 0;font-size:.875rem;line-height:1.55;color:var(--ink)}
+.panel dl{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin:12px 0 0;padding-top:12px;border-top:1px solid var(--b1);font-size:.8125rem}
+.panel dl[hidden]{display:none}
+.panel dt{color:var(--ink3)}
+.panel dd{margin:0}
+.panel-close{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:9px;border:1px solid var(--b1);background:var(--s2);color:var(--ink);font-size:1.1rem;line-height:1;cursor:pointer}
+.foot a{color:var(--ink2)}
+.foot{max-width:1100px;margin:0 auto;padding:24px 16px 48px;border-top:1px solid var(--b1);display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;font-size:.8125rem;color:var(--ink3)}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}.run-ball{display:none}.node-card{transition:none}}
+:root[data-a11y-motion=true]{scroll-behavior:auto}
+:root[data-a11y-motion=true] .run-ball{display:none}
+:root[data-a11y-motion=true] .node-card{transition:none}
+@media print{
+:root,:root[data-theme]{--bg:#F2F5F1;--frame:#FFFFFF;--s0:#F7F9F5;--s1:#FFFFFF;--s2:#FBFCF9;--s3:#EFF3EC;--chip:#EDF2EB;--hover:#E7EEE6;--b1:rgba(11,46,30,.11);--b2:rgba(11,46,30,.22);--ink:#0B1310;--ink2:#3B4742;--ink3:#69756F;--ink4:#8A938E;--accent:#0E6B44;--onAccent:#F3FFF8;--wash:rgba(14,107,68,.09);--washB:rgba(14,107,68,.22);--glow:rgba(14,107,68,.3);color-scheme:light}
+body{background:var(--frame)}
+.toc,.run-ball,.panel,.btn,.pan{display:none!important}
+[data-more-left],[data-more-right]{mask-image:none!important}
+.page{gap:40px;padding-top:0}
+section,.canvas,.card,tr{break-inside:avoid}
+.canvas-scroll{overflow:visible;border:0;background:none}
+.stage{zoom:.62}
+.steps.sr-only{position:static;width:auto;height:auto;margin:6px 0 0;overflow:visible;clip:auto;white-space:normal;font-size:.75rem;color:var(--ink2)}
+a[href^="http"]::after{content:" (" attr(href) ")";font-size:.75em;color:var(--ink3)}
+}
+
+.page>section{display:flex;flex-direction:column;gap:20px}
+.stance{font-weight:600;color:var(--ink)}
+.stack{display:flex;flex-direction:row;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.stack li{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;border:1px solid var(--b1);background:var(--s1);font-size:.8125rem;color:var(--ink2)}
+.stack svg{color:var(--accent)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:12px;margin:0;padding:0;list-style:none}
+.tile{display:flex;flex-direction:column;gap:8px;min-width:0;padding:18px;border-radius:16px;border:1px solid var(--b1);background:var(--s1)}
+.tile-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.tile-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;border:1px solid var(--b1);background:var(--chip);color:var(--accent)}
+.tile-mark{font-family:var(--mono);font-size:.625rem;letter-spacing:.14em;color:var(--ink3)}
+.tile h3{font-size:1rem;letter-spacing:-.01em}
+.tile p{font-size:.875rem;color:var(--ink2)}
+.tile-note{margin-top:auto;padding-top:4px;font-family:var(--mono);font-size:.6875rem;color:var(--ink3)}
+.jobs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:640px){.jobs{grid-template-columns:minmax(0,1fr)}}
+.job{display:flex;flex-direction:column;gap:10px;min-width:0;padding:18px;border-radius:16px;border:1px solid var(--b1);background:var(--s1)}
+.job:first-child{border-color:var(--washB);background:var(--wash)}
+.job h3{font-family:var(--mono);font-size:.6875rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+.job ul{gap:6px}
+.jobs-line{max-width:62ch;color:var(--ink3)}
+.legend .line{display:inline-block;width:26px;border-top:2px solid var(--b2)}
+.legend .line-signal{width:10px;height:10px;border:0;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px var(--wash)}
+.legend .line-loop{border-top:2px dashed var(--accent)}
+.legend .badge-lock{position:static}
+.edge.loop{stroke:color-mix(in srgb,var(--accent) 55%,var(--b2));stroke-dasharray:5 5}
+.edge.loop.lit{stroke:var(--accent)}
+.badge-lock{position:absolute;right:-8px;bottom:-8px;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;border:1px solid var(--b2);background:var(--s0);color:var(--accent)}
+.k-approve .node-card{outline:2px solid var(--accent);outline-offset:3px}
+.pin{position:absolute;z-index:2;display:grid;place-items:center;width:22px;height:22px;padding:0;border-radius:50%;border:1px solid var(--accent);background:var(--s0);color:var(--accent);font-family:var(--mono);font-size:.5625rem;font-weight:500;cursor:pointer}
+.pin:hover,.pin[aria-expanded=true]{background:var(--accent);color:var(--onAccent)}
+.pin-sample{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;border:1px solid var(--accent);font-family:var(--mono);font-size:.5rem;color:var(--accent)}
+.timeline{display:flex;flex-direction:column;gap:0;margin:0;padding:0;list-style:none}
+.timeline li{display:grid;grid-template-columns:28px 92px minmax(0,1fr);gap:12px;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--b1)}
+@media (max-width:560px){.timeline li{grid-template-columns:28px minmax(0,1fr)}.timeline li p{grid-column:2}}
+.timeline p{color:var(--ink2)}
+.tl-n{font-family:var(--mono);font-size:.75rem;color:var(--ink3)}
+.tag{justify-self:start;padding:2px 8px;border-radius:999px;border:1px solid var(--b2);font-family:var(--mono);font-size:.625rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);white-space:nowrap}
+.t-frame{border-color:var(--accent);color:var(--accent)}
+.t-build{border-color:var(--washB);background:var(--wash);color:var(--accent)}
+.t-check{border-color:var(--ink3);color:var(--ink)}
+.t-fold-back{border-style:dashed;border-color:var(--accent);color:var(--accent)}
+.t-ship{border-color:var(--accent);background:var(--accent);color:var(--onAccent)}
+.see{align-self:flex-start;font-weight:600;text-decoration:none}
+.closing{font-size:clamp(1.6rem,4vw,2.5rem);font-weight:700;line-height:1.1;letter-spacing:-.03em;text-wrap:balance;color:var(--ink)}
+.gl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 32px;margin:0}
+@media (max-width:760px){.gl{grid-template-columns:minmax(0,1fr)}}
+.gl div{display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr);gap:12px;padding:12px 0;border-bottom:1px solid var(--b1)}
+.gl dt{font-family:var(--mono);font-size:.75rem;color:var(--accent)}
+.gl dd{margin:0;font-size:.875rem;color:var(--ink2)}
+@media print{
+.tile,.job,.tag,.pin,.node-card,.badge-lock{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<nav class="toc" aria-label="Sections"><a href="#glance">At a glance</a><a href="#jobs">Two jobs</a><a href="#tools">Tools</a><a href="#rules">Rules</a><a href="#loop">The loop</a><a href="#example">Example</a><a href="#habits">Habits</a><a href="#glossary">Glossary</a></nav>
+<main class="page">
+<header class="hero"><a class="home" href="/" target="_top">← Justine Acosta · Portfolio</a><span class="kicker">HOW I BUILD WITH AI</span><h1>The Agentic Framework</h1><p class="lede">The tools, the rules, and the loop I use to ship apps with AI instead of chatting with it.</p><p class="stance">I make the calls. The AI does the typing.</p><ul class="stack" aria-label="Built with"><li><span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256"><path d="M128,128a8,8,0,0,1-3,6.25l-40,32a8,8,0,1,1-10-12.5L107.19,128,75,102.25a8,8,0,1,1,10-12.5l40,32A8,8,0,0,1,128,128Zm48,24H136a8,8,0,0,0,0,16h40a8,8,0,0,0,0-16Zm56-96V200a16,16,0,0,1-16,16H40a16,16,0,0,1-16-16V56A16,16,0,0,1,40,40H216A16,16,0,0,1,232,56ZM216,200V56H40V200H216Z"></path></svg></span>Claude Code</li><li><span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256"><path d="M168,132.69,214.08,115l.33-.13A16,16,0,0,0,213,85.07L52.92,32.8A15.95,15.95,0,0,0,32.8,52.92L85.07,213a15.82,15.82,0,0,0,14.41,11l.78,0a15.84,15.84,0,0,0,14.61-9.59l.13-.33L132.69,168,184,219.31a16,16,0,0,0,22.63,0l12.68-12.68a16,16,0,0,0,0-22.63ZM195.31,208,144,156.69a16,16,0,0,0-26,4.93c0,.11-.09.22-.13.32l-17.65,46L48,48l159.85,52.2-45.95,17.64-.32.13a16,16,0,0,0-4.93,26h0L208,195.31Z"></path></svg></span>Cursor</li><li><span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256"><path d="M69.12,94.15,28.5,128l40.62,33.85a8,8,0,1,1-10.24,12.29l-48-40a8,8,0,0,1,0-12.29l48-40a8,8,0,0,1,10.24,12.3Zm176,27.7-48-40a8,8,0,1,0-10.24,12.3L227.5,128l-40.62,33.85a8,8,0,1,0,10.24,12.29l48-40a8,8,0,0,0,0-12.29ZM162.73,32.48a8,8,0,0,0-10.25,4.79l-64,176a8,8,0,0,0,4.79,10.26A8.14,8.14,0,0,0,96,224a8,8,0,0,0,7.52-5.27l64-176A8,8,0,0,0,162.73,32.48Z"></path></svg></span>Codex</li></ul></header>
+<section id="glance" aria-labelledby="glance-h"><header class="shead"><span class="kicker">AT A GLANCE</span><h2 id="glance-h">Set up once, then loop, then ship</h2><p>The whole framework in three lines.</p></header><ul class="tiles"><li class="tile"><span class="tile-top"><span class="tile-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M226.76,69a8,8,0,0,0-12.84-2.88l-40.3,37.19-17.23-3.7-3.7-17.23,37.19-40.3A8,8,0,0,0,187,29.24,72,72,0,0,0,88,96,72.34,72.34,0,0,0,94,124.94L33.79,177c-.15.12-.29.26-.43.39a32,32,0,0,0,45.26,45.26c.13-.13.27-.28.39-.42L131.06,162A72,72,0,0,0,232,96,71.56,71.56,0,0,0,226.76,69ZM160,152a56.14,56.14,0,0,1-27.07-7,8,8,0,0,0-9.92,1.77L67.11,211.51a16,16,0,0,1-22.62-22.62L109.18,133a8,8,0,0,0,1.77-9.93,56,56,0,0,1,58.36-82.31l-31.2,33.81a8,8,0,0,0-1.94,7.1L141.83,108a8,8,0,0,0,6.14,6.14l26.35,5.66a8,8,0,0,0,7.1-1.94l33.81-31.2A56.06,56.06,0,0,1,160,152Z"></path></svg></span><span class="tile-mark">1</span></span><h3>Set up once</h3><p>A rules file (CLAUDE.md), my notes and the three tools, wired before the first task.</p></li><li class="tile"><span class="tile-top"><span class="tile-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M224,48V96a8,8,0,0,1-8,8H168a8,8,0,0,1,0-16h28.69L182.06,73.37a79.56,79.56,0,0,0-56.13-23.43h-.45A79.52,79.52,0,0,0,69.59,72.71,8,8,0,0,1,58.41,61.27a96,96,0,0,1,135,.79L208,76.69V48a8,8,0,0,1,16,0ZM186.41,183.29a80,80,0,0,1-112.47-.66L59.31,168H88a8,8,0,0,0,0-16H40a8,8,0,0,0-8,8v48a8,8,0,0,0,16,0V179.31l14.63,14.63A95.43,95.43,0,0,0,130,222.06h.53a95.36,95.36,0,0,0,67.07-27.33,8,8,0,0,0-11.18-11.44Z"></path></svg></span><span class="tile-mark">2</span></span><h3>Build in small loops</h3><p>Frame, build, check, fold back. One small piece per run, repeated until the criteria pass.</p></li><li class="tile"><span class="tile-top"><span class="tile-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M223.85,47.12a16,16,0,0,0-15-15c-12.58-.75-44.73.4-71.41,27.07L132.69,64H74.36A15.91,15.91,0,0,0,63,68.68L28.7,103a16,16,0,0,0,9.07,27.16l38.47,5.37,44.21,44.21,5.37,38.49a15.94,15.94,0,0,0,10.78,12.92,16.11,16.11,0,0,0,5.1.83A15.91,15.91,0,0,0,153,227.3L187.32,193A15.91,15.91,0,0,0,192,181.64V123.31l4.77-4.77C223.45,91.86,224.6,59.71,223.85,47.12ZM74.36,80h42.33L77.16,119.52,40,114.34Zm74.41-9.45a76.65,76.65,0,0,1,59.11-22.47,76.46,76.46,0,0,1-22.42,59.16L128,164.68,91.32,128ZM176,181.64,141.67,216l-5.19-37.17L176,139.31Zm-74.16,9.5C97.34,201,82.29,224,40,224a8,8,0,0,1-8-8c0-42.29,23-57.34,32.86-61.85a8,8,0,0,1,6.64,14.56c-6.43,2.93-20.62,12.36-23.12,38.91,26.55-2.5,36-16.69,38.91-23.12a8,8,0,1,1,14.56,6.64Z"></path></svg></span><span class="tile-mark">3</span></span><h3>Ship on a yes</h3><p>Nothing reaches a repo, a client or a send button until I approve it.</p></li></ul></section>
+<section id="jobs" aria-labelledby="jobs-h"><header class="shead"><span class="kicker">TWO JOBS</span><h2 id="jobs-h">Who does what</h2><p>The split that keeps the loop honest.</p></header><div class="jobs"><div class="job"><h3>Me</h3><ul><li>Decide what done means</li><li>Approve every write</li><li>Take over when precision beats speed</li><li>Turn mistakes into rules</li></ul></div><div class="job"><h3>The AI</h3><ul><li>Read the files that matter</li><li>Write the code and the tests</li><li>Run it and grade itself against the criteria</li><li>Report back with the diff</li></ul></div></div><p class="jobs-line">When the AI starts deciding scope, or I start typing boilerplate, the loop is broken.</p></section>
+<section id="tools" aria-labelledby="tools-h"><header class="shead"><span class="kicker">THE TOOLS</span><h2 id="tools-h">Three tools, one job each</h2><p>Each one has a job. I do not use three where one will do.</p></header><ul class="tiles"><li class="tile"><span class="tile-top"><span class="tile-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M128,128a8,8,0,0,1-3,6.25l-40,32a8,8,0,1,1-10-12.5L107.19,128,75,102.25a8,8,0,1,1,10-12.5l40,32A8,8,0,0,1,128,128Zm48,24H136a8,8,0,0,0,0,16h40a8,8,0,0,0,0-16Zm56-96V200a16,16,0,0,1-16,16H40a16,16,0,0,1-16-16V56A16,16,0,0,1,40,40H216A16,16,0,0,1,232,56ZM216,200V56H40V200H216Z"></path></svg></span><span class="tile-mark">01</span></span><h3>Claude Code</h3><p>The builder. Long tasks, real files, subagents for anything that can run in parallel.</p><span class="tile-note">Opus for planning, Sonnet for volume</span></li><li class="tile"><span class="tile-top"><span class="tile-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M168,132.69,214.08,115l.33-.13A16,16,0,0,0,213,85.07L52.92,32.8A15.95,15.95,0,0,0,32.8,52.92L85.07,213a15.82,15.82,0,0,0,14.41,11l.78,0a15.84,15.84,0,0,0,14.61-9.59l.13-.33L132.69,168,184,219.31a16,16,0,0,0,22.63,0l12.68-12.68a16,16,0,0,0,0-22.63ZM195.31,208,144,156.69a16,16,0,0,0-26,4.93c0,.11-.09.22-.13.32l-17.65,46L48,48l159.85,52.2-45.95,17.64-.32.13a16,16,0,0,0-4.93,26h0L208,195.31Z"></path></svg></span><span class="tile-mark">02</span></span><h3>Cursor</h3><p>The editor. Where I read what was written and take over when precision beats speed.</p><span class="tile-note">Human in the loop</span></li><li class="tile"><span class="tile-top"><span class="tile-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M69.12,94.15,28.5,128l40.62,33.85a8,8,0,1,1-10.24,12.29l-48-40a8,8,0,0,1,0-12.29l48-40a8,8,0,0,1,10.24,12.3Zm176,27.7-48-40a8,8,0,1,0-10.24,12.3L227.5,128l-40.62,33.85a8,8,0,1,0,10.24,12.29l48-40a8,8,0,0,0,0-12.29ZM162.73,32.48a8,8,0,0,0-10.25,4.79l-64,176a8,8,0,0,0,4.79,10.26A8.14,8.14,0,0,0,96,224a8,8,0,0,0,7.52-5.27l64-176A8,8,0,0,0,162.73,32.48Z"></path></svg></span><span class="tile-mark">03</span></span><h3>Codex</h3><p>The second opinion. A fresh model reviewing a diff catches what the author missed.</p><span class="tile-note">Review pass, not a build pass</span></li></ul></section>
+<section id="rules" aria-labelledby="rules-h"><header class="shead"><span class="kicker">THE RULES</span><h2 id="rules-h">Four rules I do not break</h2><p>Non-negotiable, and they are what keep the output usable.</p></header><ul class="tiles"><li class="tile"><span class="tile-top"><span class="tile-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216Zm-32-80a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,136Zm0,32a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,168Z"></path></svg></span><span class="tile-mark">R1</span></span><h3>Write the spec first</h3><p>If I cannot describe done in a paragraph, the agent will not find it in a thousand tokens.</p><span class="tile-note">Spec before prompt</span></li><li class="tile"><span class="tile-top"><span class="tile-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M208,40H48A16,16,0,0,0,32,56v56c0,52.72,25.52,84.67,46.93,102.19,23.06,18.86,46,25.26,47,25.53a8,8,0,0,0,4.2,0c1-.27,23.91-6.67,47-25.53C198.48,196.67,224,164.72,224,112V56A16,16,0,0,0,208,40Zm0,72c0,37.07-13.66,67.16-40.6,89.42A129.3,129.3,0,0,1,128,223.62a128.25,128.25,0,0,1-38.92-21.81C61.82,179.51,48,149.3,48,112l0-56,160,0ZM82.34,141.66a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35a8,8,0,0,1,11.32,11.32l-56,56a8,8,0,0,1-11.32,0Z"></path></svg></span><span class="tile-mark">R2</span></span><h3>Every write is approval-gated</h3><p>Agents draft. Nothing reaches a client account, a repo, or a send button unreviewed.</p><span class="tile-note">No autonomous writes</span></li><li class="tile"><span class="tile-top"><span class="tile-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M157.73,113.13A8,8,0,0,1,159.82,102L227.48,55.7a8,8,0,0,1,9,13.21l-67.67,46.3a7.92,7.92,0,0,1-4.51,1.4A8,8,0,0,1,157.73,113.13Zm80.87,85.09a8,8,0,0,1-11.12,2.08L136,137.7,93.49,166.78a36,36,0,1,1-9-13.19L121.83,128,84.44,102.41a35.86,35.86,0,1,1,9-13.19l143,97.87A8,8,0,0,1,238.6,198.22ZM80,180a20,20,0,1,0-5.86,14.14A19.85,19.85,0,0,0,80,180ZM74.14,90.13a20,20,0,1,0-28.28,0A19.85,19.85,0,0,0,74.14,90.13Z"></path></svg></span><span class="tile-mark">R3</span></span><h3>Small units of work</h3><p>One task, one context. A fresh session beats a long one every time.</p><span class="tile-note">Reset early, reset often</span></li><li class="tile"><span class="tile-top"><span class="tile-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M224,128a8,8,0,0,1-8,8H128a8,8,0,0,1,0-16h88A8,8,0,0,1,224,128ZM128,72h88a8,8,0,0,0,0-16H128a8,8,0,0,0,0,16Zm88,112H128a8,8,0,0,0,0,16h88a8,8,0,0,0,0-16ZM82.34,42.34,56,68.69,45.66,58.34A8,8,0,0,0,34.34,69.66l16,16a8,8,0,0,0,11.32,0l32-32A8,8,0,0,0,82.34,42.34Zm0,64L56,132.69,45.66,122.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32,0l32-32a8,8,0,0,0-11.32-11.32Zm0,64L56,196.69,45.66,186.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32,0l32-32a8,8,0,0,0-11.32-11.32Z"></path></svg></span><span class="tile-mark">R4</span></span><h3>The model grades itself</h3><p>Acceptance criteria go in with the task, and the output is checked against them before I look.</p><span class="tile-note">Self-review built in</span></li></ul></section>
+<section id="loop" aria-labelledby="loop-h"><header class="shead"><span class="kicker">THE LOOP</span><h2 id="loop-h">Frame, build, check, fold back</h2><p>Four steps, repeated until the criteria pass. Click any step or pin.</p></header><ul class="legend" aria-label="How to read the loop"><li><button type="button" class="key" data-node="key:cable" aria-haspopup="dialog" aria-expanded="false"><span aria-hidden="true"><span class="line"></span></span>Cable</button></li><li><button type="button" class="key" data-node="key:signal" aria-haspopup="dialog" aria-expanded="false"><span aria-hidden="true"><span class="line line-signal"></span></span>Live signal</button></li><li><button type="button" class="key" data-node="key:loop" aria-haspopup="dialog" aria-expanded="false"><span aria-hidden="true"><span class="line line-loop"></span></span>Loop-back</button></li><li><button type="button" class="key" data-node="key:gate" aria-haspopup="dialog" aria-expanded="false"><span aria-hidden="true"><span class="badge-lock"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 256 256"><path d="M208,80H176V56a48,48,0,0,0-96,0V80H48A16,16,0,0,0,32,96V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V96A16,16,0,0,0,208,80ZM96,56a32,32,0,0,1,64,0V80H96ZM208,208H48V96H208V208Z"></path></svg></span></span>Approval gate</button></li><li><button type="button" class="key" data-node="key:pin" aria-haspopup="dialog" aria-expanded="false"><span aria-hidden="true"><span class="pin-sample">R</span></span>Rule pin</button></li></ul><figure class="canvas loop" data-run data-routes="[{&quot;len&quot;:840,&quot;stops&quot;:[[&quot;task&quot;,0],[&quot;frame&quot;,168],[&quot;build&quot;,336],[&quot;check&quot;,504],[&quot;gate&quot;,672],[&quot;live&quot;,840]],&quot;spans&quot;:[[0,28,140],[1,196,308],[2,364,476],[3,532,644],[4,700,812]]},{&quot;len&quot;:1604.8,&quot;stops&quot;:[[&quot;task&quot;,0],[&quot;frame&quot;,168],[&quot;build&quot;,336],[&quot;check&quot;,504],[&quot;gate&quot;,672],[&quot;build&quot;,1100.8],[&quot;check&quot;,1268.8],[&quot;gate&quot;,1436.8],[&quot;live&quot;,1604.8]],&quot;spans&quot;:[[0,28,140],[1,196,308],[2,364,476],[3,532,644],[7,700,1072.8],[2,1128.8,1240.8],[3,1296.8,1408.8],[4,1464.8,1576.8]]},{&quot;len&quot;:1770.2,&quot;stops&quot;:[[&quot;task&quot;,0],[&quot;frame&quot;,168],[&quot;build&quot;,336],[&quot;check&quot;,504],[&quot;fold&quot;,801.1],[&quot;frame&quot;,1098.2],[&quot;build&quot;,1266.2],[&quot;check&quot;,1434.2],[&quot;gate&quot;,1602.2],[&quot;live&quot;,1770.2]],&quot;spans&quot;:[[0,28,140],[1,196,308],[2,364,476],[5,572,773.1],[6,829.1,1030.2],[1,1126.2,1238.2],[2,1294.2,1406.2],[3,1462.2,1574.2],[4,1630.2,1742.2]]}]"><figcaption><span>The loop · 7 steps, 3 ways round</span><span class="pan"><span class="pan-hint" aria-hidden="true">Drag to explore</span><button type="button" class="pan-btn" data-pan="-1" aria-label="Scroll loop left">‹</button><button type="button" class="pan-btn" data-pan="1" aria-label="Scroll loop right">›</button></span></figcaption><div class="canvas-scroll" tabindex="0" role="group" aria-label="The loop, scrolls sideways"><div class="stage" style="width:1024px;height:370px"><svg class="edges" width="1024" height="370" viewBox="0 0 1024 370" aria-hidden="true"><path class="edge" data-edge="0" d="M120 124C176 124 176 124 232 124"/><path class="edge" data-edge="1" d="M288 124C344 124 344 124 400 124"/><path class="edge" data-edge="2" d="M456 124C512 124 512 124 568 124"/><path class="edge" data-edge="3" d="M624 124C680 124 680 124 736 124"/><path class="edge" data-edge="4" d="M792 124C848 124 848 124 904 124"/><path class="edge loop" data-edge="5" d="M596 192C596 274 596 274 456 274"/><path class="edge loop" data-edge="6" d="M400 274C260 274 260 274 260 192"/><path class="edge loop" data-edge="7" d="M764 96C764 26 428 26 428 96"/></svg><span class="edge-label" style="left:680px;top:124px">passes</span><span class="edge-label" style="left:848px;top:124px">approved</span><span class="edge-label" style="left:579px;top:264px">fails</span><span class="edge-label" style="left:278px;top:264px">becomes a rule</span><span class="edge-label" style="left:596px;top:44px">send back</span><span class="run-dot" aria-hidden="true" data-route="0" style="offset-path:path('M92 124L120 124C176 124 176 124 232 124L260 124L288 124C344 124 344 124 400 124L428 124L456 124C512 124 512 124 568 124L596 124L624 124C680 124 680 124 736 124L764 124L792 124C848 124 848 124 904 124L932 124')"></span><span class="run-dot" aria-hidden="true" data-route="1" style="offset-path:path('M92 124L120 124C176 124 176 124 232 124L260 124L288 124C344 124 344 124 400 124L428 124L456 124C512 124 512 124 568 124L596 124L624 124C680 124 680 124 736 124L764 124L764 96C764 26 428 26 428 96L428 124L456 124C512 124 512 124 568 124L596 124L624 124C680 124 680 124 736 124L764 124L792 124C848 124 848 124 904 124L932 124')"></span><span class="run-dot" aria-hidden="true" data-route="2" style="offset-path:path('M92 124L120 124C176 124 176 124 232 124L260 124L288 124C344 124 344 124 400 124L428 124L456 124C512 124 512 124 568 124L596 124L596 192C596 274 596 274 456 274L428 274L400 274C260 274 260 274 260 192L260 124L288 124C344 124 344 124 400 124L428 124L456 124C512 124 512 124 568 124L596 124L624 124C680 124 680 124 736 124L764 124L792 124C848 124 848 124 904 124L932 124')"></span><button type="button" class="node k-trigger" style="left:64px;top:96px" data-node="task" data-in="0" data-out="1" aria-haspopup="dialog" aria-expanded="false"><span class="node-card" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 256 256"><path d="M168,152a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,152Zm-8-40H96a8,8,0,0,0,0,16h64a8,8,0,0,0,0-16Zm56-64V216a16,16,0,0,1-16,16H56a16,16,0,0,1-16-16V48A16,16,0,0,1,56,32H92.26a47.92,47.92,0,0,1,71.48,0H200A16,16,0,0,1,216,48ZM96,64h64a32,32,0,0,0-64,0ZM200,48H173.25A47.93,47.93,0,0,1,176,64v8a8,8,0,0,1-8,8H88a8,8,0,0,1-8-8V64a47.93,47.93,0,0,1,2.75-16H56V216H200Z"></path></svg></span><span class="node-label">A task</span><span class="node-sub">One small piece</span></button><button type="button" class="node k-action" style="left:232px;top:96px" data-node="frame" data-in="1" data-out="1" aria-haspopup="dialog" aria-expanded="false"><span class="node-card" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 256 256"><path d="M221.87,83.16A104.1,104.1,0,1,1,195.67,49l22.67-22.68a8,8,0,0,1,11.32,11.32l-96,96a8,8,0,0,1-11.32-11.32l27.72-27.72a40,40,0,1,0,17.87,31.09,8,8,0,1,1,16-.9,56,56,0,1,1-22.38-41.65L184.3,60.39a87.88,87.88,0,1,0,23.13,29.67,8,8,0,0,1,14.44-6.9Z"></path></svg></span><span class="node-label">Frame</span><span class="node-sub">Claude Code · Opus</span></button><button type="button" class="node k-action" style="left:400px;top:96px" data-node="build" data-in="1" data-out="1" aria-haspopup="dialog" aria-expanded="false"><span class="node-card" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 256 256"><path d="M215.79,118.17a8,8,0,0,0-5-5.66L153.18,90.9l14.66-73.33a8,8,0,0,0-13.69-7l-112,120a8,8,0,0,0,3,13l57.63,21.61L88.16,238.43a8,8,0,0,0,13.69,7l112-120A8,8,0,0,0,215.79,118.17ZM109.37,214l10.47-52.38a8,8,0,0,0-5-9.06L62,132.71l84.62-90.66L136.16,94.43a8,8,0,0,0,5,9.06l52.8,19.8Z"></path></svg></span><span class="node-label">Build</span><span class="node-sub">Claude Code · Sonnet</span></button><button type="button" class="node k-action" style="left:568px;top:96px" data-node="check" data-in="1" data-out="1" aria-haspopup="dialog" aria-expanded="false"><span class="node-card" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 256 256"><path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"></path></svg></span><span class="node-label">Check</span><span class="node-sub">Codex · Cursor</span></button><button type="button" class="node k-approve" style="left:736px;top:96px" data-node="gate" data-in="1" data-out="1" aria-haspopup="dialog" aria-expanded="false"><span class="node-card" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 256 256"><path d="M144,157.68a68,68,0,1,0-71.9,0c-20.65,6.76-39.23,19.39-54.17,37.17a8,8,0,0,0,12.25,10.3C50.25,181.19,77.91,168,108,168s57.75,13.19,77.87,37.15a8,8,0,0,0,12.25-10.3C183.18,177.07,164.6,164.44,144,157.68ZM56,100a52,52,0,1,1,52,52A52.06,52.06,0,0,1,56,100Zm197.66,33.66-32,32a8,8,0,0,1-11.32,0l-16-16a8,8,0,0,1,11.32-11.32L216,148.69l26.34-26.35a8,8,0,0,1,11.32,11.32Z"></path></svg><span class="badge-lock"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 256 256"><path d="M208,80H176V56a48,48,0,0,0-96,0V80H48A16,16,0,0,0,32,96V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V96A16,16,0,0,0,208,80ZM96,56a32,32,0,0,1,64,0V80H96ZM208,208H48V96H208V208Z"></path></svg></span></span><span class="node-label">Approval</span><span class="node-sub">Me</span></button><button type="button" class="node k-end" style="left:904px;top:96px" data-node="live" data-in="1" data-out="0" aria-haspopup="dialog" aria-expanded="false"><span class="node-card" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 256 256"><path d="M223.85,47.12a16,16,0,0,0-15-15c-12.58-.75-44.73.4-71.41,27.07L132.69,64H74.36A15.91,15.91,0,0,0,63,68.68L28.7,103a16,16,0,0,0,9.07,27.16l38.47,5.37,44.21,44.21,5.37,38.49a15.94,15.94,0,0,0,10.78,12.92,16.11,16.11,0,0,0,5.1.83A15.91,15.91,0,0,0,153,227.3L187.32,193A15.91,15.91,0,0,0,192,181.64V123.31l4.77-4.77C223.45,91.86,224.6,59.71,223.85,47.12ZM74.36,80h42.33L77.16,119.52,40,114.34Zm74.41-9.45a76.65,76.65,0,0,1,59.11-22.47,76.46,76.46,0,0,1-22.42,59.16L128,164.68,91.32,128ZM176,181.64,141.67,216l-5.19-37.17L176,139.31Zm-74.16,9.5C97.34,201,82.29,224,40,224a8,8,0,0,1-8-8c0-42.29,23-57.34,32.86-61.85a8,8,0,0,1,6.64,14.56c-6.43,2.93-20.62,12.36-23.12,38.91,26.55-2.5,36-16.69,38.91-23.12a8,8,0,1,1,14.56,6.64Z"></path></svg></span><span class="node-label">Shipped</span><span class="node-sub">Live on the URL</span></button><button type="button" class="node k-action" style="left:400px;top:246px" data-node="fold" data-in="1" data-out="1" aria-haspopup="dialog" aria-expanded="false"><span class="node-card" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 256 256"><path d="M224,48V96a8,8,0,0,1-8,8H168a8,8,0,0,1,0-16h28.69L182.06,73.37a79.56,79.56,0,0,0-56.13-23.43h-.45A79.52,79.52,0,0,0,69.59,72.71,8,8,0,0,1,58.41,61.27a96,96,0,0,1,135,.79L208,76.69V48a8,8,0,0,1,16,0ZM186.41,183.29a80,80,0,0,1-112.47-.66L59.31,168H88a8,8,0,0,0,0-16H40a8,8,0,0,0-8,8v48a8,8,0,0,0,16,0V179.31l14.63,14.63A95.43,95.43,0,0,0,130,222.06h.53a95.36,95.36,0,0,0,67.07-27.33,8,8,0,0,0-11.18-11.44Z"></path></svg></span><span class="node-label">Fold back</span><span class="node-sub">Into CLAUDE.md</span></button><button type="button" class="pin" style="left:222px;top:86px" data-node="rule:R1" aria-label="Rule R1: Write the spec first" aria-haspopup="dialog" aria-expanded="false">R1</button><button type="button" class="pin" style="left:390px;top:86px" data-node="rule:R3" aria-label="Rule R3: Small units of work" aria-haspopup="dialog" aria-expanded="false">R3</button><button type="button" class="pin" style="left:558px;top:86px" data-node="rule:R4" aria-label="Rule R4: The model grades itself" aria-haspopup="dialog" aria-expanded="false">R4</button><button type="button" class="pin" style="left:726px;top:86px" data-node="rule:R2" aria-label="Rule R2: Every write is approval-gated" aria-haspopup="dialog" aria-expanded="false">R2</button></div></div><ol class="steps sr-only"><li>A task (One small piece), then Frame</li><li>Frame (Claude Code · Opus), rule R1, then Build</li><li>Build (Claude Code · Sonnet), rule R3, then Check</li><li>Check (Codex · Cursor), rule R4, then Approval if passes; Fold back if fails</li><li>Approval (Me), rule R2, then Shipped if approved; Build if send back</li><li>Shipped (Live on the URL)</li><li>Fold back (Into CLAUDE.md), then Frame if becomes a rule</li></ol></figure></section>
+<section id="example" aria-labelledby="example-h"><header class="shead"><span class="kicker">A REAL EXAMPLE</span><h2 id="example-h">One real feature, from reference to live</h2><p>The End-to-End Workflow page, taken through the loop.</p></header><ol class="timeline"><li><span class="tl-n">1</span><span class="tag t-frame">Frame</span><p>Studied a reference page for its shape only, then answered the design questions one at a time.</p></li><li><span class="tl-n">2</span><span class="tag t-frame">Frame</span><p>Wrote the spec and ticked every line of it before any code. Then a six-task plan, with the code for each task.</p></li><li><span class="tl-n">3</span><span class="tag t-build">Build</span><p>Built each task test-first: write the test, watch it fail, make it pass.</p></li><li><span class="tl-n">4</span><span class="tag t-check">Check</span><p>511 unit tests and 194 browser tests green. Then a fresh reviewer model read the whole branch and found four bugs.</p></li><li><span class="tl-n">5</span><span class="tag t-fold-back">Fold back</span><p>Each bug got a test that failed first, then the fix. Two lessons became permanent tests: labels fit on one line, and the drag test waits for the page to settle.</p></li><li><span class="tl-n">6</span><span class="tag t-ship">Ship</span><p>I checked it, said “push, PR, merge”, the checks passed, and it went live.</p></li></ol><a class="see" href="/end-to-end.html" target="_top">See it: The End-to-End Workflow →</a></section>
+<section id="habits" aria-labelledby="habits-h"><header class="shead"><span class="kicker">HABITS</span><h2 id="habits-h">What I do every time</h2><p>Small, boring, and the reason the loop works.</p></header><ul class="tiles"><li class="tile"><span class="tile-top"><span class="tile-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M235.5,216.81c-22.56-11-35.5-34.58-35.5-64.8V134.73a15.94,15.94,0,0,0-10.09-14.87L165,110a8,8,0,0,1-4.48-10.34l21.32-53a28,28,0,0,0-16.1-37,28.14,28.14,0,0,0-35.82,16,.61.61,0,0,0,0,.12L108.9,79a8,8,0,0,1-10.37,4.49L73.11,73.14A15.89,15.89,0,0,0,55.74,76.8C34.68,98.45,24,123.75,24,152a111.45,111.45,0,0,0,31.18,77.53A8,8,0,0,0,61,232H232a8,8,0,0,0,3.5-15.19ZM67.14,88l25.41,10.3a24,24,0,0,0,31.23-13.45l21-53c2.56-6.11,9.47-9.27,15.43-7a12,12,0,0,1,6.88,15.92L145.69,93.76a24,24,0,0,0,13.43,31.14L184,134.73V152c0,.33,0,.66,0,1L55.77,101.71A108.84,108.84,0,0,1,67.14,88Zm48,128a87.53,87.53,0,0,1-24.34-42,8,8,0,0,0-15.49,4,105.16,105.16,0,0,0,18.36,38H64.44A95.54,95.54,0,0,1,40,152a85.9,85.9,0,0,1,7.73-36.29l137.8,55.12c3,18,10.56,33.48,21.89,45.16Z"></path></svg></span><span class="tile-mark">1</span></span><h3>Fresh session per task</h3><p>A long chat drifts. I close it and start clean with the spec.</p></li><li class="tile"><span class="tile-top"><span class="tile-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M247.31,124.76c-.35-.79-8.82-19.58-27.65-38.41C194.57,61.26,162.88,48,128,48S61.43,61.26,36.34,86.35C17.51,105.18,9,124,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208s66.57-13.26,91.66-38.34c18.83-18.83,27.3-37.61,27.65-38.4A8,8,0,0,0,247.31,124.76ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.47,133.47,0,0,1,25,128,133.33,133.33,0,0,1,48.07,97.25C70.33,75.19,97.22,64,128,64s57.67,11.19,79.93,33.25A133.46,133.46,0,0,1,231.05,128C223.84,141.46,192.43,192,128,192Zm0-112a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Z"></path></svg></span><span class="tile-mark">2</span></span><h3>Read every diff</h3><p>I read what was written before it goes anywhere. No exceptions for small changes.</p></li><li class="tile"><span class="tile-top"><span class="tile-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M188,88a27.75,27.75,0,0,0-12,2.71V60a28,28,0,0,0-41.36-24.6A28,28,0,0,0,80,44v6.71A27.75,27.75,0,0,0,68,48,28,28,0,0,0,40,76v76a88,88,0,0,0,176,0V116A28,28,0,0,0,188,88Zm12,64a72,72,0,0,1-144,0V76a12,12,0,0,1,24,0v44a8,8,0,0,0,16,0V44a12,12,0,0,1,24,0v68a8,8,0,0,0,16,0V60a12,12,0,0,1,24,0v68.67A48.08,48.08,0,0,0,120,176a8,8,0,0,0,16,0,32,32,0,0,1,32-32,8,8,0,0,0,8-8V116a12,12,0,0,1,24,0Z"></path></svg></span><span class="tile-mark">3</span></span><h3>No new asks mid-run</h3><p>A new idea waits for the next loop, so the current one can finish.</p></li><li class="tile"><span class="tile-top"><span class="tile-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M128,24h0A104,104,0,1,0,232,128,104.12,104.12,0,0,0,128,24Zm88,104a87.61,87.61,0,0,1-3.33,24H174.16a157.44,157.44,0,0,0,0-48h38.51A87.61,87.61,0,0,1,216,128ZM102,168H154a115.11,115.11,0,0,1-26,45A115.27,115.27,0,0,1,102,168Zm-3.9-16a140.84,140.84,0,0,1,0-48h59.88a140.84,140.84,0,0,1,0,48ZM40,128a87.61,87.61,0,0,1,3.33-24H81.84a157.44,157.44,0,0,0,0,48H43.33A87.61,87.61,0,0,1,40,128ZM154,88H102a115.11,115.11,0,0,1,26-45A115.27,115.27,0,0,1,154,88Zm52.33,0H170.71a135.28,135.28,0,0,0-22.3-45.6A88.29,88.29,0,0,1,206.37,88ZM107.59,42.4A135.28,135.28,0,0,0,85.29,88H49.63A88.29,88.29,0,0,1,107.59,42.4ZM49.63,168H85.29a135.28,135.28,0,0,0,22.3,45.6A88.29,88.29,0,0,1,49.63,168Zm98.78,45.6a135.28,135.28,0,0,0,22.3-45.6h35.66A88.29,88.29,0,0,1,148.41,213.6Z"></path></svg></span><span class="tile-mark">4</span></span><h3>Check it on the real URL</h3><p>Tests passing is not the end. I open the live page and use it.</p></li></ul><p class="closing">Done is a URL, not a diff.</p></section>
+<section id="glossary" aria-labelledby="glossary-h"><header class="shead"><span class="kicker">PLAIN ENGLISH</span><h2 id="glossary-h">Every term on this page, in one line</h2><p>Plain English for the technical words above.</p></header><dl class="gl"><div><dt>Claude Code</dt><dd>Anthropic’s AI coding tool. It works in the terminal, on real files.</dd></div><div><dt>Cursor</dt><dd>A code editor with AI built in, where I read and edit by hand.</dd></div><div><dt>Codex</dt><dd>OpenAI’s coding agent, used here to review work it did not write.</dd></div><div><dt>Opus</dt><dd>Claude’s most capable model, used for planning.</dd></div><div><dt>Sonnet</dt><dd>Claude’s faster model, used for most of the building.</dd></div><div><dt>Spec</dt><dd>A short written description of what done looks like, agreed before any code.</dd></div><div><dt>Context</dt><dd>Everything the AI can see while it works. Less is better.</dd></div><div><dt>Acceptance criteria</dt><dd>The checks the work must pass to count as done.</dd></div><div><dt>Subagent</dt><dd>A helper AI the main one hands a side task to, so parts run at once.</dd></div><div><dt>Diff</dt><dd>The exact lines a change adds and removes.</dd></div><div><dt>Second opinion</dt><dd>A different model reading the work, to catch what the author missed.</dd></div><div><dt>Approval gate</dt><dd>A point where the work stops until a person says yes.</dd></div><div><dt>CLAUDE.md</dt><dd>The rules file Claude Code reads at the start of every session.</dd></div><div><dt>Loop-back</dt><dd>A cable that sends the work back to an earlier step.</dd></div><div><dt>Fold back</dt><dd>Turning a mistake into a rule or a test, so it does not happen again.</dd></div><div><dt>Fresh session</dt><dd>A new, empty AI chat, started clean for the next task.</dd></div><div><dt>Test-first</dt><dd>Writing the test before the code, and watching it fail first.</dd></div><div><dt>Reviewer model</dt><dd>A fresh AI model asked only to review finished work.</dd></div></dl></section>
+</main>
+<footer class="foot"><span>The loop as I run it today.</span><a href="/" target="_top">Built by Justine Acosta</a></footer>
+<div id="node-panel" class="panel" popover role="dialog" aria-labelledby="panel-label"><span class="ptype" data-p="type"></span><h3 id="panel-label" data-p="label"></h3><p class="pwhat" data-p="what"></p><dl></dl><button type="button" class="panel-close" data-p="close" aria-label="Close details">×</button></div>
+<script type="application/json" id="graph-nodes">{"task":{"label":"A task","type":"START","what":"One small piece of work, small enough that I can describe done in a paragraph. Anything bigger gets split first.","settings":[]},"frame":{"label":"Frame","type":"STEP","what":"I set the outcome, the constraints and the files that matter, then write the spec with its acceptance criteria. Opus helps plan, and nothing else goes into the context.","settings":[]},"build":{"label":"Build","type":"STEP","what":"Claude Code builds from the spec, test-first, with subagents for parts that can run at once. I do not add requirements mid-run.","settings":[]},"check":{"label":"Check","type":"STEP","what":"It runs, it grades itself against the criteria, and Codex reads the diff as a second opinion. I read it in Cursor before I trust it.","settings":[]},"gate":{"label":"Approval","type":"APPROVAL GATE","what":"Nothing reaches a repo, a client or a send button until I say yes. If something is off, it goes back to Build with a note.","settings":[]},"live":{"label":"Shipped","type":"END","what":"Shipped means live: I open the real URL and use it. Then the next small piece starts.","settings":[]},"fold":{"label":"Fold back","type":"STEP","what":"Whatever went wrong becomes a rule in CLAUDE.md or a new test, so the next run does not repeat it.","settings":[]},"key:cable":{"label":"Cable","type":"LEGEND","what":"Work moving from one step to the next.","settings":[]},"key:signal":{"label":"Live signal","type":"LEGEND","what":"A ball is one task going round the loop right now.","settings":[]},"key:loop":{"label":"Loop-back","type":"LEGEND","what":"A dashed cable. The work goes back to an earlier step.","settings":[]},"key:gate":{"label":"Approval gate","type":"LEGEND","what":"The loop stops here until I say yes.","settings":[]},"key:pin":{"label":"Rule pin","type":"LEGEND","what":"One of my four rules, applied at this step. Click a pin to read it.","settings":[]},"rule:R1":{"label":"Write the spec first","type":"RULE R1","what":"If I cannot describe done in a paragraph, the agent will not find it in a thousand tokens.","settings":[]},"rule:R3":{"label":"Small units of work","type":"RULE R3","what":"One task, one context. A fresh session beats a long one every time.","settings":[]},"rule:R4":{"label":"The model grades itself","type":"RULE R4","what":"Acceptance criteria go in with the task, and the output is checked against them before I look.","settings":[]},"rule:R2":{"label":"Every write is approval-gated","type":"RULE R2","what":"Agents draft. Nothing reaches a client account, a repo, or a send button unreviewed.","settings":[]}}</script>
+<script>// The End-to-End Workflow page's behaviour (public/end-to-end.html), inlined
+// by lib/endToEnd/render.ts. Adapted from lib/buildPlan/client.js, without its
+// test matrix. Plain browser JS, no libraries (spec §4.3).
+;(() => {
+  const root = document.documentElement
+
+  // Inside the portfolio's dialog, wear the site's theme and access settings.
+  // The site treats a missing data-theme as dark. Its text size is left out:
+  // the site already zooms the whole window, iframe included.
+  const MIRROR = ['data-a11y-motion', 'data-a11y-contrast', 'data-a11y-links']
+  let host = null
+  try {
+    if (window.parent !== window) host = window.parent.document.documentElement
+  } catch {
+    host = null
+  }
+  if (host) {
+    const mirror = () => {
+      root.dataset.theme = host.dataset.theme === 'light' ? 'light' : 'dark'
+      for (const name of MIRROR) {
+        const v = host.getAttribute(name)
+        if (v === null) root.removeAttribute(name)
+        else root.setAttribute(name, v)
+      }
+    }
+    mirror()
+    new MutationObserver(mirror).observe(host, { attributes: true, attributeFilter: ['data-theme', ...MIRROR] })
+    root.dataset.embedded = ''
+  }
+  const reduced = () => root.dataset.a11yMotion === 'true' || matchMedia('(prefers-reduced-motion: reduce)').matches
+  const panel = document.getElementById('node-panel')
+
+  if (host) {
+    // Escape closes the site's window, as it does everywhere else on the site,
+    // unless it is closing the settings panel.
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape' || e.defaultPrevented || panel.matches(':popover-open')) return
+      window.frameElement?.closest('dialog')?.close()
+    })
+    // Section links scroll in place and add no history, so Back still closes the window.
+    document.addEventListener('click', (e) => {
+      const a = e.target.closest('a[href^="#"]')
+      if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+      const target = document.getElementById(a.getAttribute('href').slice(1))
+      if (!target) return
+      e.preventDefault()
+      const top = target.getBoundingClientRect().top + scrollY - 64
+      window.scrollTo({ top, behavior: reduced() ? 'auto' : 'smooth' })
+      history.replaceState(null, '', a.getAttribute('href'))
+    })
+  }
+
+  // The lane chips mark the lane on screen.
+  const links = [...document.querySelectorAll('.toc a')]
+  const linkFor = new Map(links.map((a) => [a.getAttribute('href').slice(1), a]))
+  const spy = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        if (!e.isIntersecting) continue
+        const a = linkFor.get(e.target.id)
+        if (!a) continue
+        for (const l of links) l.removeAttribute('aria-current')
+        a.setAttribute('aria-current', 'true')
+        const bar = a.parentElement
+        bar.scrollLeft = a.offsetLeft - bar.clientWidth / 2 + a.clientWidth / 2
+      }
+    },
+    { rootMargin: '-15% 0px -70% 0px' },
+  )
+  for (const id of linkFor.keys()) {
+    const s = document.getElementById(id)
+    if (s) spy.observe(s)
+  }
+
+  // A step (or a key item, or a job stage) explains itself in a small panel,
+  // like n8n's side panel: what happens there first, then its settings. The
+  // panel stays beside its step as the page or a diagram scrolls, and closes
+  // once the step leaves the screen. Clicking the open step closes it.
+  const nodes = JSON.parse(document.getElementById('graph-nodes').textContent)
+  const closeBtn = panel.querySelector('[data-p=close]')
+  let shown = null
+  let side = 'below'
+  let pressedShown = false
+  const view = () => [document.documentElement.clientWidth, document.documentElement.clientHeight]
+  const close = (focusBack) => {
+    if (!shown) return
+    const back = shown
+    shown = null
+    back.setAttribute('aria-expanded', 'false')
+    if (panel.matches(':popover-open')) panel.hidePopover()
+    if (focusBack) back.focus({ preventScroll: true })
+  }
+  const place = () => {
+    if (!shown) return
+    const r = shown.getBoundingClientRect()
+    const [vw, vh] = view()
+    if (r.bottom < 0 || r.top > vh || r.right < 0 || r.left > vw) {
+      close(false)
+      return
+    }
+    const w = panel.offsetWidth
+    const h = panel.offsetHeight
+    panel.style.left = `${Math.max(12, Math.min(r.left + r.width / 2 - w / 2, vw - w - 12))}px`
+    panel.style.top = `${side === 'below' ? r.bottom + 8 : Math.max(12, r.top - h - 10)}px`
+  }
+  const open = (btn) => {
+    const n = nodes[btn.dataset.node]
+    if (!n) return
+    close(false)
+    panel.querySelector('[data-p=type]').textContent = n.type
+    panel.querySelector('[data-p=label]').textContent = n.label
+    panel.querySelector('[data-p=what]').textContent = n.what
+    panel.querySelector('dl').hidden = n.settings.length === 0
+    panel.querySelector('dl').replaceChildren(
+      ...n.settings.flatMap(([k, v]) => {
+        const dt = document.createElement('dt')
+        dt.textContent = k
+        const dd = document.createElement('dd')
+        dd.textContent = v
+        return [dt, dd]
+      }),
+    )
+    shown = btn
+    btn.setAttribute('aria-expanded', 'true')
+    // The source puts the panel right after its step in the Tab order.
+    panel.showPopover({ source: btn })
+    side = btn.getBoundingClientRect().bottom + 8 + panel.offsetHeight > view()[1] - 12 ? 'above' : 'below'
+    place()
+    closeBtn.focus()
+  }
+  panel.addEventListener('toggle', (e) => {
+    if (e.newState === 'closed') close(true)
+  })
+  closeBtn.addEventListener('click', () => close(true))
+  document.addEventListener(
+    'pointerdown',
+    (e) => {
+      pressedShown = !!shown && e.target.closest('[data-node]') === shown
+    },
+    true,
+  )
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-node]')
+    const pressed = pressedShown
+    pressedShown = false
+    if (!btn) return
+    if (pressed || btn === shown) close(true)
+    else open(btn)
+  })
+  let frame = 0
+  const follow = () => {
+    if (!shown || frame) return
+    frame = requestAnimationFrame(() => {
+      frame = 0
+      place()
+    })
+  }
+  document.addEventListener('scroll', follow, { capture: true, passive: true })
+  addEventListener('resize', follow)
+
+  // Balls stand for jobs moving through each workflow while it is on screen.
+  // They leave one at a time, a random 0.7–2 s apart (at most three on a
+  // graph), and each takes one random route from start to end. A step or
+  // connector lights up as a ball passes. Reduced motion turns it all off.
+  const SPEED = 220 // px a second
+  const MAX = 5
+  const runs = [...document.querySelectorAll('.canvas[data-run]')].map((fig) => ({
+    fig,
+    routes: JSON.parse(fig.dataset.routes || '[]'),
+    paths: [...fig.querySelectorAll('.run-dot')].map((d) => d.style.offsetPath),
+    stage: fig.querySelector('.stage'),
+    nodes: new Map([...fig.querySelectorAll('.node[data-node]')].map((b) => [b.dataset.node, b])),
+    edges: [...fig.querySelectorAll('.edge')],
+    balls: [],
+    timer: 0,
+    on: false,
+  }))
+  const launch = (r) => {
+    if (r.balls.length >= MAX || !r.routes.length) return
+    const i = Math.floor(Math.random() * r.routes.length)
+    const el = document.createElement('span')
+    el.className = 'run-ball'
+    el.setAttribute('aria-hidden', 'true')
+    el.dataset.route = String(i)
+    el.style.offsetPath = r.paths[i]
+    r.stage.insertBefore(el, r.stage.querySelector('.node'))
+    const duration = Math.max(400, (r.routes[i].len / SPEED) * 1000)
+    const anim = el.animate(
+      [
+        { offsetDistance: '0%', opacity: 0 },
+        { offsetDistance: '2%', opacity: 1, offset: 0.02 },
+        { offsetDistance: '98%', opacity: 1, offset: 0.98 },
+        { offsetDistance: '100%', opacity: 0 },
+      ],
+      { duration, easing: 'linear' },
+    )
+    const ball = { el, anim, route: r.routes[i] }
+    r.balls.push(ball)
+    anim.finished.then(
+      () => {
+        el.remove()
+        r.balls = r.balls.filter((b) => b !== ball)
+      },
+      () => {},
+    )
+  }
+  const schedule = (r) => {
+    clearTimeout(r.timer)
+    if (!r.on) return
+    r.timer = setTimeout(() => {
+      launch(r)
+      schedule(r)
+    }, 700 + Math.random() * 1300)
+  }
+  const play = (r) => {
+    if (r.on) return
+    r.on = true
+    r.fig.classList.add('playing')
+    for (const b of r.balls) b.anim.play()
+    if (!r.balls.length) launch(r)
+    schedule(r)
+  }
+  const stop = (r, drop) => {
+    r.on = false
+    clearTimeout(r.timer)
+    r.fig.classList.remove('playing')
+    for (const b of r.balls) {
+      if (drop) b.anim.cancel()
+      else b.anim.pause()
+    }
+    if (drop) {
+      for (const b of r.balls) b.el.remove()
+      r.balls = []
+    }
+    for (const el of r.fig.querySelectorAll('.lit')) el.classList.remove('lit')
+  }
+  const byFig = new Map(runs.map((r) => [r.fig, r]))
+  const run = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      const r = byFig.get(e.target)
+      if (e.isIntersecting && !reduced()) play(r)
+      else stop(r, reduced())
+    }
+  })
+  for (const r of runs) run.observe(r.fig)
+  const light = () => {
+    for (const r of runs) {
+      if (!r.on) continue
+      if (reduced()) {
+        stop(r, true)
+        continue
+      }
+      const lit = new Set()
+      const litEdges = new Set()
+      for (const b of r.balls) {
+        const t = ((Number(b.anim.currentTime) || 0) / 1000) * SPEED
+        for (const [key, at] of b.route.stops) if (Math.abs(t - at) < 30) lit.add(key)
+        for (const [i, from, to] of b.route.spans) if (t >= from && t <= to) litEdges.add(i)
+      }
+      for (const [key, el] of r.nodes) el.classList.toggle('lit', lit.has(key))
+      r.edges.forEach((el, i) => el.classList.toggle('lit', litEdges.has(i)))
+    }
+    requestAnimationFrame(light)
+  }
+  requestAnimationFrame(light)
+
+  // Wide diagrams, tables and code blocks scroll sideways with no scrollbar.
+  // Fading edges show there is more; diagrams also pan by dragging with the
+  // mouse (touch already swipes), and the arrow buttons step through them.
+  const scrollers = [...document.querySelectorAll('.canvas-scroll, .table-wrap, pre.code')]
+  const edges = (s) => {
+    const max = s.scrollWidth - s.clientWidth
+    s.toggleAttribute('data-more-left', s.scrollLeft > 2)
+    s.toggleAttribute('data-more-right', s.scrollLeft < max - 2)
+    const fig = s.closest('.canvas')
+    if (!fig) return
+    fig.toggleAttribute('data-overflow', max > 1)
+    const [back, next] = fig.querySelectorAll('.pan-btn')
+    back.disabled = s.scrollLeft <= 2
+    next.disabled = s.scrollLeft >= max - 2
+  }
+  const fit = () => {
+    for (const s of scrollers) edges(s)
+  }
+  for (const s of scrollers) s.addEventListener('scroll', () => edges(s), { passive: true })
+  fit()
+  addEventListener('resize', fit)
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('.pan-btn')
+    if (!b) return
+    const s = b.closest('.canvas').querySelector('.canvas-scroll')
+    s.scrollBy({ left: Number(b.dataset.pan) * s.clientWidth * 0.7, behavior: reduced() ? 'auto' : 'smooth' })
+  })
+  let drag = null
+  let dragged = false
+  document.addEventListener('pointerdown', (e) => {
+    dragged = false
+    const s = e.target.closest('.canvas-scroll')
+    if (!s || e.pointerType !== 'mouse' || e.button !== 0 || s.scrollWidth <= s.clientWidth) return
+    drag = { s, x: e.clientX, left: s.scrollLeft, id: e.pointerId }
+  })
+  document.addEventListener('pointermove', (e) => {
+    if (!drag || e.pointerId !== drag.id) return
+    const dx = e.clientX - drag.x
+    if (!dragged && Math.abs(dx) < 5) return
+    if (!dragged) {
+      dragged = true
+      drag.s.classList.add('dragging')
+      drag.s.setPointerCapture(e.pointerId)
+    }
+    drag.s.scrollLeft = drag.left - dx
+  })
+  const release = () => {
+    if (drag) drag.s.classList.remove('dragging')
+    drag = null
+  }
+  document.addEventListener('pointerup', release)
+  document.addEventListener('pointercancel', release)
+  // The click that ends a drag is not a click on a step.
+  document.addEventListener(
+    'click',
+    (e) => {
+      if (!dragged) return
+      dragged = false
+      e.preventDefault()
+      e.stopPropagation()
+    },
+    true,
+  )
+})()
+</script>
+</body>
+</html>

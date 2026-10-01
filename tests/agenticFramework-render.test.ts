@@ -143,3 +143,9 @@ describe('renderAgenticFramework', () => {
     expect(new Set(external)).toEqual(new Set(['fonts.googleapis.com', 'fonts.gstatic.com']))
   })
 })
+
+describe('public/agentic-framework.html', () => {
+  it('is up to date with its data (run npm run af-page after any change)', () => {
+    expect(readFileSync('public/agentic-framework.html', 'utf8').replace(/\r\n/g, '\n')).toBe(renderAgenticFramework())
+  })
+})
