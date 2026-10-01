@@ -20,3 +20,7 @@ owners.
 | `google-sheets.svg` | Simple Icons 16.33.0 `googlesheets`, filled #34A853 | CC0 1.0 |
 | `stripe.svg` | Simple Icons 16.33.0 `stripe`, filled #635BFF | CC0 1.0 |
 | `cal-com.svg` | Simple Icons 16.33.0 `caldotcom`: its “Cal” letters, in white on a #292929 rounded square (Cal.com’s app-icon style), so it reads at badge size | CC0 1.0 |
+| `hubspot.svg` | Simple Icons 16.33.0 `hubspot`, filled #FF7A59 | CC0 1.0 |
+| `airtable.svg` | Simple Icons 16.33.0 `airtable`, filled #18BFFF | CC0 1.0 |
+| `make.svg` | Simple Icons 16.33.0 `make`, filled #6D00CC | CC0 1.0 |
+| `zapier.svg` | Simple Icons 16.33.0 `zapier`, filled #FF4F00 | CC0 1.0 |

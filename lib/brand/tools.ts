@@ -1,5 +1,5 @@
 /**
- * The tools the three standalone pages name, with their logos in
+ * The tools the standalone pages name, with their logos in
  * lib/brand/logos/ (spec 2026-10-01-lively-pages §3). `brand` colours the
  * badge pulse and the hero glow. A `mono` logo takes the text colour. `dark`
  * means a <id>-dark.svg exists for dark themes. No runtime imports, so the
@@ -8,6 +8,7 @@
 export type ToolId =
   | 'n8n' | 'supabase' | 'gmail' | 'google-sheets' | 'telegram' | 'stripe' | 'claude' | 'cal-com'
   | 'claude-code' | 'vs-code' | 'codex' | 'github' | 'vercel'
+  | 'hubspot' | 'airtable' | 'make' | 'zapier'
 
 export type Tool = { name: string; brand: string; mono?: true; dark?: true }
 
@@ -25,4 +26,8 @@ export const TOOLS: Record<ToolId, Tool> = {
   codex: { name: 'Codex', brand: '#8B949E', dark: true },
   github: { name: 'GitHub', brand: '#8B949E', mono: true },
   vercel: { name: 'Vercel', brand: '#8B949E', mono: true },
+  hubspot: { name: 'HubSpot', brand: '#FF7A59' },
+  airtable: { name: 'Airtable', brand: '#18BFFF' },
+  make: { name: 'Make', brand: '#6D00CC' },
+  zapier: { name: 'Zapier', brand: '#FF4F00' },
 }
