@@ -12,14 +12,15 @@ describe('Projects data', () => {
     expect(projects.writeups.every((w) => w.page && w.frameTitle && w.shot)).toBe(true)
   })
 
-  it('keeps the reel and the sites', () => {
-    expect(projects.reel.shots.map((s) => s.label)).toEqual([
-      'TM-01 · Quote request', 'Workflows list', 'TM-02 · Survey → Estimate', 'Workflow settings', 'Executions',
-    ])
-    expect(projects.reel.shots.every((s) => s.src.includes('n8n workflow screenshot'))).toBe(true)
+  it('keeps the sites, and the Automations card opens its flows page, with a real 16:10 screenshot on Home', () => {
     expect(projects.sitesView.sites.map((s) => s.name)).toEqual([
       'Harbor & Pine Moving Co.', 'Westmere', 'Ironline Utility Infrastructure', 'Meridian Werks', 'Meridian Energy Infrastructure',
     ])
+    expect('reel' in projects).toBe(false)
+    expect(projects.cards.automations).toMatchObject({ page: '/automations.html', frameTitle: 'Automations flows page', cue: 'VIEW THE FLOWS', cta: 'OPEN THE FLOWS' })
+    const shot = BUILDS.find((b) => b.view === 'automations')!.shot
+    expect(shot).toBe('/shots/automations.jpeg')
+    expect(jpegSize(readFileSync(`public${shot}`))).toEqual({ width: 640, height: 400 })
   })
 
   it('shows a real 16:10 screenshot of the build plan on Home', () => {
@@ -55,7 +56,7 @@ describe('Projects data', () => {
 
   it('gives every board card at least three brand logos, each a file on disk', () => {
     const c = projects.cards
-    const sets = [c.reel, c.plan, ...projects.writeups, c.sites, c.agents].map((x) => x.logos.map((l) => l.slug))
+    const sets = [c.automations, c.plan, ...projects.writeups, c.sites, c.agents].map((x) => x.logos.map((l) => l.slug))
     expect(sets).toEqual(CARD_LOGOS)
     for (const slug of sets.flat()) expect(existsSync(`public/icons/brands/${slug}.svg`), slug).toBe(true)
   })
@@ -80,7 +81,7 @@ describe('Projects data', () => {
   })
 })
 
-/** Each board card's logos, in board order: reel, plan, framework, end-to-end, sites, agents. */
+/** Each board card's logos, in board order: automations, plan, framework, end-to-end, sites, agents. */
 const CARD_LOGOS = [
   ['n8n', 'make', 'zapier'],
   ['n8n', 'claude', 'stripe'],
@@ -108,10 +109,20 @@ function jpegSize(b: Buffer) {
 }
 
 describe('Board', () => {
+  it('says what the Automations card holds', () => {
+    render(<Board />)
+    const card = screen.getByRole('link', { name: /^Automations/ })
+    expect(card).toHaveAttribute('href', '#automations')
+    expect(within(card).getByText('The flows behind my sample sites’ forms, on n8n, Make and Zapier.')).toBeInTheDocument()
+    expect(within(card).getByText(/OPEN THE FLOWS/)).toBeInTheDocument()
+    expect(within(card).queryByText('Workflow screen')).toBeNull()
+    expect(card.querySelector('[data-flow-peek]')).toHaveAttribute('aria-hidden', 'true')
+  })
+
   it('links every card to its sub-view by hash, in board order', () => {
     render(<Board />)
     expect(screen.getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual([
-      '#reel', '#build-plan', '#agentic-framework', '#end-to-end', '#sites', '#ai-agents',
+      '#automations', '#build-plan', '#agentic-framework', '#end-to-end', '#sites', '#ai-agents',
     ])
     expect(screen.getByText('CLICK A CARD TO OPEN IT')).toBeInTheDocument()
   })
@@ -215,6 +226,16 @@ describe('ProjectViews', () => {
     render(<ProjectViews />)
     expect(document.body).not.toHaveTextContent('Support Ticketing System')
     expect(document.body).not.toHaveTextContent('Workflow Creator')
+  })
+
+  it('opens the Automations page in its window, with a new-tab link', () => {
+    window.history.replaceState(null, '', '/projects#automations')
+    render(<ProjectViews />)
+    const view = screen.getByRole('dialog', { name: 'Automations' })
+    const frame = within(view).getByTitle('Automations flows page')
+    expect(frame.tagName).toBe('IFRAME')
+    expect(frame).toHaveAttribute('src', '/automations.html')
+    expect(within(view).getByRole('link', { name: 'Open in new tab' })).toHaveAttribute('href', '/automations.html')
   })
 
   it('opens the AI agents page in its window, with a new-tab link', () => {

@@ -2,18 +2,18 @@ import type { Brand } from './stack'
 
 /**
  * The Projects board and its sub-views, verbatim from Kraft Projects
- * Board.dc.html. Screens Kraft left as empty image slots are PLACEHOLDERs.
- * The AI agents card opens public/ai-agents.html (data/agents.ts). This
+ * Board.dc.html. The Automations card opens public/automations.html
+ * (data/automations.ts), and the AI agents card public/ai-agents.html
+ * (data/agents.ts). This
  * module also feeds the ⌘K list on every page, so it stays small.
  */
 
 /** Every sub-view the board opens. Each id is also its URL hash (/projects#build-plan). */
-export const PROJECT_VIEWS = ['reel', 'build-plan', 'agentic-framework', 'end-to-end', 'sites', 'ai-agents'] as const
+export const PROJECT_VIEWS = ['automations', 'build-plan', 'agentic-framework', 'end-to-end', 'sites', 'ai-agents'] as const
 export type ProjectView = (typeof PROJECT_VIEWS)[number]
 
 /** A chip with a tool's logo: its text, and the logo's slug in public/icons/brands/. */
 export type Chip = { name: string; logo: string }
-export type Screenshot = { src: string; label: string }
 /** A sample site: its page, a 3:4 thumbnail, and a tall shot (up to four screens) the Funnels card peeks through. */
 export type Site = { name: string; file: string; src: string; thumb: string; tall: string }
 /** A write-up card: it opens a generated page in the window, with its Home `shot`. */
@@ -22,13 +22,6 @@ type Writeup = { view: ProjectView; kicker: string; title: string; desc: string;
 /** A card's logos (components/projects/LogoStack.tsx), the tools its page names; the first leads, and is ⌘K's. */
 const logos = (...names: [string, string][]): Brand[] => names.map(([name, slug]) => ({ name, slug }))
 
-const REEL: Screenshot[] = [
-  'TM-01 · Quote request',
-  'Workflows list',
-  'TM-02 · Survey → Estimate',
-  'Workflow settings',
-  'Executions',
-].map((label) => ({ label, src: `PLACEHOLDER - n8n workflow screenshot: ${label} (16:10)` }))
 
 /**
  * The sample sites, in the carousel's order; the first is the fan's shot on
@@ -59,11 +52,10 @@ export const projects = {
   close: 'Close',
   openNewTab: 'Open in new tab',
   cards: {
-    reel: {
-      title: 'Automations', logos: logos(['n8n', 'n8n'], ['Make', 'make'], ['Zapier', 'zapier']), cue: 'VIEW THE REEL', cta: 'OPEN THE REEL',
-      body: 'Real screens from the n8n workflows I build.',
-      peek: ['PLACEHOLDER - workflow screen behind (Automations card)', 'PLACEHOLDER - workflow screen in front (Automations card)'],
-      peekHint: 'Workflow screen',
+    automations: {
+      title: 'Automations', logos: logos(['n8n', 'n8n'], ['Make', 'make'], ['Zapier', 'zapier']), cue: 'VIEW THE FLOWS', cta: 'OPEN THE FLOWS',
+      body: 'The flows behind my sample sites’ forms, on n8n, Make and Zapier.',
+      page: '/automations.html', frameTitle: 'Automations flows page',
     },
     plan: {
       title: 'The build plan', logos: logos(['n8n', 'n8n'], ['Claude', 'claude'], ['Stripe', 'stripe']), cue: 'VIEW THE PLAN',
@@ -108,14 +100,6 @@ export const projects = {
     },
   },
   writeups: WRITEUPS,
-  reel: {
-    label: 'Workflow screens', kicker: 'AUTOMATIONS · WORKFLOW REEL', hint: 'HOVER TO PAUSE',
-    pause: 'PAUSE', play: 'PLAY', pauseLabel: 'Pause the reel', playLabel: 'Play the reel',
-    /** Kraft's default reel pace (the board's marqueeSeconds prop). */
-    seconds: 20,
-    slotHint: 'Drop a workflow screenshot · 16:10',
-    shots: REEL,
-  },
   sitesView: {
     label: 'Funnels and sites',
     kicker: 'FUNNELS AND SITES',
@@ -141,11 +125,11 @@ export type Build = { name: string; view: ProjectView; shot: string; tall?: stri
 
 /**
  * Every build on the Projects page, in its order, for the fan on Home's
- * Projects card. Funnels and sites shows a sample site; the rest are
- * PLACEHOLDERs until each has a screenshot (16:10).
+ * Projects card. Funnels and sites shows a sample site; the rest show their
+ * page (16:10).
  */
 export const BUILDS: Build[] = [
-  { name: projects.cards.reel.title, view: 'reel', shot: 'PLACEHOLDER - Automations screenshot (16:10)' },
+  { name: projects.cards.automations.title, view: 'automations', shot: '/shots/automations.jpeg' },
   { name: projects.cards.plan.title, view: 'build-plan', shot: '/shots/build-plan.jpeg' },
   { name: projects.cards.sites.title, view: 'sites', shot: SITES[0].thumb, tall: SITES[0].tall },
   { name: projects.cards.agents.title, view: 'ai-agents', shot: '/shots/ai-agents.jpeg' },

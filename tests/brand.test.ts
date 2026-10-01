@@ -13,6 +13,11 @@ describe('the tools registry and its logo files', () => {
     expect([...files].sort()).toEqual(want.sort())
   })
 
+  it('knows the tools the Automations flows run on', () => {
+    expect(IDS).toEqual(expect.arrayContaining(['hubspot', 'airtable', 'make', 'zapier']))
+    expect(['hubspot', 'airtable', 'make', 'zapier'].map((id) => TOOLS[id as ToolId].name)).toEqual(['HubSpot', 'Airtable', 'Make', 'Zapier'])
+  })
+
   it('credits every logo file', () => {
     const credits = readFileSync('lib/brand/logos/CREDITS.md', 'utf8')
     for (const f of files) expect(credits, f).toContain(`\`${f}\``)

@@ -56,6 +56,7 @@
   --color-fade-b: var(--fadeB);
   --color-scrim: var(--scrim);
   --color-logo-chip: var(--logo-chip);
+  --color-logo-ink: var(--logo-ink);
   --color-danger: var(--danger);
   --color-danger-b: var(--danger-b);
   --color-mac-r: var(--mac-r);
@@ -172,7 +173,7 @@ html[data-a11y-motion=true] [data-reveal]{opacity:1 !important;transform:none !i
 .arc-card[data-off]{opacity:0}
 
 /* Logo chips and shadows Kraft uses on both themes (KraftScreens.dc.html:141, 190-191) */
-:root{--logo-chip:#f7f4ee;--logo-shadow:0 2px 8px -2px rgba(0,0,0,.45);--pill-shadow:0 14px 34px -14px rgba(0,0,0,.7)}
+:root{--logo-chip:#f7f4ee;--logo-ink:#3a443e;--logo-shadow:0 2px 8px -2px rgba(0,0,0,.45);--pill-shadow:0 14px 34px -14px rgba(0,0,0,.7)}
 
 /* Kraft's certification medals (KraftScreens.dc.html:183-195, 1130-1149): two
    tilted badges that straighten, lift and show a pill on hover. Each badge is
@@ -266,7 +267,7 @@ html[data-intro-live] .intro-skip{visibility:visible}
 /* ---- Pages (Phase 3) ----
    Fixed colours Kraft uses on both themes: the alert red of dead-end flow
    nodes (KraftScreens.dc.html:1223-1225), the window traffic lights and the
-   dark stage behind the reel and site views (Kraft Projects Board.dc.html:
+   dark stage behind the site views (Kraft Projects Board.dc.html:
    137-139, 243-247, 279), and the fade under the testimonial poster
    (KraftScreens.dc.html:339). */
 :root{--danger:#C9614F;--danger-b:rgba(201,97,79,.45);--mac-r:#ED6A5E;--mac-y:#F4BF4F;--mac-g:#61C554;--veil-ink:#F1F5F2;--veil-chip:rgba(255,255,255,.08);--veil-chip-hover:rgba(255,255,255,.18);--veil-line:rgba(255,255,255,.16);--veil-deep:rgba(6,10,8,.88);--poster-fade:rgba(5,5,5,.82);--window-shadow:0 50px 120px -60px rgba(0,0,0,.95);--shot-shadow:0 40px 90px -50px rgba(0,0,0,.9);--peek-shadow:0 20px 50px -24px rgba(0,0,0,.35);--tile-shadow:0 14px 32px -20px rgba(0,0,0,.4);--tip-shadow:0 12px 30px -12px rgba(0,0,0,.6);--chip-shadow:0 1px 3px rgba(0,0,0,.18)}
@@ -289,16 +290,6 @@ dialog.view--window{padding:clamp(10px,2.4vw,34px)}
 
 /* Projects board (Kraft Projects Board.dc.html:44-46): the "click a card" pill bobs on the frame's top edge. */
 @keyframes pbNudge{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
-
-/* Kraft's workflow reel (Kraft Projects Board.dc.html:250): the doubled row
-   marches left; hovering or focusing it pauses it. With reduced motion it
-   stands still and the stage scrolls by hand. */
-.reel-row{animation:kMarquee var(--marq,20s) linear infinite}
-.reel-row:hover,.reel-row:focus-within,.reel-row[data-paused]{animation-play-state:paused}
-@media (prefers-reduced-motion:reduce){.reel{overflow-x:auto}.reel-row{animation:none}.reel-pause{display:none}}
-html[data-a11y-motion=true] .reel{overflow-x:auto}
-html[data-a11y-motion=true] .reel-row{animation:none}
-html[data-a11y-motion=true] .reel-pause{display:none}
 
 /* The Kraft Method (KraftScreens.dc.html:223-240, 1112-1125), run like the
    loader's steps (components/services/Method.tsx): the card the light goes
@@ -360,6 +351,15 @@ html[data-a11y-motion=true] .flow-ball{display:none}
 @media (prefers-reduced-motion:reduce){.agents-preview *{animation:none !important}}
 html[data-a11y-motion=true] .agents-preview *{animation:none !important}
 :root[data-perf=low] .agents-preview *{animation:none !important}
+
+/* Automations card canvas (components/projects/FlowPeek.tsx): a pulse runs
+   along each wire of the flow on show, while the card is on screen. */
+.fp-pulse{position:absolute;top:50%;left:0;width:6px;height:6px;margin-top:-3px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px 1px var(--glow);opacity:0}
+.flow-peek[data-seen] [data-on=true] .fp-pulse{animation:fpPulse 1.4s ease-in-out infinite}
+@keyframes fpPulse{0%{left:0;opacity:0}15%,85%{opacity:1}100%{left:calc(100% - 6px);opacity:0}}
+@media (prefers-reduced-motion:reduce){.flow-peek *{animation:none !important}}
+html[data-a11y-motion=true] .flow-peek *{animation:none !important}
+:root[data-perf=low] .flow-peek *{animation:none !important}
 
 /* ---- Projects: the Funnels and sites fan (components/projects/SitesCard.tsx,
    lib/fan.ts). Each tile's pose arrives as --x --y --r (px, px, deg) and its

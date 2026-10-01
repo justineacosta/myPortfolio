@@ -4,13 +4,13 @@ import Image from 'next/image'
 import { useRef, useState, type MouseEvent, type PointerEvent } from 'react'
 import { ArrowUpRightIcon, HandPointingIcon } from '@phosphor-icons/react/ssr'
 import Frame from '@/components/ui/Frame'
-import Shot from '@/components/ui/Shot'
 import { projects } from '@/data/projects'
 import { brandIcon } from '@/data/stack'
 import { pushHash } from '@/lib/hash'
 import { prefersReducedMotion } from '@/lib/motion'
 import AgentsPreview from './AgentsPreview'
 import SitesCard from './SitesCard'
+import FlowPeek from './FlowPeek'
 import LogoStack from './LogoStack'
 import { BODY, CARD, CTA, TITLE } from './styles'
 
@@ -62,21 +62,14 @@ export default function Board() {
         </div>
 
         <div className={`flex flex-wrap ${GAP}`}>
-          <a href="#reel" onClick={openView} data-case={c.reel.cue} className={`${CARD} min-w-[min(270px,100%)] flex-[3_1_420px]`}>
-            <LogoStack logos={c.reel.logos} />
-            <h2 className={TITLE}>{c.reel.title}</h2>
-            <p className={`${BODY} max-w-[340px]`}>{c.reel.body}</p>
+          <a href="#automations" onClick={openView} data-case={c.automations.cue} className={`${CARD} min-w-[min(270px,100%)] flex-[3_1_420px]`}>
+            <LogoStack logos={c.automations.logos} />
+            <h2 className={TITLE}>{c.automations.title}</h2>
+            <p className={`${BODY} max-w-[340px]`}>{c.automations.body}</p>
             <span className={CTA}>
-              {c.reel.cta} <ArrowUpRightIcon size={13} aria-hidden />
+              {c.automations.cta} <ArrowUpRightIcon size={13} aria-hidden />
             </span>
-            <div aria-hidden className="relative mt-1.5 -mr-5 -mb-5 h-[clamp(150px,17cqw,220px)]">
-              <div className="absolute top-[-10px] left-[18%] h-[64%] w-[78%] overflow-hidden rounded-t-xl border border-b-0 border-b1 bg-s0 opacity-50">
-                <Shot src={c.reel.peek[0]} hint={c.reel.peekHint} />
-              </div>
-              <div className="absolute top-9 right-[-8px] bottom-[-14px] left-[30%] overflow-hidden rounded-xl border border-b2 bg-s0 shadow-(--peek-shadow)">
-                <Shot src={c.reel.peek[1]} hint={c.reel.peekHint} />
-              </div>
-            </div>
+            <FlowPeek />
           </a>
 
           <a href="#build-plan" onClick={openView} data-case={c.plan.cue} className={`${CARD} min-w-[min(250px,100%)] flex-[2_1_300px]`}>

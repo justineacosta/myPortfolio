@@ -4,9 +4,9 @@ import { useHashView } from '@/hooks/useHashView'
 import { PROJECT_VIEWS } from '@/data/projects'
 import AgenticFrameworkView from './AgenticFrameworkView'
 import AgentsView from './AgentsView'
+import AutomationsView from './AutomationsView'
 import EndToEndView from './EndToEndView'
 import PlanView from './PlanView'
-import ReelView from './ReelView'
 import SitesView from './SitesView'
 
 /**
@@ -21,7 +21,7 @@ export default function ProjectViews() {
       <EndToEndView open={view === 'end-to-end'} onClose={close} />
       <PlanView open={view === 'build-plan'} onClose={close} />
       <AgentsView open={view === 'ai-agents'} onClose={close} />
-      <ReelView open={view === 'reel'} onClose={close} />
+      <AutomationsView open={view === 'automations'} onClose={close} />
       <SitesView open={view === 'sites'} onClose={close} />
     </>
   )

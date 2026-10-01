@@ -33,7 +33,7 @@ describe('CommandPalette and sub-views', () => {
     await user.click(screen.getByText('Jump to…'))
     await user.keyboard('automations{Enter}')
     window.removeEventListener('hashchange', onHash)
-    expect(window.location.hash).toBe('#reel')
+    expect(window.location.hash).toBe('#automations')
     expect(focusedWhenViewOpened).toBe(screen.getByText('Jump to…'))
   })
 })
