@@ -56,6 +56,7 @@
   --color-fade-b: var(--fadeB);
   --color-scrim: var(--scrim);
   --color-logo-chip: var(--logo-chip);
+  --color-logo-ink: var(--logo-ink);
   --color-danger: var(--danger);
   --color-danger-b: var(--danger-b);
   --color-mac-r: var(--mac-r);
@@ -172,7 +173,7 @@ html[data-a11y-motion=true] [data-reveal]{opacity:1 !important;transform:none !i
 .arc-card[data-off]{opacity:0}
 
 /* Logo chips and shadows Kraft uses on both themes (KraftScreens.dc.html:141, 190-191) */
-:root{--logo-chip:#f7f4ee;--logo-shadow:0 2px 8px -2px rgba(0,0,0,.45);--pill-shadow:0 14px 34px -14px rgba(0,0,0,.7)}
+:root{--logo-chip:#f7f4ee;--logo-ink:#3a443e;--logo-shadow:0 2px 8px -2px rgba(0,0,0,.45);--pill-shadow:0 14px 34px -14px rgba(0,0,0,.7)}
 
 /* Kraft's certification medals (KraftScreens.dc.html:183-195, 1130-1149): two
    tilted badges that straighten, lift and show a pill on hover. Each badge is
@@ -350,6 +351,15 @@ html[data-a11y-motion=true] .flow-ball{display:none}
 @media (prefers-reduced-motion:reduce){.agents-preview *{animation:none !important}}
 html[data-a11y-motion=true] .agents-preview *{animation:none !important}
 :root[data-perf=low] .agents-preview *{animation:none !important}
+
+/* Automations card canvas (components/projects/FlowPeek.tsx): a pulse runs
+   along each wire of the flow on show, while the card is on screen. */
+.fp-pulse{position:absolute;top:50%;left:0;width:6px;height:6px;margin-top:-3px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px 1px var(--glow);opacity:0}
+.flow-peek[data-seen] [data-on=true] .fp-pulse{animation:fpPulse 1.4s ease-in-out infinite}
+@keyframes fpPulse{0%{left:0;opacity:0}15%,85%{opacity:1}100%{left:calc(100% - 6px);opacity:0}}
+@media (prefers-reduced-motion:reduce){.flow-peek *{animation:none !important}}
+html[data-a11y-motion=true] .flow-peek *{animation:none !important}
+:root[data-perf=low] .flow-peek *{animation:none !important}
 
 /* ---- Projects: the Funnels and sites fan (components/projects/SitesCard.tsx,
    lib/fan.ts). Each tile's pose arrives as --x --y --r (px, px, deg) and its

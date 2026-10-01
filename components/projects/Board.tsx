@@ -10,6 +10,7 @@ import { pushHash } from '@/lib/hash'
 import { prefersReducedMotion } from '@/lib/motion'
 import AgentsPreview from './AgentsPreview'
 import SitesCard from './SitesCard'
+import FlowPeek from './FlowPeek'
 import LogoStack from './LogoStack'
 import { BODY, CARD, CTA, TITLE } from './styles'
 
@@ -68,6 +69,7 @@ export default function Board() {
             <span className={CTA}>
               {c.automations.cta} <ArrowUpRightIcon size={13} aria-hidden />
             </span>
+            <FlowPeek />
           </a>
 
           <a href="#build-plan" onClick={openView} data-case={c.plan.cue} className={`${CARD} min-w-[min(250px,100%)] flex-[2_1_300px]`}>

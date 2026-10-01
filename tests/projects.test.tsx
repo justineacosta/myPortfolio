@@ -116,6 +116,7 @@ describe('Board', () => {
     expect(within(card).getByText('The flows behind my sample sites’ forms, on n8n, Make and Zapier.')).toBeInTheDocument()
     expect(within(card).getByText(/OPEN THE FLOWS/)).toBeInTheDocument()
     expect(within(card).queryByText('Workflow screen')).toBeNull()
+    expect(card.querySelector('[data-flow-peek]')).toHaveAttribute('aria-hidden', 'true')
   })
 
   it('links every card to its sub-view by hash, in board order', () => {
