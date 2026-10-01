@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { PaletteProvider } from '@/components/shell/CommandPalette'
 import { NavigationProvider } from '@/components/shell/NavigationProvider'
@@ -34,6 +34,23 @@ describe('PhoneBar', () => {
   afterEach(() => {
     vi.useRealTimers()
     Object.defineProperty(window, 'scrollY', { configurable: true, value: 0 })
+  })
+
+  it('a tap on the portrait swaps the photo for the drawn portrait, and back', async () => {
+    const user = userEvent.setup()
+    renderBar()
+    const swap = screen.getByRole('button', { name: 'Show the drawn portrait' })
+    expect(swap).toHaveAttribute('aria-pressed', 'false')
+    expect(within(swap).getByRole('img', { name: 'Portrait of Justine Acosta' })).toBeInTheDocument()
+    const drawn = swap.querySelector('[data-portrait-drawn]')!
+    expect(drawn.getAttribute('src')).toContain('portrait-drawn.jpg')
+    expect(drawn).toHaveAttribute('alt', '')
+    expect(drawn).toHaveAttribute('data-on', 'false')
+    await user.click(swap)
+    expect(swap).toHaveAttribute('aria-pressed', 'true')
+    expect(drawn).toHaveAttribute('data-on', 'true')
+    await user.click(swap)
+    expect(drawn).toHaveAttribute('data-on', 'false')
   })
 
   it("shows Kraft's phone identity with theme, access and search, on any page", async () => {

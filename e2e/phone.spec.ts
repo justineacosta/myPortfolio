@@ -24,6 +24,31 @@ test('phone: floating theme and search controls work', async ({ page }) => {
   await expect(page.getByRole('dialog', { name: 'Command palette' })).toBeVisible()
 })
 
+test('phone: a tap on the portrait fades in the drawn one, and another fades it out', async ({ page }) => {
+  await page.goto('/about')
+  await hydrated(page)
+  const swap = page.getByRole('button', { name: 'Show the drawn portrait' })
+  const drawn = swap.locator('[data-portrait-drawn]')
+  await expect(drawn).toHaveCSS('opacity', '0')
+  await swap.tap()
+  await expect(swap).toHaveAttribute('aria-pressed', 'true')
+  await expect(drawn).toHaveCSS('opacity', '1')
+  await swap.tap()
+  await expect(drawn).toHaveCSS('opacity', '0')
+})
+
+test('phone: Thank-you and 404 stack the drawing above the message, and never scroll sideways', async ({ page }) => {
+  for (const r of ['/thank-you', '/no-such-page']) {
+    await page.goto(r)
+    const art = page.getByRole('img', { name: 'Drawing of Justine raising a bottle in a café' })
+    const h1 = page.getByRole('heading', { level: 1 })
+    await expect(art).toBeVisible()
+    expect((await art.boundingBox())!.y, r).toBeLessThan((await h1.boundingBox())!.y)
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
+    expect(overflow, r).toBeLessThanOrEqual(0)
+  }
+})
+
 test('phone: the document scrolls (no inner panel)', async ({ page }) => {
   await page.goto('/')
   await settleIntro(page)

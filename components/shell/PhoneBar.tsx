@@ -21,6 +21,7 @@ export default function PhoneBar() {
   const { openPalette } = usePalette()
   const ref = useRef<HTMLDivElement>(null)
   const [hidden, setHidden] = useState(false)
+  const [drawn, setDrawn] = useState(false)
 
   useEffect(() => {
     const bar = ref.current
@@ -62,14 +63,33 @@ export default function PhoneBar() {
       data-intro-hold
       className="fixed inset-x-0 top-0 z-30 flex items-center gap-[11px] border-b border-b1 bg-frame px-4 pt-[max(12px,env(safe-area-inset-top))] pb-3 transition-transform duration-300 ease-out data-hidden:-translate-y-full shell:hidden"
     >
-      <Image
-        src={profile.portrait.src}
-        alt={profile.portrait.alt}
-        width={40}
-        height={40}
-        className="size-10 rounded-full border border-b2 object-cover"
-        style={{ objectPosition: profile.portrait.position }}
-      />
+      {/* A tap swaps the photo for the drawn portrait, and back. */}
+      <button
+        type="button"
+        aria-label={profile.portrait.drawn.swap}
+        aria-pressed={drawn}
+        onClick={() => setDrawn((d) => !d)}
+        className="relative size-10 shrink-0 cursor-pointer rounded-full border-0 bg-transparent p-0"
+      >
+        <Image
+          src={profile.portrait.src}
+          alt={profile.portrait.alt}
+          width={40}
+          height={40}
+          className="size-10 rounded-full border border-b2 object-cover"
+          style={{ objectPosition: profile.portrait.position }}
+        />
+        <Image
+          data-portrait-drawn
+          data-on={drawn}
+          src={profile.portrait.drawn.src}
+          alt=""
+          width={40}
+          height={40}
+          className="absolute inset-0 size-10 rounded-full border border-b2 object-cover opacity-0 transition-opacity duration-400 data-[on=true]:opacity-100"
+          style={{ objectPosition: profile.portrait.drawn.position }}
+        />
+      </button>
       <div className="flex min-w-0 flex-col gap-0.5">
         <div className="flex items-center gap-1.5">
           <span className="text-[14.5px] font-semibold">{profile.name}</span>
