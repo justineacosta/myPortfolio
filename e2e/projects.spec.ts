@@ -70,17 +70,15 @@ test('the cursor cue names the card under the pointer', async ({ page }) => {
   await expect(page.getByText('VIEW THE PLAN', { exact: true })).toBeVisible()
 })
 
-test('the reel marches, and pauses under the pointer', async ({ page }) => {
-  await page.goto('/projects#reel')
+test('the Automations card opens its flows page in the window', async ({ page }) => {
+  await page.goto('/projects')
   await hydrated(page)
-  await expect(page.getByRole('dialog', { name: 'Workflow screens' })).toBeVisible()
-  const row = page.locator('.reel-row')
-  expect(await row.evaluate((el) => el.getAnimations()[0]?.playState)).toBe('running')
-  // The row never holds still, so hover() would wait forever for it: point at
-  // the stage's centre instead (the row fills the stage's height).
-  const stage = (await page.locator('.reel').boundingBox())!
-  await page.mouse.move(stage.x + stage.width / 2, stage.y + stage.height / 2)
-  await expect.poll(() => row.evaluate((el) => el.getAnimations()[0]?.playState)).toBe('paused')
+  await page.getByRole('link', { name: /^Automations/ }).click()
+  await expect(page).toHaveURL(/\/projects#automations$/)
+  const view = page.getByRole('dialog', { name: 'Automations' })
+  await expect(view).toBeVisible()
+  await expect(view.getByRole('link', { name: 'Open in new tab' })).toHaveAttribute('href', '/automations.html')
+  await expect(page.frameLocator('iframe[title="Automations flows page"]').getByRole('heading', { level: 1 })).toHaveText('What happens after someone hits send')
 })
 
 test('the sites view lists every sample site', async ({ page }) => {
@@ -145,15 +143,6 @@ test.describe('reduced motion', () => {
     const view = page.getByRole('dialog', { name: 'Funnels and sites' })
     await expect(view.locator('canvas')).toBeVisible()
     await expect(view.locator('[data-carousel]')).toHaveCount(0)
-  })
-
-
-  test('the reel stands still and scrolls by hand', async ({ page }) => {
-    await page.goto('/projects#reel')
-    await hydrated(page)
-    await expect(page.getByRole('dialog', { name: 'Workflow screens' })).toBeVisible()
-    await expect(page.locator('.reel')).toHaveCSS('overflow-x', 'auto')
-    expect(await page.locator('.reel-row').evaluate((el) => el.getAnimations().length)).toBe(0)
   })
 })
 
@@ -229,6 +218,7 @@ test('/projects never fetches the plan page until its window opens', async ({ pa
   expect(asked).not.toContain('/build-plan.html')
   expect(asked).not.toContain('/end-to-end.html')
   expect(asked).not.toContain('/agentic-framework.html')
+  expect(asked).not.toContain('/automations.html')
 })
 
 test('a write-up window keeps its margin', async ({ page }) => {

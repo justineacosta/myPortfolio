@@ -3,7 +3,7 @@ import { join, sep } from 'node:path'
 import { expect, it } from 'vitest'
 
 const ROOTS = ['app', 'components', 'data', 'hooks', 'lib']
-const FILES = ['public/build-plan.html', 'public/end-to-end.html', 'public/agentic-framework.html', 'public/ai-agents.html']
+const FILES = ['public/build-plan.html', 'public/end-to-end.html', 'public/agentic-framework.html', 'public/ai-agents.html', 'public/automations.html']
 const GHL = /gohighlevel|highlevel|\bghl\b/i
 
 function walk(dir: string): string[] {

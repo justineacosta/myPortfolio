@@ -33,13 +33,14 @@ describe('Bento', () => {
     expect(screen.getByRole('heading', { name: 'Stack' }).closest('a')).toBeNull()
   })
 
-  it('fans a tile for every build on the Projects page, a real site for Funnels and labelled slots for the rest', () => {
+  it('fans a tile for every build on the Projects page, each a real screenshot, a real site for Funnels', () => {
     const { container } = renderBento()
     const tiles = [...container.querySelectorAll<HTMLElement>('.arc [data-fan-tile]')]
     expect(tiles.map((t) => t.dataset.site)).toEqual(BUILDS.map((b) => b.name))
     const funnels = tiles.find((t) => t.dataset.site === 'Funnels and sites')!
     expect(decodeURIComponent(funnels.querySelector('img')!.getAttribute('src')!)).toContain('/samples/thumbs/tall/')
-    expect(within(tiles[0]).getByText('Automations')).toBeInTheDocument()
+    expect(decodeURIComponent(tiles[0].querySelector('img')!.getAttribute('src')!)).toContain('/shots/automations.jpeg')
+    for (const t of tiles) expect(t.querySelector('img'), t.dataset.site).not.toBeNull()
   })
 
   it('loops the tools marquee with a hidden duplicate', () => {
