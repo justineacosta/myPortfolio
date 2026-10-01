@@ -66,26 +66,25 @@ function loop(g: AgenticFramework, index: NodeIndex) {
   const paths = l.cables.map((c, i) => `<path class="edge${c.kind === 'loop' ? ' loop' : ''}" data-edge="${i}" d="${c.d}"/>`).join('')
   const labels = l.cables
     .filter((c) => c.label)
-    .map((c) => `<span class="edge-label" style="left:${Math.round(c.mid[0])}px;top:${Math.round(c.mid[1])}px">${esc(c.label!)}</span>`)
+    .map((c) => `<span class="edge-label" aria-hidden="true" style="left:${Math.round(c.mid[0])}px;top:${Math.round(c.mid[1])}px">${esc(c.label!)}</span>`)
     .join('')
   // One hidden template ball per route; the client sends copies down random routes.
   const balls = l.routes.map((r, i) => `<span class="run-dot" aria-hidden="true" data-route="${i}" style="offset-path:path('${r.run}')"></span>`).join('')
   const timing = l.routes.map((r) => ({ len: r.length, stops: r.stops, spans: r.spans }))
+  // A pin sits beside its step, never inside it (a button may not hold a
+  // button), and straight after it, so Tab reaches a step and then its rule.
+  const pin = (s: (typeof steps)[number]) => {
+    if (!s.rule) return ''
+    const r = rules.get(s.rule)!
+    const key = `rule:${r.mark}`
+    index[key] = { label: r.title, type: `RULE ${r.mark}`, what: r.text, settings: [] }
+    const at = l.pins[s.id]
+    return `<button type="button" class="pin" style="left:${at.x}px;top:${at.y}px" data-node="${esc(key)}" aria-label="Rule ${esc(r.mark)}: ${esc(r.title)}" aria-haspopup="dialog" aria-expanded="false">${esc(r.mark)}</button>`
+  }
   const buttons = steps
     .map((s) => {
       const at = l.nodes[s.id]
-      return `<button type="button" class="node k-${LOOK[s.kind]}" style="left:${at.x}px;top:${at.y}px" data-node="${esc(s.id)}" data-in="${entered.has(s.id) ? 1 : 0}" data-out="${left.has(s.id) ? 1 : 0}" aria-haspopup="dialog" aria-expanded="false"><span class="node-card" aria-hidden="true">${iconSvg(s.icon)}${s.kind === 'gate' ? LOCK() : ''}</span><span class="node-label">${esc(s.label)}</span><span class="node-sub">${esc(s.sub)}</span></button>`
-    })
-    .join('')
-  // Pins sit beside their step, never inside it: a button may not hold a button.
-  const pins = steps
-    .filter((s) => s.rule)
-    .map((s) => {
-      const r = rules.get(s.rule!)!
-      const key = `rule:${r.mark}`
-      index[key] = { label: r.title, type: `RULE ${r.mark}`, what: r.text, settings: [] }
-      const at = l.pins[s.id]
-      return `<button type="button" class="pin" style="left:${at.x}px;top:${at.y}px" data-node="${esc(key)}" aria-label="Rule ${esc(r.mark)}: ${esc(r.title)}" aria-haspopup="dialog" aria-expanded="false">${esc(r.mark)}</button>`
+      return `<button type="button" class="node k-${LOOK[s.kind]}" style="left:${at.x}px;top:${at.y}px" data-node="${esc(s.id)}" data-in="${entered.has(s.id) ? 1 : 0}" data-out="${left.has(s.id) ? 1 : 0}" aria-haspopup="dialog" aria-expanded="false"><span class="node-card" aria-hidden="true">${iconSvg(s.icon)}${s.kind === 'gate' ? LOCK() : ''}</span><span class="node-label">${esc(s.label)}</span><span class="node-sub">${esc(s.sub)}</span></button>${pin(s)}`
     })
     .join('')
   const read = steps
@@ -94,7 +93,7 @@ function loop(g: AgenticFramework, index: NodeIndex) {
       return `<li>${esc(s.label)} (${esc(s.sub)})${s.rule ? `, rule ${esc(s.rule)}` : ''}${next.length ? `, then ${esc(next.join('; '))}` : ''}</li>`
     })
     .join('')
-  return `<ul class="legend" aria-label="How to read the loop">${keys}</ul><figure class="canvas loop" data-run data-routes="${esc(JSON.stringify(timing))}"><figcaption><span>${esc(caption)}</span><span class="pan"><span class="pan-hint" aria-hidden="true">Drag to explore</span><button type="button" class="pan-btn" data-pan="-1" aria-label="Scroll loop left">‹</button><button type="button" class="pan-btn" data-pan="1" aria-label="Scroll loop right">›</button></span></figcaption><div class="canvas-scroll" tabindex="0" role="group" aria-label="The loop, scrolls sideways"><div class="stage" style="width:${l.width}px;height:${l.height}px"><svg class="edges" width="${l.width}" height="${l.height}" viewBox="0 0 ${l.width} ${l.height}" aria-hidden="true">${paths}</svg>${labels}${balls}${buttons}${pins}</div></div><ol class="steps sr-only">${read}</ol></figure>`
+  return `<ul class="legend" aria-label="How to read the loop">${keys}</ul><figure class="canvas loop" data-run data-routes="${esc(JSON.stringify(timing))}"><figcaption><span>${esc(caption)}</span><span class="pan"><span class="pan-hint" aria-hidden="true">Drag to explore</span><button type="button" class="pan-btn" data-pan="-1" aria-label="Scroll loop left">‹</button><button type="button" class="pan-btn" data-pan="1" aria-label="Scroll loop right">›</button></span></figcaption><div class="canvas-scroll" tabindex="0" role="group" aria-label="The loop, scrolls sideways"><div class="stage" style="width:${l.width}px;height:${l.height}px"><svg class="edges" width="${l.width}" height="${l.height}" viewBox="0 0 ${l.width} ${l.height}" aria-hidden="true">${paths}</svg>${labels}${balls}${buttons}</div></div><ol class="steps sr-only">${read}</ol></figure>`
 }
 
 function example(g: AgenticFramework) {

@@ -2,6 +2,7 @@
 
 **Date:** 2026-10-01
 **Status:** Approved 2026-10-01 in chat
+**Change, 2026-10-01:** Justine’s editor is VS Code, not Cursor. Cursor is replaced by VS Code everywhere it is named as the editor: on this page (chip, tool card 02, Check’s sub-line, glossary), on the End-to-End page (step D4 “VS Code takes over” and its glossary entry) and in the AI agents dialog’s “Built with” chips.
 **Reference:** brewedops.cloud/framework. It was used for the idea only: a long read page in sections, an at-a-glance overview, a "two jobs" split, one animated strip that follows a feature through the loop, and a closing line. No wording, names, branding, layout values, setup steps or code are taken from it. Its setup guide (code blocks, Copy buttons) is left out.
 
 ## 1. Goal

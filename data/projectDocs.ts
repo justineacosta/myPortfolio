@@ -1,5 +1,5 @@
 import {
-  ArticleIcon, BooksIcon, BrowsersIcon, ChartBarIcon, ChatCircleIcon, CodeIcon, CoffeeIcon, CursorIcon, DatabaseIcon, FileJsIcon, FilmStripIcon, HashIcon, MagnifyingGlassIcon, MicrophoneIcon, PaperPlaneTiltIcon, PhoneCallIcon, ShieldCheckIcon, ShippingContainerIcon, SparkleIcon, TerminalWindowIcon, TimerIcon, UsersThreeIcon, WaveformIcon,
+  ArticleIcon, BooksIcon, BrowsersIcon, ChartBarIcon, ChatCircleIcon, CodeIcon, CoffeeIcon, DatabaseIcon, FileCodeIcon, FileJsIcon, FilmStripIcon, HashIcon, MagnifyingGlassIcon, MicrophoneIcon, PaperPlaneTiltIcon, PhoneCallIcon, ShieldCheckIcon, ShippingContainerIcon, SparkleIcon, TerminalWindowIcon, TimerIcon, UsersThreeIcon, WaveformIcon,
 } from '@phosphor-icons/react/ssr'
 import type { AgentGroup, Chip } from './projects'
 
@@ -53,7 +53,7 @@ export const agentsView = {
   builtWith: [
     { name: 'Claude Code', icon: TerminalWindowIcon },
     { name: 'Codex', icon: CodeIcon },
-    { name: 'Cursor', icon: CursorIcon },
+    { name: 'VS Code', icon: FileCodeIcon },
     { name: 'Hermes', icon: ShieldCheckIcon },
   ] satisfies Chip[],
   groups: GROUPS,

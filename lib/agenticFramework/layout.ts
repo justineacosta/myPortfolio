@@ -57,7 +57,7 @@ export function layoutLoop(loop: AgenticFramework['loop']): LoopLayout {
   const nodes: Record<string, Placed> = {}
   for (const s of steps) nodes[s.id] = { x: padX + s.at[0] * C, y: top + s.at[1] * R }
   const pins: Record<string, Placed> = {}
-  for (const s of steps) if (s.rule) pins[s.id] = { x: nodes[s.id].x - 10, y: nodes[s.id].y - 10 }
+  for (const s of steps) if (s.rule) pins[s.id] = { x: nodes[s.id].x - 12, y: nodes[s.id].y - 12 }
   const cx = (id: string) => nodes[id].x + N / 2
   const cy = (id: string) => nodes[id].y + N / 2
   const under = (id: string) => nodes[id].y + N + label - 4

@@ -6,8 +6,8 @@ import {
 /**
  * The Projects board and its sub-views, verbatim from Kraft Projects
  * Board.dc.html. Screens Kraft left as empty image slots are PLACEHOLDERs.
- * The write-ups and the systems roster live in data/projectDocs.ts, so only
- * /projects downloads them (this module also feeds the ⌘K list on every page).
+ * The AI agents roster lives in data/projectDocs.ts, so only /projects
+ * downloads it (this module also feeds the ⌘K list on every page).
  */
 
 /** Every sub-view the board opens. Each id is also its URL hash (/projects#build-plan). */

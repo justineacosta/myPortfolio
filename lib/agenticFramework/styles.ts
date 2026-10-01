@@ -35,7 +35,9 @@ export function afCss(themes: Themes): string {
 .edge.loop.lit{stroke:var(--accent)}
 .badge-lock{position:absolute;right:-8px;bottom:-8px;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;border:1px solid var(--b2);background:var(--s0);color:var(--accent)}
 .k-approve .node-card{outline:2px solid var(--accent);outline-offset:3px}
-.pin{position:absolute;z-index:2;display:grid;place-items:center;width:22px;height:22px;padding:0;border-radius:50%;border:1px solid var(--accent);background:var(--s0);color:var(--accent);font-family:var(--mono);font-size:.5625rem;font-weight:500;cursor:pointer}
+.node-label,.node-sub{width:max-content;max-width:136px;padding:0 4px;border-radius:4px;background:var(--s0)}
+@media (max-width:480px){.pan-hint{display:none}}
+.pin{position:absolute;z-index:2;display:grid;place-items:center;width:24px;height:24px;padding:0;border-radius:50%;border:1px solid var(--accent);background:var(--s0);color:var(--accent);font-family:var(--mono);font-size:.5625rem;font-weight:500;cursor:pointer}
 .pin:hover,.pin[aria-expanded=true]{background:var(--accent);color:var(--onAccent)}
 .pin-sample{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;border:1px solid var(--accent);font-family:var(--mono);font-size:.5rem;color:var(--accent)}
 .timeline{display:flex;flex-direction:column;gap:0;margin:0;padding:0;list-style:none}

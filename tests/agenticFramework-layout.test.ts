@@ -56,9 +56,9 @@ describe('layoutLoop', () => {
     }
   })
 
-  it('pins the four rules at their cards’ top left', () => {
+  it('pins the four rules at their cards’ top left, clear of the card itself', () => {
     expect(Object.keys(l.pins).sort()).toEqual(['build', 'check', 'frame', 'gate'])
-    for (const [id, p] of Object.entries(l.pins)) expect(p).toEqual({ x: l.nodes[id].x - 10, y: l.nodes[id].y - 10 })
+    for (const [id, p] of Object.entries(l.pins)) expect(p).toEqual({ x: l.nodes[id].x - 12, y: l.nodes[id].y - 12 })
   })
 
   it('finds exactly three routes, each with at most one loop-back, from the task to Shipped', () => {

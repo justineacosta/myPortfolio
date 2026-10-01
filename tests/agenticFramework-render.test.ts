@@ -16,7 +16,7 @@ describe('renderAgenticFramework', () => {
     expect(doc.querySelector('h1')!.textContent).toBe('The Agentic Framework')
     expect(doc.querySelector('.lede')!.textContent).toBe(g.lede)
     expect(doc.querySelector('.stance')!.textContent).toBe('I make the calls. The AI does the typing.')
-    expect([...doc.querySelectorAll('.stack li')].map((li) => li.textContent)).toEqual(['Claude Code', 'Cursor', 'Codex'])
+    expect([...doc.querySelectorAll('.stack li')].map((li) => li.textContent)).toEqual(['Claude Code', 'VS Code', 'Codex'])
     expect(doc.querySelector('link[rel=canonical]')!.getAttribute('href')).toBe('/agentic-framework.html')
     expect(doc.querySelector('meta[property="og:title"]')!.getAttribute('content')).toBe(g.title)
   })
@@ -54,6 +54,9 @@ describe('renderAgenticFramework', () => {
     const pins = [...doc.querySelectorAll<HTMLButtonElement>('#loop button.pin')]
     expect(pins.map((p) => p.dataset.node)).toEqual(['rule:R1', 'rule:R3', 'rule:R4', 'rule:R2'])
     for (const p of pins) expect(p.closest('button.node')).toBeNull()
+    // Each pin comes straight after its step, so Tab reaches a step and then its rule.
+    for (const [step, rule] of [['frame', 'R1'], ['build', 'R3'], ['check', 'R4'], ['gate', 'R2']])
+      expect(doc.querySelector(`button.node[data-node="${step}"]`)!.nextElementSibling!.getAttribute('data-node'), step).toBe(`rule:${rule}`)
     expect(data()['rule:R1']).toMatchObject({ label: 'Write the spec first', type: 'RULE R1', what: g.rules[0].text })
     expect(pins[0].getAttribute('aria-label')).toBe('Rule R1: Write the spec first')
   })
@@ -68,6 +71,8 @@ describe('renderAgenticFramework', () => {
     expect(doc.querySelectorAll('#loop .edge[data-edge]')).toHaveLength(g.loop.cables.length)
     expect(doc.querySelectorAll('#loop .edge.loop')).toHaveLength(3)
     expect([...doc.querySelectorAll('#loop .edge-label')].map((e) => e.textContent).sort()).toEqual(['approved', 'becomes a rule', 'fails', 'passes', 'send back'])
+    // The screen-reader list already says each one in context.
+    for (const e of doc.querySelectorAll('#loop .edge-label')) expect(e.getAttribute('aria-hidden'), e.textContent!).toBe('true')
   })
 
   it('sends balls down the layout’s three routes, with the timing the page needs to light steps up', () => {
@@ -81,7 +86,7 @@ describe('renderAgenticFramework', () => {
 
   it('lists the loop for screen readers, and scrolls in its own frame', () => {
     expect(doc.querySelectorAll('#loop ol.steps.sr-only li')).toHaveLength(g.loop.steps.length)
-    expect(doc.querySelector('#loop ol.steps')!.textContent).toContain('Check (Codex · Cursor), rule R4, then Approval if passes; Fold back if fails')
+    expect(doc.querySelector('#loop ol.steps')!.textContent).toContain('Check (Codex · VS Code), rule R4, then Approval if passes; Fold back if fails')
     expect(doc.querySelector('.canvas-scroll')!.getAttribute('tabindex')).toBe('0')
   })
 

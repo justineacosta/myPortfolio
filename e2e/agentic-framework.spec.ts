@@ -52,6 +52,51 @@ test('a rule pin explains its rule; Escape closes it and focus goes back to the 
   await expect(pin).toBeFocused()
 })
 
+test('rule pins are big enough to tap (24 px) and never cover their step’s card', async ({ page }) => {
+  await page.goto(`${PAGE}#loop`)
+  for (const pin of await page.locator('.pin').all()) {
+    const p = (await pin.boundingBox())!
+    expect(p.width).toBeGreaterThanOrEqual(24)
+    expect(p.height).toBeGreaterThanOrEqual(24)
+  }
+})
+
+test('a ball passing behind a step’s name never crosses its text', async ({ page }) => {
+  await page.goto(`${PAGE}#loop`)
+  const bg = await page.locator('.canvas-scroll').evaluate((el) => getComputedStyle(el).backgroundColor)
+  for (const sel of ['[data-node="check"] .node-label', '[data-node="check"] .node-sub', '[data-node="frame"] .node-sub']) {
+    expect(await page.locator(sel).evaluate((el) => getComputedStyle(el).backgroundColor), sel).toBe(bg)
+  }
+  const ball = page.locator('.run-ball').first()
+  await expect(ball).toBeAttached({ timeout: 10_000 })
+  expect(await ball.evaluate((el) => el.compareDocumentPosition(document.querySelector('.node')!) & Node.DOCUMENT_POSITION_FOLLOWING)).toBeTruthy()
+})
+
+test('every step’s name and sub-line sit on one line', async ({ page }) => {
+  await page.goto(PAGE)
+  for (const el of await page.locator('.node-label, .node-sub').all()) {
+    const lines = await el.evaluate((e) => {
+      const r = document.createRange()
+      r.selectNodeContents(e)
+      return new Set([...r.getClientRects()].map((b) => Math.round(b.top))).size
+    })
+    expect(lines, (await el.textContent())!).toBe(1)
+  }
+})
+
+test('at phone width the loop’s caption stays on one line', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto(`${PAGE}#loop`)
+  const cap = page.locator('figure.canvas figcaption > span').first()
+  // The span stretches to the pan buttons' height, so count the text's lines instead.
+  const lines = await cap.evaluate((el) => {
+    const r = document.createRange()
+    r.selectNodeContents(el)
+    return new Set([...r.getClientRects()].map((b) => Math.round(b.top))).size
+  })
+  expect(lines).toBe(1)
+})
+
 test('the legend keys explain themselves', async ({ page }) => {
   await page.goto(PAGE)
   await page.getByRole('button', { name: 'Rule pin', exact: true }).click()

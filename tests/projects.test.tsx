@@ -15,6 +15,7 @@ describe('Projects data', () => {
 
   it("keeps Kraft's roster, the build plan's sections, the reel and the sites", () => {
     expect(agentsView.groups.map((g) => g.name)).toEqual(['KapeAI', 'AI Agents', 'RAG Chatbots', 'Chatbots', 'Hermes'])
+    expect(agentsView.builtWith.map((c) => c.name)).toEqual(['Claude Code', 'Codex', 'VS Code', 'Hermes'])
     expect(projects.reel.shots.map((s) => s.label)).toEqual([
       'TM-01 · Quote request', 'Workflows list', 'TM-02 · Survey → Estimate', 'Workflow settings', 'Executions',
     ])

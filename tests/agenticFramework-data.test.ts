@@ -11,7 +11,7 @@ describe('the Agentic Framework data', () => {
   })
 
   it('keeps the card’s three tools and four rules, word for word', () => {
-    expect(g.tools.map((t) => t.title)).toEqual(['Claude Code', 'Cursor', 'Codex'])
+    expect(g.tools.map((t) => t.title)).toEqual(['Claude Code', 'VS Code', 'Codex'])
     expect(g.tools[0].note).toBe('Opus for planning, Sonnet for volume')
     expect(g.rules.map((r) => `${r.mark} ${r.title}`)).toEqual([
       'R1 Write the spec first', 'R2 Every write is approval-gated', 'R3 Small units of work', 'R4 The model grades itself',
@@ -108,6 +108,7 @@ describe('the Agentic Framework data', () => {
   it('uses curly quotes only and never mentions GoHighLevel', () => {
     expect(allText()).not.toContain("'")
     expect(allText()).not.toContain('\\"')
+    expect(allText(), 'the editor is VS Code').not.toMatch(/cursor/i)
     expect(allText()).not.toMatch(/gohighlevel|highlevel|\bghl\b/i)
   })
 })

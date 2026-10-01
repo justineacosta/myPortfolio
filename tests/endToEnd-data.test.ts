@@ -104,6 +104,11 @@ describe('the End-to-End Workflow data', () => {
     }
   })
 
+  it('names VS Code as the editor, never Cursor', () => {
+    expect(allText()).not.toMatch(/cursor/i)
+    expect(g.steps.find((s) => s.id === 'd4')!.label).toBe('VS Code takes over')
+  })
+
   it('uses curly quotes only and never mentions GoHighLevel', () => {
     expect(allText()).not.toContain("'")
     expect(allText()).not.toMatch(/gohighlevel|highlevel|\bghl\b/i)

@@ -92,7 +92,7 @@ const STEPS: Step[] = [
   step('d1', 'D', [0, 0], 'step', 'Pick one small piece', 'one task, one context', 'PuzzlePiece', 'Takes the next small piece from the spec. After a piece passes its checks, the next one starts here.'),
   step('d2', 'D', [1, 0], 'ai', 'Claude Code builds', 'the builder', 'TerminalWindow', 'Claude Code writes the real files for this piece: planning on Opus, volume on Sonnet.'),
   step('d3', 'D', [2, 0], 'ai', 'Subagents in parallel', 'parts run at once', 'UsersThree', 'Parts that don’t depend on each other are handed to subagents, which work on them at the same time.'),
-  step('d4', 'D', [3, 0], 'step', 'Cursor takes over', 'precision over speed', 'Cursor', 'I read what was written in Cursor and take over by hand wherever precision matters more than speed.'),
+  step('d4', 'D', [3, 0], 'step', 'VS Code takes over', 'precision over speed', 'FileCode', 'I read what was written in VS Code and take over by hand wherever precision matters more than speed.'),
 
   step('e1', 'E', [0, 0], 'step', 'Run it', 'tests and a real run', 'Play', 'The tests and the app itself actually run. A result that has not run does not count.', true),
   step('e2', 'E', [1, 0], 'ai', 'Grade the result', 'against the criteria', 'ListChecks', 'The output is checked against the acceptance criteria from the spec before I look at it.'),
@@ -200,7 +200,7 @@ export const endToEnd: EndToEnd = {
       ['Acceptance criteria', 'The checks a result must pass to count as done, written before the work starts.'],
       ['Claude Code', 'The AI coding tool that builds: it reads and writes real files and runs commands.'],
       ['Subagent', 'A helper Claude Code starts for one part of a task, so several parts are worked on at once.'],
-      ['Cursor', 'The code editor I use to read what was written and take over by hand.'],
+      ['VS Code', 'Visual Studio Code, the code editor I use to read what was written and take over by hand.'],
       ['Codex', 'A second AI model that reviews the work. A fresh reviewer catches what the author missed.'],
       ['Skill', 'A reusable procedure an agent loads for one kind of job, like drafting an article or cutting a reel.'],
       ['Agent', 'An AI assistant with one job. It picks its own tools and finishes the task.'],

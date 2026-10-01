@@ -54,7 +54,7 @@ export const agenticFramework: AgenticFramework = {
   stance: 'I make the calls. The AI does the typing.',
   stack: [
     { name: 'Claude Code', icon: 'TerminalWindow' },
-    { name: 'Cursor', icon: 'Cursor' },
+    { name: 'VS Code', icon: 'FileCode' },
     { name: 'Codex', icon: 'Code' },
   ],
   sections: [
@@ -81,7 +81,7 @@ export const agenticFramework: AgenticFramework = {
   },
   tools: [
     { mark: '01', icon: 'TerminalWindow', title: 'Claude Code', text: 'The builder. Long tasks, real files, subagents for anything that can run in parallel.', note: 'Opus for planning, Sonnet for volume' },
-    { mark: '02', icon: 'Cursor', title: 'Cursor', text: 'The editor. Where I read what was written and take over when precision beats speed.', note: 'Human in the loop' },
+    { mark: '02', icon: 'FileCode', title: 'VS Code', text: 'The editor. Where I read what was written and take over when precision beats speed.', note: 'Human in the loop' },
     { mark: '03', icon: 'Code', title: 'Codex', text: 'The second opinion. A fresh model reviewing a diff catches what the author missed.', note: 'Review pass, not a build pass' },
   ],
   rules: [
@@ -96,7 +96,7 @@ export const agenticFramework: AgenticFramework = {
       { id: 'task', at: [0, 0], kind: 'start', label: 'A task', sub: 'One small piece', icon: 'ClipboardText', what: 'One small piece of work, small enough that I can describe done in a paragraph. Anything bigger gets split first.' },
       { id: 'frame', at: [1, 0], kind: 'step', label: 'Frame', sub: 'Claude Code · Opus', icon: 'Target', rule: 'R1', what: 'I set the outcome, the constraints and the files that matter, then write the spec with its acceptance criteria. Opus helps plan, and nothing else goes into the context.' },
       { id: 'build', at: [2, 0], kind: 'step', label: 'Build', sub: 'Claude Code · Sonnet', icon: 'Lightning', rule: 'R3', what: 'Claude Code builds from the spec, test-first, with subagents for parts that can run at once. I do not add requirements mid-run.' },
-      { id: 'check', at: [3, 0], kind: 'step', label: 'Check', sub: 'Codex · Cursor', icon: 'MagnifyingGlass', rule: 'R4', what: 'It runs, it grades itself against the criteria, and Codex reads the diff as a second opinion. I read it in Cursor before I trust it.' },
+      { id: 'check', at: [3, 0], kind: 'step', label: 'Check', sub: 'Codex · VS Code', icon: 'MagnifyingGlass', rule: 'R4', what: 'It runs, it grades itself against the criteria, and Codex reads the diff as a second opinion. I read it in VS Code before I trust it.' },
       { id: 'gate', at: [4, 0], kind: 'gate', label: 'Approval', sub: 'Me', icon: 'UserCheck', rule: 'R2', what: 'Nothing reaches a repo, a client or a send button until I say yes. If something is off, it goes back to Build with a note.' },
       { id: 'live', at: [5, 0], kind: 'end', label: 'Shipped', sub: 'Live on the URL', icon: 'RocketLaunch', what: 'Shipped means live: I open the real URL and use it. Then the next small piece starts.' },
       { id: 'fold', at: [2, 1], kind: 'step', label: 'Fold back', sub: 'Into CLAUDE.md', icon: 'ArrowsClockwise', what: 'Whatever went wrong becomes a rule in CLAUDE.md or a new test, so the next run does not repeat it.' },
@@ -139,7 +139,7 @@ export const agenticFramework: AgenticFramework = {
   closing: 'Done is a URL, not a diff.',
   glossary: [
     ['Claude Code', 'Anthropic’s AI coding tool. It works in the terminal, on real files.'],
-    ['Cursor', 'A code editor with AI built in, where I read and edit by hand.'],
+    ['VS Code', 'Visual Studio Code, the code editor where I read what was written and edit by hand.'],
     ['Codex', 'OpenAI’s coding agent, used here to review work it did not write.'],
     ['Opus', 'Claude’s most capable model, used for planning.'],
     ['Sonnet', 'Claude’s faster model, used for most of the building.'],
