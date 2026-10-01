@@ -125,3 +125,10 @@ test('hovering a lit step or a helper lifts it but keeps its own glow or stacked
     await expect.poll(shadow).toBe(resting)
   }
 })
+
+test('the Cal.com logo fills its chip like the others, not as a thin wordmark', async ({ page }) => {
+  await page.goto('/build-plan.html')
+  const drawn = (name: string) =>
+    page.locator('.tool-chip').filter({ hasText: name }).locator('use').first().evaluate((u) => (u as SVGGraphicsElement).getBBox().height)
+  expect(await drawn('Cal.com')).toBeGreaterThanOrEqual(0.6 * 16)
+})

@@ -19,7 +19,7 @@ export const TOOLS: Record<ToolId, Tool> = {
   telegram: { name: 'Telegram', brand: '#26A5E4' },
   stripe: { name: 'Stripe', brand: '#635BFF' },
   claude: { name: 'Claude', brand: '#D97757' },
-  'cal-com': { name: 'Cal.com', brand: '#8B949E', mono: true },
+  'cal-com': { name: 'Cal.com', brand: '#292929' },
   'claude-code': { name: 'Claude Code', brand: '#D97757' },
   'vs-code': { name: 'VS Code', brand: '#007ACC' },
   codex: { name: 'Codex', brand: '#8B949E', dark: true },

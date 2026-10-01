@@ -49,7 +49,7 @@ Each logo lives in `lib/brand/logos/<id>.svg`, and `lib/brand/logos/CREDITS.md` 
 | `telegram` | Telegram | gilbarbara/logos `telegram` | colour |
 | `stripe` | Stripe | Simple Icons `stripe` (the S mark), #635BFF | colour |
 | `claude` | Claude | gilbarbara/logos `claude-icon` | colour |
-| `cal-com` | Cal.com | Simple Icons `caldotcom` | mono |
+| `cal-com` | Cal.com | Simple Icons `caldotcom`: its “Cal” letters in white on a #292929 rounded square, so it reads at badge size | colour |
 | `claude-code` | Claude Code | gilbarbara/logos `claude-code` | colour |
 | `vs-code` | VS Code | gilbarbara/logos `visual-studio-code` | colour |
 | `codex` | Codex | gilbarbara/logos `codex`, and `codex-dark` for dark themes | colour, two files |
@@ -72,7 +72,7 @@ Each logo lives in `lib/brand/logos/<id>.svg`, and `lib/brand/logos/CREDITS.md` 
 ### 3.3 One copy per page
 
 - **Shared sheet:** each page draws every logo it uses once, as a `<symbol id="logo-<id>">` in one hidden SVG at the top of `<body>`. Every badge, chip, tile, panel and glossary logo points to it with `<use href="#logo-<id>">`.
-- **Unique ids:** ids inside a logo, such as Gmail's gradients, are prefixed with `logo-<id>-` so they can't collide with each other or with the page.
+- **Unique ids:** ids inside a logo, such as Gmail's gradients, are prefixed with `lg-<id>-` (which can never match a `logo-<id>` symbol id) so they can't collide with each other or with the page.
 
 ## 4. Where logos appear
 
@@ -99,20 +99,21 @@ Each logo lives in `lib/brand/logos/<id>.svg`, and `lib/brand/logos/CREDITS.md` 
 | | H1 Webhook in (n8n) | n8n |
 | | J2 Push (to GitHub) | github |
 | | J3 Deploy (Vercel and my VPS) | vercel |
+| | G2 Auditor (n8n audits) | n8n |
 | Agentic | Frame (Claude Code · Opus) | claude-code |
 | | Build (Claude Code · Sonnet) | claude-code |
 | | Check (Codex · VS Code) | codex, vs-code |
 
 ### 4.2 Details panel
 
-- **Panel header:** when a step has tools, the header shows each tool's logo and name before the type, for example "[logo] Supabase · ACTION".
+- **Panel header:** when a step has tools, the header shows each tool's logo and name before the type, for example "[logo] Supabase · ACTION". When the type doesn't fit beside them, it moves to the next line. Neither runs under the close button.
 - **Index data:** the node index gains `tools?: ToolId[]`.
 - **Templates:** the page carries one `<template id="tool-<id>">` per tool it uses, holding a logo and the tool's name. The page script copies these into the panel; no HTML is built from JSON.
 - **Scripts touched:** `lib/buildPlan/client.js` and `lib/endToEnd/client.js` each get this small addition. The Agentic page reuses the End-to-End script, so it gets it too.
 
 ### 4.3 Hero logo strip
 
-- **What:** under each page's lede, "Tools on this page" shows a chip, with logo and name, for each tool the page uses, in the order they first appear in the data.
+- **What:** under each page's lede, "Tools on this page" shows a chip, with logo and name, for each tool the page uses, in the order they first appear in the data. The visible label names the list (`aria-labelledby`), so screen readers hear it once.
 - **Agentic page:** the strip replaces the "Built with" chips, and `stack` is removed from its data.
 
 ### 4.4 Tiles and glossary
@@ -156,8 +157,8 @@ A soft two-colour radial glow sits behind each page's title, using two of that p
 | End-to-End | Claude orange + Telegram blue |
 | Agentic | Claude orange + VS Code blue |
 
-- **Strength:** it's weaker in light themes than in dark ones.
-- **Text:** it sits behind the text and never lowers the text's contrast below today's.
+- **Strength:** 22% in dark themes, 4% in light ones.
+- **Text:** it sits behind the text. In light themes, even at its brightest point, it keeps the quietest hero text (ink3) within 5% of its contrast. Any tint behind dark text lowers contrast a little, so 5% is the agreed limit. Dark themes keep at least 4.5:1.
 - **Print and high-contrast:** it's switched off.
 
 ### 5.3 Print
