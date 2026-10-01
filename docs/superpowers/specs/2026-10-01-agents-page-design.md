@@ -1,7 +1,7 @@
 # The AI agents and RAG chatbots page: design
 
 **Date:** 2026-10-01
-**Status:** Written 2026-10-01, waiting for Justine's review
+**Status:** Approved 2026-10-01 in chat
 **Why:** The card's content came from the kape reference portfolio (KapeAI, KapeSEO, KAPE Reel worker, Kape AI knowledge search, BrewedOps OS roster, Ken AI Bot, Hermes). None of it is Justine's. It is replaced by labelled sample builds on Justine's stack, and the card gains a page that shows how they work, like the other three write-up cards.
 
 ## 1. Goal
