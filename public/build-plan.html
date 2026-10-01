@@ -200,7 +200,8 @@ a[href^="http"]::after{content:" (" attr(href) ")";font-size:.75em;color:var(--i
 .tile,.card,.tool-chip{transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
 @media (hover:hover) and (prefers-reduced-motion:no-preference){
 :root:not([data-a11y-motion=true]) :is(.tile,.card,.tool-chip):hover{transform:translateY(-2px);border-color:var(--b2);box-shadow:0 10px 24px -14px color-mix(in srgb,var(--ink) 40%,transparent)}
-:root:not([data-a11y-motion=true]) .node:hover .node-card{transform:translateY(-2px);box-shadow:0 10px 20px -12px color-mix(in srgb,var(--k,var(--accent)) 70%,transparent)}
+:root:not([data-a11y-motion=true]) .node:hover .node-card{transform:translateY(-2px)}
+:root:not([data-a11y-motion=true]) .node:not(.lit,.k-helper):hover .node-card{box-shadow:0 10px 20px -12px color-mix(in srgb,var(--k,var(--accent)) 70%,transparent)}
 }
 .hero{position:relative;isolation:isolate}
 .hero::before{content:"";position:absolute;z-index:-1;left:0;right:0;top:-96px;height:440px;pointer-events:none;background:radial-gradient(17% 35% at 30% 45%,color-mix(in srgb,var(--halo-a) var(--halo),transparent),transparent),radial-gradient(19% 32% at 68% 40%,color-mix(in srgb,var(--halo-b) var(--halo),transparent),transparent);background-size:115% 115%;background-position:0% 0%;animation:halo 20s ease-in-out infinite alternate}

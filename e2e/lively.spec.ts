@@ -105,3 +105,23 @@ test('a badge glows in its brand colour while a ball lights its step', async ({ 
     .poll(() => page.evaluate(() => [...document.querySelectorAll('.node.lit .logo-badge')].some((b) => getComputedStyle(b).boxShadow !== 'none')), { timeout: 15_000 })
     .toBe(true)
 })
+
+test('hovering a lit step or a helper lifts it but keeps its own glow or stacked-card look', async ({ page }) => {
+  // A frozen clock holds the balls still, so a step lit by hand stays lit.
+  await page.clock.install()
+  await page.goto('/build-plan.html')
+  const helper = page.locator('.node.k-helper').first()
+  const lit = page.locator('[data-node="tm-01:n3"]')
+  await lit.evaluate((el) => el.classList.add('lit'))
+  for (const node of [helper, lit]) {
+    await node.scrollIntoViewIfNeeded()
+    const card = node.locator('.node-card')
+    const shadow = () => card.evaluate((el) => getComputedStyle(el).boxShadow)
+    await page.mouse.move(0, 0)
+    await expect.poll(shadow).not.toBe('')
+    const resting = await shadow()
+    await node.hover()
+    await expect.poll(() => card.evaluate((el) => getComputedStyle(el).transform)).not.toBe('none')
+    await expect.poll(shadow).toBe(resting)
+  }
+})
