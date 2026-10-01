@@ -70,6 +70,20 @@ test('the cursor cue names the card under the pointer', async ({ page }) => {
   await expect(page.getByText('VIEW THE PLAN', { exact: true })).toBeVisible()
 })
 
+test.describe('on the narrowest phone', () => {
+  test.use({ viewport: { width: 320, height: 640 } })
+
+  test('the Automations card fits every flow’s chips inside its canvas', async ({ page }) => {
+    await page.goto('/projects')
+    await hydrated(page)
+    const peek = page.locator('[data-flow-peek]')
+    const box = (await peek.boundingBox())!
+    const rights = await peek.locator('[data-chip]').evaluateAll((els) => els.map((e) => e.getBoundingClientRect().right))
+    expect(rights.length).toBe(21)
+    for (const r of rights) expect(r).toBeLessThanOrEqual(box.x + box.width)
+  })
+})
+
 test('the Automations card opens its flows page in the window', async ({ page }) => {
   await page.goto('/projects')
   await hydrated(page)

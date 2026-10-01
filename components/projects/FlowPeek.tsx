@@ -23,13 +23,13 @@ const SHAPE = { n8n: 'rounded-[10px]', make: 'rounded-full', zapier: 'rounded-[1
 function Chip({ node, flow, n }: { node: FlowNode; flow: Flow; n: number }) {
   const tool = node.tools[0]
   return (
-    <span data-chip className={`relative grid size-8 shrink-0 place-items-center bg-logo-chip shadow-(--logo-shadow) sm:size-9 ${SHAPE[flow.platform]}`}>
+    <span data-chip className={`relative grid size-[clamp(20px,12cqw,36px)] shrink-0 place-items-center bg-logo-chip shadow-(--logo-shadow) ${SHAPE[flow.platform]}`}>
       {tool ? (
-        <Image src={brandIcon(PEEK_SLUG[tool]!)} alt="" width={18} height={18} className="block" />
+        <Image src={brandIcon(PEEK_SLUG[tool]!)} alt="" width={18} height={18} className="block size-1/2" />
       ) : node.kind === 'branch' ? (
-        <ArrowsSplitIcon size={18} className="text-logo-ink" />
+        <ArrowsSplitIcon className="size-1/2 text-logo-ink" />
       ) : (
-        <WebhooksLogoIcon size={18} className="text-logo-ink" />
+        <WebhooksLogoIcon className="size-1/2 text-logo-ink" />
       )}
       {flow.platform === 'zapier' && (
         <span data-step className="absolute -top-1.5 -left-1.5 grid size-4 place-items-center rounded-full bg-accent font-mono text-[9px] text-on-accent">
@@ -85,7 +85,7 @@ export default function FlowPeek() {
   }, [still, flows.length])
   const shown = still ? 0 : at
   return (
-    <div ref={box} aria-hidden data-flow-peek className="flow-peek relative mt-1.5 h-[clamp(130px,15cqw,180px)] overflow-hidden rounded-[14px] border border-b1 bg-s0">
+    <div ref={box} aria-hidden data-flow-peek className="flow-peek @container relative mt-1.5 h-[clamp(130px,15cqw,180px)] overflow-hidden rounded-[14px] border border-b1 bg-s0">
       {flows.map((f, i) => {
         const route = mainRoute(f).map((id) => f.nodes.find((n) => n.id === id)!)
         return (
@@ -97,7 +97,7 @@ export default function FlowPeek() {
               {route.map((n, k) => (
                 <Fragment key={n.id}>
                   {k > 0 && (
-                    <span className={`fp-wire relative min-w-2 flex-1 ${f.platform === 'make' ? 'border-t-2 border-dotted border-b2' : 'h-px bg-b2'}`}>
+                    <span className={`fp-wire relative min-w-0.5 flex-1 ${f.platform === 'make' ? 'border-t-2 border-dotted border-b2' : 'h-px bg-b2'}`}>
                       <span className="fp-pulse" style={{ animationDelay: `${k * 0.35}s` }} />
                     </span>
                   )}

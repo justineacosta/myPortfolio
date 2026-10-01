@@ -69,6 +69,12 @@ test.describe('on a phone', () => {
       await page.getByRole('tab').nth(i).click()
       expect(await page.evaluate(() => document.documentElement.scrollWidth), code).toBeLessThanOrEqual(390)
     }
+    // Every flow's tab is on screen: none hides past the edge.
+    const boxes = await page.getByRole('tab').evaluateAll((els) => els.map((e) => e.getBoundingClientRect()).map((r) => ({ left: r.left, right: r.right })))
+    for (const b of boxes) {
+      expect(b.left).toBeGreaterThanOrEqual(0)
+      expect(b.right).toBeLessThanOrEqual(390)
+    }
     await tab(page, /^Westmere/).click()
     await expect(page.locator('#wm-01 figure.canvas')).toHaveAttribute('data-overflow', '')
     await expect(page.locator('#wm-01').getByRole('button', { name: 'Scroll diagram right' })).toBeVisible()

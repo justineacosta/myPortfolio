@@ -189,8 +189,7 @@ a[href^="http"]::after{content:" (" attr(href) ")";font-size:.75em;color:var(--i
 .sample-note{display:flex;align-items:center;gap:8px;max-width:62ch;font-size:.875rem;color:var(--ink3)}
 .sample-note svg{flex:none;color:var(--accent)}
 .flows{display:flex;flex-direction:column;gap:18px}
-.tabs{display:flex;gap:8px;overflow-x:auto;padding:2px;scrollbar-width:none}
-.tabs::-webkit-scrollbar{display:none}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;padding:2px}
 .tab{flex:none;display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:10px 14px;border-radius:14px;border:1px solid var(--b1);background:var(--s1);color:var(--ink2);font:inherit;text-align:left;cursor:pointer;transition:border-color .2s,background-color .2s}
 .tab:hover{border-color:var(--b2);color:var(--ink)}
 .tab[aria-selected=true]{border-color:var(--accent);background:var(--wash);color:var(--ink)}
