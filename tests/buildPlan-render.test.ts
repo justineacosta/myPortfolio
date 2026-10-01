@@ -5,6 +5,7 @@ import { iconSvg } from '@/lib/buildPlan/icons'
 import { layout } from '@/lib/buildPlan/layout'
 import { renderPlan } from '@/lib/buildPlan/render'
 import { TOOLS } from '@/lib/brand/tools'
+import { themeHeadJs } from '@/lib/brand/render'
 import { readContrast, readTokens } from '@/lib/tokens'
 
 const html = renderPlan()
@@ -13,6 +14,12 @@ const flows = [...plan.workflows, ...plan.helpers.list]
 const SECTIONS = ['start', 'naming', 'data', 'triggers', 'tm-01', 'tm-02', 'tm-03', 'tm-04', 'tm-05', 'tm-06', 'helpers', 'tests', 'build', 'handover']
 
 describe('renderPlan', () => {
+  it('picks its theme in <head>, before the styles', () => {
+    const first = doc.head.querySelector('script, style')!
+    expect(first.tagName).toBe('SCRIPT')
+    expect(first.textContent).toBe(themeHeadJs())
+  })
+
   it('opens with the title, the promise, the facts and the diagram key', () => {
     expect(doc.title).toBe('Trusted Mover build plan')
     expect(doc.querySelector('h1')!.textContent).toBe(plan.heading)
@@ -64,8 +71,8 @@ describe('renderPlan', () => {
 
   it("turns up contrast the way the site does, in both themes", () => {
     const c = readContrast()
-    expect(html).toContain(`:root[data-a11y-contrast=true]:not([data-theme=light]){--ink2:${c.dark.ink2};--ink3:${c.dark.ink3}`)
-    expect(html).toContain(`:root[data-a11y-contrast=true][data-theme=light]{--ink2:${c.light.ink2};--ink3:${c.light.ink3}`)
+    expect(html).toContain(`:root[data-a11y-contrast=true][data-theme=dark]{--ink2:${c.dark.ink2};--ink3:${c.dark.ink3}`)
+    expect(html).toContain(`:root[data-a11y-contrast=true]:not([data-theme=dark]){--ink2:${c.light.ink2};--ink3:${c.light.ink3}`)
   })
 
   it('draws every node as a button that has settings to show', () => {
@@ -199,14 +206,13 @@ describe('the build plan’s logos and colour', () => {
     expect(JSON.parse(doc.getElementById('plan-nodes')!.textContent!)['tm-01:n3'].tools).toEqual(['supabase'])
   })
 
-  it('adds the lively layer with the n8n and Supabase glow, and the reveal script last', () => {
-    const css = doc.querySelector('style')!.textContent!
-    expect(css).toContain(`--halo-a:${TOOLS.n8n.brand}`)
-    expect(css).toContain(`--halo-b:${TOOLS.supabase.brand}`)
+  it('puts the site’s glow first in the page, and the reveal script last', () => {
+    expect(doc.body.firstElementChild!.outerHTML).toBe('<div class="page-glow" aria-hidden="true"><div></div></div>')
     expect([...doc.querySelectorAll('script')].at(-1)!.textContent).toContain("root.classList.add('reveal-on')")
   })
 
   it('grows by no more than 40 KB', () => {
-    expect(html.length).toBeLessThan(172_274 + 40_000)
+    // 40 KB for the lively layer, 12 KB for the site's backdrop (contour shader and script, spec 2026-10-01-light-backdrop).
+    expect(html.length).toBeLessThan(172_274 + 40_000 + 12_000)
   })
 })

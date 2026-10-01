@@ -1,7 +1,8 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { HALO, KINDS, livelyCss } from '@/lib/brand/lively'
+import { KINDS, livelyCss } from '@/lib/brand/lively'
 import { revealJs } from '@/lib/brand/render'
-import { TOOLS } from '@/lib/brand/tools'
+import { pageCss } from '@/lib/buildPlan/styles'
 import { readTokens } from '@/lib/tokens'
 
 const rgb = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16))
@@ -16,7 +17,7 @@ const ratio = (a: number[], b: number[]) => {
 const mix = (a: number[], b: number[], p: number) => a.map((v, i) => Math.round(v * p + b[i] * (1 - p)))
 
 describe('livelyCss', () => {
-  const css = livelyCss(['claude', 'telegram'])
+  const css = livelyCss()
 
   it('keeps every kind’s icon at 3:1 or more against its tinted card, in both themes', () => {
     for (const theme of ['dark', 'light'] as const) {
@@ -25,24 +26,14 @@ describe('livelyCss', () => {
     }
   })
 
-  it('defines the kind colours dark first, then for a light device, each theme attribute and print', () => {
-    expect(css).toContain(`:root{--k-trigger:${KINDS.dark.trigger}`)
-    expect(css).toContain(`@media (prefers-color-scheme: light){:root:not([data-theme=dark]){--k-trigger:${KINDS.light.trigger}`)
-    expect(css).toContain(`:root[data-theme=light]{--k-trigger:${KINDS.light.trigger}`)
+  it('defines the kind colours light first, dark under data-theme=dark, and light again in print', () => {
+    expect(css).toContain(`:root{--k-trigger:${KINDS.light.trigger}`)
     expect(css).toContain(`:root[data-theme=dark]{--k-trigger:${KINDS.dark.trigger}`)
     expect(css).toMatch(new RegExp(`@media print\\{\\s*:root,:root\\[data-theme\\]\\{--k-trigger:${KINDS.light.trigger}`))
   })
 
-  it('colours the hero glow from the two tools it is given', () => {
-    expect(css).toContain(`--halo-a:${TOOLS.claude.brand}`)
-    expect(css).toContain(`--halo-b:${TOOLS.telegram.brand}`)
-  })
-
   it('turns the tints and the glow off in high contrast, and all motion off when motion is reduced', () => {
-    expect(css).toContain(':root[data-a11y-contrast=true] .hero::before{display:none}')
     expect(css).toContain(':root[data-a11y-motion=true] [data-reveal]{opacity:1!important')
-    expect(css).toContain(':root[data-a11y-motion=true] .hero::before{animation:none}')
-    expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\)\{[^}]*\.hero::before\{animation:none\}/)
     expect(css).toContain('@media (hover:hover) and (prefers-reduced-motion:no-preference)')
   })
 })
@@ -60,13 +51,32 @@ describe('the reveal script', () => {
   })
 })
 
-describe('the hero glow in light mode', () => {
-  it('keeps the quietest hero text (ink3) within 5% of its contrast, even at the glow’s brightest point', () => {
-    const t = readTokens('light')
-    const plain = ratio(rgb(t.ink3), rgb(t.bg))
-    for (const tool of ['n8n', 'supabase', 'claude', 'telegram', 'vs-code'] as const) {
-      const peak = mix(rgb(TOOLS[tool].brand), rgb(t.bg), HALO.light / 100)
-      expect(ratio(rgb(t.ink3), peak), tool).toBeGreaterThanOrEqual(plain * 0.95)
-    }
+describe('the site’s glow', () => {
+  const css = livelyCss()
+  const site = readFileSync('app/globals.css', 'utf8')
+  const rule = (re: RegExp) => re.exec(site)![0]
+
+  it('copies the site’s own glow rules, word for word', () => {
+    for (const re of [/^\.page-glow\{.*\}$/m, /^\.page-glow > \*\{.*\}$/m, /^@keyframes kDrift\{.*\}$/m]) expect(css).toContain(rule(re))
+  })
+
+  it('holds it still when motion is off or the device is slow, and hides it in high contrast and print', () => {
+    expect(css).toContain(':root[data-a11y-motion=true] .page-glow > *{animation:none}')
+    expect(css).toContain(':root[data-perf=low] .page-glow > *{animation:none}')
+    expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\)\{[^}]*\.page-glow > \*\{animation:none\}/)
+    expect(css).toContain(':root[data-a11y-contrast=true] .page-glow{display:none}')
+    expect(css).toMatch(/@media print\{[\s\S]*\.page-glow\{display:none\}/)
+  })
+
+  it('has replaced the tool-coloured hero glow, and lifts the content above the backdrop', () => {
+    expect(css).not.toContain('hero::before')
+    expect(css).not.toContain('--halo')
+    expect(css).toContain('.page,.foot{position:relative;z-index:1}')
+  })
+
+  it('gets the site’s ambient green from the page tokens, in both themes', () => {
+    const themes = { dark: readTokens('dark'), light: readTokens('light'), contrast: { dark: {}, light: {} } }
+    expect(pageCss(themes)).toContain(`--amb:${themes.dark.amb}`)
+    expect(pageCss(themes)).toContain(`--amb:${themes.light.amb}`)
   })
 })

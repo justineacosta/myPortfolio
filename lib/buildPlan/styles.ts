@@ -6,23 +6,22 @@ export type Themes = {
   contrast: { dark: Record<string, string>; light: Record<string, string> }
 }
 
-const KEYS = ['bg', 'frame', 's0', 's1', 's2', 's3', 'chip', 'hover', 'b1', 'b2', 'ink', 'ink2', 'ink3', 'ink4', 'accent', 'onAccent', 'wash', 'washB', 'glow'] as const
+const KEYS = ['bg', 'frame', 's0', 's1', 's2', 's3', 'chip', 'hover', 'b1', 'b2', 'ink', 'ink2', 'ink3', 'ink4', 'accent', 'onAccent', 'wash', 'washB', 'glow', 'amb'] as const
 const vars = (t: Record<string, string>) => KEYS.map((k) => `--${k}:${t[k]}`).join(';')
 const decls = (t: Record<string, string>) => Object.entries(t).map(([k, v]) => `--${k}:${v}`).join(';')
 
 /**
- * The build plan's CSS (spec §4). Dark first, like the site. Inside the
- * portfolio's dialog, client.js copies the site's data-theme, so the
- * [data-theme] blocks win. Opened on its own, the device theme decides.
+ * The pages' base CSS (spec §4). Light first (spec 2026-10-01-light-backdrop
+ * §3.1): lib/brand/theme.js sets data-theme before paint, from the portfolio's
+ * saved choice or, inside its dialog, from the site; client.js then mirrors
+ * the site live. Dark applies only under [data-theme=dark].
  */
 export function pageCss({ dark, light, contrast }: Themes): string {
   return `
-:root{${vars(dark)};color-scheme:dark;--sans:"Geist",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-@media (prefers-color-scheme: light){:root:not([data-theme=dark]){${vars(light)};color-scheme:light}}
-:root[data-theme=light]{${vars(light)};color-scheme:light}
+:root{${vars(light)};color-scheme:light;--sans:"Geist",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 :root[data-theme=dark]{${vars(dark)};color-scheme:dark}
-:root[data-a11y-contrast=true]:not([data-theme=light]){${decls(contrast.dark)}}
-:root[data-a11y-contrast=true][data-theme=light]{${decls(contrast.light)}}
+:root[data-a11y-contrast=true]:not([data-theme=dark]){${decls(contrast.light)}}
+:root[data-a11y-contrast=true][data-theme=dark]{${decls(contrast.dark)}}
 *{box-sizing:border-box}
 html,.canvas-scroll,.table-wrap,.code{scrollbar-width:none}
 html::-webkit-scrollbar,.canvas-scroll::-webkit-scrollbar,.table-wrap::-webkit-scrollbar,.code::-webkit-scrollbar{display:none}

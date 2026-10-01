@@ -5,7 +5,7 @@ import { esc } from '../buildPlan/render.ts'
 import type { Themes } from '../buildPlan/styles.ts'
 import { iconSvg } from '../endToEnd/icons.ts'
 import { livelyCss } from '../brand/lively.ts'
-import { glossaryLogo, logo, logoBadges, logoSheet, revealJs, toolByName, toolStrip, toolTemplates, toolsUsed } from '../brand/render.ts'
+import { contourJs, backdropHtml, glossaryLogo, logo, logoBadges, logoSheet, revealJs, toolByName, toolStrip, toolTemplates, toolsUsed, themeHeadJs } from '../brand/render.ts'
 import type { ToolId } from '../brand/tools.ts'
 import { readContrast, readTokens } from '../tokens.ts'
 import { layoutLoop } from './layout.ts'
@@ -128,6 +128,7 @@ export function renderAgenticFramework(g: AgenticFramework = AF, themes: Themes 
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<script>${themeHeadJs()}</script>
 <title>${esc(g.title)}</title>
 <meta name="description" content="${esc(g.description)}">
 <meta property="og:title" content="${esc(g.title)}">
@@ -138,10 +139,10 @@ export function renderAgenticFramework(g: AgenticFramework = AF, themes: Themes 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
-<style>${afCss(themes)}${livelyCss(['claude', 'vs-code'])}</style>
+<style>${afCss(themes)}${livelyCss()}</style>
 </head>
 <body>
-${logoSheet(used)}
+${backdropHtml()}${logoSheet(used)}
 <nav class="toc" aria-label="Sections">${g.sections.map((s) => `<a href="#${esc(s.id)}">${esc(s.chip)}</a>`).join('')}</nav>
 <main class="page">
 ${hero(g, used)}
@@ -152,6 +153,7 @@ ${body}
 ${toolTemplates(used)}
 <script type="application/json" id="graph-nodes">${safeJson(index)}</script>
 <script>${client}</script>
+<script>${contourJs()}</script>
 <script>${revealJs()}</script>
 </body>
 </html>

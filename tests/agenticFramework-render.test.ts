@@ -4,7 +4,7 @@ import { agenticFramework as g, type AgenticFramework } from '@/data/agenticFram
 import { layoutLoop } from '@/lib/agenticFramework/layout'
 import { renderAgenticFramework } from '@/lib/agenticFramework/render'
 import { iconSvg } from '@/lib/endToEnd/icons'
-import { TOOLS } from '@/lib/brand/tools'
+import { themeHeadJs } from '@/lib/brand/render'
 import { readContrast, readTokens } from '@/lib/tokens'
 
 const html = renderAgenticFramework()
@@ -12,6 +12,12 @@ const doc = new DOMParser().parseFromString(html, 'text/html')
 const data = () => JSON.parse(doc.getElementById('graph-nodes')!.textContent!)
 
 describe('renderAgenticFramework', () => {
+  it('picks its theme in <head>, before the styles', () => {
+    const first = doc.head.querySelector('script, style')!
+    expect(first.tagName).toBe('SCRIPT')
+    expect(first.textContent).toBe(themeHeadJs())
+  })
+
   it('opens with the title, the card’s line, the stance and the three tools', () => {
     expect(doc.title).toBe(g.title)
     expect(doc.querySelector('h1')!.textContent).toBe('The Agentic Framework')
@@ -116,7 +122,7 @@ describe('renderAgenticFramework', () => {
 
   it('wears Kraft’s tokens and the site’s contrast settings', () => {
     for (const theme of ['dark', 'light'] as const) expect(html).toContain(`--accent:${readTokens(theme).accent}`)
-    expect(html).toContain(`:root[data-a11y-contrast=true]:not([data-theme=light]){--ink2:${readContrast().dark.ink2}`)
+    expect(html).toContain(`:root[data-a11y-contrast=true][data-theme=dark]{--ink2:${readContrast().dark.ink2}`)
   })
 
   it('escapes everything from the data, ids included, and its JSON cannot close its script tag', () => {
@@ -182,8 +188,8 @@ describe('the Agentic page’s logos and colour', () => {
     expect(data()['rule:R1'].tools).toBeUndefined()
   })
 
-  it('adds the lively layer with the Claude and VS Code glow, the reveal script last, and grows by no more than 40 KB', () => {
-    expect(doc.querySelector('style')!.textContent).toContain(`--halo-b:${TOOLS['vs-code'].brand}`)
+  it('puts the site’s glow first in the page, the reveal script last, and grows by no more than 40 KB', () => {
+    expect(doc.body.firstElementChild!.outerHTML).toBe('<div class="page-glow" aria-hidden="true"><div></div></div>')
     expect([...doc.querySelectorAll('script')].at(-1)!.textContent).toContain("root.classList.add('reveal-on')")
     expect(html.length).toBeLessThan(68_774 + 40_000)
   })

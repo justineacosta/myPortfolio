@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { KIND_LABELS, KIND_NOTES, plan as PLAN, type NodeKind, type Plan, type Rail, type Workflow } from '../../data/buildPlan.ts'
 import { livelyCss } from '../brand/lively.ts'
-import { logoBadges, logoSheet, revealJs, toolStrip, toolTemplates, toolsUsed } from '../brand/render.ts'
+import { contourJs, backdropHtml, logoBadges, logoSheet, revealJs, toolStrip, toolTemplates, toolsUsed, themeHeadJs } from '../brand/render.ts'
 import type { ToolId } from '../brand/tools.ts'
 import { readContrast, readTokens } from '../tokens.ts'
 import { iconSvg } from './icons.ts'
@@ -109,6 +109,7 @@ export function renderPlan(p: Plan = PLAN, themes: Themes = { dark: readTokens('
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<script>${themeHeadJs()}</script>
 <title>${esc(p.title)}</title>
 <meta name="description" content="${esc(p.description)}">
 <meta property="og:title" content="${esc(p.title)}">
@@ -119,10 +120,10 @@ export function renderPlan(p: Plan = PLAN, themes: Themes = { dark: readTokens('
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
-<style>${pageCss(themes)}${livelyCss(['n8n', 'supabase'])}</style>
+<style>${pageCss(themes)}${livelyCss()}</style>
 </head>
 <body>
-${logoSheet(used)}
+${backdropHtml()}${logoSheet(used)}
 <nav class="toc" aria-label="Sections">${parts.map((s) => `<a href="#${esc(s.id)}">${esc(s.nav)}</a>`).join('')}</nav>
 <main class="page">
 ${hero(p, index, used)}
@@ -133,6 +134,7 @@ ${parts.map((s) => s.html).join('\n')}
 ${toolTemplates(used)}
 <script type="application/json" id="plan-nodes">${safeJson(index)}</script>
 <script>${client}</script>
+<script>${contourJs()}</script>
 <script>${revealJs()}</script>
 </body>
 </html>

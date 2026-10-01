@@ -78,12 +78,13 @@ test('ticking still works when storage is blocked, with no page errors', async (
   expect(errors).toEqual([])
 })
 
-test('on its own it follows the device theme', async ({ browser }) => {
-  for (const [scheme, bg] of [['light', 'rgb(242, 245, 241)'], ['dark', 'rgb(5, 5, 5)']] as const) {
-    const ctx = await browser.newContext({ colorScheme: scheme })
+test('on its own it opens light, even on a dark-mode device, unless dark was chosen on the portfolio', async ({ browser }) => {
+  for (const [saved, bg] of [[null, 'rgb(242, 245, 241)'], ['dark', 'rgb(5, 5, 5)'], ['light', 'rgb(242, 245, 241)']] as const) {
+    const ctx = await browser.newContext({ colorScheme: 'dark' })
+    if (saved) await ctx.addInitScript((t) => localStorage.setItem('kraft-theme', t), saved)
     const page = await ctx.newPage()
     await page.goto(PAGE)
-    await expect(page.locator('body')).toHaveCSS('background-color', bg)
+    await expect(page.locator('body'), String(saved)).toHaveCSS('background-color', bg)
     await ctx.close()
   }
 })

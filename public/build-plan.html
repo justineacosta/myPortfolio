@@ -3,6 +3,29 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<script>// Light unless the visitor chose dark (spec 2026-10-01-light-backdrop §3.2). Runs first in <head>, before the
+// page draws. On its own, the page reads the portfolio's saved choice. Inside the site's dialog it starts in
+// the site's theme (dark unless the site says light, the site's own rule), which the page script then mirrors
+// live, so there is no flash.
+;(() => {
+  let dark = false
+  try {
+    dark = window.parent !== window ? window.parent.document.documentElement.dataset.theme !== 'light' : localStorage.getItem('kraft-theme') === 'dark'
+  } catch {
+    dark = false
+  }
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+  // On its own, carry the site's per-tab performance setting (lib/perf.ts), as the site's boot script does,
+  // so a device the site stepped down keeps the backdrop still. Inside the dialog, client.js mirrors it.
+  if (window.parent !== window) return
+  try {
+    const perf = sessionStorage.getItem('kraft-perf')
+    if (perf === 'mid' || perf === 'low') document.documentElement.dataset.perf = perf
+  } catch {
+    /* storage blocked: the page runs at full detail */
+  }
+})()
+</script>
 <title>Trusted Mover build plan</title>
 <meta name="description" content="An n8n build plan for a moving company: six workflows, three helpers, a test matrix and a handover, planned before anything is built.">
 <meta property="og:title" content="Trusted Mover build plan">
@@ -14,12 +37,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
 <style>
-:root{--bg:#050505;--frame:#060607;--s0:#0C0E10;--s1:#0A0B0D;--s2:#0F1113;--s3:#15181A;--chip:#141719;--hover:#101315;--b1:rgba(215,255,224,.075);--b2:rgba(215,255,224,.17);--ink:#F1F5F2;--ink2:#C2CBC5;--ink3:#7C8781;--ink4:#5C655F;--accent:#D7FFE0;--onAccent:#041008;--wash:rgba(215,255,224,.1);--washB:rgba(215,255,224,.2);--glow:rgba(215,255,224,.55);color-scheme:dark;--sans:"Geist",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-@media (prefers-color-scheme: light){:root:not([data-theme=dark]){--bg:#F2F5F1;--frame:#FFFFFF;--s0:#F7F9F5;--s1:#FFFFFF;--s2:#FBFCF9;--s3:#EFF3EC;--chip:#EDF2EB;--hover:#E7EEE6;--b1:rgba(11,46,30,.11);--b2:rgba(11,46,30,.22);--ink:#0B1310;--ink2:#3B4742;--ink3:#69756F;--ink4:#8A938E;--accent:#0E6B44;--onAccent:#F3FFF8;--wash:rgba(14,107,68,.09);--washB:rgba(14,107,68,.22);--glow:rgba(14,107,68,.3);color-scheme:light}}
-:root[data-theme=light]{--bg:#F2F5F1;--frame:#FFFFFF;--s0:#F7F9F5;--s1:#FFFFFF;--s2:#FBFCF9;--s3:#EFF3EC;--chip:#EDF2EB;--hover:#E7EEE6;--b1:rgba(11,46,30,.11);--b2:rgba(11,46,30,.22);--ink:#0B1310;--ink2:#3B4742;--ink3:#69756F;--ink4:#8A938E;--accent:#0E6B44;--onAccent:#F3FFF8;--wash:rgba(14,107,68,.09);--washB:rgba(14,107,68,.22);--glow:rgba(14,107,68,.3);color-scheme:light}
-:root[data-theme=dark]{--bg:#050505;--frame:#060607;--s0:#0C0E10;--s1:#0A0B0D;--s2:#0F1113;--s3:#15181A;--chip:#141719;--hover:#101315;--b1:rgba(215,255,224,.075);--b2:rgba(215,255,224,.17);--ink:#F1F5F2;--ink2:#C2CBC5;--ink3:#7C8781;--ink4:#5C655F;--accent:#D7FFE0;--onAccent:#041008;--wash:rgba(215,255,224,.1);--washB:rgba(215,255,224,.2);--glow:rgba(215,255,224,.55);color-scheme:dark}
-:root[data-a11y-contrast=true]:not([data-theme=light]){--ink2:#DCE3DE;--ink3:#B4BEB8;--ink4:#939D97;--b1:rgba(215,255,224,.18);--b2:rgba(215,255,224,.34)}
-:root[data-a11y-contrast=true][data-theme=light]{--ink2:#1E2824;--ink3:#38433E;--ink4:#56615B;--b1:rgba(11,46,30,.24);--b2:rgba(11,46,30,.42)}
+:root{--bg:#F2F5F1;--frame:#FFFFFF;--s0:#F7F9F5;--s1:#FFFFFF;--s2:#FBFCF9;--s3:#EFF3EC;--chip:#EDF2EB;--hover:#E7EEE6;--b1:rgba(11,46,30,.11);--b2:rgba(11,46,30,.22);--ink:#0B1310;--ink2:#3B4742;--ink3:#69756F;--ink4:#8A938E;--accent:#0E6B44;--onAccent:#F3FFF8;--wash:rgba(14,107,68,.09);--washB:rgba(14,107,68,.22);--glow:rgba(14,107,68,.3);--amb:150,205,175;color-scheme:light;--sans:"Geist",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+:root[data-theme=dark]{--bg:#050505;--frame:#060607;--s0:#0C0E10;--s1:#0A0B0D;--s2:#0F1113;--s3:#15181A;--chip:#141719;--hover:#101315;--b1:rgba(215,255,224,.075);--b2:rgba(215,255,224,.17);--ink:#F1F5F2;--ink2:#C2CBC5;--ink3:#7C8781;--ink4:#5C655F;--accent:#D7FFE0;--onAccent:#041008;--wash:rgba(215,255,224,.1);--washB:rgba(215,255,224,.2);--glow:rgba(215,255,224,.55);--amb:19,74,48;color-scheme:dark}
+:root[data-a11y-contrast=true]:not([data-theme=dark]){--ink2:#1E2824;--ink3:#38433E;--ink4:#56615B;--b1:rgba(11,46,30,.24);--b2:rgba(11,46,30,.42)}
+:root[data-a11y-contrast=true][data-theme=dark]{--ink2:#DCE3DE;--ink3:#B4BEB8;--ink4:#939D97;--b1:rgba(215,255,224,.18);--b2:rgba(215,255,224,.34)}
 *{box-sizing:border-box}
 html,.canvas-scroll,.table-wrap,.code{scrollbar-width:none}
 html::-webkit-scrollbar,.canvas-scroll::-webkit-scrollbar,.table-wrap::-webkit-scrollbar,.code::-webkit-scrollbar{display:none}
@@ -153,7 +174,7 @@ tr:last-child td{border-bottom:0}
 :root[data-a11y-motion=true] .run-ball{display:none}
 :root[data-a11y-motion=true] .node-card{transition:none}
 @media print{
-:root,:root[data-theme]{--bg:#F2F5F1;--frame:#FFFFFF;--s0:#F7F9F5;--s1:#FFFFFF;--s2:#FBFCF9;--s3:#EFF3EC;--chip:#EDF2EB;--hover:#E7EEE6;--b1:rgba(11,46,30,.11);--b2:rgba(11,46,30,.22);--ink:#0B1310;--ink2:#3B4742;--ink3:#69756F;--ink4:#8A938E;--accent:#0E6B44;--onAccent:#F3FFF8;--wash:rgba(14,107,68,.09);--washB:rgba(14,107,68,.22);--glow:rgba(14,107,68,.3);color-scheme:light}
+:root,:root[data-theme]{--bg:#F2F5F1;--frame:#FFFFFF;--s0:#F7F9F5;--s1:#FFFFFF;--s2:#FBFCF9;--s3:#EFF3EC;--chip:#EDF2EB;--hover:#E7EEE6;--b1:rgba(11,46,30,.11);--b2:rgba(11,46,30,.22);--ink:#0B1310;--ink2:#3B4742;--ink3:#69756F;--ink4:#8A938E;--accent:#0E6B44;--onAccent:#F3FFF8;--wash:rgba(14,107,68,.09);--washB:rgba(14,107,68,.22);--glow:rgba(14,107,68,.3);--amb:150,205,175;color-scheme:light}
 body{background:var(--frame)}
 .toc,.run-ball,.panel,.btn,.pan{display:none!important}
 [data-more-left],[data-more-right]{mask-image:none!important}
@@ -165,10 +186,8 @@ section,.canvas,.card,tr{break-inside:avoid}
 a[href^="http"]::after{content:" (" attr(href) ")";font-size:.75em;color:var(--ink3)}
 }
 
-:root{--k-trigger:#F5B041;--k-ai:#B79CFF;--k-branch:#7EB6FF;--k-helper:#5EEAD4;--halo:22%;--logo-light:none;--logo-dark:inline;--halo-a:#EA4B71;--halo-b:#3ECF8E}
-@media (prefers-color-scheme: light){:root:not([data-theme=dark]){--k-trigger:#B45309;--k-ai:#6D28D9;--k-branch:#1D4ED8;--k-helper:#0F766E;--halo:4%;--logo-light:inline;--logo-dark:none}}
-:root[data-theme=light]{--k-trigger:#B45309;--k-ai:#6D28D9;--k-branch:#1D4ED8;--k-helper:#0F766E;--halo:4%;--logo-light:inline;--logo-dark:none}
-:root[data-theme=dark]{--k-trigger:#F5B041;--k-ai:#B79CFF;--k-branch:#7EB6FF;--k-helper:#5EEAD4;--halo:22%;--logo-light:none;--logo-dark:inline}
+:root{--k-trigger:#B45309;--k-ai:#6D28D9;--k-branch:#1D4ED8;--k-helper:#0F766E;--logo-light:inline;--logo-dark:none}
+:root[data-theme=dark]{--k-trigger:#F5B041;--k-ai:#B79CFF;--k-branch:#7EB6FF;--k-helper:#5EEAD4;--logo-light:none;--logo-dark:inline}
 .k-trigger{--k:var(--k-trigger)}
 .k-ai{--k:var(--k-ai)}
 .k-branch{--k:var(--k-branch)}
@@ -203,25 +222,29 @@ a[href^="http"]::after{content:" (" attr(href) ")";font-size:.75em;color:var(--i
 :root:not([data-a11y-motion=true]) .node:hover .node-card{transform:translateY(-2px)}
 :root:not([data-a11y-motion=true]) .node:not(.lit,.k-helper):hover .node-card{box-shadow:0 10px 20px -12px color-mix(in srgb,var(--k,var(--accent)) 70%,transparent)}
 }
-.hero{position:relative;isolation:isolate}
-.hero::before{content:"";position:absolute;z-index:-1;left:0;right:0;top:-96px;height:440px;pointer-events:none;background:radial-gradient(17% 35% at 30% 45%,color-mix(in srgb,var(--halo-a) var(--halo),transparent),transparent),radial-gradient(19% 32% at 68% 40%,color-mix(in srgb,var(--halo-b) var(--halo),transparent),transparent);background-size:115% 115%;background-position:0% 0%;animation:halo 20s ease-in-out infinite alternate}
-@keyframes halo{to{background-position:100% 60%}}
-:root[data-a11y-contrast=true] .hero::before{display:none}
+.page-glow{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;contain:paint}
+.page-glow > *{position:absolute;top:-24%;left:6%;width:66vw;height:66vw;border-radius:50%;background:radial-gradient(circle at 50% 50%,rgba(var(--amb),.62),rgba(var(--amb),0) 62%);filter:blur(26px);animation:kDrift 28s ease-in-out infinite}
+@keyframes kDrift{0%,100%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(3%,-4%,0) scale(1.08)}}
+:root[data-perf=low] .page-glow > *{animation:none}
+:root[data-a11y-motion=true] .page-glow > *{animation:none}
+:root[data-a11y-contrast=true] .page-glow{display:none}
+.page,.foot{position:relative;z-index:1}
+canvas[data-contour]{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
 .reveal-on [data-reveal]{transition:opacity .6s ease,transform .6s ease}
 .reveal-on [data-reveal]:not(.in){opacity:0;transform:translateY(12px)}
 :root[data-a11y-motion=true] [data-reveal]{opacity:1!important;transform:none!important;transition:none!important}
-:root[data-a11y-motion=true] .hero::before{animation:none}
-@media (prefers-reduced-motion: reduce){.hero::before{animation:none}[data-reveal]{opacity:1!important;transform:none!important}}
+@media (prefers-reduced-motion: reduce){.page-glow > *{animation:none}[data-reveal]{opacity:1!important;transform:none!important}}
 @media print{
-:root,:root[data-theme]{--k-trigger:#B45309;--k-ai:#6D28D9;--k-branch:#1D4ED8;--k-helper:#0F766E;--halo:4%;--logo-light:inline;--logo-dark:none}
-.hero::before{display:none}
+:root,:root[data-theme]{--k-trigger:#B45309;--k-ai:#6D28D9;--k-branch:#1D4ED8;--k-helper:#0F766E;--logo-light:inline;--logo-dark:none}
+.page-glow{display:none}
+canvas[data-contour]{display:none}
 [data-reveal]{opacity:1!important;transform:none!important;transition:none!important}
 .logo,.logo-badge,.tool-chip,:is(.k-trigger,.k-ai,.k-branch,.k-helper) .node-card{print-color-adjust:exact;-webkit-print-color-adjust:exact}
 }
 </style>
 </head>
 <body>
-<svg class="logo-sheet" width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true" focusable="false"><symbol id="logo-n8n" viewBox="0 0 256 135"><path fill="#ea4b71" d="M229.053 53.895c-12.557 0-23.107-8.588-26.099-20.21h-30.886a13.474 13.474 0 0 0-13.29 11.258l-1.107 6.645a26.9 26.9 0 0 1-8.757 15.78a26.9 26.9 0 0 1 8.757 15.78l1.107 6.646a13.474 13.474 0 0 0 13.29 11.259h3.939c2.992-11.623 13.542-20.21 26.098-20.21c14.883 0 26.948 12.064 26.948 26.946s-12.065 26.948-26.948 26.948c-12.556 0-23.107-8.588-26.098-20.21h-3.939c-13.173 0-24.415-9.524-26.58-22.518l-1.108-6.645a13.474 13.474 0 0 0-13.29-11.259h-10.676c-2.99 11.623-13.542 20.21-26.098 20.21c-12.557 0-23.107-8.587-26.099-20.21H53.046c-2.992 11.623-13.542 20.21-26.099 20.21C12.065 94.316 0 82.252 0 67.369s12.065-26.947 26.947-26.947c12.557 0 23.107 8.588 26.099 20.21h15.171c2.992-11.622 13.542-20.21 26.099-20.21c12.556 0 23.107 8.588 26.098 20.21h10.676a13.474 13.474 0 0 0 13.29-11.258l1.107-6.645c2.166-12.994 13.408-22.517 26.581-22.517h30.886C205.945 8.588 216.496 0 229.053 0C243.935 0 256 12.065 256 26.947s-12.065 26.948-26.947 26.948m0-13.474c7.441 0 13.473-6.032 13.473-13.474c0-7.441-6.032-13.473-13.473-13.473s-13.474 6.032-13.474 13.473s6.032 13.474 13.474 13.474M26.947 80.842c7.442 0 13.474-6.032 13.474-13.474c0-7.44-6.032-13.473-13.474-13.473c-7.441 0-13.473 6.032-13.473 13.473s6.032 13.474 13.473 13.474m80.842-13.474c0 7.442-6.032 13.474-13.473 13.474S80.842 74.81 80.842 67.368c0-7.44 6.032-13.473 13.474-13.473c7.441 0 13.473 6.032 13.473 13.473m107.79 40.421c0 7.442-6.032 13.474-13.474 13.474c-7.441 0-13.473-6.032-13.473-13.474c0-7.441 6.032-13.473 13.473-13.473s13.474 6.032 13.474 13.473"/></symbol><symbol id="logo-supabase" viewBox="0 0 256 263"><defs><linearGradient id="lg-supabase-SVGMPst3dYn" x1="20.862%" x2="63.426%" y1="20.687%" y2="44.071%"><stop offset="0%" stop-color="#249361"/><stop offset="100%" stop-color="#3ecf8e"/></linearGradient><linearGradient id="lg-supabase-SVGNaiFRdXR" x1="1.991%" x2="21.403%" y1="-13.158%" y2="34.708%"><stop offset="0%"/><stop offset="100%" stop-opacity="0"/></linearGradient></defs><path fill="url(#lg-supabase-SVGMPst3dYn)" d="M149.602 258.579c-6.718 8.46-20.338 3.824-20.5-6.977l-2.367-157.984h106.229c19.24 0 29.971 22.223 18.007 37.292z"/><path fill="url(#lg-supabase-SVGNaiFRdXR)" fill-opacity=".2" d="M149.602 258.579c-6.718 8.46-20.338 3.824-20.5-6.977l-2.367-157.984h106.229c19.24 0 29.971 22.223 18.007 37.292z"/><path fill="#3ecf8e" d="M106.399 4.37c6.717-8.461 20.338-3.826 20.5 6.976l1.037 157.984H23.037c-19.241 0-29.973-22.223-18.008-37.292z"/></symbol><symbol id="logo-claude" viewBox="0 0 256 257"><path fill="#d97757" d="m50.228 170.321l50.357-28.257l.843-2.463l-.843-1.361h-2.462l-8.426-.518l-28.775-.778l-24.952-1.037l-24.175-1.296l-6.092-1.297L0 125.796l.583-3.759l5.12-3.434l7.324.648l16.202 1.101l24.304 1.685l17.629 1.037l26.118 2.722h4.148l.583-1.685l-1.426-1.037l-1.101-1.037l-25.147-17.045l-27.22-18.017l-14.258-10.37l-7.713-5.25l-3.888-4.925l-1.685-10.758l7-7.713l9.397.649l2.398.648l9.527 7.323l20.35 15.75L94.817 91.9l3.889 3.24l1.555-1.102l.195-.777l-1.75-2.917l-14.453-26.118l-15.425-26.572l-6.87-11.018l-1.814-6.61c-.648-2.723-1.102-4.991-1.102-7.778l7.972-10.823L71.42 0l10.63 1.426l4.472 3.888l6.61 15.101l10.694 23.786l16.591 32.34l4.861 9.592l2.592 8.879l.973 2.722h1.685v-1.556l1.36-18.211l2.528-22.36l2.463-28.776l.843-8.1l4.018-9.722l7.971-5.25l6.222 2.981l5.12 7.324l-.713 4.73l-3.046 19.768l-5.962 30.98l-3.889 20.739h2.268l2.593-2.593l10.499-13.934l17.628-22.036l7.778-8.749l9.073-9.657l5.833-4.601h11.018l8.1 12.055l-3.628 12.443l-11.342 14.388l-9.398 12.184l-13.48 18.147l-8.426 14.518l.778 1.166l2.01-.194l30.46-6.481l16.462-2.982l19.637-3.37l8.88 4.148l.971 4.213l-3.5 8.62l-20.998 5.184l-24.628 4.926l-36.682 8.685l-.454.324l.519.648l16.526 1.555l7.065.389h17.304l32.21 2.398l8.426 5.574l5.055 6.805l-.843 5.184l-12.962 6.611l-17.498-4.148l-40.83-9.721l-14-3.5h-1.944v1.167l11.666 11.406l21.387 19.314l26.767 24.887l1.36 6.157l-3.434 4.86l-3.63-.518l-23.526-17.693l-9.073-7.972l-20.545-17.304h-1.36v1.814l4.73 6.935l25.017 37.59l1.296 11.536l-1.814 3.76l-6.481 2.268l-7.13-1.297l-14.647-20.544l-15.1-23.138l-12.185-20.739l-1.49.843l-7.194 77.448l-3.37 3.953l-7.778 2.981l-6.48-4.925l-3.436-7.972l3.435-15.749l4.148-20.544l3.37-16.333l3.046-20.285l1.815-6.74l-.13-.454l-1.49.194l-15.295 20.999l-23.267 31.433l-18.406 19.702l-4.407 1.75l-7.648-3.954l.713-7.064l4.277-6.286l25.47-32.405l15.36-20.092l9.917-11.6l-.065-1.686h-.583L44.07 198.125l-12.055 1.555l-5.185-4.86l.648-7.972l2.463-2.593l20.35-13.999z"/></symbol><symbol id="logo-gmail" viewBox="0 0 256 204"><defs><linearGradient id="lg-gmail-SVGHzDbHcwG" x1="165" x2="165" y1="44" y2="166" gradientUnits="userSpaceOnUse"><stop stop-color="#60d673"/><stop offset=".17" stop-color="#42c868"/><stop offset=".39" stop-color="#0ebc5f"/><stop offset=".62" stop-color="#00a9bb"/><stop offset=".86" stop-color="#3c90ff"/><stop offset="1" stop-color="#3186ff"/></linearGradient><linearGradient id="lg-gmail-SVG41ATXboZ" x1="8" x2="184" y1="46.13" y2="46.13" gradientUnits="userSpaceOnUse"><stop offset=".08" stop-color="#ff63a0"/><stop offset=".3" stop-color="#fc413d"/><stop offset=".5" stop-color="#fc413d"/><stop offset=".65" stop-color="#fc413d"/><stop offset=".72" stop-color="#fc5c30"/><stop offset=".86" stop-color="#feb10c"/><stop offset=".91" stop-color="#fec700"/><stop offset=".96" stop-color="#ffdb0f"/></linearGradient></defs><path fill="url(#lg-gmail-SVGHzDbHcwG)" d="M146 44h38v110c0 6.627-5.373 12-12 12h-20a6 6 0 0 1-6-6z" transform="translate(-11.636 -37.818)scale(1.45454)"/><path fill="#fc413d" d="M55.273 26.182H0v160c0 9.638 7.816 17.454 17.455 17.454h29.09a8.727 8.727 0 0 0 8.728-8.728z"/><path fill="url(#lg-gmail-SVG41ATXboZ)" d="M39.226 30.456c-8.033-6.752-20.018-5.714-26.77 2.319c-6.752 8.032-5.714 20.017 2.319 26.77l76.078 63.949a8 8 0 0 0 10.295 0l76.078-63.95c8.032-6.752 9.07-18.737 2.318-26.77c-6.752-8.032-18.737-9.07-26.769-2.318L96 78.18z" transform="translate(-11.636 -37.818)scale(1.45454)"/></symbol><symbol id="logo-google-sheets" viewBox="0 0 24 24"><path fill="#34A853" d="M11.318 12.545H7.91v-1.909h3.41v1.91zM14.728 0v6h6l-6-6zm1.363 10.636h-3.41v1.91h3.41v-1.91zm0 3.273h-3.41v1.91h3.41v-1.91zM20.727 6.5v15.864c0 .904-.732 1.636-1.636 1.636H4.909a1.636 1.636 0 0 1-1.636-1.636V1.636C3.273.732 4.005 0 4.909 0h9.318v6.5h6.5zm-3.273 2.773H6.545v7.909h10.91v-7.91zm-6.136 4.636H7.91v1.91h3.41v-1.91z"/></symbol><symbol id="logo-cal-com" viewBox="0 0 24 24"><defs><clipPath id="lg-cal-com-cal"><rect x="0" y="9" width="9.6" height="6"/></clipPath></defs><rect width="24" height="24" rx="5.5" fill="#292929"/><g transform="translate(3.576 -9.6) scale(1.8)"><path fill="#fff" clip-path="url(#lg-cal-com-cal)" d="M2.408 14.488C1.035 14.488 0 13.4 0 12.058c0-1.346.982-2.443 2.408-2.443.758 0 1.282.233 1.691.765l-.66.55a1.343 1.343 0 0 0-1.03-.442c-.93 0-1.44.711-1.44 1.57 0 .86.559 1.557 1.44 1.557.413 0 .765-.147 1.043-.443l.651.573c-.391.51-.929.743-1.695.743zM6.948 10.913h.89v3.49h-.89v-.51c-.185.362-.493.604-1.083.604-.943 0-1.695-.82-1.695-1.826 0-1.007.752-1.825 1.695-1.825.585 0 .898.241 1.083.604zm.026 1.758c0-.546-.374-.998-.964-.998-.568 0-.938.457-.938.998 0 .528.37.998.938.998.586 0 .964-.456.964-.998zM8.467 9.503h.89v4.895h-.89zM9.752 13.937a.53.53 0 0 1 .542-.528c.313 0 .533.242.533.528a.527.527 0 0 1-.533.537.534.534 0 0 1-.542-.537zM14.23 13.839c-.33.403-.832.658-1.426.658a1.806 1.806 0 0 1-1.84-1.826c0-1.007.778-1.825 1.84-1.825.572 0 1.07.241 1.4.622l-.687.577c-.172-.215-.396-.376-.713-.376-.568 0-.938.456-.938.998 0 .541.37.997.938.997.343 0 .58-.179.757-.42zM14.305 12.671c0-1.007.78-1.825 1.84-1.825 1.061 0 1.84.818 1.84 1.825 0 1.007-.779 1.826-1.84 1.826-1.06-.005-1.84-.82-1.84-1.826zm2.778 0c0-.546-.37-.998-.938-.998-.568-.004-.937.452-.937.998 0 .542.37.998.937.998.568 0 .938-.456.938-.998zM24 12.269v2.13h-.89v-1.911c0-.604-.281-.864-.704-.864-.396 0-.678.197-.678.864v1.91h-.89v-1.91c0-.604-.285-.864-.704-.864-.396 0-.744.197-.744.864v1.91h-.89v-3.49h.89v.484c.185-.376.52-.564 1.035-.564.489 0 .898.241 1.123.649.224-.417.554-.65 1.153-.65.731.005 1.299.56 1.299 1.442z"/></g></symbol><symbol id="logo-telegram" viewBox="0 0 256 256"><defs><linearGradient id="lg-telegram-SVG6DaOZcwt" x1="50%" x2="50%" y1="0%" y2="100%"><stop offset="0%" stop-color="#2aabee"/><stop offset="100%" stop-color="#229ed9"/></linearGradient></defs><path fill="url(#lg-telegram-SVG6DaOZcwt)" d="M128 0C94.06 0 61.48 13.494 37.5 37.49A128.04 128.04 0 0 0 0 128c0 33.934 13.5 66.514 37.5 90.51C61.48 242.506 94.06 256 128 256s66.52-13.494 90.5-37.49c24-23.996 37.5-56.576 37.5-90.51s-13.5-66.514-37.5-90.51C194.52 13.494 161.94 0 128 0"/><path fill="#fff" d="M57.94 126.648q55.98-24.384 74.64-32.152c35.56-14.786 42.94-17.354 47.76-17.441c1.06-.017 3.42.245 4.96 1.49c1.28 1.05 1.64 2.47 1.82 3.467c.16.996.38 3.266.2 5.038c-1.92 20.24-10.26 69.356-14.5 92.026c-1.78 9.592-5.32 12.808-8.74 13.122c-7.44.684-13.08-4.912-20.28-9.63c-11.26-7.386-17.62-11.982-28.56-19.188c-12.64-8.328-4.44-12.906 2.76-20.386c1.88-1.958 34.64-31.748 35.26-34.45c.08-.338.16-1.598-.6-2.262c-.74-.666-1.84-.438-2.64-.258c-1.14.256-19.12 12.152-54 35.686c-5.1 3.508-9.72 5.218-13.88 5.128c-4.56-.098-13.36-2.584-19.9-4.708c-8-2.606-14.38-3.984-13.82-8.41c.28-2.304 3.46-4.662 9.52-7.072"/></symbol><symbol id="logo-stripe" viewBox="0 0 24 24"><path fill="#635BFF" d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-6.99-2.109l-.9 5.555C5.175 22.99 8.385 24 11.714 24c2.641 0 4.843-.624 6.328-1.813 1.664-1.305 2.525-3.236 2.525-5.732 0-4.128-2.524-5.851-6.594-7.305h.003z"/></symbol></svg>
+<div class="page-glow" aria-hidden="true"><div></div></div><svg class="logo-sheet" width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true" focusable="false"><symbol id="logo-n8n" viewBox="0 0 256 135"><path fill="#ea4b71" d="M229.053 53.895c-12.557 0-23.107-8.588-26.099-20.21h-30.886a13.474 13.474 0 0 0-13.29 11.258l-1.107 6.645a26.9 26.9 0 0 1-8.757 15.78a26.9 26.9 0 0 1 8.757 15.78l1.107 6.646a13.474 13.474 0 0 0 13.29 11.259h3.939c2.992-11.623 13.542-20.21 26.098-20.21c14.883 0 26.948 12.064 26.948 26.946s-12.065 26.948-26.948 26.948c-12.556 0-23.107-8.588-26.098-20.21h-3.939c-13.173 0-24.415-9.524-26.58-22.518l-1.108-6.645a13.474 13.474 0 0 0-13.29-11.259h-10.676c-2.99 11.623-13.542 20.21-26.098 20.21c-12.557 0-23.107-8.587-26.099-20.21H53.046c-2.992 11.623-13.542 20.21-26.099 20.21C12.065 94.316 0 82.252 0 67.369s12.065-26.947 26.947-26.947c12.557 0 23.107 8.588 26.099 20.21h15.171c2.992-11.622 13.542-20.21 26.099-20.21c12.556 0 23.107 8.588 26.098 20.21h10.676a13.474 13.474 0 0 0 13.29-11.258l1.107-6.645c2.166-12.994 13.408-22.517 26.581-22.517h30.886C205.945 8.588 216.496 0 229.053 0C243.935 0 256 12.065 256 26.947s-12.065 26.948-26.947 26.948m0-13.474c7.441 0 13.473-6.032 13.473-13.474c0-7.441-6.032-13.473-13.473-13.473s-13.474 6.032-13.474 13.473s6.032 13.474 13.474 13.474M26.947 80.842c7.442 0 13.474-6.032 13.474-13.474c0-7.44-6.032-13.473-13.474-13.473c-7.441 0-13.473 6.032-13.473 13.473s6.032 13.474 13.473 13.474m80.842-13.474c0 7.442-6.032 13.474-13.473 13.474S80.842 74.81 80.842 67.368c0-7.44 6.032-13.473 13.474-13.473c7.441 0 13.473 6.032 13.473 13.473m107.79 40.421c0 7.442-6.032 13.474-13.474 13.474c-7.441 0-13.473-6.032-13.473-13.474c0-7.441 6.032-13.473 13.473-13.473s13.474 6.032 13.474 13.473"/></symbol><symbol id="logo-supabase" viewBox="0 0 256 263"><defs><linearGradient id="lg-supabase-SVGMPst3dYn" x1="20.862%" x2="63.426%" y1="20.687%" y2="44.071%"><stop offset="0%" stop-color="#249361"/><stop offset="100%" stop-color="#3ecf8e"/></linearGradient><linearGradient id="lg-supabase-SVGNaiFRdXR" x1="1.991%" x2="21.403%" y1="-13.158%" y2="34.708%"><stop offset="0%"/><stop offset="100%" stop-opacity="0"/></linearGradient></defs><path fill="url(#lg-supabase-SVGMPst3dYn)" d="M149.602 258.579c-6.718 8.46-20.338 3.824-20.5-6.977l-2.367-157.984h106.229c19.24 0 29.971 22.223 18.007 37.292z"/><path fill="url(#lg-supabase-SVGNaiFRdXR)" fill-opacity=".2" d="M149.602 258.579c-6.718 8.46-20.338 3.824-20.5-6.977l-2.367-157.984h106.229c19.24 0 29.971 22.223 18.007 37.292z"/><path fill="#3ecf8e" d="M106.399 4.37c6.717-8.461 20.338-3.826 20.5 6.976l1.037 157.984H23.037c-19.241 0-29.973-22.223-18.008-37.292z"/></symbol><symbol id="logo-claude" viewBox="0 0 256 257"><path fill="#d97757" d="m50.228 170.321l50.357-28.257l.843-2.463l-.843-1.361h-2.462l-8.426-.518l-28.775-.778l-24.952-1.037l-24.175-1.296l-6.092-1.297L0 125.796l.583-3.759l5.12-3.434l7.324.648l16.202 1.101l24.304 1.685l17.629 1.037l26.118 2.722h4.148l.583-1.685l-1.426-1.037l-1.101-1.037l-25.147-17.045l-27.22-18.017l-14.258-10.37l-7.713-5.25l-3.888-4.925l-1.685-10.758l7-7.713l9.397.649l2.398.648l9.527 7.323l20.35 15.75L94.817 91.9l3.889 3.24l1.555-1.102l.195-.777l-1.75-2.917l-14.453-26.118l-15.425-26.572l-6.87-11.018l-1.814-6.61c-.648-2.723-1.102-4.991-1.102-7.778l7.972-10.823L71.42 0l10.63 1.426l4.472 3.888l6.61 15.101l10.694 23.786l16.591 32.34l4.861 9.592l2.592 8.879l.973 2.722h1.685v-1.556l1.36-18.211l2.528-22.36l2.463-28.776l.843-8.1l4.018-9.722l7.971-5.25l6.222 2.981l5.12 7.324l-.713 4.73l-3.046 19.768l-5.962 30.98l-3.889 20.739h2.268l2.593-2.593l10.499-13.934l17.628-22.036l7.778-8.749l9.073-9.657l5.833-4.601h11.018l8.1 12.055l-3.628 12.443l-11.342 14.388l-9.398 12.184l-13.48 18.147l-8.426 14.518l.778 1.166l2.01-.194l30.46-6.481l16.462-2.982l19.637-3.37l8.88 4.148l.971 4.213l-3.5 8.62l-20.998 5.184l-24.628 4.926l-36.682 8.685l-.454.324l.519.648l16.526 1.555l7.065.389h17.304l32.21 2.398l8.426 5.574l5.055 6.805l-.843 5.184l-12.962 6.611l-17.498-4.148l-40.83-9.721l-14-3.5h-1.944v1.167l11.666 11.406l21.387 19.314l26.767 24.887l1.36 6.157l-3.434 4.86l-3.63-.518l-23.526-17.693l-9.073-7.972l-20.545-17.304h-1.36v1.814l4.73 6.935l25.017 37.59l1.296 11.536l-1.814 3.76l-6.481 2.268l-7.13-1.297l-14.647-20.544l-15.1-23.138l-12.185-20.739l-1.49.843l-7.194 77.448l-3.37 3.953l-7.778 2.981l-6.48-4.925l-3.436-7.972l3.435-15.749l4.148-20.544l3.37-16.333l3.046-20.285l1.815-6.74l-.13-.454l-1.49.194l-15.295 20.999l-23.267 31.433l-18.406 19.702l-4.407 1.75l-7.648-3.954l.713-7.064l4.277-6.286l25.47-32.405l15.36-20.092l9.917-11.6l-.065-1.686h-.583L44.07 198.125l-12.055 1.555l-5.185-4.86l.648-7.972l2.463-2.593l20.35-13.999z"/></symbol><symbol id="logo-gmail" viewBox="0 0 256 204"><defs><linearGradient id="lg-gmail-SVGHzDbHcwG" x1="165" x2="165" y1="44" y2="166" gradientUnits="userSpaceOnUse"><stop stop-color="#60d673"/><stop offset=".17" stop-color="#42c868"/><stop offset=".39" stop-color="#0ebc5f"/><stop offset=".62" stop-color="#00a9bb"/><stop offset=".86" stop-color="#3c90ff"/><stop offset="1" stop-color="#3186ff"/></linearGradient><linearGradient id="lg-gmail-SVG41ATXboZ" x1="8" x2="184" y1="46.13" y2="46.13" gradientUnits="userSpaceOnUse"><stop offset=".08" stop-color="#ff63a0"/><stop offset=".3" stop-color="#fc413d"/><stop offset=".5" stop-color="#fc413d"/><stop offset=".65" stop-color="#fc413d"/><stop offset=".72" stop-color="#fc5c30"/><stop offset=".86" stop-color="#feb10c"/><stop offset=".91" stop-color="#fec700"/><stop offset=".96" stop-color="#ffdb0f"/></linearGradient></defs><path fill="url(#lg-gmail-SVGHzDbHcwG)" d="M146 44h38v110c0 6.627-5.373 12-12 12h-20a6 6 0 0 1-6-6z" transform="translate(-11.636 -37.818)scale(1.45454)"/><path fill="#fc413d" d="M55.273 26.182H0v160c0 9.638 7.816 17.454 17.455 17.454h29.09a8.727 8.727 0 0 0 8.728-8.728z"/><path fill="url(#lg-gmail-SVG41ATXboZ)" d="M39.226 30.456c-8.033-6.752-20.018-5.714-26.77 2.319c-6.752 8.032-5.714 20.017 2.319 26.77l76.078 63.949a8 8 0 0 0 10.295 0l76.078-63.95c8.032-6.752 9.07-18.737 2.318-26.77c-6.752-8.032-18.737-9.07-26.769-2.318L96 78.18z" transform="translate(-11.636 -37.818)scale(1.45454)"/></symbol><symbol id="logo-google-sheets" viewBox="0 0 24 24"><path fill="#34A853" d="M11.318 12.545H7.91v-1.909h3.41v1.91zM14.728 0v6h6l-6-6zm1.363 10.636h-3.41v1.91h3.41v-1.91zm0 3.273h-3.41v1.91h3.41v-1.91zM20.727 6.5v15.864c0 .904-.732 1.636-1.636 1.636H4.909a1.636 1.636 0 0 1-1.636-1.636V1.636C3.273.732 4.005 0 4.909 0h9.318v6.5h6.5zm-3.273 2.773H6.545v7.909h10.91v-7.91zm-6.136 4.636H7.91v1.91h3.41v-1.91z"/></symbol><symbol id="logo-cal-com" viewBox="0 0 24 24"><defs><clipPath id="lg-cal-com-cal"><rect x="0" y="9" width="9.6" height="6"/></clipPath></defs><rect width="24" height="24" rx="5.5" fill="#292929"/><g transform="translate(3.576 -9.6) scale(1.8)"><path fill="#fff" clip-path="url(#lg-cal-com-cal)" d="M2.408 14.488C1.035 14.488 0 13.4 0 12.058c0-1.346.982-2.443 2.408-2.443.758 0 1.282.233 1.691.765l-.66.55a1.343 1.343 0 0 0-1.03-.442c-.93 0-1.44.711-1.44 1.57 0 .86.559 1.557 1.44 1.557.413 0 .765-.147 1.043-.443l.651.573c-.391.51-.929.743-1.695.743zM6.948 10.913h.89v3.49h-.89v-.51c-.185.362-.493.604-1.083.604-.943 0-1.695-.82-1.695-1.826 0-1.007.752-1.825 1.695-1.825.585 0 .898.241 1.083.604zm.026 1.758c0-.546-.374-.998-.964-.998-.568 0-.938.457-.938.998 0 .528.37.998.938.998.586 0 .964-.456.964-.998zM8.467 9.503h.89v4.895h-.89zM9.752 13.937a.53.53 0 0 1 .542-.528c.313 0 .533.242.533.528a.527.527 0 0 1-.533.537.534.534 0 0 1-.542-.537zM14.23 13.839c-.33.403-.832.658-1.426.658a1.806 1.806 0 0 1-1.84-1.826c0-1.007.778-1.825 1.84-1.825.572 0 1.07.241 1.4.622l-.687.577c-.172-.215-.396-.376-.713-.376-.568 0-.938.456-.938.998 0 .541.37.997.938.997.343 0 .58-.179.757-.42zM14.305 12.671c0-1.007.78-1.825 1.84-1.825 1.061 0 1.84.818 1.84 1.825 0 1.007-.779 1.826-1.84 1.826-1.06-.005-1.84-.82-1.84-1.826zm2.778 0c0-.546-.37-.998-.938-.998-.568-.004-.937.452-.937.998 0 .542.37.998.937.998.568 0 .938-.456.938-.998zM24 12.269v2.13h-.89v-1.911c0-.604-.281-.864-.704-.864-.396 0-.678.197-.678.864v1.91h-.89v-1.91c0-.604-.285-.864-.704-.864-.396 0-.744.197-.744.864v1.91h-.89v-3.49h.89v.484c.185-.376.52-.564 1.035-.564.489 0 .898.241 1.123.649.224-.417.554-.65 1.153-.65.731.005 1.299.56 1.299 1.442z"/></g></symbol><symbol id="logo-telegram" viewBox="0 0 256 256"><defs><linearGradient id="lg-telegram-SVG6DaOZcwt" x1="50%" x2="50%" y1="0%" y2="100%"><stop offset="0%" stop-color="#2aabee"/><stop offset="100%" stop-color="#229ed9"/></linearGradient></defs><path fill="url(#lg-telegram-SVG6DaOZcwt)" d="M128 0C94.06 0 61.48 13.494 37.5 37.49A128.04 128.04 0 0 0 0 128c0 33.934 13.5 66.514 37.5 90.51C61.48 242.506 94.06 256 128 256s66.52-13.494 90.5-37.49c24-23.996 37.5-56.576 37.5-90.51s-13.5-66.514-37.5-90.51C194.52 13.494 161.94 0 128 0"/><path fill="#fff" d="M57.94 126.648q55.98-24.384 74.64-32.152c35.56-14.786 42.94-17.354 47.76-17.441c1.06-.017 3.42.245 4.96 1.49c1.28 1.05 1.64 2.47 1.82 3.467c.16.996.38 3.266.2 5.038c-1.92 20.24-10.26 69.356-14.5 92.026c-1.78 9.592-5.32 12.808-8.74 13.122c-7.44.684-13.08-4.912-20.28-9.63c-11.26-7.386-17.62-11.982-28.56-19.188c-12.64-8.328-4.44-12.906 2.76-20.386c1.88-1.958 34.64-31.748 35.26-34.45c.08-.338.16-1.598-.6-2.262c-.74-.666-1.84-.438-2.64-.258c-1.14.256-19.12 12.152-54 35.686c-5.1 3.508-9.72 5.218-13.88 5.128c-4.56-.098-13.36-2.584-19.9-4.708c-8-2.606-14.38-3.984-13.82-8.41c.28-2.304 3.46-4.662 9.52-7.072"/></symbol><symbol id="logo-stripe" viewBox="0 0 24 24"><path fill="#635BFF" d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-6.99-2.109l-.9 5.555C5.175 22.99 8.385 24 11.714 24c2.641 0 4.843-.624 6.328-1.813 1.664-1.305 2.525-3.236 2.525-5.732 0-4.128-2.524-5.851-6.594-7.305h.003z"/></symbol></svg>
 <nav class="toc" aria-label="Sections"><a href="#start">Start</a><a href="#naming">Naming</a><a href="#data">Data</a><a href="#triggers">Triggers</a><a href="#tm-01">TM-01</a><a href="#tm-02">TM-02</a><a href="#tm-03">TM-03</a><a href="#tm-04">TM-04</a><a href="#tm-05">TM-05</a><a href="#tm-06">TM-06</a><a href="#helpers">Helpers</a><a href="#tests">Tests</a><a href="#build">Build order</a><a href="#handover">Handover</a></nav>
 <main class="page">
 <header class="hero"><a class="home" href="/" target="_top">← Justine Acosta · Portfolio</a><span class="kicker">N8N BUILD PLAN · TRUSTED MOVER</span><h1>Every quote, booking and move, planned before a single node is placed.</h1><p class="lede">Six n8n workflows and three helpers for Trusted Mover, a moving company in Austin, TX. Claude reads and drafts, Supabase holds the jobs, Google Sheets holds the schedule, Stripe takes the money, and a person approves anything a client sees.</p><div class="tools-strip"><span class="tools-strip-label" id="tools-strip-label">Tools on this page</span><ul aria-labelledby="tools-strip-label"><li class="tool-chip"><svg class="logo" width="16" height="16" aria-hidden="true" focusable="false"><use href="#logo-n8n"/></svg>n8n</li><li class="tool-chip"><svg class="logo" width="16" height="16" aria-hidden="true" focusable="false"><use href="#logo-supabase"/></svg>Supabase</li><li class="tool-chip"><svg class="logo" width="16" height="16" aria-hidden="true" focusable="false"><use href="#logo-claude"/></svg>Claude</li><li class="tool-chip"><svg class="logo" width="16" height="16" aria-hidden="true" focusable="false"><use href="#logo-gmail"/></svg>Gmail</li><li class="tool-chip"><svg class="logo" width="16" height="16" aria-hidden="true" focusable="false"><use href="#logo-google-sheets"/></svg>Google Sheets</li><li class="tool-chip"><svg class="logo" width="16" height="16" aria-hidden="true" focusable="false"><use href="#logo-cal-com"/></svg>Cal.com</li><li class="tool-chip"><svg class="logo" width="16" height="16" aria-hidden="true" focusable="false"><use href="#logo-telegram"/></svg>Telegram</li><li class="tool-chip"><svg class="logo" width="16" height="16" aria-hidden="true" focusable="false"><use href="#logo-stripe"/></svg>Stripe</li></ul></div><dl class="meta"><div><dt>Client</dt><dd>Trusted Mover · Austin, TX</dd></div><div><dt>Platform</dt><dd>n8n</dd></div><div><dt>Workflows</dt><dd>6 + 3 helpers</dd></div><div><dt>Prepared by</dt><dd>Justine Acosta</dd></div></dl><ul class="legend" aria-label="Diagram key"><li><button type="button" class="key" data-node="key:trigger" aria-haspopup="dialog" aria-expanded="false"><span class="k-trigger"><span class="node-card"></span></span>Starts it</button></li><li><button type="button" class="key" data-node="key:action" aria-haspopup="dialog" aria-expanded="false"><span class="k-action"><span class="node-card"></span></span>Step</button></li><li><button type="button" class="key" data-node="key:ai" aria-haspopup="dialog" aria-expanded="false"><span class="k-ai"><span class="node-card"></span></span>Claude</button></li><li><button type="button" class="key" data-node="key:branch" aria-haspopup="dialog" aria-expanded="false"><span class="k-branch"><span class="node-card"></span></span>Decides</button></li><li><button type="button" class="key" data-node="key:wait" aria-haspopup="dialog" aria-expanded="false"><span class="k-wait"><span class="node-card"></span></span>Waits</button></li><li><button type="button" class="key" data-node="key:approve" aria-haspopup="dialog" aria-expanded="false"><span class="k-approve"><span class="node-card"></span></span>Person approves</button></li><li><button type="button" class="key" data-node="key:helper" aria-haspopup="dialog" aria-expanded="false"><span class="k-helper"><span class="node-card"></span></span>Helper</button></li><li><button type="button" class="key" data-node="key:end" aria-haspopup="dialog" aria-expanded="false"><span class="k-end"><span class="node-card"></span></span>Ends</button></li></ul></header>
@@ -263,10 +286,10 @@ Rate card</pre><p>Workflows read columns by header name, never by position.</p><
 ;(() => {
   const root = document.documentElement
 
-  // Inside the portfolio's dialog, wear the site's theme and access settings.
+  // Inside the portfolio's dialog, wear the site's theme, access settings and performance setting.
   // The site treats a missing data-theme as dark. Its text size is left out:
   // the site already zooms the whole window, iframe included.
-  const MIRROR = ['data-a11y-motion', 'data-a11y-contrast', 'data-a11y-links']
+  const MIRROR = ['data-a11y-motion', 'data-a11y-contrast', 'data-a11y-links', 'data-perf']
   let host = null
   try {
     if (window.parent !== window) host = window.parent.document.documentElement
@@ -632,6 +655,163 @@ Rate card</pre><p>Workflows read columns by header name, never by position.</p><
     show()
   })
   show()
+})()
+</script>
+<script>const CONTOUR = {"frag":"\n  uniform float uTime;\n  uniform vec2  uMouse;\n  uniform float uMousePace;\n  uniform float uAspect;\n  uniform vec3  uBg;    // Kraft --bg\n  uniform vec3  uLine;  // Kraft --amb\n  varying vec2 vUv;\n  \n  vec3 mod289(vec3 x){return x-floor(x*(1./289.))*289.;}\n  vec4 mod289(vec4 x){return x-floor(x*(1./289.))*289.;}\n  vec4 permute(vec4 x){return mod289(((x*34.)+1.)*x);}\n  vec4 taylorInvSqrt(vec4 r){return 1.79284291400159-.85373472095314*r;}\n  float snoise(vec3 v){\n    const vec2 C=vec2(1./6.,1./3.);const vec4 D=vec4(0.,.5,1.,2.);\n    vec3 i=floor(v+dot(v,C.yyy));vec3 x0=v-i+dot(i,C.xxx);\n    vec3 g=step(x0.yzx,x0.xyz);vec3 l=1.-g;\n    vec3 i1=min(g.xyz,l.zxy);vec3 i2=max(g.xyz,l.zxy);\n    vec3 x1=x0-i1+C.xxx;vec3 x2=x0-i2+C.yyy;vec3 x3=x0-D.yyy;\n    i=mod289(i);\n    vec4 p=permute(permute(permute(i.z+vec4(0.,i1.z,i2.z,1.))+i.y+vec4(0.,i1.y,i2.y,1.))+i.x+vec4(0.,i1.x,i2.x,1.));\n    float n_=.142857142857;vec3 ns=n_*D.wyz-D.xzx;\n    vec4 j=p-49.*floor(p*ns.z*ns.z);vec4 x_=floor(j*ns.z);vec4 y_=floor(j-7.*x_);\n    vec4 x=x_*ns.x+ns.yyyy;vec4 y=y_*ns.x+ns.yyyy;vec4 h=1.-abs(x)-abs(y);\n    vec4 b0=vec4(x.xy,y.xy);vec4 b1=vec4(x.zw,y.zw);\n    vec4 s0=floor(b0)*2.+1.;vec4 s1=floor(b1)*2.+1.;\n    vec4 sh=-step(h,vec4(0.));\n    vec4 a0=b0.xzyw+s0.xzyw*sh.xxyy;vec4 a1=b1.xzyw+s1.xzyw*sh.zzww;\n    vec3 p0=vec3(a0.xy,h.x);vec3 p1=vec3(a0.zw,h.y);vec3 p2=vec3(a1.xy,h.z);vec3 p3=vec3(a1.zw,h.w);\n    vec4 norm=taylorInvSqrt(vec4(dot(p0,p0),dot(p1,p1),dot(p2,p2),dot(p3,p3)));\n    p0*=norm.x;p1*=norm.y;p2*=norm.z;p3*=norm.w;\n    vec4 m=max(.6-vec4(dot(x0,x0),dot(x1,x1),dot(x2,x2),dot(x3,x3)),0.);m=m*m;\n    return 42.*dot(m*m,vec4(dot(p0,x0),dot(p1,x1),dot(p2,x2),dot(p3,x3)));\n  }\n\n\n  const float SCALE             = 0.72;\n  const float NOISE_DETAIL      = 3.0;\n  const float DISTORT_SCALE     = 0.55;\n  const float DISTORT_INTENSITY = 0.50;\n  const float HAIRLINE_PIXELS   = 1.5;\n  const float CURSOR_SCALE      = 1.5;\n  const float CURSOR_INTENSITY  = 0.05;\n  const float LINE_ALPHA        = 0.55; // tuned in Task 11 against both themes\n  const vec2  ANISOTROPY        = vec2(1.0, 1.0);\n\n  void main(){\n    vec2 uv = vUv;\n    uv.x *= uAspect;\n    vec2 mouse = uMouse * 0.5 + 0.5;\n    mouse.x *= uAspect;\n    float cursor = 1.0 - distance(mouse, uv) * CURSOR_SCALE;\n    cursor *= uMousePace;\n    cursor = clamp(cursor, 0.0, 1.0);\n\n    float noiseDistort = 0.5 + snoise(vec3(uv * DISTORT_SCALE, uTime * 0.1)) * 0.5;\n    vec2 warpedUv = (uv + cursor * CURSOR_INTENSITY + noiseDistort * DISTORT_INTENSITY) * SCALE * ANISOTROPY;\n    float n = snoise(vec3(warpedUv, uTime));\n    float bands = (n * 0.5 + 0.5) * NOISE_DETAIL;\n\n    float contour = fract(bands);\n    float dist    = abs(contour - 0.5);\n    float w       = fwidth(bands) * HAIRLINE_PIXELS * 0.5;\n    float line    = 1.0 - smoothstep(0.0, w, dist);\n\n    vec3 lineCol = uLine + cursor * 0.04;\n    gl_FragColor = vec4(mix(uBg, lineCol, line * LINE_ALPHA), 1.0);\n  }\n","frameInterval":33.333333333333336,"drift":0.09,"follow":4,"pace":8,"theme":7}
+// The portfolio's contour lines behind a standalone page (spec 2026-10-01-light-backdrop §4.2), drawn with
+// plain WebGL 1 instead of three.js. CONTOUR (the site's shader and timing, lib/contour.ts) is declared just
+// above by the renderer. Same limits as the site: after load, at idle, fine pointer, motion allowed, not the
+// low performance setting. If anything is missing, the flat --bg carries the page. The browser pauses
+// requestAnimationFrame in a hidden tab, so the contour rests there too.
+;(() => {
+  const root = document.documentElement
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)')
+  const coarse = matchMedia('(pointer: coarse) and (hover: none)')
+  const perf = () => {
+    if (root.dataset.perf) return root.dataset.perf
+    try {
+      return sessionStorage.getItem('kraft-perf')
+    } catch {
+      return null
+    }
+  }
+  const allowed = () => !reduce.matches && root.dataset.a11yMotion !== 'true' && !coarse.matches && perf() !== 'low'
+  /** A token (`#rrggbb`, or Kraft's bare `r,g,b` for --amb) as 0–1 channels. */
+  const color = (name) => {
+    const v = getComputedStyle(root).getPropertyValue(name).trim()
+    const hex = /^#([0-9a-f]{6})$/i.exec(v)
+    if (hex) return [0, 2, 4].map((i) => parseInt(hex[1].slice(i, i + 2), 16) / 255)
+    const t = v.split(',').map((n) => Number(n.trim()))
+    return t.length === 3 && t.every((n) => Number.isFinite(n) && n >= 0) ? t.map((n) => Math.min(255, n) / 255) : null
+  }
+
+  let stop = null
+  let ready = false
+  const start = () => {
+    if (stop || !ready || !allowed()) return
+    const bg = color('--bg')
+    const line = color('--amb')
+    if (!bg || !line) return
+    const canvas = document.createElement('canvas')
+    canvas.setAttribute('data-contour', '')
+    canvas.setAttribute('aria-hidden', 'true')
+    const gl = canvas.getContext('webgl', { antialias: false, alpha: false, depth: false })
+    if (!gl || !gl.getExtension('OES_standard_derivatives')) return
+    const compile = (type, src) => {
+      const s = gl.createShader(type)
+      gl.shaderSource(s, src)
+      gl.compileShader(s)
+      return gl.getShaderParameter(s, gl.COMPILE_STATUS) ? s : null
+    }
+    const vs = compile(gl.VERTEX_SHADER, 'attribute vec2 p;varying vec2 vUv;void main(){vUv=p*.5+.5;gl_Position=vec4(p,0.,1.);}')
+    const fs = compile(gl.FRAGMENT_SHADER, `#extension GL_OES_standard_derivatives : enable\nprecision highp float;\n${CONTOUR.frag}`)
+    if (!vs || !fs) return
+    const prog = gl.createProgram()
+    gl.attachShader(prog, vs)
+    gl.attachShader(prog, fs)
+    gl.linkProgram(prog)
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return
+    gl.useProgram(prog)
+    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer())
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), gl.STATIC_DRAW)
+    const at = gl.getAttribLocation(prog, 'p')
+    gl.enableVertexAttribArray(at)
+    gl.vertexAttribPointer(at, 2, gl.FLOAT, false, 0, 0)
+    const u = Object.fromEntries(['uTime', 'uMouse', 'uMousePace', 'uAspect', 'uBg', 'uLine'].map((n) => [n, gl.getUniformLocation(prog, n)]))
+
+    // 1x pixel density, like the site.
+    const size = () => {
+      canvas.width = innerWidth
+      canvas.height = innerHeight
+      gl.viewport(0, 0, canvas.width, canvas.height)
+      gl.uniform1f(u.uAspect, innerWidth / innerHeight)
+    }
+    size()
+    // The theme (or high contrast) changes the tokens; the colours ease to them on the contour's own clock.
+    let target = { bg, line }
+    const themeWatch = new MutationObserver(() => {
+      const nb = color('--bg')
+      const nl = color('--amb')
+      if (nb && nl) target = { bg: nb, line: nl }
+    })
+    themeWatch.observe(root, { attributes: true, attributeFilter: ['data-theme', 'data-a11y-contrast'] })
+    const tgt = { x: 0, y: 0 }
+    const cur = { x: 0, y: 0 }
+    const onMove = (e) => {
+      tgt.x = (e.clientX / innerWidth) * 2 - 1
+      tgt.y = -(e.clientY / innerHeight) * 2 + 1
+    }
+    addEventListener('mousemove', onMove)
+    addEventListener('resize', size)
+
+    let raf = 0
+    let time = 0
+    let last = performance.now() - CONTOUR.frameInterval
+    let lastX = 0
+    let lastY = 0
+    let pace = 0
+    const ease = (from, to, k) => from.forEach((v, i) => (from[i] = v + (to[i] - v) * k))
+    const frame = (now) => {
+      raf = requestAnimationFrame(frame)
+      if (now - last < CONTOUR.frameInterval - 1) return
+      const dt = Math.min(0.05, (now - last) / 1000)
+      last = now
+      time += CONTOUR.drift * dt
+      const follow = 1 - Math.exp(-CONTOUR.follow * dt)
+      cur.x += (tgt.x - cur.x) * follow
+      cur.y += (tgt.y - cur.y) * follow
+      const speed = Math.min(1, Math.hypot((cur.x - lastX) / Math.max(dt, 0.001), (cur.y - lastY) / Math.max(dt, 0.001)) * 0.4)
+      pace += (speed - pace) * (1 - Math.exp(-CONTOUR.pace * dt))
+      lastX = cur.x
+      lastY = cur.y
+      const k = 1 - Math.exp(-CONTOUR.theme * dt)
+      ease(bg, target.bg, k)
+      ease(line, target.line, k)
+      gl.uniform1f(u.uTime, time)
+      gl.uniform2f(u.uMouse, cur.x, cur.y)
+      gl.uniform1f(u.uMousePace, pace)
+      gl.uniform3fv(u.uBg, bg)
+      gl.uniform3fv(u.uLine, line)
+      gl.drawArrays(gl.TRIANGLES, 0, 6)
+    }
+    const halt = () => {
+      cancelAnimationFrame(raf)
+      themeWatch.disconnect()
+      removeEventListener('mousemove', onMove)
+      removeEventListener('resize', size)
+      canvas.removeEventListener('webglcontextlost', lost)
+      canvas.remove()
+      const lose = gl.getExtension('WEBGL_lose_context')
+      if (lose) lose.loseContext()
+      stop = null
+    }
+    const lost = (e) => {
+      e.preventDefault()
+      halt()
+    }
+    canvas.addEventListener('webglcontextlost', lost)
+    stop = halt
+    document.body.prepend(canvas)
+    raf = requestAnimationFrame(frame)
+  }
+
+  const recheck = () => {
+    if (stop && !allowed()) stop()
+    else start()
+  }
+  const begin = () => {
+    const go = () => {
+      ready = true
+      start()
+    }
+    if ('requestIdleCallback' in window) requestIdleCallback(go, { timeout: 3000 })
+    else setTimeout(go, 1500)
+  }
+  if (document.readyState === 'complete') begin()
+  else addEventListener('load', begin, { once: true })
+  reduce.addEventListener('change', recheck)
+  coarse.addEventListener('change', recheck)
+  new MutationObserver(recheck).observe(root, { attributes: true, attributeFilter: ['data-a11y-motion', 'data-perf'] })
 })()
 </script>
 <script>// Scroll-in reveal for the standalone pages (spec 2026-10-01-lively-pages §6).

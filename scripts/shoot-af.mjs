@@ -8,8 +8,8 @@ import { chromium } from '@playwright/test'
 const out = join(process.cwd(), 'public', 'shots')
 mkdirSync(out, { recursive: true })
 const browser = await chromium.launch()
-// 1280×800 (16:10), saved at 0.5×: 640×400. Reduced motion keeps balls out of the picture.
-const page = await browser.newPage({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 0.5, colorScheme: 'dark', reducedMotion: 'reduce' })
+// 1280×800 (16:10), saved at 0.5×: 640×400. Light, the page's default; reduced motion keeps the contour and balls out.
+const page = await browser.newPage({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 0.5, colorScheme: 'light', reducedMotion: 'reduce' })
 await page.goto(pathToFileURL(join(process.cwd(), 'public', 'agentic-framework.html')).href)
 await page.evaluate(() => document.fonts.ready)
 await page.screenshot({ path: join(out, 'agentic-framework.jpeg'), type: 'jpeg', quality: 82 })
