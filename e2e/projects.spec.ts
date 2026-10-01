@@ -87,7 +87,7 @@ test('the sites view lists every sample site', async ({ page }) => {
   await page.goto('/projects')
   await hydrated(page)
   await page.getByRole('link', { name: /^Funnels and sites/ }).click()
-  await expect(page.getByRole('dialog', { name: 'Funnels and sites' }).getByRole('listitem')).toHaveCount(8)
+  await expect(page.getByRole('dialog', { name: 'Funnels and sites' }).getByRole('listitem')).toHaveCount(5)
 })
 
 test('the sites view spins the 3D drum; its keyboard list opens a page, and Escape closes only the preview', async ({ page }) => {
@@ -96,15 +96,17 @@ test('the sites view spins the 3D drum; its keyboard list opens a page, and Esca
   const view = page.getByRole('dialog', { name: 'Funnels and sites' })
   await expect(view.locator('canvas')).toBeVisible()
   const list = view.getByRole('list', { name: 'Sample sites' })
-  await expect(list.getByRole('button')).toHaveCount(8)
+  await expect(list.getByRole('button')).toHaveCount(5)
   await expect(list).toHaveCSS('opacity', '0')
   await page.keyboard.press('Tab')
-  const first = list.getByRole('button', { name: 'Open Apex Build Co.' })
+  const first = list.getByRole('button', { name: 'Open Harbor & Pine Moving Co.' })
   await expect(first).toBeFocused()
   await expect(list).toHaveCSS('opacity', '1')
   await page.keyboard.press('Enter')
-  const preview = page.getByRole('dialog', { name: 'Apex Build Co. preview' })
+  const preview = page.getByRole('dialog', { name: 'Harbor & Pine Moving Co. preview' })
   await expect(preview).toBeVisible()
+  // The page is a bundled export: it unpacks itself inside the sandboxed frame.
+  await expect(preview.frameLocator('iframe').getByRole('heading', { name: /Moving handled/ })).toBeVisible({ timeout: 30_000 })
   await page.keyboard.press('Escape')
   await expect(preview).toBeHidden()
   await expect(view).toBeVisible()
@@ -128,10 +130,10 @@ test('without WebGL, the Kraft carousel spins, and a focused page turns to the f
   const turn = () => ring.evaluate((el) => el.style.transform)
   const before = await turn()
   await expect.poll(turn).not.toBe(before)
-  const page3 = view.getByRole('button', { name: 'Open Payline' })
+  const page3 = view.getByRole('button', { name: 'Open Meridian Werks' })
   await page3.focus()
   await page3.press('Enter')
-  await expect(page.getByRole('dialog', { name: 'Payline preview' })).toBeVisible()
+  await expect(page.getByRole('dialog', { name: 'Meridian Werks preview' })).toBeVisible()
 })
 
 test.describe('reduced motion', () => {

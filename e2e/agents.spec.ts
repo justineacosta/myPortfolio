@@ -63,7 +63,7 @@ test('Show its route lights one build’s path, dims the rest, and Show all clea
   await expect(agent).toHaveAttribute('data-focus', 'billing')
   await expect(fig(page, 'rag')).not.toHaveAttribute('data-focus')
   await expect(btn).toHaveAttribute('aria-pressed', 'true')
-  await expect(agent.locator('.focus-text')).toHaveText(/^Billing follow-up agent: Stripe: Blade Studio invoice 14 days overdue/)
+  await expect(agent.locator('.focus-text')).toHaveText(/^Billing follow-up agent: Stripe: Harbor & Pine invoice 14 days overdue/)
   const showAll = agent.getByRole('button', { name: 'Show all' })
   await expect(showAll).toBeFocused()
   await expect(agent).toBeInViewport()

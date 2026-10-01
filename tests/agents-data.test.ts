@@ -114,9 +114,12 @@ describe('the agents page data', () => {
     expect(g.builds.find((b) => b.id === 'sales')!.routes).toEqual(['prepare', 'answered', 'booked'])
   })
 
-  it('sets each build in a different one of the portfolio’s own example businesses, with a worked example', () => {
+  it('sets each build in one of the portfolio’s sample sites, with a worked example', () => {
     const names = projects.sitesView.sites.map((s) => s.name)
-    expect(g.builds.map((b) => b.business.name)).toEqual(['Trusted Mover', 'Below Ground', 'Solar Field', 'Baptiste', 'One Hour Therapy', 'Blade Studio', 'Payline', 'Apex Build Co.'])
+    expect(g.builds.map((b) => b.business.name)).toEqual([
+      'Harbor & Pine Moving Co.', 'Ironline Utility Infrastructure', 'Meridian Energy Infrastructure', 'Westmere',
+      'Meridian Werks', 'Harbor & Pine Moving Co.', 'Meridian Energy Infrastructure', 'Meridian Werks',
+    ])
     for (const b of g.builds) {
       expect(names, b.id).toContain(b.business.name)
       expect(b.business.trade.length, b.id).toBeGreaterThan(3)

@@ -17,7 +17,9 @@ describe('Projects data', () => {
       'TM-01 · Quote request', 'Workflows list', 'TM-02 · Survey → Estimate', 'Workflow settings', 'Executions',
     ])
     expect(projects.reel.shots.every((s) => s.src.includes('n8n workflow screenshot'))).toBe(true)
-    expect(projects.sitesView.sites).toHaveLength(8)
+    expect(projects.sitesView.sites.map((s) => s.name)).toEqual([
+      'Harbor & Pine Moving Co.', 'Westmere', 'Ironline Utility Infrastructure', 'Meridian Werks', 'Meridian Energy Infrastructure',
+    ])
   })
 
   it('shows a real 16:10 screenshot of the build plan on Home', () => {
@@ -224,7 +226,7 @@ describe('the AI agents card', () => {
     const c = card()
     const p = c.querySelector('.agents-preview')!
     expect(p).toHaveAttribute('aria-hidden', 'true')
-    // The same two scenarios the page's Trusted Mover and Blade Studio builds show.
+    // The same two scenarios the page's Harbor & Pine builds show.
     expect(p.textContent).toContain('Do you move pianos, and what does it add?')
     expect(p.textContent).toContain('Pricing guide §4')
     expect(p.textContent).toContain('Stripe · invoice 14 days overdue')
