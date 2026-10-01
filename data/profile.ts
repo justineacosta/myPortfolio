@@ -15,7 +15,14 @@ export const profile = {
   verifiedLabel: 'Certified',
   jobTitle: 'Full-stack developer and AI automation engineer',
   address: { locality: 'Manila', country: 'PH' },
-  portrait: { src: '/assets/portrait.jpg', alt: 'Portrait of Justine Acosta', position: '57% 36%' },
+  portrait: {
+    src: '/assets/portrait.jpg', alt: 'Portrait of Justine Acosta', position: '57% 36%',
+    /** The same moment, drawn: the avatar's hover (a tap on phones) and the Thank-you and 404 pages. */
+    drawn: {
+      src: '/assets/portrait-drawn.jpg', alt: 'Drawing of Justine raising a bottle in a café', position: '56% 37%',
+      width: 843, height: 1264, swap: 'Show the drawn portrait',
+    },
+  },
   email: 'PLACEHOLDER - your contact email (the Kraft design used justine@kraft.dev)',
   timezone: 'Asia/Manila',
   tzLabel: 'GMT+8',

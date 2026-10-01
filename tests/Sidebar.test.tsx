@@ -34,6 +34,17 @@ describe('Sidebar', () => {
     expect(screen.getByRole('img', { name: 'Certified' })).toBeInTheDocument()
   })
 
+  it('hides the drawn portrait behind the photo, as decoration, for a hover to reveal', () => {
+    renderSidebar()
+    const photo = screen.getByRole('img', { name: 'Portrait of Justine Acosta' })
+    const drawn = document.querySelector('[data-portrait-drawn]')!
+    expect(drawn.getAttribute('src')).toContain('portrait-drawn.jpg')
+    expect(drawn).toHaveAttribute('alt', '')
+    expect(drawn.className).toMatch(/opacity-0/)
+    expect(drawn.className).toMatch(/group-hover\/avatar:opacity-100/)
+    expect(photo.closest('.group\\/avatar')).toBe(drawn.closest('.group\\/avatar'))
+  })
+
   it("shows availability the way Contact does: the timezone, then the regions and hours covered", () => {
     renderSidebar()
     expect(screen.getByText('Available for work · GMT+8')).toBeInTheDocument()

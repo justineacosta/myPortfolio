@@ -63,4 +63,16 @@ describe('plain pages', () => {
     expect(screen.getByRole('link', { name: /Back to home/ })).toHaveAttribute('href', '/')
     expect(screen.getByRole('link', { name: 'Get in touch' })).toHaveAttribute('href', '/contact')
   })
+
+  it.each([
+    ['Thank-you', () => <ThankYouPage />],
+    ['404', () => <NotFound />],
+  ])('%s shows the drawn portrait beside its message', (_, page) => {
+    render(page())
+    const art = screen.getByRole('img', { name: 'Drawing of Justine raising a bottle in a café' })
+    expect(art.getAttribute('src')).toContain('portrait-drawn.jpg')
+    // Text first in reading order, so the message is read before the picture.
+    const h1 = screen.getByRole('heading', { level: 1 })
+    expect(h1.compareDocumentPosition(art) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
 })
