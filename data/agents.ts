@@ -60,7 +60,7 @@ export const agents: Agents = {
   description: 'How Justine Acosta’s AI agents and RAG chatbots work: two live diagrams, eight sample builds and the guardrails they follow.',
   home: 'Justine Acosta · Portfolio',
   kicker: 'AI AGENTS AND RAG CHATBOTS',
-  heading: 'How my AI agents and RAG chatbots work',
+  heading: 'How I build AI agents and RAG chatbots',
   lede: 'Eight sample builds on one stack, and the two patterns underneath every one of them.',
   sample: 'These are sample builds: examples of what I build, not client projects.',
   heroTools: ['claude', 'n8n', 'supabase'],

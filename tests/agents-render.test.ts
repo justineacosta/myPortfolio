@@ -22,7 +22,7 @@ describe('renderAgents', () => {
 
   it('opens with the title, the lede, the sample note and every tool, Claude, n8n and Supabase first', () => {
     expect(doc.title).toBe('AI agents and RAG chatbots · Justine Acosta')
-    expect(doc.querySelector('h1')!.textContent).toBe('How my AI agents and RAG chatbots work')
+    expect(doc.querySelector('h1')!.textContent).toBe('How I build AI agents and RAG chatbots')
     expect(doc.querySelector('.lede')!.textContent).toBe(g.lede)
     expect(doc.querySelector('.sample-note')!.textContent).toBe(g.sample)
     expect([...doc.querySelectorAll('.hero .tool-chip')].map((li) => li.textContent)).toEqual(['Claude', 'n8n', 'Supabase', 'Cal.com', 'Telegram', 'Google Sheets', 'Gmail', 'Stripe'])

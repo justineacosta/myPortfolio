@@ -33,7 +33,7 @@ All copy uses curly quotes and apostrophes. Step labels and sub-lines are 22 cha
 
 ### 3.1 Hero
 - Kicker: `AI AGENTS AND RAG CHATBOTS`
-- Title: `How my AI agents and RAG chatbots work`
+- Title: `How I build AI agents and RAG chatbots`
 - Lede: "Eight sample builds on one stack, and the two patterns underneath every one of them."
 - Sample note (small, with an info icon): "These are sample builds: examples of what I build, not client projects."
 - A home link back to the portfolio (`target="_top"`), hidden inside the window, as on the other pages.

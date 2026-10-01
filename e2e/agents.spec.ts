@@ -8,7 +8,7 @@ const route = (page: Page, name: string) => page.getByRole('button', { name: `Sh
 test('reads top to bottom: the header, six chips, six sections, eight builds and the glossary', async ({ page }) => {
   await page.goto(PAGE)
   await expect(page).toHaveTitle('AI agents and RAG chatbots · Justine Acosta')
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('How my AI agents and RAG chatbots work')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('How I build AI agents and RAG chatbots')
   await expect(page.getByRole('navigation', { name: 'Sections' }).getByRole('link')).toHaveCount(6)
   await expect(page.locator('main > section')).toHaveCount(6)
   await expect(page.getByRole('button', { name: /^Show its route: / })).toHaveCount(8)

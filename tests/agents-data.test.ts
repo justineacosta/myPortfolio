@@ -16,7 +16,7 @@ describe('the agents page data', () => {
 
   it('opens with the hero the spec sets', () => {
     expect(g.kicker).toBe('AI AGENTS AND RAG CHATBOTS')
-    expect(g.heading).toBe('How my AI agents and RAG chatbots work')
+    expect(g.heading).toBe('How I build AI agents and RAG chatbots')
     expect(g.sample).toBe('These are sample builds: examples of what I build, not client projects.')
     expect(g.heroTools).toEqual(['claude', 'n8n', 'supabase'])
   })
