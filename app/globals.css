@@ -336,6 +336,30 @@ html[data-a11y-motion=true] .reel-pause{display:none}
 .flow-ball{position:absolute;left:0;top:0;width:8px;height:8px;border-radius:50%;background:var(--accent);offset-anchor:50% 50%;offset-rotate:0deg;animation-name:kTravel;animation-timing-function:linear;animation-iteration-count:infinite}
 @media (prefers-reduced-motion:reduce){.flow-ball{display:none}}
 html[data-a11y-motion=true] .flow-ball{display:none}
+/* ---- Agents card preview (components/projects/AgentsPreview.tsx, spec 2026-10-01-agents-page §5.2) ---- */
+/* At rest (off screen, no JS, print): the finished chat. On screen with motion allowed: the chat builds, then an agent run takes over, 12 s a turn.
+   The animations exist only while on screen, so the resting look is the plain markup, never a paused first frame. */
+.agents-preview .ap-run{opacity:0}
+.agents-preview :is(.ap-chat,.ap-q,.ap-search,.ap-a,.ap-run,.ap-step-1,.ap-step-2,.ap-approve){animation-duration:12s;animation-timing-function:ease-in-out;animation-iteration-count:infinite;animation-fill-mode:both}
+.agents-preview[data-on] .ap-chat{animation-name:apChat}
+.agents-preview[data-on] .ap-q{animation-name:apQ}
+.agents-preview[data-on] .ap-search{animation-name:apSearch}
+.agents-preview[data-on] .ap-a{animation-name:apAnswer}
+.agents-preview[data-on] .ap-run{animation-name:apRun}
+.agents-preview[data-on] .ap-step-1{animation-name:apStep1}
+.agents-preview[data-on] .ap-step-2{animation-name:apStep2}
+.agents-preview[data-on] .ap-approve{animation-name:apApprove}
+@keyframes apChat{0%,44%{opacity:1}50%,94%{opacity:0}100%{opacity:1}}
+@keyframes apQ{0%{opacity:0;transform:translateY(6px)}6%,100%{opacity:1;transform:none}}
+@keyframes apSearch{0%,10%{opacity:0;transform:translateY(6px)}16%,100%{opacity:1;transform:none}}
+@keyframes apAnswer{0%,22%{opacity:0;transform:translateY(6px)}28%,100%{opacity:1;transform:none}}
+@keyframes apRun{0%,48%{opacity:0}54%,92%{opacity:1}98%,100%{opacity:0}}
+@keyframes apStep1{0%,52%{opacity:0;transform:translateY(6px)}58%,100%{opacity:1;transform:none}}
+@keyframes apStep2{0%,62%{opacity:0;transform:translateY(6px)}68%,100%{opacity:1;transform:none}}
+@keyframes apApprove{0%,72%{opacity:0;transform:translateY(6px)}78%,100%{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.agents-preview *{animation:none !important}}
+html[data-a11y-motion=true] .agents-preview *{animation:none !important}
+:root[data-perf=low] .agents-preview *{animation:none !important}
 
 /* ---- Projects: the Funnels and sites fan (components/projects/SitesCard.tsx,
    lib/fan.ts). Each tile's pose arrives as --x --y --r (px, px, deg) and its

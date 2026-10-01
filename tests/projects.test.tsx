@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import Board from '@/components/projects/Board'
 import ProjectViews from '@/components/projects/ProjectViews'
-import { agentsView } from '@/data/projectDocs'
 import { BUILDS, PROJECT_VIEWS, projects } from '@/data/projects'
 import { installMatchMedia } from '@/test/matchMedia'
 
@@ -13,9 +12,7 @@ describe('Projects data', () => {
     expect(projects.writeups.every((w) => w.page && w.frameTitle && w.shot)).toBe(true)
   })
 
-  it("keeps Kraft's roster, the build plan's sections, the reel and the sites", () => {
-    expect(agentsView.groups.map((g) => g.name)).toEqual(['KapeAI', 'AI Agents', 'RAG Chatbots', 'Chatbots', 'Hermes'])
-    expect(agentsView.builtWith.map((c) => c.name)).toEqual(['Claude Code', 'Codex', 'VS Code', 'Hermes'])
+  it('keeps the reel and the sites', () => {
     expect(projects.reel.shots.map((s) => s.label)).toEqual([
       'TM-01 · Quote request', 'Workflows list', 'TM-02 · Survey → Estimate', 'Workflow settings', 'Executions',
     ])
@@ -136,7 +133,9 @@ describe('ProjectViews', () => {
     // Every sub-view, plus the site preview that stacks on the sites view.
     expect(dialogs).toHaveLength(PROJECT_VIEWS.length + 1)
     dialogs.forEach((d) => expect(d).not.toHaveAttribute('open'))
-    expect(document.body).toHaveTextContent('Refuses to guess.')
+    // A page view's window shows its address even while closed; its page loads only once open.
+    expect(document.body).toHaveTextContent('/ai-agents.html')
+    expect(document.querySelector('iframe')).toBeNull()
   })
 
   it('opens the write-up a shared link names, as its page in the window, and Close drops the hash', () => {
@@ -176,11 +175,63 @@ describe('ProjectViews', () => {
     expect(document.body).not.toHaveTextContent('Workflow Creator')
   })
 
-  it('marks which systems are live and which are internal', () => {
+  it('opens the AI agents page in its window, with a new-tab link', () => {
     window.history.replaceState(null, '', '/projects#ai-agents')
     render(<ProjectViews />)
     const view = screen.getByRole('dialog', { name: 'AI agents and RAG chatbots' })
-    expect(within(view).getAllByText('LIVE')).toHaveLength(7)
-    expect(within(view).getAllByText('INTERNAL')).toHaveLength(3)
+    const frame = within(view).getByTitle('AI agents and RAG chatbots page')
+    expect(frame.tagName).toBe('IFRAME')
+    expect(frame).toHaveAttribute('src', '/ai-agents.html')
+    expect(within(view).getByRole('link', { name: 'Open in new tab' })).toHaveAttribute('href', '/ai-agents.html')
+  })
+
+  it('shows a real 16:10 screenshot of the AI agents page on Home', () => {
+    const shot = BUILDS.find((b) => b.view === 'ai-agents')!.shot
+    expect(shot).toBe('/shots/ai-agents.jpeg')
+    expect(jpegSize(readFileSync(`public${shot}`))).toEqual({ width: 640, height: 400 })
+  })
+})
+
+describe('the AI agents card', () => {
+  const card = () => {
+    render(<Board />)
+    return screen.getByRole('link', { name: /^AI agents and RAG chatbots/ })
+  }
+
+  it('says what is inside, counted from the page’s own builds', async () => {
+    const { agents } = await import('@/data/agents')
+    const c = card()
+    expect(c).toHaveAttribute('href', '#ai-agents')
+    expect(within(c).getByText('Sample RAG chatbots and agents, and how each one works.')).toBeInTheDocument()
+    const rag = agents.builds.filter((b) => b.kind === 'rag').length
+    const agent = agents.builds.filter((b) => b.kind === 'agent').length
+    expect(projects.cards.agents.counts.map((x) => x.name)).toEqual([`${rag} RAG chatbots`, `${agent} AI agents`])
+    for (const x of projects.cards.agents.counts) expect(within(c).getByText(x.name)).toBeInTheDocument()
+    expect(within(c).getByText('SEE HOW THEY WORK')).toBeInTheDocument()
+  })
+
+  it('shows the eight tool logos as decoration, and no live dots', () => {
+    const c = card()
+    const logos = [...c.querySelectorAll('img')].map((i) => i.getAttribute('src'))
+    for (const slug of ['claude', 'n8n', 'supabase', 'gmail', 'googlesheets', 'telegram', 'stripe', 'caldotcom'])
+      expect(logos.some((s) => s?.includes(`${slug}.svg`)), slug).toBe(true)
+    for (const img of c.querySelectorAll('img')) expect(img).toHaveAttribute('alt', '')
+    for (const slug of ['gmail', 'telegram', 'caldotcom']) expect(existsSync(`public/icons/brands/${slug}.svg`), slug).toBe(true)
+    expect(c.querySelector('.size-1\\.5.rounded-full.bg-accent')).toBeNull()
+  })
+
+  it('plays a preview that screen readers skip and nothing in it can take focus', () => {
+    const c = card()
+    const p = c.querySelector('.agents-preview')!
+    expect(p).toHaveAttribute('aria-hidden', 'true')
+    // The same two scenarios the page's Trusted Mover and Blade Studio builds show.
+    expect(p.textContent).toContain('Do you move pianos, and what does it add?')
+    expect(p.textContent).toContain('Pricing guide §4')
+    expect(p.textContent).toContain('Stripe · invoice 14 days overdue')
+    expect(p.querySelector('a, button, input, [tabindex]')).toBeNull()
+  })
+
+  it('keeps no kape names', () => {
+    expect(card().textContent).not.toMatch(/kape|brewedops/i)
   })
 })
