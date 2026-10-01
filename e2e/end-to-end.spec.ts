@@ -170,3 +170,17 @@ test('at phone width every lane label fits the frame, before and while panning',
     }
   }
 })
+
+test('a step’s panel shows the tool it uses; a step with none shows none', async ({ page }) => {
+  await page.goto(PAGE)
+  const step = page.locator('[data-node="d2"]')
+  await step.scrollIntoViewIfNeeded()
+  await step.click()
+  const tools = page.locator('#node-panel [data-p=tools]')
+  await expect(tools).toHaveText('Claude Code')
+  await page.keyboard.press('Escape')
+  const plain = page.locator('[data-node="c1"]')
+  await plain.scrollIntoViewIfNeeded()
+  await plain.click()
+  await expect(tools).toBeHidden()
+})

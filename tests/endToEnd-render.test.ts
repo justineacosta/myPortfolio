@@ -4,6 +4,7 @@ import { endToEnd as g, type EndToEnd } from '@/data/endToEnd'
 import { iconSvg } from '@/lib/endToEnd/icons'
 import { layoutGraph } from '@/lib/endToEnd/layout'
 import { renderEndToEnd } from '@/lib/endToEnd/render'
+import { TOOLS } from '@/lib/brand/tools'
 import { readContrast, readTokens } from '@/lib/tokens'
 
 const html = renderEndToEnd()
@@ -121,5 +122,42 @@ describe('renderEndToEnd', () => {
 describe('public/end-to-end.html', () => {
   it('is up to date with its data (run npm run e2e-page after any change)', () => {
     expect(readFileSync('public/end-to-end.html', 'utf8').replace(/\r\n/g, '\n')).toBe(renderEndToEnd())
+  })
+})
+
+describe('the End-to-End page’s logos and colour', () => {
+  const used = ['telegram', 'n8n', 'claude-code', 'vs-code', 'codex', 'github', 'vercel'] as const
+
+  it('badges exactly the steps that name a tool', () => {
+    for (const s of g.steps) {
+      const hrefs = [...doc.querySelectorAll(`[data-node="${s.id}"] .logo-badge`)].map((b) => b.querySelector('use')!.getAttribute('href'))
+      expect(hrefs, s.id).toEqual((s.tools ?? []).map((t) => `#logo-${t}`))
+    }
+  })
+
+  it('lists the tools in the hero, after the stance, in order of first appearance', () => {
+    expect([...doc.querySelectorAll('.hero .tool-chip')].map((c) => c.textContent)).toEqual(used.map((t) => TOOLS[t].name))
+    expect(doc.querySelector('.stance + .tools-strip')).not.toBeNull()
+  })
+
+  it('draws each logo it uses once (Codex with its dark version), and no other', () => {
+    expect([...doc.querySelectorAll('.logo-sheet symbol')].map((s) => s.id)).toEqual(used.flatMap((t) => [`logo-${t}`, ...(TOOLS[t].dark ? [`logo-${t}-dark`] : [])]))
+  })
+
+  it('puts a logo before each glossary term that is a tool', () => {
+    const withLogo = [...doc.querySelectorAll('#glossary dt')].filter((dt) => dt.querySelector('.gl-logo')).map((dt) => dt.textContent)
+    expect(withLogo).toEqual(['n8n', 'Telegram', 'Claude Code', 'VS Code', 'Codex'])
+  })
+
+  it('gives the panel a tools slot and the index each step’s tools', () => {
+    expect(doc.querySelector('#node-panel > [data-p=tools]')!.hasAttribute('hidden')).toBe(true)
+    expect(data().d2.tools).toEqual(['claude-code'])
+    expect(data().c1.tools).toBeUndefined()
+  })
+
+  it('adds the lively layer with the Claude and Telegram glow, the reveal script last, and grows by no more than 40 KB', () => {
+    expect(doc.querySelector('style')!.textContent).toContain(`--halo-b:${TOOLS.telegram.brand}`)
+    expect([...doc.querySelectorAll('script')].at(-1)!.textContent).toContain("root.classList.add('reveal-on')")
+    expect(html.length).toBeLessThan(190_923 + 40_000)
   })
 })
