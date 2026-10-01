@@ -18,7 +18,8 @@
     "thumbs": "node scripts/make-thumbs.mjs",
     "placeholders": "node scripts/placeholders.ts",
     "plan": "node scripts/make-plan.ts && node scripts/shoot-plan.mjs",
-    "e2e-page": "node scripts/make-e2e.ts && node scripts/shoot-e2e.mjs"
+    "e2e-page": "node scripts/make-e2e.ts && node scripts/shoot-e2e.mjs",
+    "af-page": "node scripts/make-af.ts && node scripts/shoot-af.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

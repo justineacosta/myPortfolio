@@ -6,26 +6,22 @@ import {
 /**
  * The Projects board and its sub-views, verbatim from Kraft Projects
  * Board.dc.html. Screens Kraft left as empty image slots are PLACEHOLDERs.
- * The write-ups and the systems roster live in data/projectDocs.ts, so only
- * /projects downloads them (this module also feeds the ⌘K list on every page).
+ * The AI agents roster lives in data/projectDocs.ts, so only /projects
+ * downloads it (this module also feeds the ⌘K list on every page).
  */
 
 /** Every sub-view the board opens. Each id is also its URL hash (/projects#build-plan). */
 export const PROJECT_VIEWS = ['reel', 'build-plan', 'agentic-framework', 'end-to-end', 'sites', 'ai-agents'] as const
 export type ProjectView = (typeof PROJECT_VIEWS)[number]
-export const DOC_VIEWS = ['agentic-framework'] as const
-export type DocView = (typeof DOC_VIEWS)[number]
 
 export type Chip = { name: string; icon: Icon }
-export type DocCard = { step: string; icon: Icon; title: string; desc: string; meta: string }
-export type Doc = { kicker: string; title: string; lede: string; stack: Chip[]; sections: { name: string; blurb: string; cards: DocCard[] }[] }
 export type AgentCard = { title: string; icon: Icon; live: boolean; icons: Icon[]; desc: string; meta: string; tags: string[] }
 export type AgentGroup = { name: string; blurb: string; cards: AgentCard[] }
 export type Screenshot = { src: string; label: string }
 /** A sample site: its page, a 3:4 thumbnail, and a tall shot (up to four screens) the Funnels card peeks through. */
 export type Site = { name: string; file: string; src: string; thumb: string; tall: string }
-/** A write-up card: it opens a document, or (with `page`) a generated page in the window, with its Home `shot`. */
-type Writeup = { view: ProjectView; kicker: string; title: string; desc: string; icon: Icon; cue: string; page?: string; frameTitle?: string; shot?: string }
+/** A write-up card: it opens a generated page in the window, with its Home `shot`. */
+type Writeup = { view: ProjectView; kicker: string; title: string; desc: string; icon: Icon; cue: string; page: string; frameTitle: string; shot: string }
 
 const REEL: Screenshot[] = [
   'TM-01 · Quote request',
@@ -55,7 +51,7 @@ const SITES: Site[] = [
 })
 
 const WRITEUPS: Writeup[] = [
-  { view: 'agentic-framework', kicker: 'HOW I BUILD WITH AI', title: 'The Agentic Framework', desc: 'The tools, the rules and the loop I use to ship apps with AI.', icon: BrainIcon, cue: 'READ THE FRAMEWORK' },
+  { view: 'agentic-framework', kicker: 'HOW I BUILD WITH AI', title: 'The Agentic Framework', desc: 'The tools, the rules and the loop I use to ship apps with AI.', icon: BrainIcon, cue: 'READ THE FRAMEWORK', page: '/agentic-framework.html', frameTitle: 'Agentic Framework page', shot: '/shots/agentic-framework.jpeg' },
   { view: 'end-to-end', kicker: 'HOW I SHIP, END TO END', title: 'The End-to-End Workflow', desc: 'Every trigger, node, skill and agent wired as one live graph.', icon: GraphIcon, cue: 'READ THE WORKFLOW', page: '/end-to-end.html', frameTitle: 'End-to-End Workflow graph', shot: '/shots/end-to-end.jpeg' },
 ]
 
@@ -141,5 +137,5 @@ export const BUILDS: Build[] = [
   { name: projects.cards.plan.title, view: 'build-plan', shot: '/shots/build-plan.jpeg' },
   { name: projects.cards.sites.title, view: 'sites', shot: SITES[0].thumb, tall: SITES[0].tall },
   { name: projects.cards.agents.title, view: 'ai-agents', shot: 'PLACEHOLDER - AI agents screenshot (16:10)' },
-  ...WRITEUPS.map((w) => ({ name: w.title, view: w.view, shot: w.shot ?? `PLACEHOLDER - ${w.title} screenshot (16:10)` })),
+  ...WRITEUPS.map((w) => ({ name: w.title, view: w.view, shot: w.shot })),
 ]

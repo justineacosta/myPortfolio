@@ -267,3 +267,12 @@ test('phone: a swipe across the Funnels fan scrubs it; a tap opens the sites vie
   await fan.tap()
   await expect(page.getByRole('dialog', { name: 'Funnels and sites' })).toBeVisible()
 })
+
+test('phone: the Agentic Framework page fits the screen, its loop pans, and a tapped pin explains its rule', async ({ page }) => {
+  await page.goto('/agentic-framework.html#loop')
+  const width = page.viewportSize()!.width
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width)
+  await expect(page.locator('figure.canvas')).toHaveAttribute('data-overflow', '')
+  await page.getByRole('button', { name: 'Rule R1: Write the spec first' }).tap()
+  await expect(page.getByRole('dialog', { name: 'Write the spec first' })).toBeVisible()
+})

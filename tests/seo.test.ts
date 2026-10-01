@@ -43,6 +43,7 @@ describe('sitemap and robots', () => {
     const urls = sitemap().map((e) => e.url)
     expect(urls).toEqual([...indexedPaths(), ...STATIC_PAGES].map((p) => `${SITE_URL}${p === '/' ? '' : p}`))
     expect(urls).toContain(`${SITE_URL}/build-plan.html`)
+    expect(urls).toContain(`${SITE_URL}/agentic-framework.html`)
     expect(urls.some((u) => u.includes('thank-you'))).toBe(false)
   })
   it('points crawlers at the sitemap and keeps them out of the sample sites', () => {

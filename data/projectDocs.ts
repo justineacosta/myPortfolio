@@ -1,12 +1,12 @@
 import {
-  ArrowsClockwiseIcon, ArticleIcon, BooksIcon, BrowsersIcon, ChartBarIcon, ChatCircleIcon, CodeIcon, CoffeeIcon, CursorIcon, DatabaseIcon, FileJsIcon, FileTextIcon, FilmStripIcon, HashIcon, LightningIcon, ListChecksIcon, MagnifyingGlassIcon, MicrophoneIcon, PaperPlaneTiltIcon, PhoneCallIcon, ScissorsIcon, ShieldCheckIcon, ShippingContainerIcon, SparkleIcon, TargetIcon, TerminalWindowIcon, TimerIcon, UsersThreeIcon, WaveformIcon,
+  ArticleIcon, BooksIcon, BrowsersIcon, ChartBarIcon, ChatCircleIcon, CodeIcon, CoffeeIcon, DatabaseIcon, FileCodeIcon, FileJsIcon, FilmStripIcon, HashIcon, MagnifyingGlassIcon, MicrophoneIcon, PaperPlaneTiltIcon, PhoneCallIcon, ShieldCheckIcon, ShippingContainerIcon, SparkleIcon, TerminalWindowIcon, TimerIcon, UsersThreeIcon, WaveformIcon,
 } from '@phosphor-icons/react/ssr'
-import type { AgentGroup, Chip, Doc, DocView } from './projects'
+import type { AgentGroup, Chip } from './projects'
 
 /**
- * The Projects sub-views' long copy, verbatim from Kraft Projects
- * Board.dc.html:336-509, 634-655. Kept apart from data/projects.ts so the
- * shell (⌘K) never pulls it into other pages.
+ * The Projects AI agents view's long copy, verbatim from Kraft Projects
+ * Board.dc.html. Kept apart from data/projects.ts so the shell (⌘K) never
+ * pulls it into other pages.
  */
 const GROUPS: AgentGroup[] = [
   {
@@ -46,43 +46,6 @@ const GROUPS: AgentGroup[] = [
   },
 ]
 
-export const DOCS: Record<DocView, Doc> = {
-  'agentic-framework': {
-    kicker: 'HOW I BUILD WITH AI',
-    title: 'The Agentic Framework',
-    lede: 'The tools, the rules, and the loop I use to ship apps with AI instead of chatting with it.',
-    stack: [{ name: 'Claude Code', icon: TerminalWindowIcon }, { name: 'Codex', icon: CodeIcon }, { name: 'Cursor', icon: CursorIcon }],
-    sections: [
-      {
-        name: 'The tools', blurb: 'Each one has a job. I do not use three where one will do.',
-        cards: [
-          { step: '01', icon: TerminalWindowIcon, title: 'Claude Code', desc: 'The builder. Long tasks, real files, subagents for anything that can run in parallel.', meta: 'Opus for planning, Sonnet for volume' },
-          { step: '02', icon: CursorIcon, title: 'Cursor', desc: 'The editor. Where I read what was written and take over when precision beats speed.', meta: 'Human in the loop' },
-          { step: '03', icon: CodeIcon, title: 'Codex', desc: 'The second opinion. A fresh model reviewing a diff catches what the author missed.', meta: 'Review pass, not a build pass' },
-        ],
-      },
-      {
-        name: 'The rules', blurb: 'Non-negotiable, and they are what keep the output usable.',
-        cards: [
-          { step: 'R1', icon: FileTextIcon, title: 'Write the spec first', desc: 'If I cannot describe done in a paragraph, the agent will not find it in a thousand tokens.', meta: 'Spec before prompt' },
-          { step: 'R2', icon: ShieldCheckIcon, title: 'Every write is approval-gated', desc: 'Agents draft. Nothing reaches a client account, a repo, or a send button unreviewed.', meta: 'No autonomous writes' },
-          { step: 'R3', icon: ScissorsIcon, title: 'Small units of work', desc: 'One task, one context. A fresh session beats a long one every time.', meta: 'Reset early, reset often' },
-          { step: 'R4', icon: ListChecksIcon, title: 'The model grades itself', desc: 'Acceptance criteria go in with the task, and the output is checked against them before I look.', meta: 'Self-review built in' },
-        ],
-      },
-      {
-        name: 'The loop', blurb: 'Four steps, repeated until the criteria pass.',
-        cards: [
-          { step: '01', icon: TargetIcon, title: 'Frame', desc: 'Outcome, constraints, and the files that matter. Nothing else in context.', meta: 'Context is a budget' },
-          { step: '02', icon: LightningIcon, title: 'Build', desc: 'Agent works. I do not interrupt mid-task to add requirements.', meta: 'One brief per run' },
-          { step: '03', icon: MagnifyingGlassIcon, title: 'Check', desc: 'Run it, read it, and hand the diff to a second model before I trust it.', meta: 'Two-model review' },
-          { step: '04', icon: ArrowsClockwiseIcon, title: 'Fold back', desc: 'Whatever went wrong becomes a rule, so the next run does not repeat it.', meta: 'The framework grows' },
-        ],
-      },
-    ],
-  },
-}
-
 export const agentsView = {
   title: 'AI agents and RAG chatbots',
   kicker: 'AI AGENTS AND RAG CHATBOTS',
@@ -90,7 +53,7 @@ export const agentsView = {
   builtWith: [
     { name: 'Claude Code', icon: TerminalWindowIcon },
     { name: 'Codex', icon: CodeIcon },
-    { name: 'Cursor', icon: CursorIcon },
+    { name: 'VS Code', icon: FileCodeIcon },
     { name: 'Hermes', icon: ShieldCheckIcon },
   ] satisfies Chip[],
   groups: GROUPS,

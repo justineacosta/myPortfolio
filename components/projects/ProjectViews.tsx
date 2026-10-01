@@ -1,10 +1,9 @@
 'use client'
 
 import { useHashView } from '@/hooks/useHashView'
-import { DOCS } from '@/data/projectDocs'
-import { DOC_VIEWS, PROJECT_VIEWS } from '@/data/projects'
+import { PROJECT_VIEWS } from '@/data/projects'
+import AgenticFrameworkView from './AgenticFrameworkView'
 import AgentsView from './AgentsView'
-import DocView from './DocView'
 import EndToEndView from './EndToEndView'
 import PlanView from './PlanView'
 import ReelView from './ReelView'
@@ -18,9 +17,7 @@ export default function ProjectViews() {
   const { view, close } = useHashView(PROJECT_VIEWS)
   return (
     <>
-      {DOC_VIEWS.map((id) => (
-        <DocView key={id} doc={DOCS[id]} open={view === id} onClose={close} />
-      ))}
+      <AgenticFrameworkView open={view === 'agentic-framework'} onClose={close} />
       <EndToEndView open={view === 'end-to-end'} onClose={close} />
       <PlanView open={view === 'build-plan'} onClose={close} />
       <AgentsView open={view === 'ai-agents'} onClose={close} />

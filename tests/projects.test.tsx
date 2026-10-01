@@ -3,19 +3,19 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import Board from '@/components/projects/Board'
 import ProjectViews from '@/components/projects/ProjectViews'
-import { agentsView, DOCS } from '@/data/projectDocs'
-import { BUILDS, DOC_VIEWS, PROJECT_VIEWS, projects } from '@/data/projects'
+import { agentsView } from '@/data/projectDocs'
+import { BUILDS, PROJECT_VIEWS, projects } from '@/data/projects'
 import { installMatchMedia } from '@/test/matchMedia'
 
 describe('Projects data', () => {
-  it('names every sub-view once, and every write-up opens a document', () => {
+  it('names every sub-view once, and every write-up opens its own page', () => {
     expect(new Set(PROJECT_VIEWS).size).toBe(PROJECT_VIEWS.length)
-    expect(Object.keys(DOCS).sort()).toEqual([...DOC_VIEWS].sort())
-    expect(projects.writeups.every((w) => w.page || (DOC_VIEWS as readonly string[]).includes(w.view))).toBe(true)
+    expect(projects.writeups.every((w) => w.page && w.frameTitle && w.shot)).toBe(true)
   })
 
   it("keeps Kraft's roster, the build plan's sections, the reel and the sites", () => {
     expect(agentsView.groups.map((g) => g.name)).toEqual(['KapeAI', 'AI Agents', 'RAG Chatbots', 'Chatbots', 'Hermes'])
+    expect(agentsView.builtWith.map((c) => c.name)).toEqual(['Claude Code', 'Codex', 'VS Code', 'Hermes'])
     expect(projects.reel.shots.map((s) => s.label)).toEqual([
       'TM-01 · Quote request', 'Workflows list', 'TM-02 · Survey → Estimate', 'Workflow settings', 'Executions',
     ])
@@ -32,9 +32,16 @@ describe('Projects data', () => {
   it('opens the End-to-End Workflow as its own page, with a real 16:10 screenshot on Home', () => {
     const w = projects.writeups.find((x) => x.view === 'end-to-end')!
     expect(w).toMatchObject({ page: '/end-to-end.html', frameTitle: 'End-to-End Workflow graph', cue: 'READ THE WORKFLOW' })
-    expect(DOC_VIEWS).toEqual(['agentic-framework'])
     const shot = BUILDS.find((b) => b.view === 'end-to-end')!.shot
     expect(shot).toBe('/shots/end-to-end.jpeg')
+    expect(jpegSize(readFileSync(`public${shot}`))).toEqual({ width: 640, height: 400 })
+  })
+
+  it('opens the Agentic Framework as its own page, with a real 16:10 screenshot on Home', () => {
+    const w = projects.writeups.find((x) => x.view === 'agentic-framework')!
+    expect(w).toMatchObject({ page: '/agentic-framework.html', frameTitle: 'Agentic Framework page', cue: 'READ THE FRAMEWORK' })
+    const shot = BUILDS.find((b) => b.view === 'agentic-framework')!.shot
+    expect(shot).toBe('/shots/agentic-framework.jpeg')
     expect(jpegSize(readFileSync(`public${shot}`))).toEqual({ width: 640, height: 400 })
   })
 
@@ -129,14 +136,16 @@ describe('ProjectViews', () => {
     // Every sub-view, plus the site preview that stacks on the sites view.
     expect(dialogs).toHaveLength(PROJECT_VIEWS.length + 1)
     dialogs.forEach((d) => expect(d).not.toHaveAttribute('open'))
-    expect(document.body).toHaveTextContent('Write the spec first')
+    expect(document.body).toHaveTextContent('Refuses to guess.')
   })
 
-  it('opens the write-up a shared link names, and Close drops the hash', () => {
+  it('opens the write-up a shared link names, as its page in the window, and Close drops the hash', () => {
     window.history.replaceState(null, '', '/projects#agentic-framework')
     render(<ProjectViews />)
     const view = screen.getByRole('dialog', { name: 'The Agentic Framework' })
     expect(view).toHaveAttribute('open')
+    expect(within(view).getByTitle('Agentic Framework page')).toHaveAttribute('src', '/agentic-framework.html')
+    expect(within(view).getByRole('link', { name: 'Open in new tab' })).toHaveAttribute('href', '/agentic-framework.html')
     fireEvent.click(within(view).getByRole('button', { name: 'Close' }))
     expect(window.location.hash).toBe('')
     expect(view).not.toHaveAttribute('open')
