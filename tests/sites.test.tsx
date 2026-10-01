@@ -48,18 +48,18 @@ describe('Funnels and sites: the carousel and the preview', () => {
 
   it('lists every sample site as a button, in order', async () => {
     const view = openSites()
-    await within(view).findByRole('button', { name: 'Open Apex Build Co.' })
+    await within(view).findByRole('button', { name: 'Open Harbor & Pine Moving Co.' })
     const list = within(carousel(view)!).getByRole('list', { name: 'Sample sites' })
     expect(within(list).getAllByRole('button').map((b) => b.getAttribute('aria-label'))).toEqual(sites.map((s) => `Open ${s.name}`))
   })
 
   it('opens a site in the preview window, with the page and a new-tab link', async () => {
     const view = openSites()
-    fireEvent.click(within(view).getByRole('button', { name: 'Open Apex Build Co.' }))
-    const preview = screen.getByRole('dialog', { name: 'Apex Build Co. preview' })
+    fireEvent.click(within(view).getByRole('button', { name: 'Open Harbor & Pine Moving Co.' }))
+    const preview = screen.getByRole('dialog', { name: 'Harbor & Pine Moving Co. preview' })
     expect(preview).toHaveAttribute('open')
     expect(within(preview).getByRole('link', { name: 'Open in new tab' })).toHaveAttribute('href', sites[0].src)
-    const frame = await within(preview).findByTitle('Apex Build Co.')
+    const frame = await within(preview).findByTitle('Harbor & Pine Moving Co.')
     expect(frame).toHaveAttribute('src', sites[0].src)
     // A dropped-in client export may carry third-party scripts: they run, but not as the portfolio.
     expect(frame.getAttribute('sandbox')).toContain('allow-scripts')
@@ -68,8 +68,8 @@ describe('Funnels and sites: the carousel and the preview', () => {
 
   it('closing the preview goes back to the sites, with the page still locked', () => {
     const view = openSites()
-    fireEvent.click(within(view).getByRole('button', { name: 'Open Blade Studio' }))
-    const preview = screen.getByRole('dialog', { name: 'Blade Studio preview' })
+    fireEvent.click(within(view).getByRole('button', { name: 'Open Westmere' }))
+    const preview = screen.getByRole('dialog', { name: 'Westmere preview' })
     fireEvent.click(within(preview).getByRole('button', { name: 'Close preview' }))
     expect(preview).not.toHaveAttribute('open')
     expect(view).toHaveAttribute('open')
@@ -79,25 +79,25 @@ describe('Funnels and sites: the carousel and the preview', () => {
   it('says where the file goes when the page is missing', async () => {
     answer(404)
     const view = openSites()
-    fireEvent.click(within(view).getByRole('button', { name: 'Open Payline' }))
-    const preview = screen.getByRole('dialog', { name: 'Payline preview' })
+    fireEvent.click(within(view).getByRole('button', { name: 'Open Meridian Werks' }))
+    const preview = screen.getByRole('dialog', { name: 'Meridian Werks preview' })
     // Nothing loads until the page is known to exist: never a 404 inside the window.
-    expect(within(preview).queryByTitle('Payline')).toBeNull()
-    expect(await within(preview).findByText(sites[6].file)).toBeInTheDocument()
-    expect(within(preview).queryByTitle('Payline')).toBeNull()
+    expect(within(preview).queryByTitle('Meridian Werks')).toBeNull()
+    expect(await within(preview).findByText(sites[3].file)).toBeInTheDocument()
+    expect(within(preview).queryByTitle('Meridian Werks')).toBeNull()
     expect(within(preview).getByRole('link', { name: 'Open in new tab' })).toBeInTheDocument()
   })
 
   it('leaving the sites view closes the preview on it too', () => {
     const view = openSites()
-    fireEvent.click(within(view).getByRole('button', { name: 'Open Baptiste' }))
+    fireEvent.click(within(view).getByRole('button', { name: 'Open Ironline Utility Infrastructure' }))
     act(() => {
       window.history.replaceState(null, '', '/projects')
       window.dispatchEvent(new HashChangeEvent('hashchange'))
     })
     expect(view).not.toHaveAttribute('open')
     // A closed <dialog> has no role to query by, so find it by its label.
-    expect(document.querySelector('dialog[aria-label="Baptiste preview"]')).not.toHaveAttribute('open')
+    expect(document.querySelector('dialog[aria-label="Ironline Utility Infrastructure preview"]')).not.toHaveAttribute('open')
   })
 })
 
@@ -108,7 +108,7 @@ describe('Funnels and sites: the drum', () => {
   it('spins up the drum, and a pick opens the preview', async () => {
     const view = openSites()
     fireEvent.click(await within(view).findByText('drum pick'))
-    expect(screen.getByRole('dialog', { name: 'Apex Build Co. preview' })).toHaveAttribute('open')
+    expect(screen.getByRole('dialog', { name: 'Harbor & Pine Moving Co. preview' })).toHaveAttribute('open')
     expect(carousel(view)).toBeNull()
   })
 
@@ -144,10 +144,10 @@ describe('Funnels and sites: the drum', () => {
     setDrumThrows(true)
     try {
       const view = openSites()
-      await within(view).findByRole('button', { name: 'Open Apex Build Co.' })
+      await within(view).findByRole('button', { name: 'Open Harbor & Pine Moving Co.' })
       expect(carousel(view)).toBeInTheDocument()
-      fireEvent.click(within(carousel(view)!).getByRole('button', { name: 'Open Apex Build Co.' }))
-      expect(screen.getByRole('dialog', { name: 'Apex Build Co. preview' })).toHaveAttribute('open')
+      fireEvent.click(within(carousel(view)!).getByRole('button', { name: 'Open Harbor & Pine Moving Co.' }))
+      expect(screen.getByRole('dialog', { name: 'Harbor & Pine Moving Co. preview' })).toHaveAttribute('open')
     } finally {
       setDrumThrows(false)
     }
@@ -157,7 +157,7 @@ describe('Funnels and sites: the drum', () => {
     const view = openSites()
     fireEvent.click(await within(view).findByText('drum pick'))
     expect(within(view).getByTestId('drum')).toHaveAttribute('data-paused', 'true')
-    const preview = screen.getByRole('dialog', { name: 'Apex Build Co. preview' })
+    const preview = screen.getByRole('dialog', { name: 'Harbor & Pine Moving Co. preview' })
     fireEvent.click(within(preview).getByRole('button', { name: projects.sitesView.preview.close }))
     expect(within(view).getByTestId('drum')).toHaveAttribute('data-paused', 'false')
   })

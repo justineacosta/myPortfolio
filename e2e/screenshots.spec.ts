@@ -31,7 +31,7 @@ test.describe('@shots', () => {
         await page.goto('/projects#sites')
         await page.waitForTimeout(2500) // the drum loads its thumbnails
         await page.screenshot({ path: `test-results/shots/app-sites-${theme}-${size.name}.png` })
-        await page.getByRole('button', { name: 'Open Apex Build Co.' }).dispatchEvent('click')
+        await page.getByRole('button', { name: 'Open Harbor & Pine Moving Co.' }).dispatchEvent('click')
         await page.waitForTimeout(1200)
         await page.screenshot({ path: `test-results/shots/app-preview-${theme}-${size.name}.png` })
       }

@@ -31,19 +31,17 @@ const REEL: Screenshot[] = [
 ].map((label) => ({ label, src: `PLACEHOLDER - n8n workflow screenshot: ${label} (16:10)` }))
 
 /**
- * Kraft's sample sites, in its order. Every page is a PLACEHOLDER written by
- * scripts/make-sites.mjs. Replace a page in public/samples/, then run
- * `npm run thumbs` to re-shoot its thumbnail.
+ * The sample sites, in the carousel's order; the first is the fan's shot on
+ * Home. Each is a standalone HTML page in public/samples/. To add one, drop
+ * it there under a lowercase-hyphenated name, add a line here, then run
+ * `npm run thumbs` to shoot its thumbnails.
  */
 const SITES: Site[] = [
-  ['Apex Build Co.', 'sample-auto-repair-performance-tuning.html'],
-  ['Blade Studio', 'sample-brand-studio.html'],
-  ['Below Ground', 'sample-utility-contractor.html'],
-  ['Baptiste', 'sample-law-firm.html'],
-  ['One Hour Therapy', 'sample-therapy-clinic.html'],
-  ['Trusted Mover', 'sample-moving-company.html'],
-  ['Payline', 'sample-fintech-funnel.html'],
-  ['Solar Field', 'sample-solar-installer.html'],
+  ['Harbor & Pine Moving Co.', 'harbor-and-pine-moving.html'],
+  ['Westmere', 'westmere-los-angeles.html'],
+  ['Ironline Utility Infrastructure', 'ironline-utility-infrastructure.html'],
+  ['Meridian Werks', 'meridian-werks.html'],
+  ['Meridian Energy Infrastructure', 'meridian-energy-infrastructure.html'],
 ].map(([name, file]) => {
   const shot = file.replace(/\.html$/, '.jpeg')
   return { name, file, src: `/samples/${file}`, thumb: `/samples/thumbs/${shot}`, tall: `/samples/thumbs/tall/${shot}` }
@@ -92,11 +90,11 @@ export const projects = {
         { name: 'Claude', slug: 'claude' }, { name: 'n8n', slug: 'n8n' }, { name: 'Supabase', slug: 'supabase' }, { name: 'Gmail', slug: 'gmail' },
         { name: 'Google Sheets', slug: 'googlesheets' }, { name: 'Telegram', slug: 'telegram' }, { name: 'Stripe', slug: 'stripe' }, { name: 'Cal.com', slug: 'caldotcom' },
       ] satisfies Brand[],
-      /** The card's preview (components/projects/AgentsPreview.tsx): the page's Trusted Mover chat, then Blade Studio's agent run. */
+      /** The card's preview (components/projects/AgentsPreview.tsx): the page's Harbor & Pine chat, then its billing agent's run. */
       preview: {
         question: 'Do you move pianos, and what does it add?',
         search: 'Searching 5 passages · Supabase',
-        answer: 'Yes. Uprights add $150; grands need a site visit first.',
+        answer: 'Yes. Uprights add $150; baby grands need a walkthrough first.',
         source: 'Pricing guide §4',
         run: ['Stripe · invoice 14 days overdue', 'Drafting a reminder'] as [string, string],
         approve: 'Approve?',

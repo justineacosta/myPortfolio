@@ -38,20 +38,20 @@ describe('SitesCard (the Funnels and sites card)', () => {
   it('is one link to the sites view, with every sample site in its fan and the third in front', () => {
     renderCard()
     expect(screen.getByRole('link', { name: /^Funnels and sites/ })).toHaveAttribute('href', '#sites')
-    expect(document.querySelectorAll('[data-fan-tile]')).toHaveLength(8)
+    expect(document.querySelectorAll('[data-fan-tile]')).toHaveLength(names.length)
     expect(fan()).toHaveAttribute('aria-hidden', 'true')
     expect(front()).toBe(names[2])
   })
 
-  it('turns one site every SPIN_MS while it is on screen, all eight taking the front', () => {
+  it('turns one site every SPIN_MS while it is on screen, every one taking the front', () => {
     renderCard()
     const seen = [front()]
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < names.length - 1; i++) {
       act(() => vi.advanceTimersByTime(SPIN_MS))
       seen.push(front())
     }
     expect(seen[1]).toBe(names[3])
-    expect(new Set(seen).size).toBe(8)
+    expect(new Set(seen).size).toBe(names.length)
   })
 
   it('holds still while a mouse is over the fan, and turns again after it leaves', () => {
