@@ -1,13 +1,14 @@
 import type { Icon } from '@phosphor-icons/react'
 import {
-  BlueprintIcon, BooksIcon, BrainIcon, BrowsersIcon, EyeIcon, FilmStripIcon, FlowArrowIcon, GraphIcon, MagnifyingGlassIcon, RobotIcon, SparkleIcon,
+  BlueprintIcon, BrainIcon, BrowsersIcon, ChatCircleDotsIcon, FlowArrowIcon, GraphIcon, RobotIcon,
 } from '@phosphor-icons/react/ssr'
+import type { Brand } from './stack'
 
 /**
  * The Projects board and its sub-views, verbatim from Kraft Projects
  * Board.dc.html. Screens Kraft left as empty image slots are PLACEHOLDERs.
- * The AI agents roster lives in data/projectDocs.ts, so only /projects
- * downloads it (this module also feeds the ⌘K list on every page).
+ * The AI agents card opens public/ai-agents.html (data/agents.ts). This
+ * module also feeds the ⌘K list on every page, so it stays small.
  */
 
 /** Every sub-view the board opens. Each id is also its URL hash (/projects#build-plan). */
@@ -15,8 +16,6 @@ export const PROJECT_VIEWS = ['reel', 'build-plan', 'agentic-framework', 'end-to
 export type ProjectView = (typeof PROJECT_VIEWS)[number]
 
 export type Chip = { name: string; icon: Icon }
-export type AgentCard = { title: string; icon: Icon; live: boolean; icons: Icon[]; desc: string; meta: string; tags: string[] }
-export type AgentGroup = { name: string; blurb: string; cards: AgentCard[] }
 export type Screenshot = { src: string; label: string }
 /** A sample site: its page, a 3:4 thumbnail, and a tall shot (up to four screens) the Funnels card peeks through. */
 export type Site = { name: string; file: string; src: string; thumb: string; tall: string }
@@ -61,9 +60,6 @@ export const projects = {
   nudge: 'CLICK A CARD TO OPEN IT',
   close: 'Close',
   openNewTab: 'Open in new tab',
-  builtWith: 'BUILT WITH',
-  live: 'LIVE',
-  internal: 'INTERNAL',
   cards: {
     reel: {
       title: 'Automations', icon: FlowArrowIcon, cue: 'VIEW THE REEL', cta: 'OPEN THE REEL',
@@ -84,15 +80,28 @@ export const projects = {
       fanHint: 'Site',
     },
     agents: {
-      title: 'AI agents and RAG chatbots', icon: RobotIcon, cue: 'VIEW THE AGENTS', cta: 'SEE EVERY SYSTEM',
-      body: 'Retrieval chatbots and task agents wired to real data.',
-      chips: [
-        { name: 'KapeSEO', icon: MagnifyingGlassIcon },
-        { name: 'KAPE Reel worker', icon: FilmStripIcon },
-        { name: 'Kape AI knowledge search', icon: BooksIcon },
-        { name: 'KapeAI', icon: SparkleIcon },
-        { name: 'Watcher', icon: EyeIcon },
+      title: 'AI agents and RAG chatbots', icon: RobotIcon, cue: 'VIEW THE AGENTS', cta: 'SEE HOW THEY WORK',
+      body: 'Sample RAG chatbots and agents, and how each one works.',
+      page: '/ai-agents.html', frameTitle: 'AI agents and RAG chatbots page',
+      /** Counted from data/agents.ts's builds (tests/projects.test.tsx checks they agree). */
+      counts: [
+        { name: '4 RAG chatbots', icon: ChatCircleDotsIcon },
+        { name: '4 AI agents', icon: RobotIcon },
       ] satisfies Chip[],
+      logos: [
+        { name: 'Claude', slug: 'claude' }, { name: 'n8n', slug: 'n8n' }, { name: 'Supabase', slug: 'supabase' }, { name: 'Gmail', slug: 'gmail' },
+        { name: 'Google Sheets', slug: 'googlesheets' }, { name: 'Telegram', slug: 'telegram' }, { name: 'Stripe', slug: 'stripe' }, { name: 'Cal.com', slug: 'caldotcom' },
+      ] satisfies Brand[],
+      /** The card's preview (components/projects/AgentsPreview.tsx): a RAG chat, then an agent run. */
+      preview: {
+        question: 'Can I switch plans mid-month?',
+        search: 'Searching 5 passages · Supabase',
+        answer: 'Yes. The change starts today and the difference is prorated on your next invoice.',
+        source: 'Billing FAQ §2',
+        run: ['Stripe · payment failed', 'Drafting a reminder'] as [string, string],
+        approve: 'Approve?',
+        buttons: ['Approve', 'Edit'] as [string, string],
+      },
     },
   },
   writeups: WRITEUPS,
@@ -136,6 +145,6 @@ export const BUILDS: Build[] = [
   { name: projects.cards.reel.title, view: 'reel', shot: 'PLACEHOLDER - Automations screenshot (16:10)' },
   { name: projects.cards.plan.title, view: 'build-plan', shot: '/shots/build-plan.jpeg' },
   { name: projects.cards.sites.title, view: 'sites', shot: SITES[0].thumb, tall: SITES[0].tall },
-  { name: projects.cards.agents.title, view: 'ai-agents', shot: 'PLACEHOLDER - AI agents screenshot (16:10)' },
+  { name: projects.cards.agents.title, view: 'ai-agents', shot: '/shots/ai-agents.jpeg' },
   ...WRITEUPS.map((w) => ({ name: w.title, view: w.view, shot: w.shot })),
 ]

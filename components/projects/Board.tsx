@@ -1,12 +1,15 @@
 'use client'
 
+import Image from 'next/image'
 import { useRef, useState, type MouseEvent, type PointerEvent } from 'react'
 import { ArrowUpRightIcon, HandPointingIcon } from '@phosphor-icons/react/ssr'
 import Frame from '@/components/ui/Frame'
 import Shot from '@/components/ui/Shot'
 import { projects } from '@/data/projects'
+import { brandIcon } from '@/data/stack'
 import { pushHash } from '@/lib/hash'
 import { prefersReducedMotion } from '@/lib/motion'
+import AgentsPreview from './AgentsPreview'
 import SitesCard from './SitesCard'
 import { BODY, CARD, CTA, TILE, TITLE } from './styles'
 
@@ -137,14 +140,19 @@ export default function Board() {
             </span>
             <h2 className={TITLE}>{c.agents.title}</h2>
             <p className={`${BODY} max-w-[420px]`}>{c.agents.body}</p>
-            <div className="mt-auto flex flex-wrap gap-2 pt-3.5">
-              {c.agents.chips.map((a) => (
+            <AgentsPreview />
+            <div className="mt-auto flex flex-wrap items-center gap-2 pt-3.5">
+              {c.agents.counts.map((a) => (
                 <span key={a.name} className="flex items-center gap-2 rounded-full border border-b1 bg-s0 px-3 py-2 text-[12.5px] text-ink2">
-                  <a.icon size={14} aria-hidden className="text-ink3" />
+                  <a.icon size={14} aria-hidden className="text-accent" />
                   {a.name}
-                  <span aria-hidden className="size-1.5 rounded-full bg-accent" />
                 </span>
               ))}
+              <span className="ml-1 flex flex-wrap items-center gap-2">
+                {c.agents.logos.map((l) => (
+                  <Image key={l.slug} src={brandIcon(l.slug)} alt="" width={16} height={16} className="block" />
+                ))}
+              </span>
             </div>
             <span className={CTA}>
               {c.agents.cta} <ArrowUpRightIcon size={13} aria-hidden />

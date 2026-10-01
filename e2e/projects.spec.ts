@@ -400,3 +400,40 @@ test('a page opened in a new tab from its dialog keeps the site’s performance 
   await tab.waitForTimeout(4000)
   await expect(tab.locator('canvas[data-contour]')).toHaveCount(0)
 })
+
+test('the AI agents card opens its page in the window; Escape clears a shown route first, then closes', async ({ page }) => {
+  await page.goto('/projects')
+  await hydrated(page)
+  await page.getByRole('link', { name: /^AI agents and RAG chatbots/ }).click()
+  const view = page.getByRole('dialog', { name: 'AI agents and RAG chatbots' })
+  await expect(view.getByRole('link', { name: 'Open in new tab' })).toHaveAttribute('href', '/ai-agents.html')
+  const frame = page.frameLocator('iframe[title="AI agents and RAG chatbots page"]')
+  const btn = frame.getByRole('button', { name: 'Show its route: Billing follow-up agent' })
+  await btn.click()
+  await expect(frame.locator('figure[data-diagram="agent"]')).toHaveAttribute('data-focus', 'billing')
+  await page.keyboard.press('Escape')
+  await expect(frame.locator('figure[data-diagram="agent"]')).not.toHaveAttribute('data-focus')
+  await expect(view).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(view).toBeHidden()
+})
+
+test('the AI agents card’s preview plays only on screen, and holds still under reduced motion', async ({ browser }) => {
+  for (const reducedMotion of ['no-preference', 'reduce'] as const) {
+    const ctx = await browser.newContext({ reducedMotion, viewport: { width: 1280, height: 400 } })
+    const page = await ctx.newPage()
+    await page.goto('/projects')
+    await hydrated(page)
+    const q = page.locator('.agents-preview .ap-q')
+    const state = () => q.evaluate((el) => ({ name: getComputedStyle(el).animationName, play: getComputedStyle(el).animationPlayState }))
+    if (reducedMotion === 'reduce') {
+      expect((await state()).name).toBe('none')
+      await expect(q).toBeVisible()
+    } else {
+      expect((await state()).play).toBe('paused')
+      await page.locator('.agents-preview').scrollIntoViewIfNeeded()
+      await expect.poll(async () => (await state()).play).toBe('running')
+    }
+    await ctx.close()
+  }
+})

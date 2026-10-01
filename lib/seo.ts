@@ -12,7 +12,7 @@ export const OG_BASE = { siteName: profile.studio, type: 'website', locale: 'en_
 export const indexedPaths = () => [...visibleNav().map((n) => n.href), ...legalLinks.map((l) => l.href)]
 
 /** Stand-alone pages in public/ that search engines should find too (spec 2026-09-30: the build plan). */
-export const STATIC_PAGES = ['/build-plan.html', '/end-to-end.html', '/agentic-framework.html']
+export const STATIC_PAGES = ['/build-plan.html', '/end-to-end.html', '/agentic-framework.html', '/ai-agents.html']
 
 /**
  * A route's metadata (spec §13): the title (Home carries the full site name),
