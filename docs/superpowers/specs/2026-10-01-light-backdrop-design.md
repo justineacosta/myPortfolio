@@ -57,7 +57,7 @@
 - **The site's limits:** it starts only after `load`, at idle time, and only if all of these hold:
   - a fine pointer (not `(pointer: coarse) and (hover: none)`)
   - motion allowed: no `prefers-reduced-motion: reduce`, and no `data-a11y-motion=true`
-  - the performance setting is not `low`. Inside the dialog, `data-perf` is copied from the site with the other mirrored attributes; opened alone, it is read from `sessionStorage['kraft-perf']`.
+  - the performance setting is not `low`. Inside the dialog, `data-perf` is copied from the site with the other mirrored attributes; opened alone, the head script copies `sessionStorage['kraft-perf']` onto `data-perf`, as the site's boot script does, so the glow holds still too. The dialog's "Open in new tab" link uses `rel="opener"` (same origin), so the new tab inherits that setting.
   - WebGL 1 with `OES_standard_derivatives` is available. If not, or if the context is lost, the canvas is removed and the flat `--bg` carries the page.
 - **Turning off mid-page:** if motion is turned off or the setting drops to `low` after it started, it stops and removes its canvas.
 - **Layer:** `<canvas data-contour aria-hidden="true">`, fixed and full-window, behind the content. Hidden in print.

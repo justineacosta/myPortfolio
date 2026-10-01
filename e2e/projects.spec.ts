@@ -388,3 +388,15 @@ test('a standalone page in its dialog copies the site’s performance setting', 
   await page.evaluate(() => (document.documentElement.dataset.perf = 'low'))
   await expect.poll(() => frame.locator('html').getAttribute('data-perf')).toBe('low')
 })
+
+test('a page opened in a new tab from its dialog keeps the site’s performance setting, so a slow device gets no contour', async ({ page }) => {
+  await page.goto('/projects#end-to-end')
+  await hydrated(page)
+  await page.evaluate(() => sessionStorage.setItem('kraft-perf', 'low'))
+  const view = page.getByRole('dialog', { name: 'The End-to-End Workflow' })
+  const [tab] = await Promise.all([page.waitForEvent('popup'), view.getByRole('link', { name: 'Open in new tab' }).click()])
+  await tab.waitForLoadState('load')
+  await expect(tab.locator('html')).toHaveAttribute('data-perf', 'low')
+  await tab.waitForTimeout(4000)
+  await expect(tab.locator('canvas[data-contour]')).toHaveCount(0)
+})

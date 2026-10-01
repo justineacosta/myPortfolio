@@ -28,20 +28,21 @@ describe('light by default', () => {
   })
 })
 
-/** Runs the head script against stand-ins for the page, its frame parent and storage. */
-function run(o: { framed?: boolean; host?: string; saved?: string | null; blocked?: boolean }) {
+/** Runs the head script against stand-ins for the page, its frame parent and storage; returns the page's data attributes. */
+function runAll(o: { framed?: boolean; host?: string; saved?: string | null; blocked?: boolean; perf?: string | null }) {
   const el = { dataset: {} as Record<string, string> }
   const win: { parent?: unknown } = {}
   win.parent = o.framed ? { document: { documentElement: { dataset: o.host === undefined ? {} : { theme: o.host } } } } : win
-  const localStorage = {
+  const store = (key: string, value: string | null | undefined) => ({
     getItem: (k: string) => {
       if (o.blocked) throw new Error('blocked')
-      return k === 'kraft-theme' ? (o.saved ?? null) : null
+      return k === key ? (value ?? null) : null
     },
-  }
-  new Function('window', 'document', 'localStorage', themeHeadJs())(win, { documentElement: el }, localStorage)
-  return el.dataset.theme
+  })
+  new Function('window', 'document', 'localStorage', 'sessionStorage', themeHeadJs())(win, { documentElement: el }, store('kraft-theme', o.saved), store('kraft-perf', o.perf))
+  return el.dataset
 }
+const run = (o: Parameters<typeof runAll>[0]) => runAll(o).theme
 
 describe('the head script', () => {
   it('opens a page on its own light, unless the visitor saved dark on the portfolio', () => {
@@ -56,5 +57,15 @@ describe('the head script', () => {
     expect(run({ framed: true, host: 'dark' })).toBe('dark')
     expect(run({ framed: true })).toBe('dark')
     expect(run({ framed: true, host: 'light', saved: 'dark' })).toBe('light')
+  })
+
+  it('on its own, carries the site’s saved performance setting, so a slow device keeps the backdrop still', () => {
+    expect(runAll({ perf: 'low' }).perf).toBe('low')
+    expect(runAll({ perf: 'mid' }).perf).toBe('mid')
+    expect(runAll({ perf: 'high' }).perf).toBeUndefined()
+    expect(runAll({}).perf).toBeUndefined()
+    expect(runAll({ perf: 'low', blocked: true }).perf).toBeUndefined()
+    // Inside the dialog the page script copies the site's own attribute instead.
+    expect(runAll({ framed: true, perf: 'low' }).perf).toBeUndefined()
   })
 })

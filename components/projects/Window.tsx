@@ -27,7 +27,9 @@ export default function Window({ open, onClose, title, children, href, flush = f
             {href ?? title}
           </span>
           {href && (
-            <a href={href} target="_blank" rel="noopener" aria-label={projects.openNewTab} className={CHROME_BUTTON}>
+            // Same-origin page, so keeping the opener is safe, and it lets the new tab inherit this tab's
+            // sessionStorage: the site's performance setting (lib/perf.ts) reaches the standalone page.
+            <a href={href} target="_blank" rel="opener" aria-label={projects.openNewTab} className={CHROME_BUTTON}>
               <ArrowSquareOutIcon size={17} aria-hidden />
             </a>
           )}

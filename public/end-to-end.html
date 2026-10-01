@@ -15,6 +15,15 @@
     dark = false
   }
   document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+  // On its own, carry the site's per-tab performance setting (lib/perf.ts), as the site's boot script does,
+  // so a device the site stepped down keeps the backdrop still. Inside the dialog, client.js mirrors it.
+  if (window.parent !== window) return
+  try {
+    const perf = sessionStorage.getItem('kraft-perf')
+    if (perf === 'mid' || perf === 'low') document.documentElement.dataset.perf = perf
+  } catch {
+    /* storage blocked: the page runs at full detail */
+  }
 })()
 </script>
 <title>End-to-End Workflow · Justine Acosta</title>
