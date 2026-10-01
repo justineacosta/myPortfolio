@@ -5,7 +5,7 @@ import { esc } from '../buildPlan/render.ts'
 import type { Themes } from '../buildPlan/styles.ts'
 import { iconSvg } from '../endToEnd/icons.ts'
 import { livelyCss } from '../brand/lively.ts'
-import { backdropHtml, glossaryLogo, logo, logoBadges, logoSheet, revealJs, toolByName, toolStrip, toolTemplates, toolsUsed } from '../brand/render.ts'
+import { backdropHtml, glossaryLogo, logo, logoBadges, logoSheet, revealJs, toolByName, toolStrip, toolTemplates, toolsUsed, themeHeadJs } from '../brand/render.ts'
 import type { ToolId } from '../brand/tools.ts'
 import { readContrast, readTokens } from '../tokens.ts'
 import { layoutLoop } from './layout.ts'
@@ -128,6 +128,7 @@ export function renderAgenticFramework(g: AgenticFramework = AF, themes: Themes 
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<script>${themeHeadJs()}</script>
 <title>${esc(g.title)}</title>
 <meta name="description" content="${esc(g.description)}">
 <meta property="og:title" content="${esc(g.title)}">

@@ -192,12 +192,13 @@ test('prints without balls, buttons or chips, and keeps the tints', async ({ pag
     expect(await page.locator(sel).first().evaluate((el) => getComputedStyle(el).printColorAdjust), sel).toBe('exact')
 })
 
-test('on its own it follows the device theme and links back to the portfolio', async ({ browser }) => {
-  for (const [scheme, bg] of [['light', 'rgb(242, 245, 241)'], ['dark', 'rgb(5, 5, 5)']] as const) {
-    const ctx = await browser.newContext({ colorScheme: scheme })
+test('on its own it opens light unless dark was chosen on the portfolio, and links back to it', async ({ browser }) => {
+  for (const [saved, bg] of [[null, 'rgb(242, 245, 241)'], ['dark', 'rgb(5, 5, 5)'], ['light', 'rgb(242, 245, 241)']] as const) {
+    const ctx = await browser.newContext({ colorScheme: 'dark' })
+    if (saved) await ctx.addInitScript((t) => localStorage.setItem('kraft-theme', t), saved)
     const page = await ctx.newPage()
     await page.goto(PAGE)
-    await expect(page.locator('body')).toHaveCSS('background-color', bg)
+    await expect(page.locator('body'), String(saved)).toHaveCSS('background-color', bg)
     await expect(page.getByRole('link', { name: '← Justine Acosta · Portfolio' })).toBeVisible()
     await ctx.close()
   }

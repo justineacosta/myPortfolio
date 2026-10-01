@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { KIND_LABELS, KIND_NOTES, plan as PLAN, type NodeKind, type Plan, type Rail, type Workflow } from '../../data/buildPlan.ts'
 import { livelyCss } from '../brand/lively.ts'
-import { backdropHtml, logoBadges, logoSheet, revealJs, toolStrip, toolTemplates, toolsUsed } from '../brand/render.ts'
+import { backdropHtml, logoBadges, logoSheet, revealJs, toolStrip, toolTemplates, toolsUsed, themeHeadJs } from '../brand/render.ts'
 import type { ToolId } from '../brand/tools.ts'
 import { readContrast, readTokens } from '../tokens.ts'
 import { iconSvg } from './icons.ts'
@@ -109,6 +109,7 @@ export function renderPlan(p: Plan = PLAN, themes: Themes = { dark: readTokens('
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<script>${themeHeadJs()}</script>
 <title>${esc(p.title)}</title>
 <meta name="description" content="${esc(p.description)}">
 <meta property="og:title" content="${esc(p.title)}">

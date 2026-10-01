@@ -28,15 +28,13 @@ function siteGlow(): string {
 
 /**
  * The shared lively layer (spec 2026-10-01-lively-pages §4–6), added after a
- * page's own CSS so it wins ties. Its theme blocks mirror pageCss: dark first,
- * the device theme when the page is opened alone, the site's data-theme inside
- * its dialog, and light in print. The site's drifting glow sits behind the page.
+ * page's own CSS so it wins ties. Its theme blocks mirror pageCss: light first,
+ * dark under [data-theme=dark], light in print. The site's drifting glow sits
+ * behind the page.
  */
 export function livelyCss(): string {
   return `
-:root{${DARK}}
-@media (prefers-color-scheme: light){:root:not([data-theme=dark]){${LIGHT}}}
-:root[data-theme=light]{${LIGHT}}
+:root{${LIGHT}}
 :root[data-theme=dark]{${DARK}}
 .k-trigger{--k:var(--k-trigger)}
 .k-ai{--k:var(--k-ai)}

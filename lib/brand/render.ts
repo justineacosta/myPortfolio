@@ -72,3 +72,6 @@ export const revealJs = () => readFileSync(join(process.cwd(), 'lib/brand/reveal
 
 /** The site's drifting glow, first in <body>, behind everything (spec 2026-10-01-light-backdrop §4.1). */
 export const backdropHtml = () => '<div class="page-glow" aria-hidden="true"><div></div></div>'
+
+/** The theme head script (spec 2026-10-01-light-backdrop §3.2), ready to inline first in <head>. */
+export const themeHeadJs = () => readFileSync(join(process.cwd(), 'lib/brand/theme.js'), 'utf8').replace(/\r\n/g, '\n')

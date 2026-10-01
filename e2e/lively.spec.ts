@@ -42,6 +42,7 @@ for (const PAGE of PAGES) {
 
   test(`${PAGE}: prints everything, without the glow, in the light logos`, async ({ browser }) => {
     const ctx = await browser.newContext({ colorScheme: 'dark' })
+    await ctx.addInitScript(() => localStorage.setItem('kraft-theme', 'dark'))
     const page = await ctx.newPage()
     await page.goto(PAGE)
     await page.emulateMedia({ media: 'print' })
@@ -83,15 +84,16 @@ test('opened at a hash, the target section is revealed once the jump lands', asy
 })
 
 test('mono logos and Codex follow the theme', async ({ browser }) => {
-  for (const scheme of ['light', 'dark'] as const) {
-    const ctx = await browser.newContext({ colorScheme: scheme })
+  for (const theme of ['light', 'dark'] as const) {
+    const ctx = await browser.newContext()
+    await ctx.addInitScript((t) => localStorage.setItem('kraft-theme', t), theme)
     const page = await ctx.newPage()
     await page.goto('/end-to-end.html')
     const body = await page.locator('body').evaluate((el) => getComputedStyle(el).backgroundColor)
-    for (const mono of await page.locator('.tool-chip .logo.mono').all()) expect(await mono.evaluate((el) => getComputedStyle(el).color), scheme).not.toBe(body)
+    for (const mono of await page.locator('.tool-chip .logo.mono').all()) expect(await mono.evaluate((el) => getComputedStyle(el).color), theme).not.toBe(body)
     const codex = page.locator('.tool-chip').filter({ hasText: 'Codex' })
-    await expect(codex.locator(scheme === 'dark' ? '.logo-dark' : '.logo-light')).toBeVisible()
-    await expect(codex.locator(scheme === 'dark' ? '.logo-light' : '.logo-dark')).toBeHidden()
+    await expect(codex.locator(theme === 'dark' ? '.logo-dark' : '.logo-light')).toBeVisible()
+    await expect(codex.locator(theme === 'dark' ? '.logo-light' : '.logo-dark')).toBeHidden()
     await ctx.close()
   }
 })

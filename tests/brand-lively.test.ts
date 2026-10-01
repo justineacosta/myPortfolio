@@ -26,10 +26,8 @@ describe('livelyCss', () => {
     }
   })
 
-  it('defines the kind colours dark first, then for a light device, each theme attribute and print', () => {
-    expect(css).toContain(`:root{--k-trigger:${KINDS.dark.trigger}`)
-    expect(css).toContain(`@media (prefers-color-scheme: light){:root:not([data-theme=dark]){--k-trigger:${KINDS.light.trigger}`)
-    expect(css).toContain(`:root[data-theme=light]{--k-trigger:${KINDS.light.trigger}`)
+  it('defines the kind colours light first, dark under data-theme=dark, and light again in print', () => {
+    expect(css).toContain(`:root{--k-trigger:${KINDS.light.trigger}`)
     expect(css).toContain(`:root[data-theme=dark]{--k-trigger:${KINDS.dark.trigger}`)
     expect(css).toMatch(new RegExp(`@media print\\{\\s*:root,:root\\[data-theme\\]\\{--k-trigger:${KINDS.light.trigger}`))
   })

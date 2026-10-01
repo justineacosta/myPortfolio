@@ -3,6 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<script>// Light unless the visitor chose dark (spec 2026-10-01-light-backdrop §3.2). Runs first in <head>, before the
+// page draws. On its own, the page reads the portfolio's saved choice. Inside the site's dialog it starts in
+// the site's theme (dark unless the site says light, the site's own rule), which the page script then mirrors
+// live, so there is no flash.
+;(() => {
+  let dark = false
+  try {
+    dark = window.parent !== window ? window.parent.document.documentElement.dataset.theme !== 'light' : localStorage.getItem('kraft-theme') === 'dark'
+  } catch {
+    dark = false
+  }
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+})()
+</script>
 <title>Trusted Mover build plan</title>
 <meta name="description" content="An n8n build plan for a moving company: six workflows, three helpers, a test matrix and a handover, planned before anything is built.">
 <meta property="og:title" content="Trusted Mover build plan">
@@ -14,12 +28,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
 <style>
-:root{--bg:#050505;--frame:#060607;--s0:#0C0E10;--s1:#0A0B0D;--s2:#0F1113;--s3:#15181A;--chip:#141719;--hover:#101315;--b1:rgba(215,255,224,.075);--b2:rgba(215,255,224,.17);--ink:#F1F5F2;--ink2:#C2CBC5;--ink3:#7C8781;--ink4:#5C655F;--accent:#D7FFE0;--onAccent:#041008;--wash:rgba(215,255,224,.1);--washB:rgba(215,255,224,.2);--glow:rgba(215,255,224,.55);--amb:19,74,48;color-scheme:dark;--sans:"Geist",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-@media (prefers-color-scheme: light){:root:not([data-theme=dark]){--bg:#F2F5F1;--frame:#FFFFFF;--s0:#F7F9F5;--s1:#FFFFFF;--s2:#FBFCF9;--s3:#EFF3EC;--chip:#EDF2EB;--hover:#E7EEE6;--b1:rgba(11,46,30,.11);--b2:rgba(11,46,30,.22);--ink:#0B1310;--ink2:#3B4742;--ink3:#69756F;--ink4:#8A938E;--accent:#0E6B44;--onAccent:#F3FFF8;--wash:rgba(14,107,68,.09);--washB:rgba(14,107,68,.22);--glow:rgba(14,107,68,.3);--amb:150,205,175;color-scheme:light}}
-:root[data-theme=light]{--bg:#F2F5F1;--frame:#FFFFFF;--s0:#F7F9F5;--s1:#FFFFFF;--s2:#FBFCF9;--s3:#EFF3EC;--chip:#EDF2EB;--hover:#E7EEE6;--b1:rgba(11,46,30,.11);--b2:rgba(11,46,30,.22);--ink:#0B1310;--ink2:#3B4742;--ink3:#69756F;--ink4:#8A938E;--accent:#0E6B44;--onAccent:#F3FFF8;--wash:rgba(14,107,68,.09);--washB:rgba(14,107,68,.22);--glow:rgba(14,107,68,.3);--amb:150,205,175;color-scheme:light}
+:root{--bg:#F2F5F1;--frame:#FFFFFF;--s0:#F7F9F5;--s1:#FFFFFF;--s2:#FBFCF9;--s3:#EFF3EC;--chip:#EDF2EB;--hover:#E7EEE6;--b1:rgba(11,46,30,.11);--b2:rgba(11,46,30,.22);--ink:#0B1310;--ink2:#3B4742;--ink3:#69756F;--ink4:#8A938E;--accent:#0E6B44;--onAccent:#F3FFF8;--wash:rgba(14,107,68,.09);--washB:rgba(14,107,68,.22);--glow:rgba(14,107,68,.3);--amb:150,205,175;color-scheme:light;--sans:"Geist",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 :root[data-theme=dark]{--bg:#050505;--frame:#060607;--s0:#0C0E10;--s1:#0A0B0D;--s2:#0F1113;--s3:#15181A;--chip:#141719;--hover:#101315;--b1:rgba(215,255,224,.075);--b2:rgba(215,255,224,.17);--ink:#F1F5F2;--ink2:#C2CBC5;--ink3:#7C8781;--ink4:#5C655F;--accent:#D7FFE0;--onAccent:#041008;--wash:rgba(215,255,224,.1);--washB:rgba(215,255,224,.2);--glow:rgba(215,255,224,.55);--amb:19,74,48;color-scheme:dark}
-:root[data-a11y-contrast=true]:not([data-theme=light]){--ink2:#DCE3DE;--ink3:#B4BEB8;--ink4:#939D97;--b1:rgba(215,255,224,.18);--b2:rgba(215,255,224,.34)}
-:root[data-a11y-contrast=true][data-theme=light]{--ink2:#1E2824;--ink3:#38433E;--ink4:#56615B;--b1:rgba(11,46,30,.24);--b2:rgba(11,46,30,.42)}
+:root[data-a11y-contrast=true]:not([data-theme=dark]){--ink2:#1E2824;--ink3:#38433E;--ink4:#56615B;--b1:rgba(11,46,30,.24);--b2:rgba(11,46,30,.42)}
+:root[data-a11y-contrast=true][data-theme=dark]{--ink2:#DCE3DE;--ink3:#B4BEB8;--ink4:#939D97;--b1:rgba(215,255,224,.18);--b2:rgba(215,255,224,.34)}
 *{box-sizing:border-box}
 html,.canvas-scroll,.table-wrap,.code{scrollbar-width:none}
 html::-webkit-scrollbar,.canvas-scroll::-webkit-scrollbar,.table-wrap::-webkit-scrollbar,.code::-webkit-scrollbar{display:none}
@@ -165,9 +177,7 @@ section,.canvas,.card,tr{break-inside:avoid}
 a[href^="http"]::after{content:" (" attr(href) ")";font-size:.75em;color:var(--ink3)}
 }
 
-:root{--k-trigger:#F5B041;--k-ai:#B79CFF;--k-branch:#7EB6FF;--k-helper:#5EEAD4;--logo-light:none;--logo-dark:inline}
-@media (prefers-color-scheme: light){:root:not([data-theme=dark]){--k-trigger:#B45309;--k-ai:#6D28D9;--k-branch:#1D4ED8;--k-helper:#0F766E;--logo-light:inline;--logo-dark:none}}
-:root[data-theme=light]{--k-trigger:#B45309;--k-ai:#6D28D9;--k-branch:#1D4ED8;--k-helper:#0F766E;--logo-light:inline;--logo-dark:none}
+:root{--k-trigger:#B45309;--k-ai:#6D28D9;--k-branch:#1D4ED8;--k-helper:#0F766E;--logo-light:inline;--logo-dark:none}
 :root[data-theme=dark]{--k-trigger:#F5B041;--k-ai:#B79CFF;--k-branch:#7EB6FF;--k-helper:#5EEAD4;--logo-light:none;--logo-dark:inline}
 .k-trigger{--k:var(--k-trigger)}
 .k-ai{--k:var(--k-ai)}

@@ -4,7 +4,7 @@ import { endToEnd as E2E, KIND_TYPES, type EndToEnd, type StepKind } from '../..
 import { esc } from '../buildPlan/render.ts'
 import type { Themes } from '../buildPlan/styles.ts'
 import { livelyCss } from '../brand/lively.ts'
-import { backdropHtml, glossaryLogo, logoBadges, logoSheet, revealJs, toolByName, toolStrip, toolTemplates, toolsUsed } from '../brand/render.ts'
+import { backdropHtml, glossaryLogo, logoBadges, logoSheet, revealJs, toolByName, toolStrip, toolTemplates, toolsUsed, themeHeadJs } from '../brand/render.ts'
 import type { ToolId } from '../brand/tools.ts'
 import { readContrast, readTokens } from '../tokens.ts'
 import { iconSvg } from './icons.ts'
@@ -98,6 +98,7 @@ export function renderEndToEnd(g: EndToEnd = E2E, themes: Themes = { dark: readT
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<script>${themeHeadJs()}</script>
 <title>${esc(g.title)}</title>
 <meta name="description" content="${esc(g.description)}">
 <meta property="og:title" content="${esc(g.title)}">

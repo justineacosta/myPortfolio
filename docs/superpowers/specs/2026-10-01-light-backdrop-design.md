@@ -32,7 +32,7 @@
 - **On its own** (not inside a frame):
   - It sets `data-theme=dark` when `localStorage['kraft-theme'] === 'dark'`; otherwise it sets `data-theme=light`.
   - Storage errors fall back to light.
-- **Inside a frame:** it does nothing. The page script still copies the site's `data-theme` live, as it does today.
+- **Inside a frame:** it starts in the site's theme (dark unless the site says light, the site's own rule), so there is no flash; the page script then mirrors it live, as it does today.
 - **JavaScript off:** the page is light.
 
 ## 4. Backdrop
@@ -84,7 +84,7 @@
 
 **Unit:**
 - `pageCss` is light on bare `:root` and dark only under `[data-theme=dark]`, with no `prefers-color-scheme` block; the high-contrast selectors are as in §3.1.
-- The head script picks dark only for a saved `dark`, and does nothing inside a frame. It is checked with a stubbed `localStorage` and `window.parent`.
+- The head script picks dark only for a saved `dark`, and inside a frame starts in the site's theme. It is checked with a stubbed `localStorage` and `window.parent`.
 - The page sends the same shader source as `lib/contour.ts`, and `ContourCanvas` imports it.
 - The page glow is present in the page; the CSS hides it in print and in high contrast, and holds it still when motion is off.
 
