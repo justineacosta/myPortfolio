@@ -1,7 +1,3 @@
-import type { Icon } from '@phosphor-icons/react'
-import {
-  BlueprintIcon, BrainIcon, BrowsersIcon, ChatCircleDotsIcon, FlowArrowIcon, GraphIcon, RobotIcon,
-} from '@phosphor-icons/react/ssr'
 import type { Brand } from './stack'
 
 /**
@@ -15,12 +11,16 @@ import type { Brand } from './stack'
 export const PROJECT_VIEWS = ['reel', 'build-plan', 'agentic-framework', 'end-to-end', 'sites', 'ai-agents'] as const
 export type ProjectView = (typeof PROJECT_VIEWS)[number]
 
-export type Chip = { name: string; icon: Icon }
+/** A chip with a tool's logo: its text, and the logo's slug in public/icons/brands/. */
+export type Chip = { name: string; logo: string }
 export type Screenshot = { src: string; label: string }
 /** A sample site: its page, a 3:4 thumbnail, and a tall shot (up to four screens) the Funnels card peeks through. */
 export type Site = { name: string; file: string; src: string; thumb: string; tall: string }
 /** A write-up card: it opens a generated page in the window, with its Home `shot`. */
-type Writeup = { view: ProjectView; kicker: string; title: string; desc: string; icon: Icon; cue: string; page: string; frameTitle: string; shot: string }
+type Writeup = { view: ProjectView; kicker: string; title: string; desc: string; logos: Brand[]; cue: string; page: string; frameTitle: string; shot: string }
+
+/** A card's logos (components/projects/LogoStack.tsx), the tools its page names; the first leads, and is ⌘K's. */
+const logos = (...names: [string, string][]): Brand[] => names.map(([name, slug]) => ({ name, slug }))
 
 const REEL: Screenshot[] = [
   'TM-01 · Quote request',
@@ -48,8 +48,8 @@ const SITES: Site[] = [
 })
 
 const WRITEUPS: Writeup[] = [
-  { view: 'agentic-framework', kicker: 'HOW I BUILD WITH AI', title: 'The Agentic Framework', desc: 'The tools, the rules and the loop I use to ship apps with AI.', icon: BrainIcon, cue: 'READ THE FRAMEWORK', page: '/agentic-framework.html', frameTitle: 'Agentic Framework page', shot: '/shots/agentic-framework.jpeg' },
-  { view: 'end-to-end', kicker: 'HOW I SHIP, END TO END', title: 'The End-to-End Workflow', desc: 'Every trigger, node, skill and agent wired as one live graph.', icon: GraphIcon, cue: 'READ THE WORKFLOW', page: '/end-to-end.html', frameTitle: 'End-to-End Workflow graph', shot: '/shots/end-to-end.jpeg' },
+  { view: 'agentic-framework', kicker: 'HOW I BUILD WITH AI', title: 'The Agentic Framework', desc: 'The tools, the rules and the loop I use to ship apps with AI.', logos: logos(['Claude', 'claude'], ['Cursor', 'cursor'], ['Codex', 'codex']), cue: 'READ THE FRAMEWORK', page: '/agentic-framework.html', frameTitle: 'Agentic Framework page', shot: '/shots/agentic-framework.jpeg' },
+  { view: 'end-to-end', kicker: 'HOW I SHIP, END TO END', title: 'The End-to-End Workflow', desc: 'Every trigger, node, skill and agent wired as one live graph.', logos: logos(['n8n', 'n8n'], ['Telegram', 'telegram'], ['GitHub Actions', 'githubactions']), cue: 'READ THE WORKFLOW', page: '/end-to-end.html', frameTitle: 'End-to-End Workflow graph', shot: '/shots/end-to-end.jpeg' },
 ]
 
 export const projects = {
@@ -60,33 +60,37 @@ export const projects = {
   openNewTab: 'Open in new tab',
   cards: {
     reel: {
-      title: 'Automations', icon: FlowArrowIcon, cue: 'VIEW THE REEL', cta: 'OPEN THE REEL',
+      title: 'Automations', logos: logos(['n8n', 'n8n'], ['Make', 'make'], ['Zapier', 'zapier']), cue: 'VIEW THE REEL', cta: 'OPEN THE REEL',
       body: 'Real screens from the n8n workflows I build.',
       peek: ['PLACEHOLDER - workflow screen behind (Automations card)', 'PLACEHOLDER - workflow screen in front (Automations card)'],
       peekHint: 'Workflow screen',
     },
     plan: {
-      title: 'The build plan', icon: BlueprintIcon, cue: 'VIEW THE PLAN',
+      title: 'The build plan', logos: logos(['n8n', 'n8n'], ['Claude', 'claude'], ['Stripe', 'stripe']), cue: 'VIEW THE PLAN',
       body: 'A real automation plan, before a workflow is clicked together.',
       kicker: 'N8N BUILD PLAN', heading: 'The full automation blueprint.',
-      steps: ['Webhook', 'Claude', 'Approve?', 'Stripe'],
+      steps: [
+        { label: 'Webhook', logo: 'n8n' }, { label: 'Claude', logo: 'claude' },
+        { label: 'Approve?', logo: 'telegram' }, { label: 'Stripe', logo: 'stripe' },
+      ],
       page: '/build-plan.html', frameTitle: 'Trusted Mover build plan',
     },
     sites: {
-      title: 'Funnels and sites', icon: BrowsersIcon, cue: 'VIEW THE SITES', cta: 'SPIN THE CAROUSEL',
+      title: 'Funnels and sites', logos: logos(['Figma', 'figma'], ['React', 'react'], ['Tailwind CSS', 'tailwindcss']), cue: 'VIEW THE SITES', cta: 'SPIN THE CAROUSEL',
       body: 'Complete funnel builds and websites. Spin the reel.',
       fanHint: 'Site',
     },
     agents: {
-      title: 'AI agents and RAG chatbots', icon: RobotIcon, cue: 'VIEW THE AGENTS', cta: 'SEE HOW THEY WORK',
+      title: 'AI agents and RAG chatbots', logos: logos(['Claude', 'claude'], ['Supabase', 'supabase'], ['n8n', 'n8n']), cue: 'VIEW THE AGENTS', cta: 'SEE HOW THEY WORK',
       body: 'Sample RAG chatbots and agents, and how each one works.',
       page: '/ai-agents.html', frameTitle: 'AI agents and RAG chatbots page',
       /** Counted from data/agents.ts's builds (tests/projects.test.tsx checks they agree). */
       counts: [
-        { name: '4 RAG chatbots', icon: ChatCircleDotsIcon },
-        { name: '4 AI agents', icon: RobotIcon },
+        { name: '4 RAG chatbots', logo: 'supabase' },
+        { name: '4 AI agents', logo: 'claude' },
       ] satisfies Chip[],
-      logos: [
+      /** The strip of every tool the page's builds use, along the card's foot. */
+      tools: [
         { name: 'Claude', slug: 'claude' }, { name: 'n8n', slug: 'n8n' }, { name: 'Supabase', slug: 'supabase' }, { name: 'Gmail', slug: 'gmail' },
         { name: 'Google Sheets', slug: 'googlesheets' }, { name: 'Telegram', slug: 'telegram' }, { name: 'Stripe', slug: 'stripe' }, { name: 'Cal.com', slug: 'caldotcom' },
       ] satisfies Brand[],
@@ -97,6 +101,7 @@ export const projects = {
         answer: 'Yes. Uprights add $150; baby grands need a walkthrough first.',
         source: 'Pricing guide §4',
         run: ['Stripe · invoice 14 days overdue', 'Drafting a reminder'] as [string, string],
+        runLogo: 'stripe',
         approve: 'Approve?',
         buttons: ['Approve', 'Edit'] as [string, string],
       },

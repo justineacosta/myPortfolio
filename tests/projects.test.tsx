@@ -53,6 +53,22 @@ describe('Projects data', () => {
     }
   })
 
+  it('gives every board card at least three brand logos, each a file on disk', () => {
+    const c = projects.cards
+    const sets = [c.reel, c.plan, ...projects.writeups, c.sites, c.agents].map((x) => x.logos.map((l) => l.slug))
+    expect(sets).toEqual(CARD_LOGOS)
+    for (const slug of sets.flat()) expect(existsSync(`public/icons/brands/${slug}.svg`), slug).toBe(true)
+  })
+
+  it('puts a logo on every build plan step, the count chips and the preview run, each a file on disk', () => {
+    const c = projects.cards
+    expect(c.plan.steps.map((s) => [s.label, s.logo])).toEqual([['Webhook', 'n8n'], ['Claude', 'claude'], ['Approve?', 'telegram'], ['Stripe', 'stripe']])
+    expect(c.agents.counts.map((x) => x.logo)).toEqual(['supabase', 'claude'])
+    expect(c.agents.preview.runLogo).toBe('stripe')
+    for (const slug of [...c.plan.steps.map((s) => s.logo), ...c.agents.counts.map((x) => x.logo)])
+      expect(existsSync(`public/icons/brands/${slug}.svg`), slug).toBe(true)
+  })
+
   it('has a tall screenshot of every sample page, at least three screens deep, for the card to peek through', () => {
     for (const s of projects.sitesView.sites) {
       expect(s.tall).toBe(`/samples/thumbs/tall/${s.file.replace(/\.html$/, '.jpeg')}`)
@@ -63,6 +79,18 @@ describe('Projects data', () => {
     }
   })
 })
+
+/** Each board card's logos, in board order: reel, plan, framework, end-to-end, sites, agents. */
+const CARD_LOGOS = [
+  ['n8n', 'make', 'zapier'],
+  ['n8n', 'claude', 'stripe'],
+  ['claude', 'cursor', 'codex'],
+  ['n8n', 'telegram', 'githubactions'],
+  ['figma', 'react', 'tailwindcss'],
+  ['claude', 'supabase', 'n8n'],
+]
+const srcs = (el: Element) => [...el.querySelectorAll('img')].map((i) => i.getAttribute('src')!)
+const slugOf = (src: string) => decodeURIComponent(src).match(/brands\/([a-z0-9]+)\.svg/)?.[1]
 
 /** A JPEG's pixel size, from its start-of-frame marker. */
 function jpegSize(b: Buffer) {
@@ -88,11 +116,23 @@ describe('Board', () => {
     expect(screen.getByText('CLICK A CARD TO OPEN IT')).toBeInTheDocument()
   })
 
-  it('shows the build plan card as an n8n plan', () => {
+  it('shows the build plan card as an n8n plan, each step with its tool’s logo', () => {
     render(<Board />)
     const card = screen.getByRole('link', { name: /^The build plan/ })
     expect(within(card).getByText('N8N BUILD PLAN')).toBeInTheDocument()
-    expect(['Webhook', 'Claude', 'Approve?', 'Stripe'].every((s) => within(card).queryByText(s))).toBe(true)
+    const steps = ['Webhook', 'Claude', 'Approve?', 'Stripe'].map((s) => within(card).getByText(s).closest('span')!)
+    expect(steps.map((s) => srcs(s).map(slugOf))).toEqual([['n8n'], ['claude'], ['telegram'], ['stripe']])
+  })
+
+  it('tops every card with an overlapping stack of its brand logos, decoration only, and no green icon', () => {
+    render(<Board />)
+    const stacks = screen.getAllByRole('link').map((a) => a.querySelector('[data-logo-stack]')!)
+    expect(stacks.map((s) => srcs(s).map(slugOf))).toEqual(CARD_LOGOS)
+    for (const s of stacks) {
+      expect(s).toHaveAttribute('aria-hidden', 'true')
+      expect(s.querySelector('svg')).toBeNull()
+      for (const img of s.querySelectorAll('img')) expect(img).toHaveAttribute('alt', '')
+    }
   })
 
   it('names the card under the pointer in the cursor cue', () => {
@@ -209,6 +249,7 @@ describe('the AI agents card', () => {
     const agent = agents.builds.filter((b) => b.kind === 'agent').length
     expect(projects.cards.agents.counts.map((x) => x.name)).toEqual([`${rag} RAG chatbots`, `${agent} AI agents`])
     for (const x of projects.cards.agents.counts) expect(within(c).getByText(x.name)).toBeInTheDocument()
+    expect(projects.cards.agents.counts.map((x) => srcs(within(c).getByText(x.name)).map(slugOf))).toEqual([['supabase'], ['claude']])
     expect(within(c).getByText('SEE HOW THEY WORK')).toBeInTheDocument()
   })
 
@@ -230,6 +271,7 @@ describe('the AI agents card', () => {
     expect(p.textContent).toContain('Do you move pianos, and what does it add?')
     expect(p.textContent).toContain('Pricing guide §4')
     expect(p.textContent).toContain('Stripe · invoice 14 days overdue')
+    expect(srcs(p.querySelector('.ap-step-1')!).map(slugOf)).toEqual(['stripe'])
     expect(p.querySelector('a, button, input, [tabindex]')).toBeNull()
   })
 

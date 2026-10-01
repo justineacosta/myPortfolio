@@ -63,6 +63,21 @@ describe('CommandPalette', () => {
     expect(screen.getByRole('status')).toHaveTextContent('No matches')
   })
 
+  it('shows a Projects entry with its card’s lead logo, and a page with its icon', async () => {
+    const user = userEvent.setup()
+    setup()
+    await user.click(screen.getByText('Jump to…'))
+    await user.keyboard('agentic')
+    const option = screen.getByRole('option', { name: /The Agentic Framework/ })
+    expect(option.querySelector('img')?.getAttribute('src')).toContain('claude.svg')
+    expect(option.querySelector('img')).toHaveAttribute('alt', '')
+    await user.clear(screen.getByRole('combobox'))
+    await user.keyboard('services')
+    const page = screen.getAllByRole('option')[0]
+    expect(page.querySelector('img')).toBeNull()
+    expect(page.querySelector('svg')).not.toBeNull()
+  })
+
   it('Ctrl+K opens and Ctrl+K again closes', async () => {
     const user = userEvent.setup()
     setup()

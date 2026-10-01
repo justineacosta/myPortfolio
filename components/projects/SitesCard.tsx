@@ -6,7 +6,8 @@ import { ArrowsClockwiseIcon } from '@phosphor-icons/react/ssr'
 import { projects } from '@/data/projects'
 import { useFan } from '@/hooks/useFan'
 import { FRONT, nearestSlot, OFF, POSES, SPREAD } from '@/lib/fan'
-import { BODY, CARD, CTA, TILE, TITLE } from './styles'
+import LogoStack from './LogoStack'
+import { BODY, CARD, CTA, TITLE } from './styles'
 
 type Props = { onOpen: (e: MouseEvent<HTMLAnchorElement>) => void }
 
@@ -27,9 +28,7 @@ export default function SitesCard({ onOpen }: Props) {
 
   return (
     <a href="#sites" onClick={onOpen} data-case={c.cue} className={`${CARD} min-w-[min(260px,100%)] flex-[2_1_320px]`}>
-      <span aria-hidden className={TILE}>
-        <c.icon size={20} className="text-accent" />
-      </span>
+      <LogoStack logos={c.logos} />
       <h2 className={TITLE}>{c.title}</h2>
       <p className={BODY}>{c.body}</p>
       <span className={CTA}>
