@@ -11,24 +11,30 @@ beforeEach(() => {
   for (const n of NAV) n.hidden = false
 })
 
-// jsdom does not implement scrolling; the shell resets scroll on every route.
-window.scrollTo = (() => {}) as typeof window.scrollTo
-Element.prototype.scrollTo = function () {} as typeof Element.prototype.scrollTo
-Element.prototype.scrollIntoView = function () {} as typeof Element.prototype.scrollIntoView
+// Tests marked `// @vitest-environment node` have no DOM, so the DOM setup is skipped for them.
+const hasDom = typeof window !== 'undefined'
 
-// jsdom has <dialog> and its `open` attribute, but not showModal()/close().
-HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
-  this.setAttribute('open', '')
-}
-HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
-  if (!this.hasAttribute('open')) return
-  this.removeAttribute('open')
-  this.dispatchEvent(new Event('close'))
-}
+if (hasDom) {
+  // jsdom does not implement scrolling; the shell resets scroll on every route.
+  window.scrollTo = (() => {}) as typeof window.scrollTo
+  Element.prototype.scrollTo = function () {} as typeof Element.prototype.scrollTo
+  Element.prototype.scrollIntoView = function () {} as typeof Element.prototype.scrollIntoView
 
-installMatchMedia()
+  // jsdom has <dialog> and its `open` attribute, but not showModal()/close().
+  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
+    this.setAttribute('open', '')
+  }
+  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
+    if (!this.hasAttribute('open')) return
+    this.removeAttribute('open')
+    this.dispatchEvent(new Event('close'))
+  }
+
+  installMatchMedia()
+}
 
 afterEach(() => {
+  if (!hasDom) return
   cleanup()
   // A query flipped in one test must never leak into the next.
   installMatchMedia()

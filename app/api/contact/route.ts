@@ -1,7 +1,8 @@
 import { contact } from '@/data/contact'
 import { checkLead, FIELDS } from '@/lib/contact'
-import { confirmEmail, notifyEmail, type Email } from '@/lib/emails'
-import { rateLimit } from '@/lib/rateLimit'
+import { confirmEmail, notifyEmail } from '@/lib/emails'
+import { clientIp, leadAllowed } from '@/lib/leadLimit'
+import { sendEmail } from '@/lib/resend'
 import { SITE_URL } from '@/lib/site'
 
 /**
@@ -15,20 +16,7 @@ import { SITE_URL } from '@/lib/site'
  * Every refusal is { error: sentence } for the form to show.
  */
 
-const allowed = rateLimit({ limit: 5, windowMs: 10 * 60 * 1000 })
-
 const refuse = (error: string, status: number) => Response.json({ error }, { status })
-
-type Mail = Email & { from: string; to: string; replyTo: string }
-
-async function send(key: string, { from, to, replyTo, subject, text, html }: Mail) {
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from, to: [to], reply_to: replyTo, subject, text, html }),
-  })
-  if (!res.ok) throw new Error(`Resend answered ${res.status}: ${await res.text().catch(() => '')}`)
-}
 
 /** The same FormData the browser checks, built from the posted JSON. */
 async function readForm(req: Request) {
@@ -41,11 +29,8 @@ async function readForm(req: Request) {
   return data
 }
 
-const clientIp = (req: Request) =>
-  req.headers.get('x-forwarded-for')?.split(',')[0].trim() || req.headers.get('x-real-ip') || 'unknown'
-
 export async function POST(req: Request) {
-  if (!allowed(clientIp(req))) return refuse(contact.errors.rate, 429)
+  if (!leadAllowed(clientIp(req))) return refuse(contact.errors.rate, 429)
 
   const result = checkLead(await readForm(req))
   if (!result.lead) return refuse(result.errors[FIELDS.find((k) => result.errors[k])!]!, 400)
@@ -60,13 +45,13 @@ export async function POST(req: Request) {
   }
 
   try {
-    await send(key, { from, to, replyTo: lead.email, ...notifyEmail(lead, new Date()) })
+    await sendEmail(key, { from, to, replyTo: lead.email, ...notifyEmail(lead, new Date()) })
   } catch (err) {
     console.error('Contact form: the message was not sent.', err)
     return refuse(contact.errors.failed, 502)
   }
   try {
-    await send(key, { from, to: lead.email, replyTo: to, ...confirmEmail(lead, SITE_URL) })
+    await sendEmail(key, { from, to: lead.email, replyTo: to, ...confirmEmail(lead, SITE_URL) })
   } catch (err) {
     console.error('Contact form: the confirmation was not sent.', err)
   }

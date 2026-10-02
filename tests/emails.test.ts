@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { assistant } from '@/data/assistant'
 import { contact } from '@/data/contact'
 import { confirmEmail, EMAIL_PALETTE, notifyEmail } from '@/lib/emails'
 import { readTokens } from '@/lib/tokens'
@@ -60,5 +61,37 @@ describe('confirmEmail (the one the visitor gets)', () => {
 
   it('escapes the name it greets them with', () => {
     expect(confirmEmail({ ...lead, firstName: '<b>Ana</b>' }, 'https://kraft.dev').html).toContain('Hi &lt;b&gt;Ana&lt;/b&gt;,')
+  })
+})
+
+describe('notifyEmail for a chat call request', () => {
+  const mail = notifyEmail(lead, AT, { call: true, transcript: 'Visitor: hi\nAssistant: <b>hello</b>' })
+
+  it('tags the subject as a call request and appends the transcript to the text, labelled as the browser’s account of the chat', () => {
+    expect(mail.subject).toBe('Call request from Ana Reyes')
+    expect(assistant.email.transcript).toBe('Conversation as sent by the visitor’s browser')
+    expect(mail.text).toContain(`${assistant.email.transcript}:\nVisitor: hi`)
+    expect(mail.text).not.toContain('Transcript')
+  })
+
+  it('shows the transcript in the HTML under the same label, escaped', () => {
+    expect(mail.html).toContain(assistant.email.transcript)
+    expect(mail.html).not.toContain('TRANSCRIPT')
+    expect(mail.html).toContain('Visitor: hi')
+    expect(mail.html).toContain('&lt;b&gt;hello&lt;/b&gt;')
+    expect(mail.html).not.toContain('<b>hello</b>')
+  })
+
+  it('says it came from the assistant when given that footer, and from the contact form otherwise', () => {
+    const chat = notifyEmail(lead, AT, { call: false, transcript: 'Visitor: hi', footer: assistant.email.footer })
+    expect(chat.html).toContain(assistant.email.footer)
+    expect(chat.html).not.toContain(contact.notify.footer)
+    expect(notifyEmail(lead, AT).html).toContain(contact.notify.footer)
+    expect(notifyEmail(lead, AT).html).not.toContain(assistant.email.footer)
+  })
+
+  it('is unchanged without extra', () => {
+    expect(notifyEmail(lead, AT)).toEqual(notifyEmail(lead, AT, {}))
+    expect(notifyEmail(lead, AT).text).not.toContain('Transcript:')
   })
 })
