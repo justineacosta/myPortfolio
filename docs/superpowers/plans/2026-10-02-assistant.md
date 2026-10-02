@@ -199,7 +199,7 @@ git commit -m "feat: the assistant's copy, limits, request check and stream even
   - `buildKnowledge(): string`, which is uncached and reads `isHidden` at call time.
   - `siteKnowledge: Knowledge`, which builds once per server instance.
   - `PERSONA: string`
-  - `systemBlocks(k: Knowledge): Anthropic.TextBlockParam[]`. This returns one block: `PERSONA + '\n\n' + k.text()`, with `cache_control: { type: 'ephemeral' }`.
+  - `systemBlocks(persona: string, k: Knowledge): Anthropic.TextBlockParam[]`. This returns one block: `persona + '\n\n' + k.text()`, with `cache_control: { type: 'ephemeral' }`.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -217,7 +217,7 @@ git commit -m "feat: the assistant's copy, limits, request check and stream even
 - **Links:** every `/…` link in the output (match `/\]\((\/[^)]*)\)/g`) is an `href` in `commands()`.
 - **Hidden pages:** with `NAV.find(n => n.href === '/showcase')!.hidden = true` and the same for `/testimonials`, the output contains neither `showcase.title` text nor any `CLIENTS` name, and no `/showcase` link.
 - **Budget:** `buildKnowledge().length / 4 < 30_000` (estimated tokens) and `> 4_096 * 4` (so Haiku 4.5 caches it).
-- **Prompt:** `systemBlocks(siteKnowledge)` has length 1, ends with `buildKnowledge()`, carries `cache_control: { type: 'ephemeral' }`, and `PERSONA` contains `Kraft’s assistant`.
+- **Prompt:** `systemBlocks(PERSONA, siteKnowledge)` has length 1, ends with `buildKnowledge()`, carries `cache_control: { type: 'ephemeral' }`, and `PERSONA` contains `Kraft’s assistant`.
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
@@ -321,8 +321,8 @@ git commit -m "feat: the assistant's tools: navigate, leads and call requests, e
   - `type StreamTurn = (req: TurnRequest, onText: (delta: string) => void) => Promise<Anthropic.Message>`
   - `streamTurn: StreamTurn`. It picks `fakeStreamTurn` when `isFake()`; otherwise it builds `new Anthropic()` once, calls `client.messages.stream({ model: MODEL, max_tokens: MAX_TOKENS, system, tools, messages }, { signal })`, sends text with `stream.on('text', onText)` and returns `await stream.finalMessage()`.
   - `fakeStreamTurn: StreamTurn`
-  - `type AssistantConfig = { knowledge: Knowledge; tools: ToolRunner[] }`
-  - `siteAssistant(): AssistantConfig`
+  - `type AssistantConfig = { knowledge: Knowledge; persona: string; tools: ToolRunner[] }` (§3.2)
+  - `siteAssistant(): AssistantConfig`, which returns `{ knowledge: siteKnowledge, persona: PERSONA, tools: siteTools() }`
   - `type TurnRecord = { text: string; tools: { name: string; input: unknown; result: string; isError: boolean }[]; usage: { input: number; output: number }; leadSent: boolean }`
   - `runTurn(opts: { config: AssistantConfig; history: ChatMessage[]; ctx: TurnContext; emit: (e: AssistantEvent) => void; stream?: StreamTurn; signal?: AbortSignal }): Promise<TurnRecord>`
 
@@ -344,10 +344,11 @@ Fake messages are built as `Anthropic.Message` with `stop_reason` `'tool_use'` o
 - **Plain text:** the events are three `text` deltas joining to the fake answer. `record.text` equals it, `record.usage` is `{ input: 10, output: 5 }`, and there's no `done` (the route sends `done`).
 - **Navigate:** `Show me your projects` → the events include `{ type: 'navigate', href: '/projects', label: 'Projects' }`, then the text `Here are Justine’s projects.`. `record.tools[0].name` is `'navigate'` and `usage.input` is 20 (two calls).
 - **Lead:** `Ana Reyes ana@example.com Our intake is manual` → the mailer is called once and the events include `{ type: 'lead', ok: true }`. `record.leadSent` is `true`.
-- **Tool-round cap:** a custom `stream` that always returns `tool_use` `navigate` → exactly `LIMITS.toolRounds + 1` calls, then `runTurn` resolves (no infinite loop).
+- **Tool-round cap:** a custom `stream` that always returns `tool_use` `navigate` → exactly `LIMITS.toolRounds + 1` calls, then `runTurn` resolves (no infinite loop). This stream varies the tool between rounds (`navigate`, `request_call` with bad input, `submit_lead` with bad input, `navigate`), so it isn't cut short by the once-per-turn rule.
+- **Once per turn (§6):** a custom `stream` that asks for `navigate` in two rounds → the second gets an `is_error` result containing `once per turn`, and only one `navigate` event is emitted.
 - **`max_tokens` with `tool_use`:** a custom `stream` returning `stop_reason: 'max_tokens'` with a `tool_use` block → the tool is not run.
 - **Errors:** the `fail` trigger → `runTurn` rejects.
-- **Request shape:** a custom `stream` spy receives `system` equal to `systemBlocks(config.knowledge)`, tool defs in the order `navigate, submit_lead, request_call`, and `messages` equal to the history (as `MessageParam`s).
+- **Request shape:** a custom `stream` spy receives `system` equal to `systemBlocks(config.persona, config.knowledge)`, tool defs in the order `navigate, submit_lead, request_call`, and `messages` equal to the history (as `MessageParam`s).
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
@@ -359,7 +360,7 @@ Run: `npx vitest run tests/assistant-turn.test.ts`. Expected: FAIL.
 - calls `stream` and adds up `usage`;
 - appends the assistant `content`;
 - stops on `end_turn`, `refusal`, `max_tokens`, or when there are no `tool_use` blocks;
-- otherwise runs every `tool_use` through its `ToolRunner` (an unknown name gives an `is_error` result), emits each outcome's `event`, and appends all `tool_result` blocks in one user message.
+- otherwise runs every `tool_use` through its `ToolRunner` (an unknown name, or a tool already used this turn, gives an `is_error` result), emits each outcome's `event`, and appends all `tool_result` blocks in one user message.
 
 Text deltas are emitted as `{ type: 'text', delta }` and gathered into `record.text`.
 
