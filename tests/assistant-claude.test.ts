@@ -22,12 +22,14 @@ describe('streamTurn (the real Claude)', () => {
 
   const base = { system: [], tools: [], messages: [{ role: 'user' as const, content: 'Hi' }] }
 
-  it('builds one client, with a timeout shorter than the 30-second function and one retry', async () => {
+  it('builds one client, with no retries: the chat route’s deadline bounds the whole call, and the quick answer takes over after it', async () => {
     const { streamTurn } = await import('@/lib/assistant/claude')
+    const { CLAUDE_DEADLINE_MS } = await import('@/lib/assistant/config')
     await streamTurn(base, () => {})
     await streamTurn(base, () => {})
     expect(sdk.ctor).toHaveBeenCalledTimes(1)
-    expect(sdk.ctor).toHaveBeenCalledWith({ timeout: 25_000, maxRetries: 1 })
+    expect(sdk.ctor).toHaveBeenCalledWith({ timeout: CLAUDE_DEADLINE_MS, maxRetries: 0 })
+    expect(CLAUDE_DEADLINE_MS).toBe(20_000)
   })
 
   it('passes tool_choice through when the turn sets it, and leaves it out when not', async () => {

@@ -36,6 +36,14 @@ export const fakeStreamTurn: StreamTurn = async (req: TurnRequest, onText) => {
     return text(reply)
   }
   if (/fail/i.test(said)) throw new Error('fake failure')
+  // A reply that never comes, as when Claude's stream stalls: it ends only when the turn is aborted.
+  if (/stall/i.test(said)) {
+    return new Promise<Anthropic.Message>((_, reject) => {
+      const stop = () => reject(req.signal?.reason ?? new Error('fake stall aborted'))
+      if (req.signal?.aborted) stop()
+      else req.signal?.addEventListener('abort', stop, { once: true })
+    })
+  }
   if (/show me|take me/i.test(said)) return toolUse('navigate', { href: '/projects', label: 'Projects' })
   const words = said.split(/\s+/).filter(Boolean)
   const email = words.find((w) => EMAIL_RE.test(w))

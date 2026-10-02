@@ -1,6 +1,6 @@
 import { after } from 'next/server'
 import { assistant } from '@/data/assistant'
-import { isFake, mode } from '@/lib/assistant/config'
+import { CLAUDE_DEADLINE_MS, isFake, mode } from '@/lib/assistant/config'
 import { encodeEvent, type AssistantEvent } from '@/lib/assistant/events'
 import { checkChat, LIMITS, trimHistory } from '@/lib/assistant/limits'
 import { conversationLeads } from '@/lib/assistant/ledger'
@@ -14,7 +14,7 @@ import { rateLimit } from '@/lib/rateLimit'
 
 /** The assistant's backend: checks the request, runs one turn and streams its events as newline JSON. With a key (or the fake) Claude answers, and the quick engine takes over if Claude fails; with neither, the quick engine answers. Refusals before the stream are { error: sentence }; a failure inside it is an `error` event, then `done`. */
 
-/** Seconds a turn may run: Claude's reply plus up to three tool rounds. */
+/** Seconds a turn may run: Claude's reply plus up to three tool rounds within CLAUDE_DEADLINE_MS, then a quick answer if Claude ran out of time. */
 export const maxDuration = 30
 
 const allowed = rateLimit(LIMITS.rate)
@@ -62,11 +62,12 @@ export async function POST(req: Request): Promise<Response> {
             history,
             ctx: { conversationId, transcript, mailer: isFake() ? fakeMailer : resendMailer(), ledger: conversationLeads, mayLead: () => leadAllowed(ip) },
             emit,
-            signal: req.signal,
+            // The visitor leaving stops Claude, and so does the deadline, which leaves the quick answer time to run before the function stops.
+            signal: AbortSignal.any([req.signal, AbortSignal.timeout(CLAUDE_DEADLINE_MS)]),
           })
         } catch (err) {
           console.error('Assistant: the turn failed.', err)
-          // The visitor left: nobody is waiting for a fallback answer.
+          // The visitor left: nobody is waiting for a fallback answer. A deadline abort is not theirs, so it falls through to the quick answer.
           if (req.signal.aborted) {
             emit({ type: 'error', error: assistant.errors.failed })
             return null

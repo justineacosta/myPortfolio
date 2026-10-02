@@ -4,6 +4,12 @@ export const MODEL = 'claude-haiku-4-5'
 /** The most tokens one reply may run to. */
 export const MAX_TOKENS = 600
 
+/**
+ * How long Claude has for a whole turn, every tool round included, in milliseconds. The chat function stops at 30 seconds, so this leaves time
+ * for the quick answer to take over a stalled or slow reply.
+ */
+export const CLAUDE_DEADLINE_MS = 20_000
+
 /** Whether the fake Claude is on: no API calls, no email, no database writes. */
 export function isFake(env: Record<string, string | undefined> = process.env) {
   return env.ASSISTANT_FAKE === '1'

@@ -20,6 +20,17 @@ vi.mock('@/lib/assistant/quick', async (orig) => {
   return { ...real, quickTurn: vi.fn(real.quickTurn) }
 })
 vi.mock('@/lib/assistant/log', () => ({ logTurn: vi.fn().mockResolvedValue(undefined) }))
+// Claude's deadline, shortened by the test that waits for it.
+const deadline = vi.hoisted(() => ({ ms: 20_000 }))
+vi.mock('@/lib/assistant/config', async (orig) => {
+  const real = await orig<typeof import('@/lib/assistant/config')>()
+  return {
+    ...real,
+    get CLAUDE_DEADLINE_MS() {
+      return deadline.ms
+    },
+  }
+})
 
 let ip = 0
 /** A conversation id each request can use; a lead is sent once per conversation, so tests must not share one. */
@@ -123,6 +134,22 @@ describe('POST /api/chat', () => {
     await runAfter()
     expect(logTurn).toHaveBeenCalledTimes(1)
     expect(vi.mocked(logTurn).mock.calls[0][0].record.engine).toBe('site')
+  })
+
+  it('falls back to a quick answer when Claude stalls past its deadline: source, the site’s text, then done, logged as the site’s', async () => {
+    deadline.ms = 50
+    try {
+      const res = await post(body('stall what do you charge'))
+      const all = await events(res)
+      expect(all[0]).toEqual({ type: 'source', engine: 'site' })
+      expect(all.find((e) => e.type === 'text')).toMatchObject({ delta: expect.stringMatching(/^\*\*How much do you charge\?\*\*/) })
+      expect(all.some((e) => e.type === 'error')).toBe(false)
+      expect(all.at(-1)).toEqual({ type: 'done' })
+      await runAfter()
+      expect(vi.mocked(logTurn).mock.calls[0][0].record.engine).toBe('site')
+    } finally {
+      deadline.ms = 20_000
+    }
   })
 
   it('does not fall back when the visitor aborted: no source event, nothing logged', async () => {
