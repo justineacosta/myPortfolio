@@ -48,7 +48,7 @@ describe('AssistantProvider', () => {
     act(() => result.current.send('Hi'))
     await waitFor(() => expect(result.current.streaming).toBe(false))
     const body = posted(fetchMock)
-    expect(body).toEqual({ conversationId: expect.stringMatching(/^[0-9a-f-]{36}$/i), page: '/', messages: [{ role: 'user', content: 'Hi' }] })
+    expect(body).toEqual({ conversationId: expect.stringMatching(/^[0-9a-f-]{36}$/i), page: '/', messages: [{ role: 'user', content: 'Hi' }], formShown: false })
     expect(fetchMock.mock.calls[0][0]).toBe('/api/chat')
     const e = result.current.entries
     expect(e).toHaveLength(2)
@@ -319,5 +319,225 @@ describe('AssistantProvider', () => {
     expect(result.current.open).toBe(false)
     act(() => result.current.setOpen(true))
     expect(result.current.open).toBe(true)
+  })
+})
+
+const fields = { firstName: 'Ada', lastName: 'Lovelace', email: 'ada@example.com', message: 'Hello', call: true }
+const json = (body: unknown, status: number) => new Response(JSON.stringify(body), { status })
+const source: AssistantEvent = { type: 'source', engine: 'site' }
+
+describe('AssistantProvider: quick replies', () => {
+  it('discards the partial Claude bubble at a source event, and marks the next reply quick', async () => {
+    fetchMock.mockResolvedValueOnce(stream([text('Half'), source, text('**How much…'), done]))
+    const { result } = setup()
+    act(() => result.current.send('Price?'))
+    await waitFor(() => expect(result.current.streaming).toBe(false))
+    const e = result.current.entries
+    expect(e.map((x) => x.kind)).toEqual(['user', 'assistant'])
+    expect(e[1]).toMatchObject({ kind: 'assistant', text: '**How much…', quick: true })
+    expect(e.some((x) => x.kind === 'assistant' && x.text.includes('Half'))).toBe(false)
+    expect(e.some((x) => x.kind === 'assistant' && x.unfinished)).toBe(false)
+  })
+
+  it('marks a reply cut off after the source event unfinished, and keeps it quick', async () => {
+    fetchMock.mockResolvedValueOnce(stream([text('Half'), source, text('Quick part')]))
+    const { result } = setup()
+    act(() => result.current.send('Hi'))
+    await waitFor(() => expect(result.current.streaming).toBe(false))
+    expect(result.current.entries.map((x) => x.kind)).toEqual(['user', 'assistant'])
+    expect(result.current.entries[1]).toMatchObject({ text: 'Quick part', quick: true, unfinished: true })
+  })
+
+  it('leaves no assistant entry when the source event is followed by no text', async () => {
+    fetchMock.mockResolvedValueOnce(stream([text('Half'), source, done]))
+    const { result } = setup()
+    act(() => result.current.send('Hi'))
+    await waitFor(() => expect(result.current.streaming).toBe(false))
+    expect(result.current.entries.map((x) => x.kind)).toEqual(['user'])
+  })
+
+  it('does not mark a normal reply quick', async () => {
+    fetchMock.mockResolvedValueOnce(stream([text('Hello'), done]))
+    const { result } = setup()
+    act(() => result.current.send('Hi'))
+    await waitFor(() => expect(result.current.streaming).toBe(false))
+    expect((result.current.entries[1] as { quick?: boolean }).quick).toBeFalsy()
+  })
+
+  it('restores the quick flag on a stored assistant entry, and ignores a non-boolean one', async () => {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ conversationId: 'c', entries: [{ id: 'a', kind: 'assistant', text: 'Hi', quick: true }, { id: 'b', kind: 'assistant', text: 'Yo', quick: 'yes' }] }))
+    const { result } = setup()
+    await waitFor(() => expect(result.current.entries).toHaveLength(1))
+    expect(result.current.entries[0]).toMatchObject({ id: 'a', quick: true })
+  })
+})
+
+describe('AssistantProvider: the form card', () => {
+  /** A chat that has been offered the form card; `id` is the form entry's id. */
+  async function withForm() {
+    fetchMock.mockResolvedValueOnce(stream([text('Leave your details:'), { type: 'form' }, done]))
+    const hook = setup()
+    act(() => hook.result.current.send('I have a project'))
+    await waitFor(() => expect(hook.result.current.streaming).toBe(false))
+    return { ...hook, id: hook.result.current.entries[2].id }
+  }
+
+  it('adds an open form entry for a form event, and posts formShown true on the next send, false after another reply', async () => {
+    fetchMock
+      .mockResolvedValueOnce(stream([text('Leave your details:'), { type: 'form' }, done]))
+      .mockResolvedValueOnce(stream([text('Sure.'), done]))
+      .mockResolvedValueOnce(stream([done]))
+    const { result } = setup()
+    act(() => result.current.send('I have a project'))
+    await waitFor(() => expect(result.current.streaming).toBe(false))
+    expect(result.current.entries.map((x) => x.kind)).toEqual(['user', 'assistant', 'form'])
+    expect(result.current.entries[2]).toMatchObject({ kind: 'form', state: 'open', id: expect.any(String) })
+    act(() => result.current.send('Later'))
+    await waitFor(() => expect(result.current.streaming).toBe(false))
+    expect(posted(fetchMock, 0).formShown).toBe(false)
+    expect(posted(fetchMock, 1).formShown).toBe(true)
+    // The form entry is never sent as history.
+    expect(posted(fetchMock, 1).messages).toEqual([
+      { role: 'user', content: 'I have a project' },
+      { role: 'assistant', content: 'Leave your details:' },
+      { role: 'user', content: 'Later' },
+    ])
+    act(() => result.current.send('And more'))
+    await waitFor(() => expect(result.current.streaming).toBe(false))
+    expect(posted(fetchMock, 2).formShown).toBe(false)
+  })
+
+  it('computes formShown from the entries on retry too', async () => {
+    fetchMock.mockResolvedValueOnce(stream([{ type: 'form' }, done])).mockResolvedValueOnce(stream([{ type: 'error', error: 'oops' }, done])).mockResolvedValueOnce(stream([done]))
+    const { result } = setup()
+    act(() => result.current.send('Hi'))
+    await waitFor(() => expect(result.current.streaming).toBe(false))
+    act(() => result.current.send('Again'))
+    await waitFor(() => expect(result.current.streaming).toBe(false))
+    expect(posted(fetchMock, 1).formShown).toBe(true)
+    // Retry drops the error and re-sends from the last user message; the last non-user entry is now the form again.
+    act(() => result.current.retry())
+    await waitFor(() => expect(result.current.streaming).toBe(false))
+    expect(posted(fetchMock, 2).formShown).toBe(true)
+  })
+
+  it('submitForm posts the fields, the conversation id, the page and the history, and the entry becomes sent', async () => {
+    const { result, id } = await withForm()
+    fetchMock.mockResolvedValueOnce(json({ ok: true }, 200))
+    let out: unknown
+    await act(async () => {
+      out = await result.current.submitForm(id, fields)
+    })
+    expect(out).toEqual({ ok: true })
+    expect(fetchMock.mock.calls[1][0]).toBe('/api/chat/lead')
+    expect(posted(fetchMock, 1)).toEqual({
+      ...fields,
+      conversationId: posted(fetchMock, 0).conversationId,
+      page: '/',
+      messages: [
+        { role: 'user', content: 'I have a project' },
+        { role: 'assistant', content: 'Leave your details:' },
+      ],
+    })
+    expect(result.current.entries[2]).toMatchObject({ kind: 'form', state: 'sent' })
+  })
+
+  it('submitForm resolves field errors and leaves the entry open', async () => {
+    const { result, id } = await withForm()
+    fetchMock.mockResolvedValueOnce(json({ errors: { email: 'Enter a valid email.' } }, 400))
+    let out: unknown
+    await act(async () => {
+      out = await result.current.submitForm(id, fields)
+    })
+    expect(out).toEqual({ ok: false, errors: { email: 'Enter a valid email.' } })
+    expect(result.current.entries[2]).toMatchObject({ kind: 'form', state: 'open' })
+  })
+
+  it.each([
+    [502, assistant.leadFailed],
+    [409, assistant.quick.form.already],
+    [429, assistant.errors.rate],
+  ])('submitForm marks the entry failed on a %i, and resolves the server’s error', async (status, error) => {
+    const { result, id } = await withForm()
+    fetchMock.mockResolvedValueOnce(json({ error }, status))
+    let out: unknown
+    await act(async () => {
+      out = await result.current.submitForm(id, fields)
+    })
+    expect(out).toEqual({ ok: false, error })
+    expect(result.current.entries[2]).toMatchObject({ kind: 'form', state: 'failed' })
+  })
+
+  it('submitForm falls back to leadFailed for a non-OK response with no error body', async () => {
+    const { result, id } = await withForm()
+    fetchMock.mockResolvedValueOnce(new Response('nope', { status: 500 }))
+    let out: unknown
+    await act(async () => {
+      out = await result.current.submitForm(id, fields)
+    })
+    expect(out).toEqual({ ok: false, error: assistant.leadFailed })
+    expect(result.current.entries[2]).toMatchObject({ state: 'failed' })
+  })
+
+  it('submitForm marks the entry failed on a network failure', async () => {
+    const { result, id } = await withForm()
+    fetchMock.mockRejectedValueOnce(new TypeError('Failed to fetch'))
+    let out: unknown
+    await act(async () => {
+      out = await result.current.submitForm(id, fields)
+    })
+    expect(out).toEqual({ ok: false, error: assistant.leadFailed })
+    expect(result.current.entries[2]).toMatchObject({ kind: 'form', state: 'failed' })
+  })
+
+  it('a second submitForm for the same entry while one is in flight sends nothing and resolves not ok', async () => {
+    const { result, id } = await withForm()
+    let release!: (r: Response) => void
+    fetchMock.mockReturnValueOnce(new Promise<Response>((r) => (release = r)))
+    let first!: Promise<unknown>
+    let second: unknown
+    await act(async () => {
+      first = result.current.submitForm(id, fields)
+      second = await result.current.submitForm(id, fields)
+    })
+    expect(second).toEqual({ ok: false })
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    await act(async () => {
+      release(json({ ok: true }, 200))
+      await first
+    })
+    expect(result.current.entries[2]).toMatchObject({ state: 'sent' })
+  })
+
+  it('allows another submit once field errors have settled', async () => {
+    const { result, id } = await withForm()
+    fetchMock.mockResolvedValueOnce(json({ errors: { email: 'x' } }, 400)).mockResolvedValueOnce(json({ ok: true }, 200))
+    await act(async () => void (await result.current.submitForm(id, fields)))
+    await act(async () => void (await result.current.submitForm(id, fields)))
+    expect(fetchMock).toHaveBeenCalledTimes(3)
+    expect(result.current.entries[2]).toMatchObject({ state: 'sent' })
+  })
+
+  it('submitForm for an unknown entry sends nothing', async () => {
+    const { result } = setup()
+    let out: unknown
+    await act(async () => {
+      out = await result.current.submitForm('nope', fields)
+    })
+    expect(out).toEqual({ ok: false })
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('restores form entries with their state after a reload, and drops one with an unknown state', async () => {
+    const { result, id } = await withForm()
+    fetchMock.mockResolvedValueOnce(json({ ok: true }, 200))
+    await act(async () => void (await result.current.submitForm(id, fields)))
+    const stored = JSON.parse(sessionStorage.getItem(STORAGE_KEY)!)
+    expect(stored.entries[2]).toMatchObject({ kind: 'form', state: 'sent' })
+    stored.entries.push({ id: 'bad', kind: 'form', state: 'nonsense' })
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(stored))
+    const again = setup()
+    await waitFor(() => expect(again.result.current.entries).toHaveLength(3))
+    expect(again.result.current.entries[2]).toMatchObject({ kind: 'form', state: 'sent', id })
   })
 })

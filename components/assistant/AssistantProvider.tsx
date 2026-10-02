@@ -4,15 +4,16 @@ import { usePathname } from 'next/navigation'
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useShellNav } from '@/components/shell/NavigationProvider'
 import { assistant } from '@/data/assistant'
-import { sendChat } from '@/lib/assistant/client'
+import { sendChat, sendLead, type LeadFields, type LeadResult } from '@/lib/assistant/client'
 import type { ChatMessage } from '@/lib/assistant/limits'
 
 /** One line of the conversation as the panel shows it. */
 export type Entry =
-  | { id: string; kind: 'user' | 'assistant'; text: string; unfinished?: boolean }
+  | { id: string; kind: 'user' | 'assistant'; text: string; unfinished?: boolean; quick?: boolean }
   | { id: string; kind: 'navigate'; href: string; label: string }
   | { id: string; kind: 'lead'; ok: boolean }
   | { id: string; kind: 'error'; text: string }
+  | { id: string; kind: 'form'; state: 'open' | 'sent' | 'failed' }
 
 type Assistant = {
   open: boolean
@@ -22,6 +23,7 @@ type Assistant = {
   send: (text: string) => void
   stop: () => void
   retry: () => void
+  submitForm: (id: string, fields: LeadFields) => Promise<LeadResult>
   reset: () => void
 }
 
@@ -57,15 +59,23 @@ function toMessages(entries: Entry[]): ChatMessage[] {
   return out
 }
 
+/** Whether the form card was the last thing on screen that was not the visitor's: the server then does not offer it again. */
+function formShownIn(entries: Entry[]): boolean {
+  return entries.findLast((e) => e.kind !== 'user')?.kind === 'form'
+}
+
 function isEntry(v: unknown): v is Entry {
   if (typeof v !== 'object' || v === null) return false
   const e = v as Record<string, unknown>
   if (typeof e.id !== 'string') return false
   switch (e.kind) {
     case 'user':
-    case 'assistant':
     case 'error':
       return typeof e.text === 'string'
+    case 'assistant':
+      return typeof e.text === 'string' && (e.quick === undefined || typeof e.quick === 'boolean')
+    case 'form':
+      return e.state === 'open' || e.state === 'sent' || e.state === 'failed'
     case 'navigate':
       return typeof e.href === 'string' && typeof e.label === 'string'
     case 'lead':
@@ -114,6 +124,8 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
   const pageRef = useRef(pathname)
   const goRef = useRef(go)
   const streamingRef = useRef(false)
+  // The form entries being sent, so a second submit for the same card cannot slip in before the first settles.
+  const sendingRef = useRef(new Set<string>())
   const abortRef = useRef<AbortController | null>(null)
   useEffect(() => {
     pageRef.current = pathname
@@ -145,13 +157,15 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
   useEffect(() => () => abortRef.current?.abort(), [])
 
   const run = useCallback(
-    async (messages: ChatMessage[]) => {
+    async (messages: ChatMessage[], formShown: boolean) => {
       const controller = new AbortController()
       abortRef.current = controller
       streamingRef.current = true
       setStreaming(true)
       // The assistant entry the text deltas are building, if one is open.
       let current: string | null = null
+      // After a `source` event the rest of the turn is the site's quick answer.
+      let quick = false
       // `done` or an `error` event ends the turn; a stream that ends without either was cut off.
       let finished = false
       const markUnfinished = () => {
@@ -159,16 +173,25 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
         if (id) update((es) => es.map((e) => (e.id === id && e.kind === 'assistant' ? { ...e, unfinished: true } : e)))
       }
       try {
-        for await (const ev of sendChat({ conversationId: idRef.current, page: pageRef.current, messages }, controller.signal)) {
+        for await (const ev of sendChat({ conversationId: idRef.current, page: pageRef.current, messages, formShown }, controller.signal)) {
           // A reset took over while this event was in flight: it belongs to the old chat.
           if (abortRef.current !== controller) break
           if (ev.type === 'text') {
             if (!current) {
               const id = (current = newId())
-              update((es) => [...es, { id, kind: 'assistant', text: '' }])
+              update((es) => [...es, { id, kind: 'assistant', text: '', ...(quick && { quick }) }])
             }
             const id = current
             update((es) => es.map((e) => (e.id === id && e.kind === 'assistant' ? { ...e, text: e.text + ev.delta } : e)))
+          } else if (ev.type === 'source') {
+            // Claude failed partway: whatever it had streamed is dropped, and the site's answer starts a fresh bubble.
+            const id = current
+            if (id) update((es) => es.filter((e) => e.id !== id))
+            current = null
+            quick = true
+          } else if (ev.type === 'form') {
+            current = null
+            update((es) => [...es, { id: newId(), kind: 'form', state: 'open' }])
           } else if (ev.type === 'navigate') {
             current = null
             update((es) => [...es, { id: newId(), kind: 'navigate', href: ev.href, label: ev.label }])
@@ -207,7 +230,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
     (text: string) => {
       if (streamingRef.current || !text.trim()) return
       update((es) => [...es, { id: newId(), kind: 'user', text }])
-      void run(toMessages(entriesRef.current))
+      void run(toMessages(entriesRef.current), formShownIn(entriesRef.current))
     },
     [run, update],
   )
@@ -221,8 +244,28 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
     if (last < 0) return
     // Drop what the failed turn left behind, then send the history up to the visitor's last message.
     update((es) => es.filter((e, i) => i <= last || !(e.kind === 'error' || (e.kind === 'assistant' && e.unfinished))))
-    void run(toMessages(all.slice(0, last + 1)))
+    void run(toMessages(all.slice(0, last + 1)), formShownIn(all.slice(0, last + 1)))
   }, [run, update])
+
+  const submitForm = useCallback(
+    async (id: string, fields: LeadFields): Promise<LeadResult> => {
+      const card = entriesRef.current.find((e) => e.id === id)
+      if (card?.kind !== 'form' || card.state !== 'open' || sendingRef.current.has(id)) return { ok: false }
+      sendingRef.current.add(id)
+      try {
+        const res = await sendLead({ ...fields, conversationId: idRef.current, page: pageRef.current, messages: toMessages(entriesRef.current) })
+        // Field errors leave the card open for another go; any other outcome settles it.
+        if (res.ok || !res.errors) {
+          const state = res.ok ? 'sent' : 'failed'
+          update((es) => es.map((e) => (e.id === id && e.kind === 'form' ? { ...e, state } : e)))
+        }
+        return res
+      } finally {
+        sendingRef.current.delete(id)
+      }
+    },
+    [update],
+  )
 
   const reset = useCallback(() => {
     abortRef.current?.abort()
@@ -235,6 +278,6 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
     update(() => [])
   }, [update])
 
-  const value = useMemo(() => ({ open, setOpen, entries, streaming, send, stop, retry, reset }), [open, entries, streaming, send, stop, retry, reset])
+  const value = useMemo(() => ({ open, setOpen, entries, streaming, send, stop, retry, submitForm, reset }), [open, entries, streaming, send, stop, retry, submitForm, reset])
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
