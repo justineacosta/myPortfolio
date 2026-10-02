@@ -302,6 +302,18 @@ describe('AssistantProvider', () => {
     expect(result.current.entries).toEqual([])
   })
 
+  it('still builds a v4 UUID when crypto.randomUUID is missing (http over a LAN IP)', async () => {
+    vi.stubGlobal('crypto', { getRandomValues: crypto.getRandomValues.bind(crypto) })
+    fetchMock.mockResolvedValueOnce(stream([text('Hello'), done]))
+    const { result } = setup()
+    act(() => result.current.send('Hi'))
+    await waitFor(() => expect(result.current.streaming).toBe(false))
+    const { conversationId } = posted(fetchMock)
+    expect(conversationId).toMatch(/^[0-9a-f-]{36}$/i)
+    expect(conversationId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)
+    expect(result.current.entries.map((e) => e.id)).toEqual([expect.stringMatching(/^[0-9a-f-]{36}$/i), expect.stringMatching(/^[0-9a-f-]{36}$/i)])
+  })
+
   it('open and setOpen work', () => {
     const { result } = setup()
     expect(result.current.open).toBe(false)
