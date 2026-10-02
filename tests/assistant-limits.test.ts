@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { assistant } from '@/data/assistant'
-import { checkChat, trimHistory, type ChatMessage } from '@/lib/assistant/limits'
+import { checkChat, checkMessages, trimHistory, type ChatMessage } from '@/lib/assistant/limits'
 
 const ID = '2f1e6c1a-8d2b-4c3e-9f00-1a2b3c4d5e6f'
 const ok = { conversationId: ID, page: '/', messages: [{ role: 'user', content: 'Hi' }] }
@@ -18,12 +18,18 @@ function turns(n: number) {
 
 describe('checkChat', () => {
   it('accepts a well-formed request', () => {
-    expect(checkChat(ok)).toEqual({ ok: true, req: ok })
+    expect(checkChat(ok)).toEqual({ ok: true, req: { ...ok, formShown: false } })
+  })
+
+  it('reads formShown as true only when it is the boolean true', () => {
+    expect(checkChat({ ...ok, formShown: true })).toMatchObject({ ok: true, req: { formShown: true } })
+    expect(checkChat(ok)).toMatchObject({ ok: true, req: { formShown: false } })
+    expect(checkChat({ ...ok, formShown: 'yes' })).toMatchObject({ ok: true, req: { formShown: false } })
   })
 
   it('builds a fresh request from the checked fields only', () => {
     const r = checkChat({ ...ok, extra: 'x', messages: [{ role: 'user', content: 'Hi', tool: 'y' }] })
-    expect(r).toEqual({ ok: true, req: ok })
+    expect(r).toEqual({ ok: true, req: { ...ok, formShown: false } })
   })
 
   it('refuses a body that is not an object', () => {
@@ -44,7 +50,7 @@ describe('checkChat', () => {
   })
 
   it('accepts a UUID in either case', () => {
-    expect(checkChat({ ...ok, conversationId: ID.toUpperCase() })).toEqual({ ok: true, req: { ...ok, conversationId: ID.toUpperCase() } })
+    expect(checkChat({ ...ok, conversationId: ID.toUpperCase() })).toEqual({ ok: true, req: { ...ok, conversationId: ID.toUpperCase(), formShown: false } })
   })
 
   it('refuses a page that is not a path on this site', () => {
@@ -82,12 +88,24 @@ describe('checkChat', () => {
     const long = { ...ok, messages: [{ role: 'user', content: 'a'.repeat(1001) }] }
     expect(checkChat(long)).toEqual({ ok: false, error: assistant.errors.long })
     const edge = { ...ok, messages: [{ role: 'user', content: 'a'.repeat(1000) }] }
-    expect(checkChat(edge)).toEqual({ ok: true, req: edge })
+    expect(checkChat(edge)).toEqual({ ok: true, req: { ...edge, formShown: false } })
   })
 
   it('refuses a conversation past 30 visitor turns', () => {
     expect(checkChat(turns(31))).toEqual({ ok: false, error: assistant.errors.turns })
-    expect(checkChat(turns(30))).toEqual({ ok: true, req: turns(30) })
+    expect(checkChat(turns(30))).toEqual({ ok: true, req: { ...turns(30), formShown: false } })
+  })
+})
+
+describe('checkMessages', () => {
+  const pair = [{ role: 'user', content: 'a' }, { role: 'assistant', content: 'b' }]
+
+  it('accepts a history that ends on the assistant when endOnUser is false', () => {
+    expect(checkMessages(pair, false)).toEqual({ ok: true, messages: pair })
+  })
+
+  it('refuses the same history when endOnUser is true', () => {
+    expect(checkMessages(pair, true)).toEqual(bad)
   })
 })
 

@@ -22,11 +22,14 @@ export async function logTurn({ conversationId, page, userText, record }: LogEnt
   }
   try {
     await send('conversations?on_conflict=id', 'POST', { id: conversationId, first_page: page }, 'resolution=ignore-duplicates')
-    await send('messages', 'POST', [
+    const { engine } = record
+    // A row with no content is not worth a row (and the column is not null), so an empty visitor or reply text is skipped.
+    const rows = [
       { conversation_id: conversationId, role: 'user', content: userText },
-      ...record.tools.map((t) => ({ conversation_id: conversationId, role: 'tool', content: t.result, tool_name: t.name, tool_input: t.input })),
-      { conversation_id: conversationId, role: 'assistant', content: record.text, input_tokens: record.usage.input, output_tokens: record.usage.output },
-    ])
+      ...record.tools.map((t) => ({ conversation_id: conversationId, role: 'tool', content: t.result, tool_name: t.name, tool_input: t.input, engine })),
+      { conversation_id: conversationId, role: 'assistant', content: record.text, input_tokens: record.usage.input, output_tokens: record.usage.output, engine },
+    ].filter((r) => r.content !== '')
+    await send('messages', 'POST', rows)
     if (record.leadSent) await send(`conversations?id=eq.${encodeURIComponent(conversationId)}`, 'PATCH', { lead_captured: true })
   } catch (err) {
     console.error('Assistant log failed', err)

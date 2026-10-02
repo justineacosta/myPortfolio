@@ -1,7 +1,6 @@
-import { enabled } from '@/lib/assistant/config'
 import AssistantRoot from './AssistantRoot'
 
-/** The assistant, only when it can answer: a real key or the fake is set. Read on the server, so a build without either ships no launcher. */
+/** The assistant, always: with no key it answers from the site's own text, so the launcher ships in every build. */
 export default function Assistant() {
-  return enabled() ? <AssistantRoot /> : null
+  return <AssistantRoot />
 }

@@ -5,7 +5,7 @@ import type { ChatRequest } from './limits'
 const failed: AssistantEvent = { type: 'error', error: assistant.errors.failed }
 
 /** Posts a chat turn and yields the events of the reply. A refusal or a network failure arrives as an `error` event. An abort ends the stream quietly. */
-export async function* sendChat(body: ChatRequest, signal: AbortSignal): AsyncGenerator<AssistantEvent> {
+export async function* sendChat(body: Omit<ChatRequest, 'formShown'> & { formShown?: boolean }, signal: AbortSignal): AsyncGenerator<AssistantEvent> {
   let res: Response
   try {
     res = await fetch('/api/chat', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), signal })

@@ -9,7 +9,7 @@ export function isFake(env: Record<string, string | undefined> = process.env) {
   return env.ASSISTANT_FAKE === '1'
 }
 
-/** Whether the assistant can answer at all: a real key, or the fake. */
-export function enabled(env: Record<string, string | undefined> = process.env) {
-  return isFake(env) || Boolean(env.ANTHROPIC_API_KEY)
+/** Which engine answers first: 'ai' (Claude, or the fake) with a real key or ASSISTANT_FAKE=1, else 'quick' (the site's own text). */
+export function mode(env: Record<string, string | undefined> = process.env): 'ai' | 'quick' {
+  return isFake(env) || Boolean(env.ANTHROPIC_API_KEY) ? 'ai' : 'quick'
 }

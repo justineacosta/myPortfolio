@@ -27,7 +27,6 @@ export const assistant = {
     turns: 'This chat is at its limit. Start a new chat, or use the Contact page.',
     bad: 'That request didn’t look right. Try again.',
     failed: 'I can’t answer right now. Try again, or use the Contact page.',
-    off: 'The assistant is off right now.',
   },
   /** The quick engine's fixed lines and the lead form card (lib/assistant/quick.ts): every other word it says is site text. */
   quick: {

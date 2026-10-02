@@ -1,17 +1,17 @@
 import { describe, expect, it } from 'vitest'
-import { enabled, isFake } from '@/lib/assistant/config'
+import { isFake, mode } from '@/lib/assistant/config'
 
 describe('assistant config', () => {
-  it('is off without a key or the fake switch', () => {
-    expect(enabled({})).toBe(false)
+  it('is in quick mode without a key or the fake switch', () => {
+    expect(mode({})).toBe('quick')
   })
 
-  it('is on with an Anthropic key', () => {
-    expect(enabled({ ANTHROPIC_API_KEY: 'sk' })).toBe(true)
+  it('is in ai mode with an Anthropic key', () => {
+    expect(mode({ ANTHROPIC_API_KEY: 'sk' })).toBe('ai')
   })
 
-  it('is on with the fake switch', () => {
-    expect(enabled({ ASSISTANT_FAKE: '1' })).toBe(true)
+  it('is in ai mode with the fake switch', () => {
+    expect(mode({ ASSISTANT_FAKE: '1' })).toBe('ai')
   })
 
   it('reads only ASSISTANT_FAKE=1 as fake', () => {

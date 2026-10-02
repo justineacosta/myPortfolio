@@ -460,10 +460,10 @@ describe('Assistant launcher and panel', () => {
 })
 
 describe('Assistant (the server gate)', () => {
-  it('renders nothing without a key or the fake', () => {
+  it('renders the assistant without a key or the fake', () => {
     vi.stubEnv('ANTHROPIC_API_KEY', '')
     vi.stubEnv('ASSISTANT_FAKE', '')
-    expect(Assistant()).toBeNull()
+    expect(Assistant()).not.toBeNull()
   })
 
   it('renders the assistant with ASSISTANT_FAKE=1', () => {

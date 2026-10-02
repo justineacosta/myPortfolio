@@ -54,10 +54,23 @@ describe('logTurn', () => {
     expect(init.headers).toMatchObject({ apikey: 'srk', Authorization: 'Bearer srk' })
     expect(JSON.parse(init.body)).toEqual([
       { conversation_id: ID, role: 'user', content: 'What do you build?' },
-      { conversation_id: ID, role: 'tool', content: 'Navigating to projects', tool_name: 'navigate', tool_input: { page: 'projects' } },
-      { conversation_id: ID, role: 'tool', content: 'No match', tool_name: 'search', tool_input: { q: 'rag' } },
-      { conversation_id: ID, role: 'assistant', content: RECORD.text, input_tokens: 120, output_tokens: 45 },
+      { conversation_id: ID, role: 'tool', content: 'Navigating to projects', tool_name: 'navigate', tool_input: { page: 'projects' }, engine: 'claude' },
+      { conversation_id: ID, role: 'tool', content: 'No match', tool_name: 'search', tool_input: { q: 'rag' }, engine: 'claude' },
+      { conversation_id: ID, role: 'assistant', content: RECORD.text, input_tokens: 120, output_tokens: 45, engine: 'claude' },
     ])
+  })
+
+  it('writes the record’s engine on the tool and assistant rows, and none on the user row', async () => {
+    await logTurn(entry({ ...RECORD, engine: 'site' }), ENV)
+    const rows = JSON.parse(fetch.mock.calls[1][1].body)
+    expect(rows[0]).not.toHaveProperty('engine')
+    expect(rows.slice(1).map((r: { engine: string }) => r.engine)).toEqual(['site', 'site', 'site'])
+  })
+
+  it('skips a row whose content is empty', async () => {
+    await logTurn({ ...entry({ ...RECORD, text: '' }), userText: '' }, ENV)
+    const rows = JSON.parse(fetch.mock.calls[1][1].body)
+    expect(rows.map((r: { role: string }) => r.role)).toEqual(['tool', 'tool'])
   })
 
   it('marks the conversation as a lead when a lead was sent', async () => {

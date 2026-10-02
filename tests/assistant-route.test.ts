@@ -4,6 +4,7 @@ import { assistant } from '@/data/assistant'
 import { readEvents, type AssistantEvent } from '@/lib/assistant/events'
 import { logTurn } from '@/lib/assistant/log'
 import { fakeMailer } from '@/lib/assistant/mail'
+import { quickTurn } from '@/lib/assistant/quick'
 import { POST } from '@/app/api/chat/route'
 import { POST as POST_CONTACT } from '@/app/api/contact/route'
 
@@ -14,6 +15,10 @@ vi.mock('@/lib/assistant/mail', async (orig) => {
   const real = await orig<typeof import('@/lib/assistant/mail')>()
   return { ...real, fakeMailer: vi.fn(real.fakeMailer) }
 })
+vi.mock('@/lib/assistant/quick', async (orig) => {
+  const real = await orig<typeof import('@/lib/assistant/quick')>()
+  return { ...real, quickTurn: vi.fn(real.quickTurn) }
+})
 vi.mock('@/lib/assistant/log', () => ({ logTurn: vi.fn().mockResolvedValue(undefined) }))
 
 let ip = 0
@@ -21,10 +26,11 @@ let ip = 0
 const id = () => crypto.randomUUID()
 const body = (text: string, conversationId = id()) => ({ conversationId, page: '/services', messages: [{ role: 'user', content: text }] })
 /** Each request comes from its own address unless one is given, so the rate limit stays out of the way. */
-const post = (payload: unknown, from = `10.0.0.${++ip}`) =>
+const post = (payload: unknown, from = `10.0.0.${++ip}`, signal?: AbortSignal) =>
   POST(
     new Request('http://localhost/api/chat', {
       method: 'POST',
+      signal,
       headers: { 'content-type': 'application/json', 'x-forwarded-for': `${from}, 10.9.9.9` },
       body: typeof payload === 'string' ? payload : JSON.stringify(payload),
     }),
@@ -83,19 +89,74 @@ describe('POST /api/chat', () => {
     expect(fetch).not.toHaveBeenCalled()
   })
 
-  it('answers a failed turn with an error event, then done, still status 200', async () => {
-    const res = await post(body('fail'))
-    expect(res.status).toBe(200)
-    expect(await events(res)).toEqual([{ type: 'error', error: assistant.errors.failed }, { type: 'done' }])
-    expect(error).toHaveBeenCalledWith(expect.stringContaining('Assistant'), expect.any(Error))
-  })
-
-  it('answers 503 when there is no key and no fake', async () => {
+  it('answers from the site, with no key and no fake: the quick hello, then done', async () => {
     vi.stubEnv('ASSISTANT_FAKE', '')
     vi.stubEnv('ANTHROPIC_API_KEY', '')
     const res = await post(body('Hi'))
-    expect(res.status).toBe(503)
-    expect(await res.json()).toEqual({ error: assistant.errors.off })
+    expect(res.status).toBe(200)
+    expect(await events(res)).toEqual([{ type: 'text', delta: assistant.quick.hello }, { type: 'done' }])
+  })
+
+  it('shows no form card again when the request says one is already shown', async () => {
+    vi.stubEnv('ASSISTANT_FAKE', '')
+    vi.stubEnv('ANTHROPIC_API_KEY', '')
+    const first = await events(await post(body('tell me a joke')))
+    expect(first.some((e) => e.type === 'form')).toBe(true)
+    const again = await events(await post({ ...body('tell me a joke'), formShown: true }))
+    expect(again.some((e) => e.type === 'form')).toBe(false)
+  })
+
+  it('falls back to a quick answer when Claude fails: source, then the site’s text, then done, with no error', async () => {
+    const res = await post(body('fail what do you charge'))
+    expect(res.status).toBe(200)
+    const all = await events(res)
+    expect(all[0]).toEqual({ type: 'source', engine: 'site' })
+    const text = all.find((e) => e.type === 'text')
+    expect(text).toMatchObject({ type: 'text', delta: expect.stringMatching(/^\*\*How much do you charge\?\*\*/) })
+    expect(all.some((e) => e.type === 'error')).toBe(false)
+    expect(all.at(-1)).toEqual({ type: 'done' })
+    expect(error).toHaveBeenCalledWith(expect.stringContaining('Assistant'), expect.any(Error))
+  })
+
+  it('logs the quick record when the fallback answered', async () => {
+    await events(await post(body('fail what do you charge')))
+    await runAfter()
+    expect(logTurn).toHaveBeenCalledTimes(1)
+    expect(vi.mocked(logTurn).mock.calls[0][0].record.engine).toBe('site')
+  })
+
+  it('does not fall back when the visitor aborted: no source event, nothing logged', async () => {
+    const abort = new AbortController()
+    abort.abort()
+    const res = await post(body('fail what do you charge'), undefined, abort.signal)
+    const all = await events(res)
+    expect(all.some((e) => e.type === 'source')).toBe(false)
+    expect(all).toEqual([{ type: 'error', error: assistant.errors.failed }, { type: 'done' }])
+    await runAfter()
+    expect(logTurn).not.toHaveBeenCalled()
+  })
+
+  it('answers with an error event, then done, when Claude and the quick engine both fail', async () => {
+    vi.mocked(quickTurn).mockImplementationOnce(() => {
+      throw new Error('quick broke')
+    })
+    const res = await post(body('fail what do you charge'))
+    expect(res.status).toBe(200)
+    const all = await events(res)
+    expect(all.filter((e) => e.type === 'error')).toEqual([{ type: 'error', error: assistant.errors.failed }])
+    expect(all.at(-1)).toEqual({ type: 'done' })
+    expect(error).toHaveBeenCalledWith(expect.stringContaining('Assistant'), expect.objectContaining({ message: 'quick broke' }))
+    await runAfter()
+    expect(logTurn).not.toHaveBeenCalled()
+  })
+
+  it('answers with an error event, then done, when the quick engine fails in quick mode', async () => {
+    vi.stubEnv('ASSISTANT_FAKE', '')
+    vi.stubEnv('ANTHROPIC_API_KEY', '')
+    vi.mocked(quickTurn).mockImplementationOnce(() => {
+      throw new Error('quick broke')
+    })
+    expect(await events(await post(body('Hi')))).toEqual([{ type: 'error', error: assistant.errors.failed }, { type: 'done' }])
   })
 
   it('answers 429 on the 21st request from one address', async () => {
@@ -194,12 +255,6 @@ describe('POST /api/chat', () => {
       userText: 'Hi',
       record: expect.objectContaining({ text: expect.stringContaining('Justine builds'), leadSent: false }),
     })
-  })
-
-  it('does not log a turn that failed', async () => {
-    await events(await post(body('fail')))
-    await runAfter()
-    expect(logTurn).not.toHaveBeenCalled()
   })
 
   it('leaves the response unchanged when logging rejects', async () => {

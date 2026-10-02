@@ -17,6 +17,7 @@ create table messages (
   tool_input jsonb,
   input_tokens int,
   output_tokens int,
+  engine text check (engine in ('claude', 'site')),
   created_at timestamptz not null default now()
 );
 
