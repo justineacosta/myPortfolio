@@ -44,6 +44,11 @@ describe('assistant events', () => {
     expect(await collect(streamOf('{nope\n{"type":"lead","ok":true}\n'))).toEqual([{ type: 'lead', ok: true }])
   })
 
+  it('round-trips the source and form events', async () => {
+    const events: AssistantEvent[] = [{ type: 'source', engine: 'site' }, { type: 'form' }]
+    expect(await collect(streamOf(...events.map(encodeEvent)))).toEqual(events)
+  })
+
   it('reads a last line that has no trailing newline', async () => {
     expect(await collect(streamOf('{"type":"done"}'))).toEqual([{ type: 'done' }])
   })

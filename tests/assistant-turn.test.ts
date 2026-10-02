@@ -38,6 +38,7 @@ describe('runTurn', () => {
     expect(record.usage).toEqual({ input: 10, output: 5 })
     expect(record.tools).toEqual([])
     expect(record.leadSent).toBe(false)
+    expect(record.engine).toBe('claude')
     expect(events.some((e) => e.type === 'done')).toBe(false)
   })
 

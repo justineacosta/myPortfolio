@@ -3,6 +3,8 @@ export type AssistantEvent =
   | { type: 'text'; delta: string }
   | { type: 'navigate'; href: string; label: string }
   | { type: 'lead'; ok: boolean }
+  | { type: 'source'; engine: 'site' }
+  | { type: 'form' }
   | { type: 'error'; error: string }
   | { type: 'done' }
 

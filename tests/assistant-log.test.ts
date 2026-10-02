@@ -12,6 +12,7 @@ const RECORD: TurnRecord = {
   ],
   usage: { input: 120, output: 45 },
   leadSent: false,
+  engine: 'claude',
 }
 const entry = (record: TurnRecord = RECORD) => ({ conversationId: ID, page: '/', userText: 'What do you build?', record })
 

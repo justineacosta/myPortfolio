@@ -4,6 +4,8 @@ export const assistant = {
   title: 'Kraft’s assistant',
   badge: 'AI',
   greeting: 'Hi, I’m Kraft’s assistant, an AI. Ask about Justine’s work, or leave a message for Justine.',
+  badgeQuick: 'Quick answers',
+  greetingQuick: 'Hi, I’m Kraft’s assistant. Ask about Justine’s work, or leave a message for Justine.',
   chips: ['What do you build?', 'Show me your projects', 'I have a project in mind'],
   notice: 'Chats are recorded to improve answers',
   privacy: 'Privacy',
@@ -26,6 +28,27 @@ export const assistant = {
     bad: 'That request didn’t look right. Try again.',
     failed: 'I can’t answer right now. Try again, or use the Contact page.',
     off: 'The assistant is off right now.',
+  },
+  /** The quick engine's fixed lines and the lead form card (lib/assistant/quick.ts): every other word it says is site text. */
+  quick: {
+    note: 'Answers come straight from this site.',
+    hello: 'Hi! Ask about Justine’s services, projects or process, or leave a message.',
+    going: 'Taking you to',
+    more: 'More on',
+    also: 'Also:',
+    leadAsk: 'Want Justine to reply? Leave your details:',
+    none: 'I couldn’t find that on the site. Try asking about services, projects or how Justine works, or leave Justine a message.',
+    form: {
+      title: 'Leave Justine a message',
+      firstName: 'First name',
+      lastName: 'Last name',
+      email: 'Email',
+      message: 'What do you need?',
+      call: 'Request a call',
+      send: 'Send',
+      sending: 'Sending',
+      already: 'Your message is already with Justine.',
+    },
   },
   /** The email Justine gets when a visitor leaves a message through the chat (lib/emails.ts). */
   email: {
