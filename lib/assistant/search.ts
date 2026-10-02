@@ -34,6 +34,9 @@ const SYNONYM_GROUPS: string[][] = [
   ['method', 'process'],
   ['portfolio', 'project'],
   ['service', 'offer'],
+  // data/assistantFacts.ts: career and education.
+  ['experience', 'career', 'job', 'employment', 'resume', 'cv'],
+  ['study', 'studied', 'university', 'college', 'degree', 'education', 'graduate'],
 ]
 
 /**
@@ -49,6 +52,11 @@ const TOPICS: [RegExp, string][] = [
   [/\bwhat (?:do|does) (?:you|justine|kraft) do\b/g, 'justine'],
   [/\b(?:justines|krafts|your) work\b/g, 'portfolio'],
   [/^ *about *$/g, 'justine'],
+  // Work history, not the portfolio: "where have you worked", "work experience", "worked before".
+  [/\bwhere (?:have|did|has) (?:you|justine|he) (?:worked|work)\b/g, 'career'],
+  [/\bwork(?:ed)? (?:experience|history|before)\b/g, 'career'],
+  // Schooling, not the location: "where did you study", "where did he go to university".
+  [/\bwhere (?:did|do|does|has) (?:you|justine|he) (?:study|studied|go to (?:school|college|university))\b/g, 'education'],
 ]
 
 /**

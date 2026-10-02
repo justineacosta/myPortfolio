@@ -1,5 +1,6 @@
 import { about, ROLES } from '@/data/about'
 import { agents } from '@/data/agents'
+import { FACTS } from '@/data/assistantFacts'
 import { automations, PLATFORMS } from '@/data/automations'
 import { contact } from '@/data/contact'
 import { FAQS } from '@/data/faqs'
@@ -85,6 +86,19 @@ export function buildPassages(): Passage[] {
   add('about-intro', about.intro.heading, words(about.lede, `${about.intro.lead}${about.intro.body}`, about.intro.story), '/about')
   add('about-location', about.location.title, words(`${about.location.detail.replace(/ · /g, ', ')}.`), '/about')
   ROLES.forEach((r, i) => sample(`role-${i + 1}`, r.name, words(r.line, `Tools: ${names(r.logos)}.`), '/about'))
+
+  // What the assistant knows beyond the pages (data/assistantFacts.ts), titled the way visitors ask.
+  const f = FACTS
+  add('career', 'Career and work experience: where Justine has worked', f.career.map((j) => `${j.role}, ${j.org}, ${j.when}. ${j.did}`).join(' '), '/about')
+  add('education', 'Education: Justine’s degree and university', `${f.education.degree}, ${f.education.school}, ${f.education.where}, ${f.education.when}. ${f.education.did}`, '/about')
+  add('background', 'Languages Justine speaks, and how he started', `${f.background.languages} ${f.background.start}`, '/about')
+  add('interests', 'Hobbies and interests: what Justine does for fun', f.background.interests, '/about')
+  add('beliefs', 'Justine’s philosophy: what he believes', f.beliefs.join(' '), '/about')
+  add('billing', 'Hourly or fixed price?', f.working.billing, '/contact')
+  add('ownership', 'Who owns the code?', f.working.ownership, '/contact')
+  add('communication', 'How Justine communicates with clients', f.working.communication, '/contact')
+  add('design', 'Does Justine also design?', f.working.design, '/contact')
+  add('team', 'Can Justine join an existing team?', f.working.team, '/contact')
 
   const inUse = TOOLS.filter((t) => !EXPERIMENTAL.includes(t.name))
   const label = (s: string) => s.charAt(0) + s.slice(1).toLowerCase()

@@ -1,5 +1,6 @@
 import { about, ROLES } from '@/data/about'
 import { agents } from '@/data/agents'
+import { FACTS } from '@/data/assistantFacts'
 import { automations, PLATFORMS } from '@/data/automations'
 import { contact } from '@/data/contact'
 import { FAQS } from '@/data/faqs'
@@ -161,6 +162,35 @@ export function buildKnowledge(): string {
       '### Roles',
       ...ROLES.map((r) => `- ${r.name}: ${r.line} Tools: ${r.logos.map((l) => l.name).join(', ')}.`),
       `### Location\n${about.location.title}. ${about.location.detail.replace(/ · /g, ', ')}.`,
+    ),
+
+    section(
+      'Justine’s background and career',
+      '/about',
+      'Justine uses he/him.',
+      '### Career, newest first',
+      ...FACTS.career.map((j) => `- ${j.role}, ${j.org} (${j.where}), ${j.when}. ${j.did}`),
+      '### Education',
+      `${FACTS.education.degree}, ${FACTS.education.school} (${FACTS.education.where}), ${FACTS.education.when}. ${FACTS.education.did}`,
+      '### Background',
+      `${FACTS.background.languages} ${FACTS.background.start} ${FACTS.background.interests}`,
+    ),
+
+    section(
+      'Working with Justine',
+      '/contact',
+      `- Billing: ${FACTS.working.billing}`,
+      `- Ownership: ${FACTS.working.ownership}`,
+      `- Communication: ${FACTS.working.communication}`,
+      `- Design: ${FACTS.working.design}`,
+      `- Teams: ${FACTS.working.team}`,
+    ),
+
+    section(
+      'What Justine believes',
+      '/about',
+      ...FACTS.beliefs.map((b) => `- ${b}`),
+      `In his own words: “${FACTS.ownWords}”`,
     ),
 
     section(

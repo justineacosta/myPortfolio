@@ -41,7 +41,8 @@ describe('searchPassages', () => {
   // The final review's answer-quality list, the panel's chips and the topics its greeting, hello and no-match lines suggest.
   it.each([
     ['What are your rates?', 'faq-3'],
-    ['what is your hourly rate', 'faq-3'],
+    // The billing fact (hourly or fixed) answers this better than the pricing FAQ, now that the assistant knows it.
+    ['what is your hourly rate', 'billing'],
     ['How much does a website cost?', 'faq-3'],
     ['whats your budget range', 'faq-3'],
     ['Can you make me a chatbot for my website?', 'service-2'],
@@ -68,6 +69,26 @@ describe('searchPassages', () => {
     ['what is the build plan', 'card-plan'],
     ['What do you build?', 'faq-1'],
   ])('answers “%s” with the passage %s', (q, id) => {
+    expect(top(q)?.id).toBe(id)
+  })
+
+  // Facts the assistant knows beyond the site's pages (data/assistantFacts.ts).
+  it.each([
+    ['where did you study', 'education'],
+    ['what is your degree', 'education'],
+    ['what is your work experience', 'career'],
+    ['where have you worked before', 'career'],
+    ['what languages do you speak', 'background'],
+    ['do you speak Filipino', 'background'],
+    ['what do you do for fun', 'interests'],
+    ['what are your hobbies', 'interests'],
+    ['who owns the code', 'ownership'],
+    ['do you charge hourly or a fixed price', 'billing'],
+    ['can you join our existing team', 'team'],
+    ['do you also design', 'design'],
+    ['how do you communicate with clients', 'communication'],
+    ['what is your philosophy', 'beliefs'],
+  ])('answers “%s” with the fact %s', (q, id) => {
     expect(top(q)?.id).toBe(id)
   })
 

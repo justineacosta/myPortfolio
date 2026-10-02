@@ -201,7 +201,7 @@ describe('quickTurn', () => {
     // The final review's answer-quality list, as the visitor sees it: the passage's title leads the reply, and no form follows.
     it.each([
       ['What are your rates?', 'How much do you charge?'],
-      ['what is your hourly rate', 'How much do you charge?'],
+      ['what is your hourly rate', 'Hourly or fixed price?'],
       ['How much does a website cost?', 'How much do you charge?'],
       ['Can you make me a chatbot for my website?', 'AI Agents & RAG'],
       ['Can you automate my invoices?', 'Automation & Workflows'],

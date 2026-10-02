@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { about, ROLES } from '@/data/about'
+import { FACTS } from '@/data/assistantFacts'
 import { FAQS } from '@/data/faqs'
 import { NAV } from '@/data/nav'
 import { profile } from '@/data/profile'
@@ -26,6 +27,18 @@ describe('buildKnowledge', () => {
     for (const r of ROLES) expect(k).toContain(r.name)
     expect(k).toContain(profile.name)
     expect(k).toContain(about.location.title)
+  })
+
+  it('carries the facts beyond the site: career, education, background, working with Justine and beliefs', () => {
+    const k = buildKnowledge()
+    for (const job of FACTS.career) expect(k).toContain(job.role)
+    expect(k).toContain(FACTS.education.school)
+    expect(k).toContain('English and Filipino')
+    expect(k).toContain(FACTS.working.billing)
+    expect(k).toContain(FACTS.working.ownership)
+    for (const b of FACTS.beliefs) expect(k).toContain(b)
+    // His email and old site never reach the assistant.
+    expect(k).not.toMatch(/@gmail\.com|vercel\.app/)
   })
 
   it('leaves out placeholders and the contact email', () => {
@@ -80,8 +93,10 @@ describe('systemBlocks', () => {
     expect(blocks[0].cache_control).toEqual({ type: 'ephemeral' })
   })
 
-  it('names the assistant and refers to Justine by name', () => {
+  it('names the assistant and refers to Justine by name, then he/him', () => {
     expect(PERSONA).toContain('Kraft’s assistant')
     expect(PERSONA).toContain('Justine Acosta')
+    expect(PERSONA).toContain('he/him')
+    expect(PERSONA).not.toContain('Never use pronouns')
   })
 })
