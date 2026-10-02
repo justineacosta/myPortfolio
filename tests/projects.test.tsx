@@ -74,9 +74,9 @@ describe('Projects data', () => {
     for (const s of projects.sitesView.sites) {
       expect(s.tall).toBe(`/samples/thumbs/tall/${s.file.replace(/\.html$/, '.jpeg')}`)
       const { width, height } = jpegSize(readFileSync(`public${s.tall}`))
-      expect(width, s.tall).toBe(432)
-      // 1080 x 1440 screens saved at 0.4x: three screens are 1728px.
-      expect(height, s.tall).toBeGreaterThanOrEqual(1728)
+      expect(width, s.tall).toBe(648)
+      // 1080 x 1440 screens saved at 0.6x: three screens are 2592px.
+      expect(height, s.tall).toBeGreaterThanOrEqual(2592)
     }
   })
 })
