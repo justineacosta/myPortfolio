@@ -1,5 +1,9 @@
 import { expect, test, type Page } from '@playwright/test'
 import { hydrated } from './helpers'
+import { isHidden } from './pages'
+
+// The page's own tests run while it is switched on; e2e/hidden.spec.ts covers it switched off.
+test.skip(isHidden('/showcase'), 'Showcase is switched off in data/nav.ts')
 
 /** How far the site shot has scrolled up inside its window, in px. */
 const scrolled = (page: Page) =>

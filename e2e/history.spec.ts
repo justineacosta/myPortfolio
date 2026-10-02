@@ -60,8 +60,8 @@ async function scrollServices(page: import('@playwright/test').Page) {
 
 test('after Back to a longer page, the next wheel scrolls on from the restored place', async ({ page }) => {
   const { y, at } = await scrollServices(page)
-  await sidebarNav(page).getByRole('link', { name: /^Showcase/ }).click()
-  await expect(page).toHaveURL(/\/showcase$/)
+  await sidebarNav(page).getByRole('link', { name: /^FAQs/ }).click()
+  await expect(page).toHaveURL(/\/contact$/)
   await page.goBack()
   await expect(page).toHaveURL(/\/services$/)
   await expect.poll(async () => Math.abs((await y()) - at)).toBeLessThan(3)

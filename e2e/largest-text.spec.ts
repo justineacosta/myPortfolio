@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test'
 import { settleIntro } from './helpers'
+import { shown } from './pages'
 
-const ROUTES = ['/', '/projects', '/showcase', '/services', '/testimonials', '/about', '/contact', '/privacy', '/terms', '/thank-you', '/no-such-page']
+const ROUTES = shown(['/', '/projects', '/showcase', '/services', '/testimonials', '/about', '/contact', '/privacy', '/terms', '/thank-you', '/no-such-page'])
 
 // The boot script applies the saved choice before first paint, as for a returning visitor.
 test.beforeEach(async ({ page }) => {

@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { hydrated, settleIntro } from './helpers'
+import { isHidden } from './pages'
 
 test('Lenis drives the panel on desktop and the wheel scrolls it', async ({ page }) => {
   await page.goto('/')
@@ -31,6 +32,7 @@ test('Lenis is torn down below 1100px', async ({ page }) => {
 test.describe('reduced motion', () => {
   test.use({ reducedMotion: 'reduce' })
   test('no Lenis and reveals are visible immediately', async ({ page }) => {
+    test.skip(isHidden('/showcase'), 'the only reveal is on /showcase, switched off in data/nav.ts')
     // /showcase opens with a revealed frame (the Flagship).
     await page.goto('/showcase')
     await expect(page.locator('.lenis')).toHaveCount(0)
@@ -39,12 +41,13 @@ test.describe('reduced motion', () => {
 })
 
 test('a reveal becomes visible once in view', async ({ page }) => {
+  test.skip(isHidden('/showcase'), 'the only reveal is on /showcase, switched off in data/nav.ts')
   await page.goto('/showcase')
   await expect(page.locator('[data-reveal]').first()).toHaveClass(/is-revealed/)
 })
 
 test('after moving from one page to a longer one, the wheel reaches the very bottom', async ({ page }) => {
-  await page.goto('/testimonials')
+  await page.goto('/about')
   await hydrated(page)
   await page
     .getByRole('complementary', { name: 'Profile and site navigation' })

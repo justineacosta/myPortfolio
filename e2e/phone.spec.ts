@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { catchRun, headlineLanding, hydrated, INTRO_LOAD, loaderGeometry, settleIntro } from './helpers'
+import { shown } from './pages'
 
 test('phone: tab bar replaces the sidebar', async ({ page }) => {
   await page.goto('/')
@@ -71,7 +72,7 @@ test('phone: no contour on touch devices', async ({ page }) => {
   await expect(page.locator('[data-contour]')).toHaveCount(0)
 })
 
-for (const path of ['/', '/projects', '/showcase', '/services', '/testimonials', '/about', '/contact']) {
+for (const path of shown(['/', '/projects', '/showcase', '/services', '/testimonials', '/about', '/contact'])) {
   test(`phone: ${path} has the profile bar, with its buttons once`, async ({ page }) => {
     await page.goto(path)
     await settleIntro(page)
@@ -159,7 +160,7 @@ test('phone: reloading a scrolled Home still lands the intro at the top', async 
 })
 
 test('phone: no page scrolls sideways', async ({ page }) => {
-  for (const r of ['/projects', '/services', '/testimonials', '/about', '/contact']) {
+  for (const r of shown(['/projects', '/services', '/testimonials', '/about', '/contact'])) {
     await page.goto(r)
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
@@ -169,7 +170,7 @@ test('phone: no page scrolls sideways', async ({ page }) => {
 
 test('phone: at 320px every Projects card fits its frame and nothing scrolls sideways', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 700 })
-  for (const r of ['/projects', '/services', '/testimonials', '/about', '/contact']) {
+  for (const r of shown(['/projects', '/services', '/testimonials', '/about', '/contact'])) {
     await page.goto(r)
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
