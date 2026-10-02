@@ -11,6 +11,9 @@ export default defineConfig({
     // Never reuse: a leftover server would serve a stale build and the suite would test old code.
     reuseExistingServer: false,
     timeout: 300_000,
+    // The (site) layout is static, so the assistant is switched on at build time: both the build and the server see this.
+    // Scripted replies, no emails and no database writes, so the suite is safe even when .env.local holds real keys.
+    env: { ASSISTANT_FAKE: '1' },
   },
   projects: [
     {

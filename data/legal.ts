@@ -24,6 +24,7 @@ export const legal = {
     sections: [
       { heading: 'Who this covers', body: 'PLACEHOLDER - who runs this site and which sites this policy applies to.' },
       { heading: 'What is collected', body: 'PLACEHOLDER - what the contact form collects, and whether any analytics run.' },
+      { heading: 'The site assistant', body: 'The chat assistant on this site is an AI (Claude, by Anthropic). Your messages are sent to Anthropic to write each reply. Every conversation is stored for 90 days so answers can be improved, then deleted. No IP address is stored. Your name and email are kept only if you choose to leave them in the chat.' },
       { heading: 'How it is used', body: 'PLACEHOLDER - what you do with that data, and who else sees it.' },
       { heading: 'How long it is kept', body: 'PLACEHOLDER - retention periods, and how to ask for deletion.' },
     ],
