@@ -6,6 +6,7 @@ import { ShellLink, useShellNav } from '@/components/shell/NavigationProvider'
 import { assistant } from '@/data/assistant'
 import { PANEL_DOM_ID } from './AssistantLauncher'
 import { useAssistant, type Entry } from './AssistantProvider'
+import LeadFormCard, { ContactLink, noteClass } from './LeadFormCard'
 
 const TITLE_ID = `${PANEL_DOM_ID}-title`
 const INPUT_ID = `${PANEL_DOM_ID}-input`
@@ -87,17 +88,16 @@ function inOtherOverlay(el: EventTarget | null, panel: HTMLElement | null): bool
   return controlled !== null && controlled !== panel && controlled.matches(OVERLAY)
 }
 
-/** The chat panel: desktop a card above the launcher, phones a full-height sheet. A non-modal dialog, so the page behind stays usable. */
-export default function AssistantPanel({ launcherRef }: { launcherRef: RefObject<HTMLButtonElement | null> }) {
+/** The chat panel: desktop a card above the launcher, phones a full-height sheet. A non-modal dialog, so the page behind stays usable. `mode` is which engine answers first: 'ai' keeps the AI badge and greeting, 'quick' says answers come from the site. */
+export default function AssistantPanel({ launcherRef, mode }: { launcherRef: RefObject<HTMLButtonElement | null>; mode: 'ai' | 'quick' }) {
   const { open } = useAssistant()
-  return open ? <PanelBody launcherRef={launcherRef} /> : null
+  return open ? <PanelBody launcherRef={launcherRef} mode={mode} /> : null
 }
 
 const bubble = 'max-w-[88%] rounded-2xl border px-3 py-2 text-[13.5px] leading-normal whitespace-pre-wrap'
-const note = 'flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-b1 bg-chip px-3 py-2 text-[12.5px] text-ink2'
 const small = 'cursor-pointer rounded-lg border border-b1 bg-chip px-2.5 py-1 text-[12px] font-medium text-ink2 hover:border-b2 hover:text-ink'
 
-function PanelBody({ launcherRef }: { launcherRef: RefObject<HTMLButtonElement | null> }) {
+function PanelBody({ launcherRef, mode }: { launcherRef: RefObject<HTMLButtonElement | null>; mode: 'ai' | 'quick' }) {
   const { setOpen, entries, streaming, send, stop, retry, reset } = useAssistant()
   const { go } = useShellNav()
   const [draft, setDraft] = useState('')
@@ -137,6 +137,13 @@ function PanelBody({ launcherRef }: { launcherRef: RefObject<HTMLButtonElement |
     else if (!streaming && wasStreamingRef.current && here) input.current?.focus()
     wasStreamingRef.current = streaming
   }, [streaming])
+
+  // A form card's outcome is read out once, and focus goes back to the chat input (the card's Send button is gone) unless the visitor went elsewhere.
+  const settled = (text: string) => {
+    setAnnounced(text)
+    const active = document.activeElement
+    if (!active || active === document.body || panel.current?.contains(active)) input.current?.focus()
+  }
 
   const close = useCallback(() => {
     setOpen(false)
@@ -184,9 +191,17 @@ function PanelBody({ launcherRef }: { launcherRef: RefObject<HTMLButtonElement |
         <h2 id={TITLE_ID} className="text-[15px] font-semibold tracking-[-.01em]">
           {assistant.title}
         </h2>
-        <span className="rounded-md border border-b1 bg-chip px-1.5 py-px font-mono text-[10px] tracking-[.1em] text-ink3">{assistant.badge}</span>
+        <span className="rounded-md border border-b1 bg-chip px-1.5 py-px font-mono text-[10px] tracking-[.1em] text-ink3">{mode === 'quick' ? assistant.badgeQuick : assistant.badge}</span>
         <div className="ml-auto flex items-center gap-1.5">
-          <button type="button" onClick={reset} aria-label={assistant.newChat} title={assistant.newChat} className="grid size-[30px] cursor-pointer place-items-center rounded-[9px] border border-b1 bg-chip text-ink3 hover:text-ink">
+          <button
+            type="button"
+            onClick={() => {
+              setAnnounced('')
+              reset()
+            }}
+            aria-label={assistant.newChat} title={assistant.newChat}
+            className="grid size-[30px] cursor-pointer place-items-center rounded-[9px] border border-b1 bg-chip text-ink3 hover:text-ink"
+          >
             <PlusIcon size={15} aria-hidden />
           </button>
           <button type="button" onClick={close} aria-label={assistant.close} title={assistant.close} className="grid size-[30px] cursor-pointer place-items-center rounded-[9px] border border-b1 bg-chip text-ink3 hover:text-ink">
@@ -196,7 +211,10 @@ function PanelBody({ launcherRef }: { launcherRef: RefObject<HTMLButtonElement |
       </div>
 
       <div ref={list} className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto overscroll-contain px-4 py-3.5">
-        <p className={`${bubble} self-start border-b1 bg-s2 text-ink`}>{assistant.greeting}</p>
+        <div className="flex flex-col items-start gap-1">
+          <p className={`${bubble} border-b1 bg-s2 text-ink`}>{mode === 'quick' ? assistant.greetingQuick : assistant.greeting}</p>
+          {mode === 'quick' && <p className="px-1 text-[12px] text-ink3">{assistant.quick.note}</p>}
+        </div>
         {entries.length === 0 && (
           <div className="flex flex-wrap gap-2">
             {assistant.chips.map((chip) => (
@@ -207,7 +225,7 @@ function PanelBody({ launcherRef }: { launcherRef: RefObject<HTMLButtonElement |
           </div>
         )}
         {entries.map((e) => (
-          <EntryView key={e.id} entry={e} go={go} />
+          <EntryView key={e.id} entry={e} go={go} mode={mode} onSettled={settled} />
         ))}
         {canRetry && (
           <button type="button" onClick={retry} className={`${small} inline-flex items-center gap-1.5 self-start`}>
@@ -272,15 +290,7 @@ function PanelBody({ launcherRef }: { launcherRef: RefObject<HTMLButtonElement |
   )
 }
 
-function ContactLink() {
-  return (
-    <ShellLink href={assistant.contact.href} className="font-medium text-accent underline underline-offset-2">
-      {assistant.contact.label}
-    </ShellLink>
-  )
-}
-
-function EntryView({ entry, go }: { entry: Entry; go: (href: string) => void }) {
+function EntryView({ entry, go, mode, onSettled }: { entry: Entry; go: (href: string) => void; mode: 'ai' | 'quick'; onSettled: (text: string) => void }) {
   switch (entry.kind) {
     case 'user':
       return <p className={`${bubble} self-end border-wash-b bg-wash text-ink`}>{entry.text}</p>
@@ -289,20 +299,23 @@ function EntryView({ entry, go }: { entry: Entry; go: (href: string) => void }) 
         <div className="flex flex-col items-start gap-1">
           <p className={`${bubble} border-b1 bg-s2 text-ink`}>{renderText(entry.text, go)}</p>
           {entry.unfinished && <p className="px-1 text-[12px] text-ink3">{assistant.unfinished}</p>}
+          {entry.quick && mode === 'ai' && <p className="px-1 text-[12px] text-ink3">{assistant.quick.note}</p>}
         </div>
       )
     case 'navigate':
-      return <p className={note}>{`${assistant.going} ${entry.label}…`}</p>
+      return <p className={noteClass}>{`${assistant.going} ${entry.label}…`}</p>
     case 'lead':
       return (
-        <p className={note}>
+        <p className={noteClass}>
           <span>{entry.ok ? assistant.leadOk : assistant.leadFailed}</span>
           <ContactLink />
         </p>
       )
+    case 'form':
+      return <LeadFormCard entry={entry} onSettled={onSettled} />
     case 'error':
       return (
-        <p className={note}>
+        <p className={noteClass}>
           <span>{entry.text}</span>
           <ContactLink />
         </p>
