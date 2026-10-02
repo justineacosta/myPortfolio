@@ -21,8 +21,8 @@ test('the site shot scrolls down while the clock runs', async ({ page }) => {
   await page.goto('/showcase')
   await hydrated(page)
   await page.mouse.move(0, 0)
-  await page.waitForTimeout(3500)
-  expect(await scrolled(page)).toBeGreaterThan(100)
+  // Within the 6s cycle, under any load: polled rather than read once.
+  await expect.poll(() => scrolled(page), { timeout: 5500 }).toBeGreaterThan(100)
 })
 
 test('every “What I built” link opens in a new tab and lands', async ({ page, request }) => {
@@ -64,3 +64,20 @@ for (const width of [320, 390]) {
     })
   })
 }
+
+test.describe('a phone, as the clock moves on', () => {
+  test.use({ viewport: { width: 390, height: 800 } })
+  test('the tab bar keeps the open tab in view', async ({ page }) => {
+    await page.goto('/showcase')
+    await hydrated(page)
+    await page.locator('[role=tablist]').scrollIntoViewIfNeeded()
+    await page.mouse.move(0, 0)
+    const tab = page.getByRole('tab', { name: 'Meridian Energy' })
+    await expect(tab).toHaveAttribute('aria-selected', 'true', { timeout: 16_000 })
+    await page.waitForTimeout(800)
+    const bar = (await page.getByRole('tablist').boundingBox())!
+    const t = (await tab.boundingBox())!
+    expect(t.x).toBeGreaterThanOrEqual(bar.x - 1)
+    expect(t.x + t.width).toBeLessThanOrEqual(bar.x + bar.width + 1)
+  })
+})

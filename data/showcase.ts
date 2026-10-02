@@ -23,6 +23,11 @@ export const showcase = {
     built: 'What I built',
     siteLine: 'The site',
     open: 'Open the site',
+    /** The clock's own pause, so a reader can stop the swap (WCAG 2.2.2). */
+    pause: 'Pause',
+    play: 'Play',
+    pauseLabel: 'Pause the sample builds',
+    playLabel: 'Play the sample builds',
     /** How long each business shows; the site shot scrolls top to bottom in the same time. */
     ms: 6000,
   },

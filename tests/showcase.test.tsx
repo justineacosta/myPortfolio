@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import ShowcasePage from '@/app/(site)/showcase/page'
 import Cta from '@/components/showcase/Cta'
@@ -109,6 +109,35 @@ describe('Flagship', () => {
     for (const el of [clock()!, shot(), strip()]) expect(el).not.toHaveAttribute('data-run')
     fireEvent.mouseLeave(root)
     expect(clock()).toHaveAttribute('data-run')
+  })
+
+  it('has a pause button that holds the clock, the shot and the strip until played again', () => {
+    render(<Flagship />)
+    fireEvent.click(screen.getByRole('button', { name: showcase.flagship.pauseLabel }))
+    for (const el of [clock()!, shot(), strip()]) expect(el).not.toHaveAttribute('data-run')
+    fireEvent.click(screen.getByRole('button', { name: showcase.flagship.playLabel }))
+    expect(clock()).toHaveAttribute('data-run')
+  })
+
+  it('has no pause button with reduced motion, since nothing moves', () => {
+    installMatchMedia({ '(prefers-reduced-motion: reduce)': true })
+    render(<Flagship />)
+    expect(screen.queryByRole('button', { name: showcase.flagship.pauseLabel })).toBeNull()
+  })
+
+  it('scrolls the tab bar, and only the tab bar, to the business the clock moves to', () => {
+    const scrollTo = vi.fn()
+    const was = HTMLElement.prototype.scrollTo
+    HTMLElement.prototype.scrollTo = scrollTo as typeof was
+    try {
+      render(<Flagship />)
+      scrollTo.mockClear()
+      runOut(clock()!)
+      expect(scrollTo).toHaveBeenCalledTimes(1)
+      expect(scrollTo.mock.contexts[0]).toBe(screen.getByRole('tablist'))
+    } finally {
+      HTMLElement.prototype.scrollTo = was
+    }
   })
 
   it('holds while a “What I built” link has focus, so the panel does not swap under the keyboard', () => {

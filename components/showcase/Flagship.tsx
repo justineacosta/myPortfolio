@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react'
 import Image from 'next/image'
-import { ArrowUpRightIcon } from '@phosphor-icons/react/ssr'
+import { ArrowUpRightIcon, PauseIcon, PlayIcon } from '@phosphor-icons/react/ssr'
 import FlowStrip, { PEEK_SLUG } from '@/components/projects/FlowStrip'
 import { PLATFORMS } from '@/data/automations'
 import { BUSINESSES, showcase, TALL } from '@/data/showcase'
@@ -28,8 +28,10 @@ export default function Flagship() {
   const [hover, setHover] = useState(false)
   const [focus, setFocus] = useState(false)
   const [inView, setInView] = useState(true)
+  const [paused, setPaused] = useState(false)
   const still = useReducedMotion()
   const root = useRef<HTMLDivElement>(null)
+  const list = useRef<HTMLDivElement>(null)
   const tabs = useRef<(HTMLButtonElement | null)[]>([])
 
   useEffect(() => {
@@ -40,7 +42,19 @@ export default function Flagship() {
     return () => io.disconnect()
   }, [])
 
-  const running = !still && !hover && !focus && inView
+  // On a phone the tab bar scrolls, so keep the open tab in it. Only the bar
+  // scrolls: scrollIntoView would also move the page while the bar is off screen.
+  const first = useRef(true)
+  useEffect(() => {
+    if (first.current) {
+      first.current = false
+      return
+    }
+    const tab = tabs.current[active]
+    if (list.current && tab) list.current.scrollTo?.({ left: tab.offsetLeft - 5, behavior: still ? 'auto' : 'smooth' })
+  }, [active, still])
+
+  const running = !still && !paused && !hover && !focus && inView
   const b = BUSINESSES[active]
   const n = BUSINESSES.length
   const tabId = (code: string) => `flag-tab-${code.toLowerCase()}`
@@ -111,7 +125,7 @@ export default function Flagship() {
           <FlowStrip flow={b.flow} />
         </div>
 
-        <div role="tablist" aria-label={f.tabsLabel} className="flex max-w-full gap-1.5 self-start overflow-x-auto rounded-[14px] border border-b1 bg-s1 p-[5px]">
+        <div ref={list} role="tablist" aria-label={f.tabsLabel} className="relative flex max-w-full gap-1.5 self-start overflow-x-auto rounded-[14px] border border-b1 bg-s1 p-[5px]">
           {BUSINESSES.map((x, i) => {
             const on = i === active
             return (
@@ -139,13 +153,26 @@ export default function Flagship() {
         <p key={`cap-${b.code}`} id="flag-caption" className="min-h-[3.1em] max-w-[60ch] animate-rise text-[14px] leading-[1.55] text-ink2">
           {b.flow.outcome}
         </p>
-        <div key={active} aria-hidden className="flex gap-1.5">
-          {BUSINESSES.map((x, i) =>
-            i === active && !still ? (
-              <span key={x.code} className="flag-bar" data-on data-run={running || undefined} onAnimationEnd={() => setActive((a) => (a + 1) % n)} />
-            ) : (
-              <span key={x.code} className="flag-bar" data-full={(still && i === active) || undefined} />
-            ),
+        <div className="flex items-center gap-3">
+          <div key={active} aria-hidden className="flex flex-1 gap-1.5">
+            {BUSINESSES.map((x, i) =>
+              i === active && !still ? (
+                <span key={x.code} className="flag-bar" data-on data-run={running || undefined} onAnimationEnd={() => setActive((a) => (a + 1) % n)} />
+              ) : (
+                <span key={x.code} className="flag-bar" data-full={(still && i === active) || undefined} />
+              ),
+            )}
+          </div>
+          {!still && (
+            <button
+              type="button"
+              onClick={() => setPaused((p) => !p)}
+              aria-label={paused ? f.playLabel : f.pauseLabel}
+              className="flex min-h-10 shrink-0 cursor-pointer items-center gap-2 rounded-xl border border-b1 bg-s2 px-3.5 text-[12.5px] font-medium text-ink2 transition-colors duration-250 hover:border-b2 hover:text-ink"
+            >
+              {paused ? <PlayIcon size={14} weight="fill" aria-hidden className="text-accent" /> : <PauseIcon size={14} weight="fill" aria-hidden className="text-accent" />}
+              {paused ? f.play : f.pause}
+            </button>
           )}
         </div>
       </div>
