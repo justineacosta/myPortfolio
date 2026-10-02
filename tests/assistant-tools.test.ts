@@ -13,7 +13,7 @@ describe('siteTools', () => {
   let ctx: TurnContext
   beforeEach(() => {
     mailer = vi.fn<Mailer>().mockResolvedValue(undefined)
-    ctx = { conversationId: 'c1', transcript: 'Visitor: hi\nAssistant: hello', mailer, ledger: leadLedger() }
+    ctx = { conversationId: 'c1', transcript: 'Visitor: hi\nAssistant: hello', mailer, ledger: leadLedger(), mayLead: () => true }
   })
 
   it('lists navigate, submit_lead and request_call in a fixed order, the same JSON every time', () => {
@@ -82,6 +82,31 @@ describe('siteTools', () => {
       const retry = await tool('submit_lead').run(GOOD, ctx)
       expect(retry.isError).toBe(false)
       expect(ctx.ledger.has('c1')).toBe(true)
+    })
+  })
+
+  describe('the lead limit', () => {
+    it('refuses a lead over the limit: an error that points to the Contact page, no mail, no event, nothing remembered', async () => {
+      ctx.mayLead = () => false
+      for (const name of ['submit_lead', 'request_call']) {
+        const out = await tool(name).run(GOOD, ctx)
+        expect(out.isError).toBe(true)
+        expect(out.result).toContain('/contact')
+        expect(out.event).toBeUndefined()
+        expect(out.lead).toBeUndefined()
+      }
+      expect(mailer).not.toHaveBeenCalled()
+      expect(ctx.ledger.has('c1')).toBe(false)
+    })
+
+    it('does not spend the limit on a lead that is invalid or already sent', async () => {
+      const mayLead = vi.fn(() => true)
+      ctx.mayLead = mayLead
+      await tool('submit_lead').run({ ...GOOD, lastName: '' }, ctx)
+      expect(mayLead).not.toHaveBeenCalled()
+      await tool('submit_lead').run(GOOD, ctx)
+      await tool('submit_lead').run(GOOD, ctx)
+      expect(mayLead).toHaveBeenCalledTimes(1)
     })
   })
 

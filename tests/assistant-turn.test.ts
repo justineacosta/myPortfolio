@@ -26,7 +26,7 @@ describe('runTurn', () => {
 
   beforeEach(() => {
     mailer = vi.fn<Mailer>().mockResolvedValue(undefined)
-    ctx = { conversationId: 'c1', transcript: 'Visitor: hi', mailer, ledger: leadLedger() }
+    ctx = { conversationId: 'c1', transcript: 'Visitor: hi', mailer, ledger: leadLedger(), mayLead: () => true }
     events = []
   })
 

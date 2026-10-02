@@ -1,7 +1,7 @@
 import { contact } from '@/data/contact'
 import { checkLead, FIELDS } from '@/lib/contact'
 import { confirmEmail, notifyEmail } from '@/lib/emails'
-import { rateLimit } from '@/lib/rateLimit'
+import { clientIp, leadAllowed } from '@/lib/leadLimit'
 import { sendEmail } from '@/lib/resend'
 import { SITE_URL } from '@/lib/site'
 
@@ -16,8 +16,6 @@ import { SITE_URL } from '@/lib/site'
  * Every refusal is { error: sentence } for the form to show.
  */
 
-const allowed = rateLimit({ limit: 5, windowMs: 10 * 60 * 1000 })
-
 const refuse = (error: string, status: number) => Response.json({ error }, { status })
 
 /** The same FormData the browser checks, built from the posted JSON. */
@@ -31,11 +29,8 @@ async function readForm(req: Request) {
   return data
 }
 
-const clientIp = (req: Request) =>
-  req.headers.get('x-forwarded-for')?.split(',')[0].trim() || req.headers.get('x-real-ip') || 'unknown'
-
 export async function POST(req: Request) {
-  if (!allowed(clientIp(req))) return refuse(contact.errors.rate, 429)
+  if (!leadAllowed(clientIp(req))) return refuse(contact.errors.rate, 429)
 
   const result = checkLead(await readForm(req))
   if (!result.lead) return refuse(result.errors[FIELDS.find((k) => result.errors[k])!]!, 400)

@@ -7,6 +7,7 @@ import { logTurn } from '@/lib/assistant/log'
 import { fakeMailer, leadLedger, resendMailer } from '@/lib/assistant/mail'
 import { siteAssistant } from '@/lib/assistant/site'
 import { runTurn, type TurnRecord } from '@/lib/assistant/turn'
+import { clientIp, leadAllowed } from '@/lib/leadLimit'
 import { rateLimit } from '@/lib/rateLimit'
 
 /** The assistant's backend: checks the request, runs one turn over Claude and streams its events as newline JSON. Refusals before the stream are { error: sentence }; a failure inside it is an `error` event, then `done`. */
@@ -20,13 +21,11 @@ const encoder = new TextEncoder()
 
 const refuse = (error: string, status: number) => Response.json({ error }, { status })
 
-const clientIp = (req: Request) =>
-  req.headers.get('x-forwarded-for')?.split(',')[0].trim() || req.headers.get('x-real-ip') || 'unknown'
-
 /** Streams one assistant turn for a chat request. 503 when off, 429 over the rate limit, 400 for a bad request, else 200. */
 export async function POST(req: Request): Promise<Response> {
   if (!enabled()) return refuse(assistant.errors.off, 503)
-  if (!allowed(clientIp(req))) return refuse(assistant.errors.rate, 429)
+  const ip = clientIp(req)
+  if (!allowed(ip)) return refuse(assistant.errors.rate, 429)
 
   const checked = checkChat(await req.json().catch(() => null))
   if (!checked.ok) return refuse(checked.error, 400)
@@ -48,7 +47,7 @@ export async function POST(req: Request): Promise<Response> {
       turn = runTurn({
         config: siteAssistant(),
         history,
-        ctx: { conversationId, transcript, mailer: isFake() ? fakeMailer : resendMailer(), ledger },
+        ctx: { conversationId, transcript, mailer: isFake() ? fakeMailer : resendMailer(), ledger, mayLead: () => leadAllowed(ip) },
         emit,
         signal: req.signal,
       }).then(

@@ -5,6 +5,7 @@ import { readEvents, type AssistantEvent } from '@/lib/assistant/events'
 import { logTurn } from '@/lib/assistant/log'
 import { fakeMailer } from '@/lib/assistant/mail'
 import { POST } from '@/app/api/chat/route'
+import { POST as POST_CONTACT } from '@/app/api/contact/route'
 
 // `after` runs outside a request here, so it only collects the work; the tests run it by hand.
 const pending: (() => unknown)[] = []
@@ -124,6 +125,44 @@ describe('POST /api/chat', () => {
     const turns = await post(many)
     expect(turns.status).toBe(400)
     expect(await turns.json()).toEqual({ error: assistant.errors.turns })
+  })
+
+  describe('the lead limit, shared with the contact form', () => {
+    const LEAD = 'Ana Reyes ana@example.com Our intake is manual.'
+    const form = (from: string) =>
+      POST_CONTACT(
+        new Request('http://localhost/api/contact', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', 'x-forwarded-for': from },
+          body: JSON.stringify({ firstName: 'Ana', lastName: 'Reyes', email: 'ana@example.com', message: 'Our intake is manual.', website: '' }),
+        }),
+      )
+
+    it('refuses the 6th lead from one address, without calling the mailer or sending a lead event', async () => {
+      const results: AssistantEvent[][] = []
+      for (let i = 0; i < 6; i++) results.push(await events(await post(body(LEAD), '10.2.2.2')))
+      expect(results.slice(0, 5).every((all) => all.some((e) => e.type === 'lead' && e.ok))).toBe(true)
+      expect(results[5].some((e) => e.type === 'lead')).toBe(false)
+      expect(results[5].at(-1)).toEqual({ type: 'done' })
+      expect(fakeMailer).toHaveBeenCalledTimes(5)
+    })
+
+    it('counts a lead in chat and a form send against the same budget', async () => {
+      vi.stubEnv('RESEND_API_KEY', 're_test')
+      vi.stubEnv('CONTACT_FROM', 'Kraft <onboarding@resend.dev>')
+      vi.stubEnv('CONTACT_TO', 'me@kraft.dev')
+      expect((await form('10.3.3.3')).status).toBe(200)
+      expect((await form('10.3.3.3')).status).toBe(200)
+      for (let i = 0; i < 3; i++) expect(await events(await post(body(LEAD), '10.3.3.3'))).toContainEqual({ type: 'lead', ok: true })
+      expect((await events(await post(body(LEAD), '10.3.3.3'))).some((e) => e.type === 'lead')).toBe(false)
+      expect((await form('10.3.3.3')).status).toBe(429)
+      expect(fakeMailer).toHaveBeenCalledTimes(3)
+    })
+
+    it('does not count a visitor’s ordinary chat messages', async () => {
+      for (let i = 0; i < 8; i++) await events(await post(body('Hi'), '10.4.4.4'))
+      expect(await events(await post(body(LEAD), '10.4.4.4'))).toContainEqual({ type: 'lead', ok: true })
+    })
   })
 
   it('builds the lead transcript from the history, one line per message', async () => {

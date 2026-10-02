@@ -4,8 +4,8 @@ import { commands } from '@/lib/commands'
 import type { AssistantEvent } from '@/lib/assistant/events'
 import type { LeadLedger, Mailer } from '@/lib/assistant/mail'
 
-/** What a tool may use during one turn: the conversation, its transcript so far, how to send mail, and who has already sent a lead. */
-export type TurnContext = { conversationId: string; transcript: string; mailer: Mailer; ledger: LeadLedger }
+/** What a tool may use during one turn: the conversation, its transcript so far, how to send mail, who has already sent a lead, and whether this visitor's address may send another (it spends the contact form's shared budget). */
+export type TurnContext = { conversationId: string; transcript: string; mailer: Mailer; ledger: LeadLedger; mayLead: () => boolean }
 
 /** What a tool returns: a sentence for Claude to read, and what the visitor's panel should show. */
 export type ToolOutcome = { result: string; isError: boolean; event?: AssistantEvent; lead?: boolean }
@@ -21,6 +21,7 @@ const asObject = (input: unknown): Record<string, unknown> | null =>
 const BAD_INPUT = 'That input was not an object with the expected fields.'
 const LEAD_OK = 'Sent. Justine will reply by email within one business day.'
 const LEAD_FAILED = 'The message did not send. Tell the visitor it did not go through and to use the Contact page (/contact) instead.'
+const LEAD_LIMITED = 'This visitor has sent several messages recently, so nothing was sent. Tell the visitor to use the Contact page (/contact) instead.'
 const LEAD_ALREADY = 'A message was already sent in this conversation, so nothing more was sent. Tell the visitor Justine has it.'
 
 const navigate: ToolRunner = {
@@ -78,6 +79,7 @@ function leadTool(name: string, call: boolean, description: string): ToolRunner 
       for (const k of FIELDS) if (typeof body[k] === 'string') data.set(k, body[k])
       const checked = checkLead(data)
       if (!checked.lead) return fail(checked.errors[FIELDS.find((k) => checked.errors[k])!]!)
+      if (!ctx.mayLead()) return fail(LEAD_LIMITED)
       try {
         await ctx.mailer(checked.lead, { call, transcript: ctx.transcript })
       } catch (err) {
