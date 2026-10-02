@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, type KeyboardEvent, type MouseEvent, type ReactNode, type RefObject } from 'react'
+import { useEffect, useRef, useState, type MouseEvent, type ReactNode, type RefObject } from 'react'
 import { ArrowCounterClockwiseIcon, PaperPlaneRightIcon, PlusIcon, StopIcon, XIcon } from '@phosphor-icons/react/ssr'
 import { ShellLink, useShellNav } from '@/components/shell/NavigationProvider'
 import { assistant } from '@/data/assistant'
@@ -17,32 +17,48 @@ const LINK = /\[([^\]\n]+)\]\(([^()\s]+)\)/g
 /** A path on this site: one slash, and not `//host` or `/\host`, which browsers read as another site. */
 const SITE_PATH = /^\/(?![/\\])/
 
-/** A reply's text, with `[Label](/path)` made into site links. Nothing else is parsed, and every other bracket stays as typed. */
-function renderText(text: string, go: (href: string) => void): ReactNode[] {
-  const out: ReactNode[] = []
+/** A reply's text split into plain runs and the `[Label](/path)` site links in it. Nothing else is parsed, and every other bracket stays as typed. */
+function parseLinks(text: string): Array<string | { label: string; path: string }> {
+  const out: Array<string | { label: string; path: string }> = []
   let last = 0
   for (const m of text.matchAll(LINK)) {
     const path = m[2]
     if (!SITE_PATH.test(path)) continue
     if (m.index > last) out.push(text.slice(last, m.index))
-    out.push(
-      <a
-        key={m.index}
-        href={path}
-        onClick={(e: MouseEvent<HTMLAnchorElement>) => {
-          if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
-          e.preventDefault()
-          go(path)
-        }}
-        className="text-accent underline underline-offset-2"
-      >
-        {m[1]}
-      </a>,
-    )
+    out.push({ label: m[1], path })
     last = m.index + m[0].length
   }
   out.push(text.slice(last))
   return out
+}
+
+/** A reply's text as the panel shows it, with its site links as anchors that go through the shell router. */
+function renderText(text: string, go: (href: string) => void): ReactNode[] {
+  return parseLinks(text).map((part, i) =>
+    typeof part === 'string' ? (
+      part
+    ) : (
+      <a
+        key={i}
+        href={part.path}
+        onClick={(e: MouseEvent<HTMLAnchorElement>) => {
+          if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+          e.preventDefault()
+          go(part.path)
+        }}
+        className="text-accent underline underline-offset-2"
+      >
+        {part.label}
+      </a>
+    ),
+  )
+}
+
+/** A reply's text as a screen reader should hear it: each site link as its label. */
+function plainText(text: string): string {
+  return parseLinks(text)
+    .map((part) => (typeof part === 'string' ? part : part.label))
+    .join('')
 }
 
 /** The chat panel: desktop a card above the launcher, phones a full-height sheet. A non-modal dialog, so the page behind stays usable. */
@@ -63,6 +79,7 @@ function PanelBody({ launcherRef }: { launcherRef: RefObject<HTMLButtonElement |
   const [wasStreaming, setWasStreaming] = useState(streaming)
   const panel = useRef<HTMLDivElement>(null)
   const input = useRef<HTMLTextAreaElement>(null)
+  const stopButton = useRef<HTMLButtonElement>(null)
   const list = useRef<HTMLDivElement>(null)
   const wasStreamingRef = useRef(streaming)
 
@@ -72,7 +89,7 @@ function PanelBody({ launcherRef }: { launcherRef: RefObject<HTMLButtonElement |
     if (!streaming) {
       const turn = entries.slice(entries.findLastIndex((e) => e.kind === 'user') + 1)
       const reply = turn.findLast((e) => e.kind === 'assistant' && !e.unfinished)
-      if (reply && reply.kind === 'assistant') setAnnounced(reply.text)
+      if (reply && reply.kind === 'assistant') setAnnounced(plainText(reply.text))
     }
   }
 
@@ -80,14 +97,26 @@ function PanelBody({ launcherRef }: { launcherRef: RefObject<HTMLButtonElement |
     input.current?.focus()
   }, [])
 
-  // The input is disabled while a reply streams, which drops its focus: hand it back when the reply ends, unless the visitor went elsewhere.
+  // Sending disables the input and swaps Send for Stop, which would drop focus to <body>: keep it in the panel, on Stop, and hand it back to the input when the reply ends, unless the visitor went elsewhere.
   useEffect(() => {
-    if (wasStreamingRef.current && !streaming) {
-      const active = document.activeElement
-      if (!active || active === document.body || panel.current?.contains(active)) input.current?.focus()
-    }
+    const active = document.activeElement
+    const here = !active || active === document.body || panel.current?.contains(active)
+    if (streaming && !wasStreamingRef.current && here) stopButton.current?.focus()
+    else if (!streaming && wasStreamingRef.current && here) input.current?.focus()
     wasStreamingRef.current = streaming
   }, [streaming])
+
+  // Esc closes the panel wherever focus is, as long as the panel is open.
+  useEffect(() => {
+    const onKey = (e: globalThis.KeyboardEvent) => {
+      if (e.key !== 'Escape' || e.isComposing) return
+      e.preventDefault()
+      setOpen(false)
+      launcherRef.current?.focus()
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [setOpen, launcherRef])
 
   useEffect(() => {
     list.current?.scrollTo({ top: list.current.scrollHeight })
@@ -104,13 +133,6 @@ function PanelBody({ launcherRef }: { launcherRef: RefObject<HTMLButtonElement |
     setDraft('')
   }
 
-  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Escape' && !e.nativeEvent.isComposing) {
-      e.preventDefault()
-      close()
-    }
-  }
-
   const last = entries[entries.length - 1]
   const canRetry = !streaming && last !== undefined && (last.kind === 'error' || last.kind === 'user' || (last.kind === 'assistant' && last.unfinished === true))
 
@@ -122,7 +144,6 @@ function PanelBody({ launcherRef }: { launcherRef: RefObject<HTMLButtonElement |
       aria-modal="false"
       aria-labelledby={TITLE_ID}
       data-a11y-scale
-      onKeyDown={onKeyDown}
       className="fixed inset-0 z-40 flex animate-rise flex-col overflow-hidden bg-linear-to-b from-s2 to-s1 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-ink shell:inset-auto shell:right-5 shell:bottom-[124px] shell:h-[560px] shell:max-h-[calc(100dvh-144px)] shell:w-[380px] shell:rounded-2xl shell:border shell:border-b2 shell:pt-0 shell:pb-0 shell:shadow-(--palette-shadow)"
     >
       <div className="flex items-center gap-2 border-b border-b1 px-4 py-3">
@@ -191,7 +212,7 @@ function PanelBody({ launcherRef }: { launcherRef: RefObject<HTMLButtonElement |
             className="min-h-[52px] flex-1 resize-none rounded-xl border border-b1 bg-s1 px-3 py-2 text-[13.5px] text-ink placeholder:text-ink3 disabled:opacity-60"
           />
           {streaming ? (
-            <button type="button" onClick={stop} className="inline-flex h-10 cursor-pointer items-center gap-1.5 rounded-xl border border-b2 bg-chip px-3 text-[13px] font-semibold text-ink">
+            <button ref={stopButton} type="button" onClick={stop} className="inline-flex h-10 cursor-pointer items-center gap-1.5 rounded-xl border border-b2 bg-chip px-3 text-[13px] font-semibold text-ink">
               <StopIcon size={14} weight="fill" aria-hidden />
               {assistant.stop}
             </button>

@@ -290,6 +290,43 @@ describe('Assistant launcher and panel', () => {
     await waitFor(() => expect(live).toHaveTextContent('Hello there'))
   })
 
+  it('moves focus to Stop when a reply starts streaming, and Escape on the page body still closes the panel', async () => {
+    const user = userEvent.setup()
+    fetchMock.mockResolvedValueOnce(pending())
+    setup()
+    await user.click(launcher())
+    await user.type(input(), 'Hello{Enter}')
+    await waitFor(() => expect(input()).toBeDisabled())
+    expect(screen.getByRole('button', { name: assistant.stop })).toHaveFocus()
+    // Focus on <body>: a keydown there never reaches the dialog element.
+    ;(document.activeElement as HTMLElement).blur()
+    expect(document.body).toHaveFocus()
+    await user.keyboard('{Escape}')
+    expect(dialog()).not.toBeInTheDocument()
+    expect(launcher()).toHaveFocus()
+  })
+
+  it('Escape also works while focus is on a chip click target or Stop', async () => {
+    const user = userEvent.setup()
+    fetchMock.mockResolvedValueOnce(pending())
+    setup()
+    await user.click(launcher())
+    await user.click(screen.getByRole('button', { name: assistant.chips[0] }))
+    expect(await screen.findByRole('button', { name: assistant.stop })).toHaveFocus()
+    await user.keyboard('{Escape}')
+    expect(dialog()).not.toBeInTheDocument()
+  })
+
+  it('announces a reply’s links as their labels, not as Markdown', async () => {
+    const user = userEvent.setup()
+    fetchMock.mockResolvedValueOnce(stream([text('See [Services](/services) for more, or [a site](https://example.com).'), done]))
+    setup()
+    await user.click(launcher())
+    await user.type(input(), 'What do you offer?{Enter}')
+    const live = document.querySelector('[aria-live="polite"]')!
+    await waitFor(() => expect(live).toHaveTextContent('See Services for more, or [a site](https://example.com).'))
+  })
+
   it('refocuses the input when a reply ends', async () => {
     const user = userEvent.setup()
     fetchMock.mockResolvedValueOnce(stream([text('Hi!'), done]))
