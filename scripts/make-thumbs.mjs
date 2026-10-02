@@ -12,8 +12,8 @@ mkdirSync(join(dir, 'thumbs', 'tall'), { recursive: true })
 const browser = await chromium.launch()
 // Laid out at 1080×1440, saved at 0.6×: sharp on the drum, light to download.
 const page = await browser.newPage({ viewport: { width: 1080, height: 1440 }, deviceScaleFactor: 0.6, reducedMotion: 'reduce' })
-// The tall shots are shown ~130px wide, so 0.4x (432px) is plenty.
-const tall = await browser.newPage({ viewport: { width: 1080, height: 1440 }, deviceScaleFactor: 0.4, reducedMotion: 'reduce' })
+// The tall shots are shown up to ~620px wide in the Showcase window, so 0.6x (648px).
+const tall = await browser.newPage({ viewport: { width: 1080, height: 1440 }, deviceScaleFactor: 0.6, reducedMotion: 'reduce' })
 const TALL_MAX = 1440 * 4
 const files = readdirSync(dir).filter((f) => f.endsWith('.html'))
 
@@ -38,10 +38,30 @@ async function open(p, f) {
   await p.waitForTimeout(1200)
 }
 
+/**
+ * A pinned story (a viewport-tall sticky panel in a much taller parent) draws
+ * its panel once at the top of the parent in a full-page shot and leaves the
+ * rest blank. For the tall shot, unpin each one and let its parent shrink.
+ */
+async function unpin(p) {
+  await p.evaluate(() => {
+    for (const el of document.querySelectorAll('*')) {
+      const parent = el.parentElement
+      if (!parent || getComputedStyle(el).position !== 'sticky' || el.offsetHeight < innerHeight * 0.8) continue
+      if (parent.offsetHeight < el.offsetHeight * 1.5) continue
+      el.style.position = 'relative'
+      parent.style.height = 'auto'
+      parent.style.minHeight = '0'
+    }
+  })
+  await p.waitForTimeout(300)
+}
+
 for (const f of files) {
   await open(page, f)
   await page.screenshot({ path: join(dir, 'thumbs', f.replace(/\.html$/, '.jpeg')), type: 'jpeg', quality: 82 })
   await open(tall, f)
+  await unpin(tall)
   const height = Math.min(await tall.evaluate(() => document.documentElement.scrollHeight), TALL_MAX)
   await tall.screenshot({
     path: join(dir, 'thumbs', 'tall', f.replace(/\.html$/, '.jpeg')),
