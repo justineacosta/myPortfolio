@@ -13,8 +13,12 @@ const MAX_BODY = 400
 /** How close to the best score the runner-up must be to get an "Also:" line (spec §4 rule 4). */
 const ALSO_RATIO = 0.6
 
-/** Phrases that open a request to go somewhere (spec §4 rule 2). */
+/** Phrases that open a request to go somewhere (spec §4 rule 2). The request must start with one, so "are you open to new work" is a question, not a trip. */
 const GO = ['take me to', 'show me', 'open', 'go to', 'bring me to']
+/** Polite lead-ins that may come before a go-intent ("can you show me your projects"). */
+const LEAD_IN = ['please', 'can you', 'could you', 'can i', 'let me', 'i want to', 'id like to']
+/** Words that may sit between the go-intent and the name of the page ("show me your projects", "open the bio"). */
+const FILLER = ['your', 'the', 'my', 'our', 'a', 'an', 'please']
 /** Phrases that mean the visitor wants Justine's help (spec §4 rule 3). */
 const LEAD = ['hire', 'work with', 'work together', 'quote', 'estimate', 'project in mind', 'call', 'meet', 'meeting', 'book', 'get in touch', 'contact justine', 'email justine']
 /** Words that name a page without using its label (spec §4 rule 2). */
@@ -41,21 +45,31 @@ const has = (said: string, phrase: string) => said.includes(norm(phrase))
 /** Whether the whole message is a greeting or thanks (spec §4 rule 1). */
 const isGreeting = (said: string) => /\b(hi|hello|hey|thanks|thank you|ok|okay|cool)\b/.test(said) && !said.replace(/\b(hi|hello|hey|thanks|thank you|ok|okay|cool)\b/g, '').trim()
 
-/** The commands() entry the message names by its label (every word but "the") or an alias, the longest name first and the first in order on a tie. */
-function named(said: string) {
-  const words = new Set(said.split(' ').filter(Boolean).map(singular))
+/** The words a message asks to be taken to, after its polite lead-ins, its go-intent and the filler words; null when it does not start with a go-intent. */
+function destination(said: string): string[] | null {
+  let rest = said
+  for (let lead = LEAD_IN.find((l) => rest.startsWith(norm(l))); lead; lead = LEAD_IN.find((l) => rest.startsWith(norm(l)))) rest = rest.slice(norm(lead).length - 1)
+  const go = GO.find((g) => rest.startsWith(norm(g)))
+  if (!go) return null
+  const words = rest.slice(norm(go).length).split(' ').filter(Boolean)
+  while (words.length && FILLER.includes(words[0])) words.shift()
+  return words
+}
+
+/** The commands() entry that the words start with, by its label (the word "the" aside) or an alias. The longest name wins, and the first in order on a tie. */
+function named(words: string[]) {
   const list = commands()
+  const given = words.map(singular)
   let best: { cmd: (typeof list)[number]; length: number } | undefined
-  const offer = (cmd: (typeof list)[number], length: number) => {
-    if (!best || length > best.length) best = { cmd, length }
+  const offer = (cmd: (typeof list)[number], name: string[]) => {
+    const own = name.map(singular)
+    const length = name.join(' ').length
+    if (own.length && own.every((w, i) => w === given[i]) && (!best || length > best.length)) best = { cmd, length }
   }
-  for (const cmd of list) {
-    const label = norm(cmd.label).split(' ').filter((w) => w && w !== 'the')
-    if (label.length && label.every((w) => words.has(singular(w)))) offer(cmd, label.join(' ').length)
-  }
+  for (const cmd of list) offer(cmd, norm(cmd.label).split(' ').filter((w) => w && w !== 'the'))
   for (const [alias, href] of Object.entries(ALIASES)) {
     const cmd = list.find((c) => c.href === href)
-    if (cmd && has(said, alias)) offer(cmd, alias.length)
+    if (cmd) offer(cmd, [alias])
   }
   return best?.cmd
 }
@@ -85,7 +99,7 @@ function answer(hits: { passage: Passage; score: number }[]) {
 
 /**
  * The quick engine (spec §4): a reply written from the site's own text, with no AI. It reads only the visitor's last message and tries, in order,
- * a greeting, a trip to a page, a lead, a search of the site's passages and a no-match line. It emits one `text` event holding the whole reply,
+ * a greeting, a trip to a page (only when the message starts by asking for one), a lead, a search of the site's passages and a no-match line. It emits one `text` event holding the whole reply,
  * then any `navigate` and `form` events (a form card is never shown twice in a row, or after a lead). It never emits `done`.
  */
 export function quickTurn(opts: { history: ChatMessage[]; formShown: boolean; leadSent: boolean; emit: (e: AssistantEvent) => void; passages?: Passage[] }): TurnRecord {
@@ -103,8 +117,9 @@ export function quickTurn(opts: { history: ChatMessage[]; formShown: boolean; le
 
   if (isGreeting(said)) return reply(q.hello)
 
-  if (GO.some((g) => has(said, g))) {
-    const cmd = named(said)
+  const where = destination(said)
+  if (where) {
+    const cmd = named(where)
     if (cmd) {
       record.tools.push({ name: 'navigate', input: { href: cmd.href }, result: cmd.label, isError: false })
       return reply(`${q.going} ${cmd.label}.`, { type: 'navigate', href: cmd.href, label: cmd.label })

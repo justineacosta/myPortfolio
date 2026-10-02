@@ -79,6 +79,30 @@ describe('quickTurn', () => {
       }
     })
 
+    it.each([
+      ['Please take me to the build plan', '/projects#build-plan'],
+      ['Can you show me your projects?', '/projects'],
+      ['could you open the bio', '/about'],
+      ['I want to go to the build plan', '/projects#build-plan'],
+      ['I’d like to open the bio', '/about'],
+      ['let me go to contact', '/contact'],
+    ])('accepts a lead-in before the go-intent: “%s”', (msg, href) => {
+      const nav = run(msg).events.find((e) => e.type === 'navigate')
+      expect(nav).toMatchObject({ href })
+    })
+
+    it.each(['Are you open to new work?', 'Show me what you know about RAG', 'Are you open for hire?', 'Do you take me on for work?', 'show me how to hire you', 'what is the go to page for hire'])(
+      'does not treat the question “%s” as a trip',
+      (msg) => {
+        expect(run(msg).types).not.toContain('navigate')
+      },
+    )
+
+    it('still falls through to search and lead for such questions', () => {
+      expect(run('Are you open for hire?').types).toEqual(['text', 'form'])
+      expect(run('Show me what you know about RAG').text).toMatch(/^\*\*/)
+    })
+
     it('does not navigate without a go-intent', () => {
       expect(run('tell me about your projects').types).not.toContain('navigate')
     })
