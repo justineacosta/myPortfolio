@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, type MouseEvent, type ReactNode, type RefObject } from 'react'
+import { useCallback, useEffect, useRef, useState, type MouseEvent, type ReactNode, type RefObject } from 'react'
 import { ArrowCounterClockwiseIcon, PaperPlaneRightIcon, PlusIcon, StopIcon, XIcon } from '@phosphor-icons/react/ssr'
 import { ShellLink, useShellNav } from '@/components/shell/NavigationProvider'
 import { assistant } from '@/data/assistant'
@@ -61,6 +61,20 @@ function plainText(text: string): string {
     .join('')
 }
 
+/** The dialogs and menus the site draws (the ⌘K palette, the accessibility menu, a sub-view's native dialog). */
+const OVERLAY = '[role="dialog"], [role="menu"], dialog'
+
+/** Whether `el` is inside another overlay than the assistant's own panel, or is the button of a menu or dialog that is open. */
+function inOtherOverlay(el: EventTarget | null, panel: HTMLElement | null): boolean {
+  if (!(el instanceof Element)) return false
+  const box = el.closest(OVERLAY)
+  if (box) return box !== panel
+  const trigger = el.closest('[aria-expanded="true"][aria-controls]')
+  const target = trigger?.getAttribute('aria-controls')
+  const controlled = target ? document.getElementById(target) : null
+  return controlled !== null && controlled !== panel && controlled.matches(OVERLAY)
+}
+
 /** The chat panel: desktop a card above the launcher, phones a full-height sheet. A non-modal dialog, so the page behind stays usable. */
 export default function AssistantPanel({ launcherRef }: { launcherRef: RefObject<HTMLButtonElement | null> }) {
   const { open } = useAssistant()
@@ -106,26 +120,28 @@ function PanelBody({ launcherRef }: { launcherRef: RefObject<HTMLButtonElement |
     wasStreamingRef.current = streaming
   }, [streaming])
 
-  // Esc closes the panel wherever focus is, as long as the panel is open.
+  const close = useCallback(() => {
+    setOpen(false)
+    launcherRef.current?.focus()
+  }, [setOpen, launcherRef])
+
+  // Esc closes the panel wherever focus is, unless another overlay has taken it: one that already handled the key (the palette
+  // calls preventDefault), or one that is open around the target or the focus (the accessibility menu hears Esc on window, after this).
   useEffect(() => {
     const onKey = (e: globalThis.KeyboardEvent) => {
-      if (e.key !== 'Escape' || e.isComposing) return
+      if (e.key !== 'Escape' || e.isComposing || e.defaultPrevented) return
+      if (document.documentElement.hasAttribute('data-dialog')) return
+      if (inOtherOverlay(e.target, panel.current) || inOtherOverlay(document.activeElement, panel.current)) return
       e.preventDefault()
-      setOpen(false)
-      launcherRef.current?.focus()
+      close()
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
-  }, [setOpen, launcherRef])
+  }, [close])
 
   useEffect(() => {
     list.current?.scrollTo({ top: list.current.scrollHeight })
   }, [entries])
-
-  const close = () => {
-    setOpen(false)
-    launcherRef.current?.focus()
-  }
 
   const submit = () => {
     if (streaming || !draft.trim()) return

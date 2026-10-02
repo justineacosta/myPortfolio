@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import AccessMenu from '@/components/shell/AccessMenu'
 import { NavigationProvider } from '@/components/shell/NavigationProvider'
 import AssistantRoot from '@/components/assistant/AssistantRoot'
 import Assistant from '@/components/assistant/Assistant'
@@ -304,6 +305,69 @@ describe('Assistant launcher and panel', () => {
     await user.keyboard('{Escape}')
     expect(dialog()).not.toBeInTheDocument()
     expect(launcher()).toHaveFocus()
+  })
+
+  describe('Escape defers to other overlays', () => {
+    it('leaves the assistant open when an earlier handler already took the key', async () => {
+      const user = userEvent.setup()
+      setup()
+      await user.click(launcher())
+      // The ⌘K palette handles Esc in React and calls preventDefault: a capture listener on window stands in for it.
+      const take = (e: KeyboardEvent) => e.preventDefault()
+      window.addEventListener('keydown', take, true)
+      await user.keyboard('{Escape}')
+      window.removeEventListener('keydown', take, true)
+      expect(dialog()).toBeInTheDocument()
+    })
+
+    it('leaves the assistant open when Esc comes from inside another dialog', async () => {
+      const user = userEvent.setup()
+      setup()
+      await user.click(launcher())
+      const other = document.createElement('div')
+      other.setAttribute('role', 'dialog')
+      other.innerHTML = '<button>Other</button>'
+      document.body.append(other)
+      other.querySelector('button')!.focus()
+      await user.keyboard('{Escape}')
+      other.remove()
+      expect(dialog()).toBeInTheDocument()
+    })
+
+    it('leaves the assistant open while a sub-view (a native dialog) owns the screen', async () => {
+      const user = userEvent.setup()
+      setup()
+      await user.click(launcher())
+      document.documentElement.setAttribute('data-dialog', '')
+      await user.keyboard('{Escape}')
+      expect(dialog()).toBeInTheDocument()
+    })
+
+    it('with the real accessibility menu open, Esc closes only the menu, whether focus is in it or on its button', async () => {
+      const user = userEvent.setup()
+      render(
+        <NavigationProvider>
+          <AccessMenu />
+          <AssistantRoot />
+        </NavigationProvider>,
+      )
+      await user.click(launcher())
+      const trigger = screen.getByRole('button', { name: 'Accessibility options' })
+      await user.click(trigger)
+      expect(screen.getByRole('dialog', { name: 'Accessibility' })).toBeInTheDocument()
+      await user.keyboard('{Escape}')
+      expect(screen.queryByRole('dialog', { name: 'Accessibility' })).not.toBeInTheDocument()
+      expect(dialog()).toBeInTheDocument()
+      // With the menu open and focus back on its own button (not inside it).
+      await user.click(trigger)
+      trigger.focus()
+      await user.keyboard('{Escape}')
+      expect(screen.queryByRole('dialog', { name: 'Accessibility' })).not.toBeInTheDocument()
+      expect(dialog()).toBeInTheDocument()
+      // Nothing else is open now, so the next Esc closes the assistant.
+      await user.keyboard('{Escape}')
+      expect(dialog()).not.toBeInTheDocument()
+    })
   })
 
   it('Escape also works while focus is on a chip click target or Stop', async () => {
