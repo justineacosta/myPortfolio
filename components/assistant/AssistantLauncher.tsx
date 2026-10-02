@@ -19,7 +19,7 @@ export default function AssistantLauncher({ ref }: { ref?: Ref<HTMLButtonElement
       aria-expanded={open}
       aria-controls={PANEL_DOM_ID}
       onClick={() => setOpen(!open)}
-      className="fixed right-5 bottom-[calc(96px+env(safe-area-inset-bottom))] z-30 grid size-10 cursor-pointer place-items-center rounded-xl border border-b1 bg-s1 text-ink2 shadow-(--tile-shadow) transition-all duration-250 hover:-translate-y-0.5 hover:border-b2 hover:text-accent shell:bottom-[72px]"
+      className="fixed right-5 bottom-[calc(116px+env(safe-area-inset-bottom))] z-30 grid size-10 cursor-pointer place-items-center rounded-xl border border-b1 bg-s1 text-ink2 shadow-(--tile-shadow) transition-all duration-250 hover:-translate-y-0.5 hover:border-b2 hover:text-accent shell:bottom-[72px]"
     >
       <ChatCircleDotsIcon size={18} weight="fill" aria-hidden />
     </button>

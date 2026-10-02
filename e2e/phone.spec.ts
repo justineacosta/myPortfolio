@@ -307,9 +307,19 @@ test('phone: the assistant button sits above the tab bar', async ({ page }) => {
   await page.goto('/')
   await hydrated(page)
   await settleIntro(page)
+  const tabs = page.getByRole('navigation', { name: 'Sections' })
+  // The bar's height moves for a moment after load: measure once two readings in a row agree.
+  let last = -1
+  await expect
+    .poll(async () => {
+      const top = (await tabs.boundingBox())!.y
+      const settled = top === last
+      last = top
+      return settled
+    })
+    .toBe(true)
   const button = (await page.getByRole('button', { name: 'Ask Kraft’s assistant' }).boundingBox())!
-  const tabs = (await page.getByRole('navigation', { name: 'Sections' }).boundingBox())!
-  expect(button.y + button.height).toBeLessThanOrEqual(tabs.y)
+  expect(button.y + button.height).toBeLessThan((await tabs.boundingBox())!.y)
 })
 
 test('phone: the assistant sheet fills the screen and stays open when it takes the visitor to a page', async ({ page }) => {
