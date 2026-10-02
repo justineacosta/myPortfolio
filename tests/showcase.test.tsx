@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import ShowcasePage from '@/app/(site)/showcase/page'
 import Cta from '@/components/showcase/Cta'
+import Facts from '@/components/showcase/Facts'
 import Flagship from '@/components/showcase/Flagship'
 import { mainRoute } from '@/data/automations'
-import { BUSINESSES } from '@/data/showcase'
+import { BUSINESSES, FACTS, showcase } from '@/data/showcase'
 import { DEFAULT_PREFS, savePrefs } from '@/lib/a11y'
 import { installMatchMedia } from '@/test/matchMedia'
 
@@ -21,6 +23,26 @@ const runOut = (el: HTMLElement) =>
     el.dispatchEvent(new Event('animationend', { bubbles: true }))
     el.dispatchEvent(new Event('webkitAnimationEnd', { bubbles: true }))
   })
+
+describe('Showcase page', () => {
+  it('opens with the crumb, its heading, the sample note, the first business and the facts, and no placeholder', () => {
+    render(<ShowcasePage />)
+    expect(screen.getByText('SHOWCASE / FLAGSHIP')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: showcase.title.join(' ') })).toBeInTheDocument()
+    expect(screen.getByText(showcase.sample)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: 'Harbor & Pine Moving Co.' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: showcase.facts.title })).toBeInTheDocument()
+    expect(document.body.textContent).not.toMatch(/PLACEHOLDER|Client Name/)
+  })
+})
+
+describe('Facts', () => {
+  it('lists each fact as its number and label, under its heading', () => {
+    render(<Facts />)
+    const section = screen.getByRole('region', { name: showcase.facts.title })
+    expect(within(section).getAllByRole('listitem').map((li) => li.textContent)).toEqual(FACTS.map((f) => `${f.n}${f.label}`))
+  })
+})
 
 describe('Flagship', () => {
   it('has a tab per business, Harbor & Pine first', () => {
