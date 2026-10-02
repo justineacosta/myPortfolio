@@ -1,0 +1,86 @@
+import { about, ROLES } from '@/data/about'
+import { agents } from '@/data/agents'
+import { automations, PLATFORMS } from '@/data/automations'
+import { contact } from '@/data/contact'
+import { FAQS } from '@/data/faqs'
+import { home } from '@/data/home'
+import { projects } from '@/data/projects'
+import { PROCESS, SERVICES, servicesPage } from '@/data/services'
+import { BUSINESSES, showcase } from '@/data/showcase'
+import { EXPERIMENTAL, TOOLS } from '@/data/stack'
+import { CLIENTS } from '@/data/testimonials'
+import { clean, siteLinks } from '@/lib/assistant/source'
+
+/** One thing the site says, with where to read more: the unit the quick engine searches and answers from. `weight` (default 1) is how much a hit on it counts in the search. */
+export type Passage = { id: string; title: string; text: string; href: string; label: string; weight?: number }
+
+/**
+ * The weight of a passage that describes a piece of sample work (a Projects card or write-up, a sample build, a flow, a showcase business, a role).
+ * Those share their words with the services they illustrate ("RAG chatbots", "n8n"), and are shorter, so unweighted they would outrank the FAQ,
+ * service or page that answers the question itself.
+ */
+const SAMPLE = 0.5
+
+/** Pieces of text joined by a space, the placeholders and empty ones left out. */
+const words = (...parts: (string | undefined)[]) => parts.map(clean).filter(Boolean).join(' ')
+/** The names in a list, comma-separated. */
+const names = (list: { name: string }[]) => list.map((x) => x.name).join(', ')
+
+/**
+ * Every passage the site's own text gives (spec §4.1), from the same data files and the same rules as the knowledge document.
+ * Uncached, so it reads which pages are switched off (data/nav.ts) at call time: a passage whose page is off is left out, and the
+ * only links are commands().
+ */
+export function buildPassages(): Passage[] {
+  const { page } = siteLinks()
+  const out: Passage[] = []
+  const add = (id: string, title: string, text: string, href: string, weight?: number) => {
+    const link = page(href)
+    const t = clean(title)
+    if (link && t && text) out.push({ id, title: t, text, href, label: link.label, ...(weight && { weight }) })
+  }
+  const sample = (id: string, title: string, text: string, href: string) => add(id, title, text, href, SAMPLE)
+
+  FAQS.forEach((f, i) => add(`faq-${i + 1}`, f.q, words(f.a), `/contact#${contact.faqs.id}`))
+  SERVICES.forEach((s, i) => add(`service-${i + 1}`, s.name, words(s.line, ...s.bullets.map((b) => `${b}.`), `${s.tags.join(', ')}.`), '/services'))
+
+  const method = `/services#${servicesPage.method.id}`
+  add('method', servicesPage.method.label, words(servicesPage.method.body, PROCESS.map((p) => p.name).join(', ')), method)
+  PROCESS.forEach((p, i) => add(`step-${i + 1}`, `${p.name} (${p.n})`, words(p.line, `Covers: ${p.items.join(', ')}.`), method))
+
+  add('automation', servicesPage.automation.label, words(`${automations.heading}.`, automations.lede, automations.sample), `/services#${servicesPage.automation.id}`)
+
+  const c = projects.cards
+  sample('card-automations', c.automations.title, words(c.automations.body), '/projects#automations')
+  sample('card-plan', c.plan.title, words(c.plan.body, c.plan.heading, `Steps: ${c.plan.steps.map((s) => s.label).join(', ')}.`), '/projects#build-plan')
+  sample('card-sites', c.sites.title, words(c.sites.body), '/projects#sites')
+  sample('card-agents', c.agents.title, words(c.agents.body, `${c.agents.counts.map((n) => n.name).join(' and ')}.`), '/projects#ai-agents')
+  for (const w of projects.writeups) sample(`writeup-${w.view}`, w.title, words(w.desc, `Tools: ${names(w.logos)}.`), `/projects#${w.view}`)
+  sample('sites', projects.sitesView.listLabel, words(`${projects.sitesView.sites.map((s) => s.name).join(', ')}.`, agents.sample), '/projects#sites')
+  for (const f of automations.flows) {
+    sample(`flow-${f.code.toLowerCase()}`, `${f.title} · ${PLATFORMS[f.platform].name}`, words(`${f.site}.`, f.outcome, `${f.nodes.map((n) => n.label).join(', ')}.`, automations.sample), '/projects#automations')
+  }
+  for (const b of agents.builds) sample(`build-${b.id}`, b.name, words(b.line, agents.sample), '/projects#ai-agents')
+
+  add('about-intro', about.intro.heading, words(about.lede, `${about.intro.lead}${about.intro.body}`, about.intro.story), '/about')
+  add('about-location', about.location.title, words(`${about.location.detail.replace(/ · /g, ', ')}.`), '/about')
+  ROLES.forEach((r, i) => sample(`role-${i + 1}`, r.name, words(r.line, `Tools: ${names(r.logos)}.`), '/about'))
+
+  const inUse = TOOLS.filter((t) => !EXPERIMENTAL.includes(t.name))
+  const label = (s: string) => s.charAt(0) + s.slice(1).toLowerCase()
+  add('stack', home.tools.title, words(home.cards.stack.body, `${label(home.cards.stack.inUse)}: ${names(inUse)}.`, `${label(home.cards.stack.experimental)}: ${EXPERIMENTAL.join(', ')}.`), '/')
+
+  sample('showcase', showcase.title.join(' '), words(showcase.lede, showcase.sample), '/showcase')
+  for (const b of BUSINESSES) sample(`showcase-${b.code.toLowerCase()}`, `${b.name} (${b.trade})`, words(b.line, showcase.sample), '/showcase')
+
+  CLIENTS.forEach((cl, i) => {
+    if (clean(cl.name) && clean(cl.quote)) add(`testimonial-${i + 1}`, cl.name, words(`“${cl.quote}”`, clean(cl.role) && `${cl.role}.`), '/testimonials')
+  })
+
+  return out
+}
+
+let built: Passage[] | undefined
+
+/** The site's passages, built once per server instance (the pages switched off are fixed per deploy). */
+export const sitePassages = (): Passage[] => (built ??= buildPassages())

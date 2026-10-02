@@ -10,16 +10,13 @@ import { BUSINESSES, showcase } from '@/data/showcase'
 import { EXPERIMENTAL, TOOLS } from '@/data/stack'
 import { CLIENTS } from '@/data/testimonials'
 import { TOOLS as BRAND_TOOLS } from '@/lib/brand/tools'
-import { commands } from '@/lib/commands'
-import { isPlaceholder } from '@/lib/placeholder'
+import { clean, siteLinks } from '@/lib/assistant/source'
 
 /** What the assistant knows. The site's is compiled from the data files; a sample-business demo can bring its own (spec §3.2). */
 export interface Knowledge {
   text(): string
 }
 
-/** A string, or nothing when it is a content gap ("PLACEHOLDER - …"). */
-const clean = (s: string | undefined) => (s && !isPlaceholder(s) ? s : '')
 /** The lines that have content. */
 const lines = (...l: (string | false | undefined | null)[]) => l.filter((x): x is string => Boolean(x))
 
@@ -28,11 +25,7 @@ const lines = (...l: (string | false | undefined | null)[]) => l.filter((x): x i
  * pages are switched off (data/nav.ts) at call time. A page that is off has no section and no link, and the only links are commands().
  */
 export function buildKnowledge(): string {
-  const cmds = commands()
-  const ref = (href: string) => {
-    const c = cmds.find((x) => x.href === href)
-    return c ? `[${c.label}](${href})` : ''
-  }
+  const { ref } = siteLinks()
   /** `See also:` line for a link that may be off. */
   const see = (href: string, what = 'See also') => (ref(href) ? `${what}: ${ref(href)}` : '')
   /** A section, dropped when its page is switched off or it has nothing to say. */
