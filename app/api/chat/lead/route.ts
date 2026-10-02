@@ -2,7 +2,7 @@ import { after } from 'next/server'
 import { assistant } from '@/data/assistant'
 import { isFake } from '@/lib/assistant/config'
 import { checkMessages, LIMITS, trimHistory, UUID } from '@/lib/assistant/limits'
-import { conversationLeads } from '@/lib/assistant/ledger'
+import { conversationLeads, leadsSending } from '@/lib/assistant/ledger'
 import { logTurn } from '@/lib/assistant/log'
 import { fakeMailer, resendMailer } from '@/lib/assistant/mail'
 import { checkLead, FIELDS } from '@/lib/contact'
@@ -38,17 +38,22 @@ export async function POST(req: Request): Promise<Response> {
   const result = checkLead(data)
   if (!result.lead) return Response.json({ errors: result.errors }, { status: 400 })
 
-  if (conversationLeads.has(conversationId)) return refuse(assistant.quick.form.already, 409)
+  // A send already in flight for this conversation counts as sent: two posts at once would otherwise both pass the ledger and email twice.
+  // The check and the claim below run with no await between them, so no other request can slip in.
+  if (conversationLeads.has(conversationId) || leadsSending.has(conversationId)) return refuse(assistant.quick.form.already, 409)
   if (!leadAllowed(ip)) return refuse(assistant.errors.rate, 429)
+  leadsSending.add(conversationId)
 
   const transcript = trimHistory(checked.messages).map((m) => `${m.role === 'user' ? 'Visitor' : 'Assistant'}: ${m.content}`).join('\n')
   try {
     await (isFake() ? fakeMailer : resendMailer())(result.lead, { call, transcript })
+    conversationLeads.add(conversationId)
   } catch (err) {
     console.error('Assistant: the form card’s lead was not sent.', err)
     return refuse(assistant.leadFailed, 502)
+  } finally {
+    leadsSending.delete(conversationId)
   }
-  conversationLeads.add(conversationId)
 
   after(() =>
     logTurn({

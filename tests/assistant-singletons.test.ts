@@ -11,6 +11,14 @@ describe('state shared across separately bundled routes', () => {
     expect(second.has('ledger-singleton-check')).toBe(true)
   })
 
+  it('gives the same set of leads being sent to a second import of the module', async () => {
+    vi.resetModules()
+    const first = (await import('@/lib/assistant/ledger')).leadsSending
+    vi.resetModules()
+    const second = (await import('@/lib/assistant/ledger')).leadsSending
+    expect(second).toBe(first)
+  })
+
   it('counts a second import of the lead limiter against the same budget', async () => {
     vi.resetModules()
     const first = (await import('@/lib/leadLimit')).leadAllowed

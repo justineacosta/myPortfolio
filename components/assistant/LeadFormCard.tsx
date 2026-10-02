@@ -5,6 +5,7 @@ import { flushSync } from 'react-dom'
 import { WarningCircleIcon } from '@phosphor-icons/react/ssr'
 import { ShellLink } from '@/components/shell/NavigationProvider'
 import { assistant } from '@/data/assistant'
+import type { LeadFields } from '@/lib/assistant/client'
 import { MAX_EMAIL, MAX_MESSAGE, MAX_NAME } from '@/lib/contact'
 import { useAssistant, type Entry } from './AssistantProvider'
 
@@ -23,6 +24,13 @@ export function ContactLink() {
   )
 }
 
+/** The card's fields as they stand. */
+function fieldsOf(form: HTMLFormElement): LeadFields {
+  const data = new FormData(form)
+  const value = (k: Field) => String(data.get(k) ?? '')
+  return { firstName: value('firstName'), lastName: value('lastName'), email: value('email'), message: value('message'), call: data.get('call') !== null }
+}
+
 const LABEL = 'font-mono text-[10px] tracking-[.14em] text-ink3'
 const INPUT = 'w-full min-w-0 rounded-xl border border-b1 bg-s1 px-3 py-2 text-[13.5px] text-ink placeholder:text-ink3 aria-[invalid=true]:border-danger-b'
 const COLUMN = 'flex min-w-0 flex-col gap-1.5'
@@ -32,7 +40,7 @@ const COLUMN = 'flex min-w-0 flex-col gap-1.5'
  * (the server's own line when it gave one) with the Contact link. `onSettled` hears the outcome's text once, for the panel's live region.
  */
 export default function LeadFormCard({ entry, onSettled }: { entry: Extract<Entry, { kind: 'form' }>; onSettled?: (text: string) => void }) {
-  const { streaming, submitForm } = useAssistant()
+  const { streaming, submitForm, formDraft, saveFormDraft } = useAssistant()
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({})
   const [sending, setSending] = useState(false)
   const [reason, setReason] = useState<string>()
@@ -48,9 +56,7 @@ export default function LeadFormCard({ entry, onSettled }: { entry: Extract<Entr
     if (busy.current || streaming) return
     busy.current = true
     setSending(true)
-    const data = new FormData(e.currentTarget)
-    const value = (k: Field) => String(data.get(k) ?? '')
-    const res = await submitForm(entry.id, { firstName: value('firstName'), lastName: value('lastName'), email: value('email'), message: value('message'), call: data.get('call') !== null })
+    const res = await submitForm(entry.id, fieldsOf(e.currentTarget))
     busy.current = false
     setSending(false)
     if (res.ok) onSettled?.(assistant.leadOk)
@@ -67,8 +73,9 @@ export default function LeadFormCard({ entry, onSettled }: { entry: Extract<Entr
     }
   }
 
-  // An error goes as soon as its field is edited.
+  // Every edit is kept in the provider, so the panel can close and reopen without losing it; an error goes as soon as its field is edited.
   const edited = (e: FormEvent<HTMLFormElement>) => {
+    saveFormDraft(entry.id, fieldsOf(e.currentTarget))
     const name = (e.target as HTMLInputElement).name as Field
     if (!errors[name]) return
     setErrors((cur) => {
@@ -88,6 +95,8 @@ export default function LeadFormCard({ entry, onSettled }: { entry: Extract<Entr
       </p>
     )
   const f = assistant.quick.form
+  // What the visitor typed before the panel last closed.
+  const draft = formDraft(entry.id)
 
   return (
     <form ref={form} onSubmit={submit} onChange={edited} noValidate className="w-full">
@@ -96,27 +105,27 @@ export default function LeadFormCard({ entry, onSettled }: { entry: Extract<Entr
         <div className="flex flex-wrap gap-2.5">
           <div className={`${COLUMN} flex-[1_1_120px]`}>
             <label htmlFor={id('firstName')} className={LABEL}>{f.firstName}</label>
-            <input id={id('firstName')} name="firstName" type="text" autoComplete="given-name" maxLength={MAX_NAME} className={INPUT} {...described('firstName')} />
+            <input id={id('firstName')} name="firstName" defaultValue={draft?.firstName} type="text" autoComplete="given-name" maxLength={MAX_NAME} className={INPUT} {...described('firstName')} />
             {error('firstName')}
           </div>
           <div className={`${COLUMN} flex-[1_1_120px]`}>
             <label htmlFor={id('lastName')} className={LABEL}>{f.lastName}</label>
-            <input id={id('lastName')} name="lastName" type="text" autoComplete="family-name" maxLength={MAX_NAME} className={INPUT} {...described('lastName')} />
+            <input id={id('lastName')} name="lastName" defaultValue={draft?.lastName} type="text" autoComplete="family-name" maxLength={MAX_NAME} className={INPUT} {...described('lastName')} />
             {error('lastName')}
           </div>
         </div>
         <div className={COLUMN}>
           <label htmlFor={id('email')} className={LABEL}>{f.email}</label>
-          <input id={id('email')} name="email" type="email" autoComplete="email" maxLength={MAX_EMAIL} className={INPUT} {...described('email')} />
+          <input id={id('email')} name="email" defaultValue={draft?.email} type="email" autoComplete="email" maxLength={MAX_EMAIL} className={INPUT} {...described('email')} />
           {error('email')}
         </div>
         <div className={COLUMN}>
           <label htmlFor={id('message')} className={LABEL}>{f.message}</label>
-          <textarea id={id('message')} name="message" rows={3} maxLength={MAX_MESSAGE} className={`${INPUT} resize-y`} {...described('message')} />
+          <textarea id={id('message')} name="message" defaultValue={draft?.message} rows={3} maxLength={MAX_MESSAGE} className={`${INPUT} resize-y`} {...described('message')} />
           {error('message')}
         </div>
         <label className="flex cursor-pointer items-center gap-2 text-[13px] text-ink2">
-          <input type="checkbox" name="call" className="size-4 shrink-0 cursor-pointer accent-accent" />
+          <input type="checkbox" name="call" defaultChecked={draft?.call} className="size-4 shrink-0 cursor-pointer accent-accent" />
           {f.call}
         </label>
         <button type="submit" disabled={sending || streaming} className="inline-flex h-10 cursor-pointer items-center justify-center rounded-xl border border-accent bg-accent px-3 text-[13px] font-semibold text-on-accent disabled:cursor-default disabled:opacity-60">

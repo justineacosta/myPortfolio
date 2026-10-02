@@ -97,6 +97,15 @@ describe('POST /api/chat/lead', () => {
     expect(info).toHaveBeenCalledTimes(5)
   })
 
+  it('spends none of the lead budget on refused sends: five 400s and five 409s from one address, then a 200', async () => {
+    const from = '10.8.8.8'
+    const sent = good()
+    expect((await post(sent, from)).status).toBe(200)
+    for (let i = 0; i < 5; i++) expect((await post(good({ email: 'not an email' }), from)).status).toBe(400)
+    for (let i = 0; i < 5; i++) expect((await post(sent, from)).status).toBe(409)
+    expect((await post(good(), from)).status).toBe(200)
+  })
+
   describe('with the real mailer', () => {
     let fetch: ReturnType<typeof vi.fn>
     beforeEach(() => {
@@ -117,6 +126,34 @@ describe('POST /api/chat/lead', () => {
       await runAfter()
       expect(logTurn).not.toHaveBeenCalled()
 
+      fetch.mockResolvedValue(Response.json({ id: 'x' }))
+      expect((await post(same)).status).toBe(200)
+    })
+
+    it('sends one email when the same conversation posts twice at once: the second answers 409 while the first is still sending', async () => {
+      let release!: () => void
+      fetch.mockImplementation(() => new Promise<Response>((done) => (release = () => done(Response.json({ id: 'x' })))))
+      const same = good()
+      const first = post(same)
+      const second = post(same)
+      const late = await second
+      expect(late.status).toBe(409)
+      expect(await late.json()).toEqual({ error: assistant.quick.form.already })
+      release()
+      fetch.mockResolvedValue(Response.json({ id: 'x' }))
+      expect((await first).status).toBe(200)
+      // The email to Justine and the visitor's confirmation, once.
+      expect(fetch).toHaveBeenCalledTimes(2)
+    })
+
+    it('lets the conversation try again after a send in flight fails', async () => {
+      let fail!: () => void
+      fetch.mockImplementationOnce(() => new Promise<Response>((done) => (fail = () => done(new Response('boom', { status: 500 })))))
+      const same = good()
+      const first = post(same)
+      expect((await post(same)).status).toBe(409)
+      fail()
+      expect((await first).status).toBe(502)
       fetch.mockResolvedValue(Response.json({ id: 'x' }))
       expect((await post(same)).status).toBe(200)
     })

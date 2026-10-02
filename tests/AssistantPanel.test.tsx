@@ -626,6 +626,24 @@ describe('the lead form card', () => {
     expect(sendButton()).toBeDisabled()
   })
 
+  it('keeps a half-typed card through closing and reopening the panel, in memory only', async () => {
+    const user = await openCard()
+    await fill(user)
+    await user.click(within(card()).getByRole('checkbox', { name: f.call }))
+    await user.keyboard('{Escape}')
+    await waitFor(() => expect(dialog()).not.toBeInTheDocument())
+    await user.click(launcher())
+    await screen.findByRole('group', { name: f.title })
+    const c = within(card())
+    expect(c.getByLabelText(f.firstName)).toHaveValue('Ada')
+    expect(c.getByLabelText(f.lastName)).toHaveValue('Lovelace')
+    expect(c.getByLabelText(f.email)).toHaveValue('ada@example.com')
+    expect(c.getByLabelText(f.message)).toHaveValue('A project')
+    expect(c.getByRole('checkbox', { name: f.call })).toBeChecked()
+    // What the visitor typed is not written to the tab's storage.
+    expect(sessionStorage.getItem(STORAGE_KEY)).not.toContain('Lovelace')
+  })
+
   it('a saved open card shows again after a reload with empty fields, and sends', async () => {
     const user = userEvent.setup()
     withChat([user1, { id: 'a1', kind: 'assistant', text: 'Want Justine to reply?' }, { id: 'f1', kind: 'form', state: 'open' }])

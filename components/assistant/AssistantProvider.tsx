@@ -24,6 +24,9 @@ type Assistant = {
   stop: () => void
   retry: () => void
   submitForm: (id: string, fields: LeadFields) => Promise<LeadResult>
+  /** What the visitor has typed into an open form card so far, kept in memory (never in storage) so closing the panel does not lose it. */
+  formDraft: (id: string) => LeadFields | undefined
+  saveFormDraft: (id: string, fields: LeadFields) => void
   reset: () => void
 }
 
@@ -126,6 +129,8 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
   const streamingRef = useRef(false)
   // The form entries being sent, so a second submit for the same card cannot slip in before the first settles.
   const sendingRef = useRef(new Set<string>())
+  // Each open form card's half-typed fields, by entry id. Memory only: a visitor's name and email never go to sessionStorage unsent.
+  const draftsRef = useRef(new Map<string, LeadFields>())
   const abortRef = useRef<AbortController | null>(null)
   useEffect(() => {
     pageRef.current = pathname
@@ -257,6 +262,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
         // Field errors leave the card open for another go; any other outcome settles it.
         if (res.ok || !res.errors) {
           const state = res.ok ? 'sent' : 'failed'
+          draftsRef.current.delete(id)
           update((es) => es.map((e) => (e.id === id && e.kind === 'form' ? { ...e, state } : e)))
         }
         return res
@@ -267,17 +273,24 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
     [update],
   )
 
+  const formDraft = useCallback((id: string) => draftsRef.current.get(id), [])
+  const saveFormDraft = useCallback((id: string, fields: LeadFields) => void draftsRef.current.set(id, fields), [])
+
   const reset = useCallback(() => {
     abortRef.current?.abort()
     abortRef.current = null
     streamingRef.current = false
     setStreaming(false)
+    draftsRef.current.clear()
     const id = newId()
     idRef.current = id
     setConversationId(id)
     update(() => [])
   }, [update])
 
-  const value = useMemo(() => ({ open, setOpen, entries, streaming, send, stop, retry, submitForm, reset }), [open, entries, streaming, send, stop, retry, submitForm, reset])
+  const value = useMemo(
+    () => ({ open, setOpen, entries, streaming, send, stop, retry, submitForm, formDraft, saveFormDraft, reset }),
+    [open, entries, streaming, send, stop, retry, submitForm, formDraft, saveFormDraft, reset],
+  )
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
