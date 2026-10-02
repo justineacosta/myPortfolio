@@ -7,7 +7,8 @@ export type ChatMessage = { role: 'user' | 'assistant'; content: string }
 export type ChatRequest = { conversationId: string; page: string; messages: ChatMessage[]; formShown: boolean }
 
 const bad = { ok: false as const, error: assistant.errors.bad }
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+/** A conversation ID as the browser makes it: a UUID. */
+export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 /** Checks a list of messages and builds a fresh one from the checked fields: roles, string content, no empty or over-long visitor message, at most 30 visitor turns. With `endOnUser` the last message must be the visitor's. */
 export function checkMessages(raw: unknown, endOnUser: boolean): { ok: true; messages: ChatMessage[] } | { ok: false; error: string } {
