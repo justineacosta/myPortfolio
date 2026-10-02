@@ -62,3 +62,24 @@ describe('confirmEmail (the one the visitor gets)', () => {
     expect(confirmEmail({ ...lead, firstName: '<b>Ana</b>' }, 'https://kraft.dev').html).toContain('Hi &lt;b&gt;Ana&lt;/b&gt;,')
   })
 })
+
+describe('notifyEmail for a chat call request', () => {
+  const mail = notifyEmail(lead, AT, { call: true, transcript: 'Visitor: hi\nAssistant: <b>hello</b>' })
+
+  it('tags the subject as a call request and appends the transcript to the text', () => {
+    expect(mail.subject).toBe('Call request from Ana Reyes')
+    expect(mail.text).toContain('Transcript:')
+    expect(mail.text).toContain('Visitor: hi')
+  })
+
+  it('shows the transcript in the HTML, escaped', () => {
+    expect(mail.html).toContain('Visitor: hi')
+    expect(mail.html).toContain('&lt;b&gt;hello&lt;/b&gt;')
+    expect(mail.html).not.toContain('<b>hello</b>')
+  })
+
+  it('is unchanged without extra', () => {
+    expect(notifyEmail(lead, AT)).toEqual(notifyEmail(lead, AT, {}))
+    expect(notifyEmail(lead, AT).text).not.toContain('Transcript:')
+  })
+})

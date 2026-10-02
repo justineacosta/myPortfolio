@@ -64,10 +64,12 @@ function received(at: Date) {
   return `${when.replace(/ /g, ' ')} ${profile.tzLabel}`
 }
 
-/** The email I get: who wrote, when, their message, and a button to reply. */
-export function notifyEmail(lead: Lead, at: Date): Email {
+/** The email I get: who wrote, when, their message, and a button to reply. From the site assistant it can carry the chat transcript and be tagged as a call request. */
+export function notifyEmail(lead: Lead, at: Date, extra: { transcript?: string; call?: boolean } = {}): Email {
   const n = contact.notify
-  const { subject, body } = composeMessage(lead)
+  const composed = composeMessage(lead)
+  const subject = extra.call ? `Call request from ${lead.firstName} ${lead.lastName}` : composed.subject
+  const body = extra.transcript ? `${composed.body}\n\nTranscript:\n${extra.transcript}` : composed.body
   const name = escape(`${lead.firstName} ${lead.lastName}`)
   const replyHref = `mailto:${encodeURIComponent(lead.email)}?subject=${encodeURIComponent(`Re: ${subject}`)}`
   const row = (label: string, value: string) =>
@@ -84,6 +86,10 @@ export function notifyEmail(lead: Lead, at: Date): Email {
       `</table>` +
       `<p style="margin:24px 0 8px;font-family:${MONO};font-size:10.5px;letter-spacing:.14em;color:${P.ink3}">${n.message}</p>` +
       `<div style="padding:18px;background:${P.panel};border:1px solid ${P.line};border-radius:12px;font-size:14.5px;line-height:1.6;color:${P.ink2}">${escape(lead.message).replace(/\r?\n/g, '<br>')}</div>` +
+      (extra.transcript
+        ? `<p style="margin:24px 0 8px;font-family:${MONO};font-size:10.5px;letter-spacing:.14em;color:${P.ink3}">TRANSCRIPT</p>` +
+          `<div style="padding:18px;background:${P.panel};border:1px solid ${P.line};border-radius:12px;font-size:13px;line-height:1.6;color:${P.ink2}">${escape(extra.transcript).replace(/\r?\n/g, '<br>')}</div>`
+        : '') +
       button(replyHref, `${n.reply} ${escape(lead.firstName)}`),
     n.footer,
   )
