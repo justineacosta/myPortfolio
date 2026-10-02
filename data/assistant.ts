@@ -32,6 +32,7 @@ export const assistant = {
   quick: {
     note: 'Answers come straight from this site.',
     hello: 'Hi! Ask about Justine’s services, projects or process, or leave a message.',
+    thanks: 'You’re welcome. Ask anything else about Justine’s work, or leave a message.',
     going: 'Taking you to',
     more: 'More on',
     also: 'Also:',

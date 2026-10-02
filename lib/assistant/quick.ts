@@ -3,7 +3,7 @@ import { commands } from '@/lib/commands'
 import type { AssistantEvent } from '@/lib/assistant/events'
 import type { ChatMessage } from '@/lib/assistant/limits'
 import { sitePassages, type Passage } from '@/lib/assistant/passages'
-import { searchPassages } from '@/lib/assistant/search'
+import { onlyStopWords, searchPassages } from '@/lib/assistant/search'
 import type { TurnRecord } from '@/lib/assistant/turn'
 
 const q = assistant.quick
@@ -19,8 +19,22 @@ const GO = ['take me to', 'show me', 'open', 'go to', 'bring me to']
 const LEAD_IN = ['please', 'can you', 'could you', 'can i', 'let me', 'i want to', 'id like to']
 /** Words that may sit between the go-intent and the name of the page ("show me your projects", "open the bio"). */
 const FILLER = ['your', 'the', 'my', 'our', 'a', 'an', 'please']
-/** Phrases that mean the visitor wants Justine's help (spec §4 rule 3). */
-const LEAD = ['hire', 'work with', 'work together', 'quote', 'estimate', 'project in mind', 'call', 'meet', 'meeting', 'book', 'get in touch', 'contact justine', 'email justine']
+/**
+ * Phrases that mean the visitor wants Justine's help or to reach Justine (spec §4 rule 3, and the panel's own "leave Justine a message").
+ * Calls and meetings are phrases, not words, so "What do you call your process?" and "Do you meet deadlines?" stay questions.
+ */
+const LEAD = [
+  'hire', 'work with', 'work together', 'quote', 'estimate', 'project in mind', 'book',
+  'a call', 'call me', 'book a call', 'schedule a call', 'meet with', 'a meeting', 'set up a meeting',
+  'leave a message', 'leave justine a message', 'send a message', 'message justine', 'email justine',
+  'talk to', 'speak to', 'reach', 'contact', 'in touch', 'get in touch',
+]
+/** Words that open a greeting (spec §4 rule 1). */
+const HELLO = ['hi', 'hello', 'hey', 'ok', 'okay', 'cool', 'good morning', 'good afternoon', 'good evening']
+/** Words that open a thanks (spec §4 rule 1). */
+const THANKS = ['thanks', 'thank you', 'thank', 'cheers']
+/** Words a greeting or thanks may carry besides the stop words: "hi there", "thanks Justine", "thanks so much, that’s helpful". */
+const COURTESY = ['there', 'justine', 'kraft', 'much', 'lot', 'great', 'helpful', 'again']
 /** Words that name a page without using its label (spec §4 rule 2). */
 const ALIASES: Record<string, string> = {
   work: '/projects',
@@ -42,8 +56,18 @@ const norm = (s: string) => ` ${s.toLowerCase().replace(/['’]/g, '').replace(/
 const singular = (w: string) => (w.length > 3 && w.endsWith('s') ? w.slice(0, -1) : w)
 const has = (said: string, phrase: string) => said.includes(norm(phrase))
 
-/** Whether the whole message is a greeting or thanks (spec §4 rule 1). */
-const isGreeting = (said: string) => /\b(hi|hello|hey|thanks|thank you|ok|okay|cool)\b/.test(said) && !said.replace(/\b(hi|hello|hey|thanks|thank you|ok|okay|cool)\b/g, '').trim()
+/**
+ * Whether the whole message is a thanks or a greeting (spec §4 rule 1), and which: it has one of their words, and nothing else but stop words
+ * and courtesies ("hi there", "good morning, Justine", "thanks, that helps"). A thanks wins over a greeting ("hi, thanks").
+ */
+function courtesy(said: string): 'thanks' | 'hello' | null {
+  const thanks = THANKS.some((t) => has(said, t))
+  if (!thanks && !HELLO.some((h) => has(said, h))) return null
+  let rest = said
+  for (const phrase of [...THANKS, ...HELLO].sort((a, b) => b.length - a.length)) rest = rest.split(norm(phrase)).join(' ')
+  if (!onlyStopWords(rest, COURTESY)) return null
+  return thanks ? 'thanks' : 'hello'
+}
 
 /** The words a message asks to be taken to, after its polite lead-ins, its go-intent and the filler words; null when it does not start with a go-intent. */
 function destination(said: string): string[] | null {
@@ -93,7 +117,8 @@ function answer(hits: { passage: Passage; score: number }[]) {
   const [best, next] = hits
   const p = best.passage
   let out = `**${p.title}**\n${excerpt(p.text)}\n${q.more} [${p.label}](${p.href})`
-  if (next && next.score >= ALSO_RATIO * best.score && pageOf(next.passage.href) !== pageOf(p.href)) out += `\n${q.also} [${next.passage.label}](${next.passage.href})`
+  // The runner-up is named by its own title: its page's label ("FAQs / Contact") says nothing about what it answers.
+  if (next && next.score >= ALSO_RATIO * best.score && pageOf(next.passage.href) !== pageOf(p.href)) out += `\n${q.also} [${next.passage.title}](${next.passage.href})`
   return out
 }
 
@@ -115,7 +140,8 @@ export function quickTurn(opts: { history: ChatMessage[]; formShown: boolean; le
     return record
   }
 
-  if (isGreeting(said)) return reply(q.hello)
+  const kind = courtesy(said)
+  if (kind) return reply(kind === 'thanks' ? q.thanks : q.hello)
 
   const where = destination(said)
   if (where) {

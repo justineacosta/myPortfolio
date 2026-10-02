@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
+import { about } from '@/data/about'
 import { assistant } from '@/data/assistant'
 import { NAV } from '@/data/nav'
 import type { AssistantEvent } from '@/lib/assistant/events'
@@ -7,6 +8,8 @@ import type { Passage } from '@/lib/assistant/passages'
 import { quickTurn } from '@/lib/assistant/quick'
 
 const q = assistant.quick
+/** The About overview's title. */
+const ABOUT = about.title[0]
 
 /** Runs the quick engine on one visitor message and gathers what it emitted. */
 function run(text: string, opts: { formShown?: boolean; leadSent?: boolean; passages?: Passage[] } = {}) {
@@ -22,13 +25,21 @@ const passage = (text: string): Passage => ({ id: 'x', title: 'Long', text, href
 
 describe('quickTurn', () => {
   describe('greeting or thanks', () => {
-    it.each(['hi', 'Thanks!', 'Hello', 'thank you', 'ok', 'Cool.'])('answers “%s” with the hello line', (msg) => {
+    it.each(['hi', 'Hello', 'ok', 'Cool.', 'hi there', 'hey there', 'Hey there!', 'good morning', 'Good afternoon', 'good evening', 'hi justine', 'Hello, Kraft', 'hi justine, good morning'])('answers “%s” with the hello line', (msg) => {
       const r = run(msg)
       expect(r.events).toEqual([{ type: 'text', delta: q.hello }])
     })
 
+    // The final review's ruling: a thanks gets its own line, not the greeting.
+    it.each(['Thanks!', 'thank you', 'thanks, that helps', 'Thank you Justine', 'thanks, that’s very helpful'])('answers “%s” with the thanks line', (msg) => {
+      const r = run(msg)
+      expect(r.events).toEqual([{ type: 'text', delta: q.thanks }])
+    })
+
     it('does not treat a greeting plus a question as a greeting', () => {
       expect(run('hi, what do you charge').text).not.toBe(q.hello)
+      expect(run('thanks, what about your projects').text).not.toBe(q.thanks)
+      expect(run('good morning, do you build websites').text).toMatch(/^\*\*/)
     })
   })
 
@@ -129,6 +140,43 @@ describe('quickTurn', () => {
       expect(r.text).toBe(q.leadAsk)
       expect(r.types).toEqual(['text', 'form'])
     })
+
+    // The panel's own wording ("leave Justine a message") and the ways people ask to reach someone.
+    it.each([
+      'I want to leave a message',
+      'leave Justine a message',
+      'leave a message for Justine',
+      'Can I message Justine?',
+      'send a message',
+      'I would like to talk to Justine',
+      'can I speak to Justine',
+      'how do I reach Justine',
+      'contact',
+      'How can I get in touch?',
+      'I want to be in touch',
+      'can we book a call',
+      'call me',
+      'can we schedule a call',
+      'I’d like to meet with Justine',
+      'can we set up a meeting',
+    ])('asks for details and shows the form for “%s”', (msg) => {
+      const r = run(msg)
+      expect(r.text.endsWith(q.leadAsk)).toBe(true)
+      expect(r.types).toEqual(['text', 'form'])
+    })
+
+    it('does not read “call” in “What do you call your process?” as a lead', () => {
+      const r = run('What do you call your process?')
+      expect(r.text.startsWith('**The Kraft Method**\n')).toBe(true)
+      expect(r.text).not.toContain(q.leadAsk)
+      expect(r.types).toEqual(['text'])
+    })
+
+    it('does not read “meet” in “Do you meet deadlines?” as a lead', () => {
+      const r = run('Do you meet deadlines?')
+      expect(r.text).not.toContain(q.leadAsk)
+      expect(r.text === q.none || r.text.startsWith('**')).toBe(true)
+    })
   })
 
   describe('search', () => {
@@ -142,11 +190,41 @@ describe('quickTurn', () => {
     it('adds the runner-up when it scores 60% of the best and sits on another page', () => {
       const passages: Passage[] = [
         { id: 'a', title: 'Pricing plans', text: 'Pricing plans start low.', href: '/services', label: 'Services' },
-        { id: 'b', title: 'Pricing plans', text: 'Pricing plans start low.', href: '/contact#faqs', label: 'FAQs / Contact' },
+        { id: 'b', title: 'Plans and pricing', text: 'Pricing plans start low.', href: '/contact#faqs', label: 'FAQs / Contact' },
         { id: 'c', title: 'Other', text: 'Unrelated words here.', href: '/about', label: 'About' },
       ]
       const r = run('pricing plans', { passages: among(...passages) })
-      expect(r.text).toBe('**Pricing plans**\nPricing plans start low.\nMore on [Services](/services)\nAlso: [FAQs / Contact](/contact#faqs)')
+      // The runner-up is named by its own title: its page's label ("FAQs / Contact", or "Quick answers" in the badge's words) says nothing to a visitor.
+      expect(r.text).toBe('**Pricing plans**\nPricing plans start low.\nMore on [Services](/services)\nAlso: [Plans and pricing](/contact#faqs)')
+    })
+
+    // The final review's answer-quality list, as the visitor sees it: the passage's title leads the reply, and no form follows.
+    it.each([
+      ['What are your rates?', 'How much do you charge?'],
+      ['what is your hourly rate', 'How much do you charge?'],
+      ['How much does a website cost?', 'How much do you charge?'],
+      ['Can you make me a chatbot for my website?', 'AI Agents & RAG'],
+      ['Can you automate my invoices?', 'Automation & Workflows'],
+      ['what is your process', 'The Kraft Method'],
+      ['how do you work', 'The Kraft Method'],
+      ['how does Justine work', 'The Kraft Method'],
+      ['What services do you offer?', 'Services'],
+      ['services', 'Services'],
+      ['what projects have you done', 'Projects'],
+      ['projects', 'Projects'],
+      ['do you have a portfolio', 'Projects'],
+      ['Who is Justine?', ABOUT],
+      ['who are you', ABOUT],
+      ['tell me about yourself', ABOUT],
+      ['What do you do?', ABOUT],
+      ['about', ABOUT],
+      ['What is your tech stack?', 'Stack: Tools I work with'],
+      ['what is the build plan', 'The build plan'],
+      ['What do you build?', 'What do you actually build?'],
+    ])('answers “%s” with “%s”', (msg, title) => {
+      const r = run(msg)
+      expect(r.text.startsWith(`**${title}**\n`)).toBe(true)
+      expect(r.types).toEqual(['text'])
     })
 
     it('leaves out a runner-up on the same page, even when a section link differs', () => {
@@ -182,11 +260,14 @@ describe('quickTurn', () => {
 
   describe('the answer’s length', () => {
     it('cuts a passage with no sentence end at a word, with an ellipsis', () => {
-      const body = run('word', { passages: among(passage('word '.repeat(200))) }).text.split('\n')[1]
+      // Six characters a word, so character 400 is the last letter of one: without the back-off the cut would end on a broken "word".
+      const text = 'words '.repeat(200)
+      expect(text[400]).not.toBe(' ')
+      const body = run('words', { passages: among(passage(text)) }).text.split('\n')[1]
       expect(body.length).toBeLessThanOrEqual(401)
       expect(body.endsWith('…')).toBe(true)
-      expect(body.slice(0, -1).endsWith('word')).toBe(true)
-      expect(body.slice(0, -1).split(' ').every((w) => w === 'word')).toBe(true)
+      expect(body.slice(0, -1).endsWith('words')).toBe(true)
+      expect(body.slice(0, -1).split(' ').every((w) => w === 'words')).toBe(true)
     })
 
     it('cuts a long passage after the last sentence end before character 400', () => {
