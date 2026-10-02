@@ -3,6 +3,9 @@ import type { TurnRecord } from '@/lib/assistant/turn'
 
 type Env = Record<string, string | undefined>
 
+/** Every column a message row may set, named in the insert so rows with different keys can go in together. */
+const MESSAGE_COLUMNS = ['conversation_id', 'role', 'content', 'tool_name', 'tool_input', 'input_tokens', 'output_tokens', 'engine']
+
 /** One finished turn to record: the conversation, the page it started on, what the visitor wrote and what the turn produced. */
 export type LogEntry = { conversationId: string; page: string; userText: string; record: TurnRecord }
 
@@ -25,11 +28,12 @@ export async function logTurn({ conversationId, page, userText, record }: LogEnt
     const { engine } = record
     // A row with no content is not worth a row (and the column is not null), so an empty visitor or reply text is skipped.
     const rows = [
-      { conversation_id: conversationId, role: 'user', content: userText },
+      { conversation_id: conversationId, role: 'user', content: userText, engine },
       ...record.tools.map((t) => ({ conversation_id: conversationId, role: 'tool', content: t.result, tool_name: t.name, tool_input: t.input, engine })),
       { conversation_id: conversationId, role: 'assistant', content: record.text, input_tokens: record.usage.input, output_tokens: record.usage.output, engine },
     ].filter((r) => r.content !== '')
-    await send('messages', 'POST', rows)
+    // The rows carry different keys, and PostgREST refuses a bulk insert like that (PGRST102) unless the columns are named; a key a row leaves out is null.
+    await send(`messages?columns=${MESSAGE_COLUMNS.join(',')}`, 'POST', rows)
     if (record.leadSent) await send(`conversations?id=eq.${encodeURIComponent(conversationId)}`, 'PATCH', { lead_captured: true })
   } catch (err) {
     console.error('Assistant log failed', err)

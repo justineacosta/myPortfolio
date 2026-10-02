@@ -49,22 +49,28 @@ describe('logTurn', () => {
     await logTurn(entry(), ENV)
     expect(fetch).toHaveBeenCalledTimes(2)
     const [url, init] = fetch.mock.calls[1]
-    expect(url).toBe('https://db.test/rest/v1/messages')
+    // The rows carry different keys, which PostgREST refuses in one insert (PGRST102) unless the columns are named.
+    expect(url).toBe('https://db.test/rest/v1/messages?columns=conversation_id,role,content,tool_name,tool_input,input_tokens,output_tokens,engine')
     expect(init.method).toBe('POST')
     expect(init.headers).toMatchObject({ apikey: 'srk', Authorization: 'Bearer srk' })
     expect(JSON.parse(init.body)).toEqual([
-      { conversation_id: ID, role: 'user', content: 'What do you build?' },
+      { conversation_id: ID, role: 'user', content: 'What do you build?', engine: 'claude' },
       { conversation_id: ID, role: 'tool', content: 'Navigating to projects', tool_name: 'navigate', tool_input: { page: 'projects' }, engine: 'claude' },
       { conversation_id: ID, role: 'tool', content: 'No match', tool_name: 'search', tool_input: { q: 'rag' }, engine: 'claude' },
       { conversation_id: ID, role: 'assistant', content: RECORD.text, input_tokens: 120, output_tokens: 45, engine: 'claude' },
     ])
   })
 
-  it('writes the record’s engine on the tool and assistant rows, and none on the user row', async () => {
+  it('names every key the rows use in the columns list', async () => {
+    await logTurn(entry(), ENV)
+    const columns = new URL(fetch.mock.calls[1][0]).searchParams.get('columns')!.split(',')
+    for (const row of JSON.parse(fetch.mock.calls[1][1].body)) for (const key of Object.keys(row)) expect(columns).toContain(key)
+  })
+
+  it('writes the record’s engine on every row, the visitor’s included', async () => {
     await logTurn(entry({ ...RECORD, engine: 'site' }), ENV)
     const rows = JSON.parse(fetch.mock.calls[1][1].body)
-    expect(rows[0]).not.toHaveProperty('engine')
-    expect(rows.slice(1).map((r: { engine: string }) => r.engine)).toEqual(['site', 'site', 'site'])
+    expect(rows.map((r: { engine: string }) => r.engine)).toEqual(['site', 'site', 'site', 'site'])
   })
 
   it('skips a row whose content is empty', async () => {
