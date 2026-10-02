@@ -9,6 +9,7 @@ const STOP = new Set(
   [
     'a an the and or but of to in on at for from with by as is are was were be been am do does did you your yours i me my we our us it its they them this that these those there here',
     'what whats who whom which how can could would should will shall may might please just so very really about tell any some have has had get got hi hello hey thanks thank ok okay',
+    'like if then than also into need needed want wanted help going go',
   ]
     .join(' ')
     .split(' '),
@@ -85,8 +86,12 @@ function indexOf(passages: Passage[]): Index {
   return ix
 }
 
-/** The lowest score a passage may have to count as an answer. A question sharing no word with the site scores 0, and the stray match of one common word stays under 1; the weakest must-land answer scores 3.2. */
-export const MIN_SCORE = 1
+/**
+ * The lowest score a passage may have to count as an answer, tuned against real scores: a question that shares only one incidental word with the site
+ * ("do you work weekends" 2.7, "how long does a project take" 2.1, "do you have a portfolio" 1.1) falls below it, and the weakest must-land answer (3.2) clears it.
+ * A question with no word in common scores 0 whatever the threshold.
+ */
+export const MIN_SCORE = 3
 
 /** The passages that answer `query`, best first, each scoring at least MIN_SCORE (BM25 over title ×2 and text, the query widened by synonyms). Deterministic. */
 export function searchPassages(query: string, passages: Passage[]): { passage: Passage; score: number }[] {

@@ -29,14 +29,31 @@ describe('searchPassages', () => {
   })
 
   it('answers “what is the Kraft method” with the method passage', () => {
-    expect(top('what is the Kraft method')!.href).toBe('/services#method')
+    const hit = top('what is the Kraft method')!
+    expect(hit.id).toBe('method')
+    expect(hit.href).toBe('/services#method')
   })
 
   it('answers “what tools do you use” with the stack', () => {
     expect(top('what tools do you use')!.id).toBe('stack')
   })
 
-  it.each(['what’s the weather today', 'what\'s the weather today', 'tell me a joke', 'who won the game'])('finds nothing for “%s”', (q) => {
+  it.each([
+    'what’s the weather today',
+    'what\'s the weather today',
+    'tell me a joke',
+    'who won the game',
+    'do you like pizza',
+    'what\'s your favourite movie',
+    'can you help me with my homework',
+    'is it going to rain',
+    'what if I need help',
+  ])('finds nothing for “%s”', (q) => {
+    expect(searchPassages(q, p)).toEqual([])
+  })
+
+  // These share one common word with the site, so they score above 0: only MIN_SCORE keeps them out.
+  it.each(['do you work weekends', 'how long does a project take', 'do you have a portfolio'])('finds nothing for “%s”, whose only overlap is incidental', (q) => {
     expect(searchPassages(q, p)).toEqual([])
   })
 
