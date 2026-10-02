@@ -7,12 +7,13 @@ export type ChatMessage = { role: 'user' | 'assistant'; content: string }
 export type ChatRequest = { conversationId: string; page: string; messages: ChatMessage[] }
 
 const bad = { ok: false as const, error: assistant.errors.bad }
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 /** Checks the browser's body and builds a fresh request from the checked fields. The browser's history is never trusted. */
 export function checkChat(body: unknown): { ok: true; req: ChatRequest } | { ok: false; error: string } {
   if (typeof body !== 'object' || body === null) return bad
   const { conversationId, page, messages } = body as Record<string, unknown>
-  if (typeof conversationId !== 'string' || !/^[0-9a-f-]{36}$/i.test(conversationId)) return bad
+  if (typeof conversationId !== 'string' || !UUID.test(conversationId)) return bad
   if (typeof page !== 'string' || !page.startsWith('/') || page.length > 200) return bad
   if (!Array.isArray(messages) || messages.length === 0) return bad
   const clean: ChatMessage[] = []

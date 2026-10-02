@@ -27,4 +27,9 @@ export const assistant = {
     failed: 'I can’t answer right now. Try again, or use the Contact page.',
     off: 'The assistant is off right now.',
   },
+  /** The email Justine gets when a visitor leaves a message through the chat (lib/emails.ts). */
+  email: {
+    transcript: 'Conversation as sent by the visitor’s browser',
+    footer: 'Sent by the assistant on your site. Replying goes straight to them.',
+  },
 }

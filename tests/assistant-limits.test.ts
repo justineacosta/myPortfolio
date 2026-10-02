@@ -36,6 +36,17 @@ describe('checkChat', () => {
     expect(checkChat({ ...ok, conversationId: 'x' })).toEqual(bad)
   })
 
+  it('refuses a 36-character conversation id that is not a UUID', () => {
+    expect(checkChat({ ...ok, conversationId: '-'.repeat(36) })).toEqual(bad)
+    expect(checkChat({ ...ok, conversationId: 'a'.repeat(36) })).toEqual(bad)
+    expect(checkChat({ ...ok, conversationId: '2f1e6c1a-8d2b-4c3e-9f00-1a2b3c4d5e6g' })).toEqual(bad)
+    expect(checkChat({ ...ok, conversationId: '2f1e6c1a8d2b-4c3e-9f00-1a2b3c4d5e6f-' })).toEqual(bad)
+  })
+
+  it('accepts a UUID in either case', () => {
+    expect(checkChat({ ...ok, conversationId: ID.toUpperCase() })).toEqual({ ok: true, req: { ...ok, conversationId: ID.toUpperCase() } })
+  })
+
   it('refuses a page that is not a path on this site', () => {
     expect(checkChat({ ...ok, page: 'https://evil.test' })).toEqual(bad)
     expect(checkChat({ ...ok, page: '/' + 'a'.repeat(200) })).toEqual(bad)

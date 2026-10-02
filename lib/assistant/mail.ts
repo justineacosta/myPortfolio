@@ -1,3 +1,4 @@
+import { assistant } from '@/data/assistant'
 import { confirmEmail, notifyEmail } from '@/lib/emails'
 import type { Lead } from '@/lib/contact'
 import { sendEmail } from '@/lib/resend'
@@ -27,7 +28,7 @@ export function resendMailer(env: Record<string, string | undefined> = process.e
   return async (lead, opts) => {
     const { RESEND_API_KEY: key, CONTACT_FROM: from, CONTACT_TO: to } = env
     if (!key || !from || !to) throw new Error('Assistant: RESEND_API_KEY, CONTACT_FROM and CONTACT_TO must all be set.')
-    await sendEmail(key, { from, to, replyTo: lead.email, ...notifyEmail(lead, new Date(), opts) })
+    await sendEmail(key, { from, to, replyTo: lead.email, ...notifyEmail(lead, new Date(), { ...opts, footer: assistant.email.footer }) })
     try {
       await sendEmail(key, { from, to: lead.email, replyTo: to, ...confirmEmail(lead, SITE_URL) })
     } catch (err) {

@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { assistant } from '@/data/assistant'
 import { contact } from '@/data/contact'
 import { resendMailer } from '@/lib/assistant/mail'
 
@@ -37,7 +38,10 @@ describe('resendMailer', () => {
     })
     expect(mine.text).toContain('Our intake is manual.')
     expect(mine.text).toContain(TRANSCRIPT)
+    expect(mine.text).toContain(`${assistant.email.transcript}:`)
     expect(mine.html).toContain('Visitor: I have a project in mind')
+    expect(mine.html).toContain(assistant.email.footer)
+    expect(mine.html).not.toContain(contact.notify.footer)
     expect(theirs).toMatchObject({ url: 'https://api.resend.com/emails', auth: 'Bearer re_test', from: ENV.CONTACT_FROM, to: ['ana@example.com'], reply_to: 'me@kraft.dev', subject: contact.reply.subject })
     expect(theirs.text).toContain('Hi Ana,')
     expect(theirs.text).not.toContain('Our intake is manual.')

@@ -1,3 +1,4 @@
+import { assistant } from '@/data/assistant'
 import { contact } from '@/data/contact'
 import { profile } from '@/data/profile'
 import { composeMessage, type Lead } from '@/lib/contact'
@@ -64,12 +65,12 @@ function received(at: Date) {
   return `${when.replace(/ /g, ' ')} ${profile.tzLabel}`
 }
 
-/** The email I get: who wrote, when, their message, and a button to reply. From the site assistant it can carry the chat transcript and be tagged as a call request. */
-export function notifyEmail(lead: Lead, at: Date, extra: { transcript?: string; call?: boolean } = {}): Email {
+/** The email I get: who wrote, when, their message, and a button to reply. From the site assistant it can carry the chat transcript (labelled as what the visitor's browser sent, which the server never verified), be tagged as a call request and say where it came from in the footer. */
+export function notifyEmail(lead: Lead, at: Date, extra: { transcript?: string; call?: boolean; footer?: string } = {}): Email {
   const n = contact.notify
   const composed = composeMessage(lead)
   const subject = extra.call ? `Call request from ${lead.firstName} ${lead.lastName}` : composed.subject
-  const body = extra.transcript ? `${composed.body}\n\nTranscript:\n${extra.transcript}` : composed.body
+  const body = extra.transcript ? `${composed.body}\n\n${assistant.email.transcript}:\n${extra.transcript}` : composed.body
   const name = escape(`${lead.firstName} ${lead.lastName}`)
   const replyHref = `mailto:${encodeURIComponent(lead.email)}?subject=${encodeURIComponent(`Re: ${subject}`)}`
   const row = (label: string, value: string) =>
@@ -87,11 +88,11 @@ export function notifyEmail(lead: Lead, at: Date, extra: { transcript?: string; 
       `<p style="margin:24px 0 8px;font-family:${MONO};font-size:10.5px;letter-spacing:.14em;color:${P.ink3}">${n.message}</p>` +
       `<div style="padding:18px;background:${P.panel};border:1px solid ${P.line};border-radius:12px;font-size:14.5px;line-height:1.6;color:${P.ink2}">${escape(lead.message).replace(/\r?\n/g, '<br>')}</div>` +
       (extra.transcript
-        ? `<p style="margin:24px 0 8px;font-family:${MONO};font-size:10.5px;letter-spacing:.14em;color:${P.ink3}">TRANSCRIPT</p>` +
+        ? `<p style="margin:24px 0 8px;font-family:${MONO};font-size:10.5px;letter-spacing:.14em;color:${P.ink3}">${escape(assistant.email.transcript)}</p>` +
           `<div style="padding:18px;background:${P.panel};border:1px solid ${P.line};border-radius:12px;font-size:13px;line-height:1.6;color:${P.ink2}">${escape(extra.transcript).replace(/\r?\n/g, '<br>')}</div>`
         : '') +
       button(replyHref, `${n.reply} ${escape(lead.firstName)}`),
-    n.footer,
+    extra.footer ? escape(extra.footer) : n.footer,
   )
   return { subject, text: `${body}\n\nReceived: ${received(at)}`, html }
 }
