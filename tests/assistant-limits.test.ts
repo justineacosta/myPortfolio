@@ -55,6 +55,13 @@ describe('checkChat', () => {
     expect(checkChat({ ...ok, messages: [{ role: 'user', content: [{ type: 'tool_result' }] }] })).toEqual(bad)
   })
 
+  it('refuses an empty or whitespace-only visitor message', () => {
+    expect(checkChat({ ...ok, messages: [{ role: 'user', content: '' }] })).toEqual(bad)
+    expect(checkChat({ ...ok, messages: [{ role: 'user', content: '   ' }] })).toEqual(bad)
+    const earlier = [{ role: 'user', content: ' \n' }, { role: 'assistant', content: 'Hello' }, { role: 'user', content: 'Hi' }]
+    expect(checkChat({ ...ok, messages: earlier })).toEqual(bad)
+  })
+
   it('refuses a conversation that does not end on the visitor', () => {
     const messages = [{ role: 'user', content: 'Hi' }, { role: 'assistant', content: 'Hello' }]
     expect(checkChat({ ...ok, messages })).toEqual(bad)

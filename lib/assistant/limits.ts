@@ -24,6 +24,8 @@ export function checkChat(body: unknown): { ok: true; req: ChatRequest } | { ok:
   }
   if (clean[clean.length - 1].role !== 'user') return bad
   const visitor = clean.filter((m) => m.role === 'user')
+  // The API rejects empty content, so an empty visitor message is refused here rather than failing later.
+  if (visitor.some((m) => !m.content.trim())) return bad
   if (visitor.some((m) => m.content.length > LIMITS.messageChars)) return { ok: false, error: assistant.errors.long }
   if (visitor.length > LIMITS.turns) return { ok: false, error: assistant.errors.turns }
   return { ok: true, req: { conversationId, page, messages: clean } }
