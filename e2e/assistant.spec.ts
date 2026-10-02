@@ -62,6 +62,28 @@ test('a lead is passed on once the visitor gives their details', async ({ page }
   await expect(said(page, 'Sent. Justine will reply by email within one business day.')).toBeVisible()
 })
 
+test('when Claude fails, the site’s own answer is given and labelled', async ({ page }) => {
+  await openPage(page)
+  await openPanel(page)
+  await send(page, 'fail what do you charge')
+  await expect(said(page, /Depends on the build/)).toBeVisible()
+  await expect(panel(page).getByText('Answers come straight from this site.')).toBeVisible()
+})
+
+test('a lead intent after a failure offers the form card, which sends', async ({ page }) => {
+  await openPage(page)
+  await openPanel(page)
+  await send(page, 'fail I want to hire Justine')
+  const card = panel(page).getByRole('group', { name: 'Leave Justine a message' })
+  await expect(card).toBeVisible()
+  await card.getByLabel('First name').fill('Ana')
+  await card.getByLabel('Last name').fill('Reyes')
+  await card.getByLabel('Email').fill('ana@example.com')
+  await card.getByLabel('What do you need?').fill('Our intake is manual')
+  await card.getByRole('button', { name: 'Send' }).click()
+  await expect(said(page, 'Sent. Justine will reply by email within one business day.')).toBeVisible()
+})
+
 test('a reload keeps the conversation for the tab, and New chat clears it', async ({ page }) => {
   await openPage(page)
   await openPanel(page)
@@ -117,4 +139,5 @@ test('at the largest text size the input form is still fully inside the panel', 
 test('the Privacy page describes the assistant', async ({ page }) => {
   await page.goto('/privacy')
   await expect(page.getByRole('heading', { name: 'The site assistant' })).toBeVisible()
+  await expect(page.getByText('otherwise replies come straight from this site’s pages')).toBeVisible()
 })
