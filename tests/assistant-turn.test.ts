@@ -75,6 +75,44 @@ describe('runTurn', () => {
     expect(events.filter((e) => e.type === 'navigate')).toHaveLength(1)
   })
 
+  it('tells Claude to answer in text, with no tools, on the round where tools may no longer run', async () => {
+    const stream = vi.fn<StreamTurn>().mockImplementation(async () => message('tool_use', [toolUse('navigate', { href: '/projects', label: 'Projects' })]))
+    await run('go', stream)
+    const choices = stream.mock.calls.map(([req]) => req.tool_choice)
+    expect(choices).toEqual([undefined, undefined, undefined, { type: 'none' }])
+  })
+
+  it('joins the text of separate tool rounds with a blank line', async () => {
+    let n = 0
+    const stream = vi.fn<StreamTurn>().mockImplementation(async (_req, onText) => {
+      n++
+      if (n === 1) {
+        onText('Let me take you there.')
+        return message('tool_use', [toolUse('navigate', { href: '/projects', label: 'Projects' })])
+      }
+      onText('Here')
+      onText(' you are.')
+      return message('end_turn', [{ type: 'text', text: 'Here you are.' }])
+    })
+    const record = await run('go', stream)
+    expect(record.text).toBe('Let me take you there.\n\nHere you are.')
+    const deltas = events.flatMap((e) => (e.type === 'text' ? [e.delta] : []))
+    expect(deltas).toEqual(['Let me take you there.', '\n\n', 'Here', ' you are.'])
+  })
+
+  it('adds no blank line before the first text of a turn, or for a round that has no text', async () => {
+    let n = 0
+    const stream = vi.fn<StreamTurn>().mockImplementation(async (_req, onText) => {
+      n++
+      if (n <= 2) return message('tool_use', [toolUse(n === 1 ? 'navigate' : 'request_call', n === 1 ? { href: '/projects', label: 'Projects' } : {}, `tu_${n}`)])
+      onText('Done.')
+      return message('end_turn', [{ type: 'text', text: 'Done.' }])
+    })
+    const record = await run('go', stream)
+    expect(record.text).toBe('Done.')
+    expect(events.filter((e) => e.type === 'text')).toEqual([{ type: 'text', delta: 'Done.' }])
+  })
+
   it('refuses a second use of the same tool in one turn', async () => {
     let n = 0
     const stream = vi.fn<StreamTurn>().mockImplementation(async () => {

@@ -61,6 +61,18 @@ function plainText(text: string): string {
     .join('')
 }
 
+/** What a screen reader says for an entry that ends a turn without a finished reply: the error, the lead notice or the cut-off notice, as shown. */
+function spoken(entry: Entry): string {
+  switch (entry.kind) {
+    case 'error':
+      return entry.text
+    case 'lead':
+      return entry.ok ? assistant.leadOk : assistant.leadFailed
+    default:
+      return assistant.unfinished
+  }
+}
+
 /** The dialogs and menus the site draws (the ⌘K palette, the accessibility menu, a sub-view's native dialog). */
 const OVERLAY = '[role="dialog"], [role="menu"], dialog'
 
@@ -97,13 +109,19 @@ function PanelBody({ launcherRef }: { launcherRef: RefObject<HTMLButtonElement |
   const list = useRef<HTMLDivElement>(null)
   const wasStreamingRef = useRef(streaming)
 
-  // A reply that has just finished is put in the live region in one piece, so a screen reader reads it once, not word by word.
+  // A turn that has just ended is put in the live region in one piece, so a screen reader reads it once, not word by word.
+  // A reply that finished is read out; a turn that ended on an error, a lead notice or a cut-off reply reads that entry's visible text instead. The region is emptied when a turn starts, so the same notice twice in a row is heard twice.
   if (wasStreaming !== streaming) {
     setWasStreaming(streaming)
-    if (!streaming) {
+    if (streaming) setAnnounced('')
+    else {
       const turn = entries.slice(entries.findLastIndex((e) => e.kind === 'user') + 1)
-      const reply = turn.findLast((e) => e.kind === 'assistant' && !e.unfinished)
-      if (reply && reply.kind === 'assistant') setAnnounced(plainText(reply.text))
+      const end = turn[turn.length - 1]
+      if (end && (end.kind === 'error' || end.kind === 'lead' || (end.kind === 'assistant' && end.unfinished))) setAnnounced(spoken(end))
+      else {
+        const reply = turn.findLast((e) => e.kind === 'assistant' && !e.unfinished)
+        if (reply && reply.kind === 'assistant') setAnnounced(plainText(reply.text))
+      }
     }
   }
 

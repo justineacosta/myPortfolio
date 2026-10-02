@@ -381,6 +381,63 @@ describe('Assistant launcher and panel', () => {
     expect(dialog()).not.toBeInTheDocument()
   })
 
+  describe('announcing a turn that ends without a finished reply', () => {
+    const live = () => document.querySelector('[aria-live="polite"]')!
+
+    it('announces the error text when the server refuses with 429', async () => {
+      const user = userEvent.setup()
+      fetchMock.mockResolvedValueOnce(Response.json({ error: assistant.errors.rate }, { status: 429 }))
+      setup()
+      await user.click(launcher())
+      await user.type(input(), 'Hi{Enter}')
+      await waitFor(() => expect(live()).toHaveTextContent(assistant.errors.rate))
+    })
+
+    it('announces a failed lead, and a lead that went through', async () => {
+      const user = userEvent.setup()
+      fetchMock.mockResolvedValueOnce(stream([{ type: 'lead', ok: false }, done])).mockResolvedValueOnce(stream([{ type: 'lead', ok: true }, done]))
+      setup()
+      await user.click(launcher())
+      await user.type(input(), 'Hi{Enter}')
+      await waitFor(() => expect(live()).toHaveTextContent(assistant.leadFailed))
+      await user.type(input(), 'Again{Enter}')
+      await waitFor(() => expect(live()).toHaveTextContent(assistant.leadOk))
+    })
+
+    it('announces that a reply was cut off', async () => {
+      const user = userEvent.setup()
+      fetchMock.mockResolvedValueOnce(stream([text('Half a')]))
+      setup()
+      await user.click(launcher())
+      await user.type(input(), 'Hi{Enter}')
+      await waitFor(() => expect(live()).toHaveTextContent(assistant.unfinished))
+    })
+
+    it('announces the same failure again on a second turn', async () => {
+      const user = userEvent.setup()
+      let second!: (r: Response) => void
+      fetchMock.mockResolvedValueOnce(Response.json({ error: assistant.errors.rate }, { status: 429 })).mockReturnValueOnce(new Promise<Response>((r) => (second = r)))
+      setup()
+      await user.click(launcher())
+      await user.type(input(), 'Hi{Enter}')
+      await waitFor(() => expect(live()).toHaveTextContent(assistant.errors.rate))
+      await user.click(screen.getByRole('button', { name: assistant.retry }))
+      await waitFor(() => expect(live()).toBeEmptyDOMElement())
+      second(Response.json({ error: assistant.errors.rate }, { status: 429 }))
+      await waitFor(() => expect(live()).toHaveTextContent(assistant.errors.rate))
+    })
+
+    it('still announces a finished reply, not the lead that came before it', async () => {
+      const user = userEvent.setup()
+      fetchMock.mockResolvedValueOnce(stream([{ type: 'lead', ok: true }, text('Thanks, it’s sent.'), done]))
+      setup()
+      await user.click(launcher())
+      await user.type(input(), 'Hi{Enter}')
+      await waitFor(() => expect(live()).toHaveTextContent('Thanks, it’s sent.'))
+      expect(live()).not.toHaveTextContent(assistant.leadOk)
+    })
+  })
+
   it('announces a reply’s links as their labels, not as Markdown', async () => {
     const user = userEvent.setup()
     fetchMock.mockResolvedValueOnce(stream([text('See [Services](/services) for more, or [a site](https://example.com).'), done]))

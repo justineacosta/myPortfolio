@@ -20,13 +20,22 @@ export async function runTurn(opts: { config: AssistantConfig; history: ChatMess
   const messages: Anthropic.MessageParam[] = opts.history.map((m) => ({ role: m.role, content: m.content }))
   const record: TurnRecord = { text: '', tools: [], usage: { input: 0, output: 0 }, leadSent: false }
   const used = new Set<string>()
+  // Text from a later tool round starts a new paragraph, so "Let me check." and "Here it is." do not run together.
+  let roundHasText = false
   const onText = (delta: string) => {
+    if (!roundHasText && record.text) {
+      record.text += '\n\n'
+      emit({ type: 'text', delta: '\n\n' })
+    }
+    roundHasText = true
     record.text += delta
     emit({ type: 'text', delta })
   }
 
   for (let round = 0; ; round++) {
-    const reply = await stream({ system, tools, messages: [...messages], signal }, onText)
+    roundHasText = false
+    // On the last round tools may no longer run, so Claude is told not to call one and must answer in text.
+    const reply = await stream({ system, tools, messages: [...messages], signal, ...(round === LIMITS.toolRounds ? { tool_choice: { type: 'none' as const } } : {}) }, onText)
     record.usage.input += reply.usage.input_tokens
     record.usage.output += reply.usage.output_tokens
     messages.push({ role: 'assistant', content: reply.content })
