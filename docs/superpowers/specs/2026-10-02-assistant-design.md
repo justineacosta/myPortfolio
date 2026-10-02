@@ -115,7 +115,7 @@ Each tool may run at most once per turn, and `submit_lead`/`request_call` at mos
 
 1. The panel POSTs `{ conversationId, page, messages }` to `/api/chat`. `conversationId` is a UUID made in the browser. Conversation and messages live in `sessionStorage`, so a reload in the same tab keeps the chat.
 2. The route checks: enabled, rate limit by IP, body shape, the limits (§7.2), roles only `user`/`assistant`, last message from `user`.
-3. `streamTurn()` calls Claude (`claude-haiku-4-5-20251001`, `max_tokens: 600`) with the cached system block, the tools and the history.
+3. `streamTurn()` calls Claude (`claude-haiku-4-5`, `max_tokens: 600`) with the cached system block, the tools and the history.
 4. The response is `application/x-ndjson`, one event per line:
    - `{ "type": "text", "delta": "…" }`
    - `{ "type": "navigate", "href": "/projects", "label": "Projects" }`
