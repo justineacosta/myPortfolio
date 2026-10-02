@@ -379,22 +379,26 @@ html[data-a11y-motion=true] .flow-peek *{animation:none !important}
 .fan-tag{position:absolute;top:4px;left:50%;z-index:30;display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;border:1px solid var(--b2);background:var(--s1);font-size:11.5px;font-weight:600;color:var(--ink);white-space:nowrap;box-shadow:var(--tip-shadow);opacity:0;transform:translate(-50%,-4px);transition:opacity .25s ease,transform .25s ease;pointer-events:none}
 .fan-tag[data-on]{opacity:1;transform:translate(-50%,0)}
 
-/* ---- Showcase (kape Flagship.tsx, Kraft tokens) ----
-   The product mock's pieces rise in, in reading order (--i), each time its
-   stage remounts. The active progress bar is the auto-advance clock: its
-   fill runs for --flag-ms while [data-run] is set, and its end opens the
-   next tab (components/showcase/Flagship.tsx). With reduced motion there is
-   no clock; the held tab's bar is simply full. */
-.mock-rise{animation:kRise .42s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0) * 38ms)}
+/* ---- Showcase: the four sample businesses ----
+   The active progress bar is the auto-advance clock: its fill runs for
+   --flag-ms while [data-run] is set, and its end opens the next tab
+   (components/showcase/Flagship.tsx). With reduced motion there is no
+   clock; the held tab's bar is simply full. */
 .flag-bar{position:relative;flex:1 1 0;height:2px;border-radius:2px;background:var(--b1);overflow:hidden}
 .flag-bar[data-on]::after,.flag-bar[data-full]::after{content:'';position:absolute;inset:0;background:var(--accent);transform-origin:left center}
 .flag-bar[data-on]::after{animation:flagFill var(--flag-ms,6s) linear both;animation-play-state:paused}
 .flag-bar[data-on][data-run]::after{animation-play-state:running}
 @keyframes flagFill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
-/* The quotes: held under the pointer, on focus and by their button; with
-   reduced motion they stand still and scroll by hand. */
-.feedback:hover .animate-marquee,.feedback:focus-within .animate-marquee,.feedback:focus .animate-marquee,.feedback[data-paused] .animate-marquee{animation-play-state:paused}
-@media (prefers-reduced-motion:reduce){.feedback{overflow-x:auto}.feedback .animate-marquee{animation:none}.feedback-toggle{display:none}}
-html[data-a11y-motion=true] .feedback{overflow-x:auto}
-html[data-a11y-motion=true] .feedback .animate-marquee{animation:none}
-html[data-a11y-motion=true] .feedback-toggle{display:none}
+/* The window's site shot scrolls top to bottom on the clock (--flag-ms),
+   resting a moment at the top, and pauses with it. 62.5cqw is the window's
+   height (16:10). With reduced motion, the motion switch or a slow device
+   it stays at the top: the motion switch's global .001ms would park it at
+   the bottom, so it is named here. The strip's pulses run with the clock. */
+.flag-shot img{animation:flagScroll var(--flag-ms,6s) ease-in-out both;animation-play-state:paused}
+.flag-shot[data-run] img{animation-play-state:running}
+.flag-shot[data-still] img{animation:none}
+@keyframes flagScroll{0%,12%{translate:0 0}100%{translate:0 calc(-100% + 62.5cqw)}}
+.flag-strip[data-run] .fp-pulse{animation:fpPulse 1.4s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.flag-shot img,.flag-strip *{animation:none !important}}
+html[data-a11y-motion=true] .flag-shot img,html[data-a11y-motion=true] .flag-strip *{animation:none !important}
+:root[data-perf=low] .flag-shot img,:root[data-perf=low] .flag-strip *{animation:none !important}

@@ -7,9 +7,9 @@ test('Ctrl+K, type, Enter navigates', async ({ page }) => {
   await page.keyboard.press('Control+k')
   const dialog = page.getByRole('dialog', { name: 'Command palette' })
   await expect(dialog).toBeVisible()
-  await page.keyboard.type('testi')
+  await page.keyboard.type('abou')
   await page.keyboard.press('Enter')
-  await expect(page).toHaveURL(/\/testimonials$/)
+  await expect(page).toHaveURL(/\/about$/)
   await expect(dialog).toBeHidden()
 })
 

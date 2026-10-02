@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test'
 import { hydrated } from './helpers'
+import { shown } from './pages'
 
-const ROUTES = ['/', '/projects', '/showcase', '/services', '/testimonials', '/about', '/contact']
+const ROUTES = shown(['/', '/projects', '/showcase', '/services', '/testimonials', '/about', '/contact'])
 const sidebarNav = (page: import('@playwright/test').Page) =>
   page.getByRole('complementary', { name: 'Profile and site navigation' }).getByRole('navigation', { name: 'Sections' })
 

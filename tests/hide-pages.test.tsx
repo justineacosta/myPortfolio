@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, render, screen, within } from '@testing-library/react'
 import AboutPage from '@/app/(site)/about/page'
@@ -57,9 +58,8 @@ describe('hiding a page (hidden: true in data/nav.ts)', () => {
   beforeEach(() => vi.stubGlobal('IntersectionObserver', Observer))
   afterEach(() => vi.unstubAllGlobals())
 
-  it('hides nothing by default, and Home can never be hidden', () => {
-    expect(NAV.filter((n) => n.hidden)).toEqual([])
-    expect(NAV.find((n) => n.href === '/')!.hidden).toBeFalsy()
+  it('can never hide Home, as data/nav.ts ships', () => {
+    expect(readFileSync('data/nav.ts', 'utf8')).toMatch(/\{ href: '\/', [^\n]*hidden: false \}/)
   })
 
   it('reads a section link as its page: /services#method is Services', () => {
