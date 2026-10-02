@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { FAQS } from '@/data/faqs'
 import { NAV } from '@/data/nav'
 import { profile } from '@/data/profile'
+import { BUILDS } from '@/data/projects'
 import { PROCESS, SERVICES } from '@/data/services'
 import { commands } from '@/lib/commands'
 import { buildPassages, sitePassages } from '@/lib/assistant/passages'
@@ -16,6 +17,25 @@ describe('buildPassages', () => {
     for (const f of FAQS) expect(titles).toContain(f.q)
     for (const s of SERVICES) expect(titles).toContain(s.name)
     for (const step of PROCESS) expect(titles.some((t) => t.includes(step.name))).toBe(true)
+  })
+
+  it('has an overview of Services, Projects and About that names what each page holds', () => {
+    const byId = new Map(buildPassages().map((p) => [p.id, p]))
+    const services = byId.get('services-overview')!
+    expect(services.href).toBe('/services')
+    for (const s of SERVICES) expect(services.text).toContain(s.name)
+    const work = byId.get('projects-overview')!
+    expect(work.href).toBe('/projects')
+    for (const b of BUILDS) expect(work.text).toContain(b.name)
+    const about = byId.get('about-overview')!
+    expect(about.href).toBe('/about')
+    expect(`${about.title} ${about.text}`).toContain('Justine')
+    expect(about.text).toContain('Kraft')
+    expect(about.text).toContain('Manila')
+  })
+
+  it('counts the build plan card in full, as the answer to “what is the build plan”', () => {
+    expect(buildPassages().find((p) => p.id === 'card-plan')!.weight ?? 1).toBe(1)
   })
 
   it('leaves out placeholders and the contact email', () => {

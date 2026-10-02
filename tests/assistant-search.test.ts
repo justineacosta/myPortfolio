@@ -38,6 +38,60 @@ describe('searchPassages', () => {
     expect(top('what tools do you use')!.id).toBe('stack')
   })
 
+  // The final review's answer-quality list, the panel's chips and the topics its greeting, hello and no-match lines suggest.
+  it.each([
+    ['What are your rates?', 'faq-3'],
+    ['what is your hourly rate', 'faq-3'],
+    ['How much does a website cost?', 'faq-3'],
+    ['whats your budget range', 'faq-3'],
+    ['Can you make me a chatbot for my website?', 'service-2'],
+    ['Can you automate my invoices?', 'service-3'],
+    ['what is your process', 'method'],
+    ['how do you work', 'method'],
+    ['how does Justine work', 'method'],
+    ['how Justine works', 'method'],
+    ['process', 'method'],
+    ['What do you call your process?', 'method'],
+    ['What services do you offer?', 'services-overview'],
+    ['services', 'services-overview'],
+    ['what are your services', 'services-overview'],
+    ['what projects have you done', 'projects-overview'],
+    ['projects', 'projects-overview'],
+    ['do you have a portfolio', 'projects-overview'],
+    ['Justine’s work', 'projects-overview'],
+    ['Who is Justine?', 'about-overview'],
+    ['who are you', 'about-overview'],
+    ['tell me about yourself', 'about-overview'],
+    ['What do you do?', 'about-overview'],
+    ['about', 'about-overview'],
+    ['What is your tech stack?', 'stack'],
+    ['what is the build plan', 'card-plan'],
+    ['What do you build?', 'faq-1'],
+  ])('answers “%s” with the passage %s', (q, id) => {
+    expect(top(q)?.id).toBe(id)
+  })
+
+  it('answers “Do you know React?” with a passage that names React', () => {
+    const hit = top('Do you know React?')!
+    expect(hit.text).toContain('React')
+    expect(['stack', 'service-1']).toContain(hit.id)
+  })
+
+  it('leads “How much does a website cost?” with the pricing FAQ, not the web service', () => {
+    const [first, second] = searchPassages('How much does a website cost?', p)
+    expect(first.passage.title).toBe('How much do you charge?')
+    expect(second?.passage.id).not.toBe('faq-3')
+  })
+
+  it('links every word of a synonym group to every other', () => {
+    for (const q of ['charge', 'rate', 'budget', 'cost', 'price']) expect(top(`what do you ${q}`)?.id, q).toBe('faq-3')
+  })
+
+  it('stems automate, automated, automating and automation alike, and keeps a final -ss', () => {
+    for (const q of ['automate', 'automated', 'automating', 'automation']) expect(top(`do you do ${q}`)?.id, q).toBe('service-3')
+    expect(top('what is your process')?.id).toBe('method')
+  })
+
   it.each([
     'what’s the weather today',
     'what\'s the weather today',
@@ -53,7 +107,8 @@ describe('searchPassages', () => {
   })
 
   // These share one common word with the site, so they score above 0: only MIN_SCORE keeps them out.
-  it.each(['do you work weekends', 'how long does a project take', 'do you have a portfolio'])('finds nothing for “%s”, whose only overlap is incidental', (q) => {
+  // “do you have a portfolio” was here until the final review ruled it must land on the Projects overview (above).
+  it.each(['do you work weekends', 'how long does a project take', 'do you work on weekends', 'how long will my project take'])('finds nothing for “%s”, whose only overlap is incidental', (q) => {
     expect(searchPassages(q, p)).toEqual([])
   })
 
