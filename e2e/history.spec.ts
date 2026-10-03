@@ -73,12 +73,3 @@ test('after Back to a longer page, the next wheel scrolls on from the restored p
   expect(moved).toBeGreaterThanOrEqual(0)
   expect(moved).toBeLessThan(150)
 })
-
-test('Back from Privacy returns the page to where it was scrolled', async ({ page }) => {
-  const { y, at } = await scrollServices(page)
-  await page.getByRole('complementary', { name: 'Profile and site navigation' }).getByRole('link', { name: 'Privacy' }).click()
-  await expect(page).toHaveURL(/\/privacy$/)
-  await page.goBack()
-  await expect(page).toHaveURL(/\/services$/)
-  await expect.poll(async () => Math.abs((await y()) - at)).toBeLessThan(3)
-})

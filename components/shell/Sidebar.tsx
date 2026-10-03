@@ -7,7 +7,6 @@ import { isActivePath, isHidden, visibleNav } from '@/data/nav'
 import { profile } from '@/data/profile'
 import { isPlaceholder } from '@/lib/placeholder'
 import AvailabilityLine from './AvailabilityLine'
-import LegalLinks from './LegalLinks'
 import MagnetLink from './MagnetLink'
 import { ShellLink } from './NavigationProvider'
 import ThemeButton from './ThemeButton'
@@ -124,10 +123,7 @@ export default function Sidebar() {
         </MagnetLink>
       )}
 
-      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-        <span className="font-mono text-[9px] tracking-[.06em] text-ink4">{profile.copyright}</span>
-        <LegalLinks />
-      </div>
+      <span className="font-mono text-[9px] tracking-[.06em] text-ink4">{profile.copyright}</span>
     </aside>
   )
 }

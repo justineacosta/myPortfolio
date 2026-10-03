@@ -3,7 +3,6 @@ import BackgroundGate from '@/components/shell/BackgroundGate'
 import { PaletteProvider } from '@/components/shell/CommandPalette'
 import FloatingAccess from '@/components/shell/FloatingAccess'
 import IntroOverlay from '@/components/shell/IntroOverlay'
-import LegalLinks from '@/components/shell/LegalLinks'
 import { NavigationProvider } from '@/components/shell/NavigationProvider'
 import PageGlow from '@/components/shell/PageGlow'
 import PanelContent from '@/components/shell/PanelContent'
@@ -41,10 +40,7 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
           data-a11y-scale
           className="min-w-0 flex-1 px-4 pt-[calc(77px+env(safe-area-inset-top))] pb-[120px] outline-none shell:overflow-x-hidden shell:overflow-y-auto shell:px-(--deskpad) shell:pt-(--deskpad) shell:pb-[72px]"
         >
-          <div>
-            <PanelContent>{children}</PanelContent>
-            <LegalLinks className="mt-10 justify-center shell:hidden" />
-          </div>
+          <PanelContent>{children}</PanelContent>
         </main>
       </div>
       <TabBar />

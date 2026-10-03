@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { legalLinks } from '@/data/legal'
 import { navForPath, visibleNav } from '@/data/nav'
 import { profile } from '@/data/profile'
 import { isPlaceholder } from './placeholder'
@@ -8,8 +7,8 @@ import { SHARE_ALT, SHARE_SIZE } from './share-meta'
 export const SITE_NAME = `${profile.name} · ${profile.studio}`
 export const OG_BASE = { siteName: profile.studio, type: 'website', locale: 'en_US' } as const
 
-/** Every page search engines should know about: the switched-on ones and the legal pages. The thank-you page is left out on purpose. */
-export const indexedPaths = () => [...visibleNav().map((n) => n.href), ...legalLinks.map((l) => l.href)]
+/** Every page search engines should know about: the switched-on ones. The thank-you page is left out on purpose. */
+export const indexedPaths = () => visibleNav().map((n) => n.href)
 
 /** Stand-alone pages in public/ that search engines should find too (spec 2026-09-30: the build plan). */
 export const STATIC_PAGES = ['/build-plan.html', '/end-to-end.html', '/agentic-framework.html', '/ai-agents.html', '/automations.html']

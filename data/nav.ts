@@ -65,5 +65,5 @@ export function navForPath(pathname: string): NavItem {
   return NAV.find((n) => isActivePath(pathname, n.href)) ?? NAV[0]
 }
 
-/** Shell copy that isn't a nav item: the skip link and the legal links' landmark name. */
-export const shellCopy = { skipLink: 'Skip to main content', legalNav: 'Legal' }
+/** Shell copy that isn't a nav item: the skip link. */
+export const shellCopy = { skipLink: 'Skip to main content' }

@@ -23,7 +23,7 @@ export const profile = {
       width: 843, height: 1264, swap: 'Show the drawn portrait',
     },
   },
-  email: 'PLACEHOLDER - your contact email (the Kraft design used justine@kraft.dev)',
+  email: 'justine.psalm0923@gmail.com',
   timezone: 'Asia/Manila',
   tzLabel: 'GMT+8',
   availability: { label: 'Available for work', regions: ['US', 'EU', 'CA'] },

@@ -83,13 +83,13 @@ describe('Back and Forward', () => {
     stop()
   })
 
-  it('restores after Back from a page outside the site shell (Privacy, Terms)', () => {
+  it('restores after Back from a page outside the site shell (Thank-you, the 404)', () => {
     const stop = m.watchScroll(() => 0)
     m.committed('/services')
     m.saveScroll('/services', 800)
     stop()
-    m.leftShell() // the (site) provider unmounts on the way to /privacy
-    window.history.replaceState({ __NA: true }, '', '/privacy')
+    m.leftShell() // the (site) provider unmounts on the way to /thank-you
+    window.history.replaceState({ __NA: true }, '', '/thank-you')
     pop('/services')
     expect(m.committed('/services')).toBe(800)
   })

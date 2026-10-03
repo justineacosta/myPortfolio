@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import robots from '@/app/robots'
 import sitemap from '@/app/sitemap'
+import { profile } from '@/data/profile'
 import { jsonLd, personJsonLd } from '@/lib/jsonld'
 import { indexedPaths, ledeOr, pageMetadata, SITE_NAME, STATIC_PAGES } from '@/lib/seo'
 import { SITE_URL, siteUrl } from '@/lib/site'
@@ -34,7 +35,7 @@ describe('pageMetadata', () => {
     expect(pageMetadata('/', 'x').title).toEqual({ absolute: SITE_NAME })
   })
   it('takes an explicit label for pages outside the nav', () => {
-    expect(pageMetadata('/privacy', 'x', 'Privacy Policy').title).toBe('Privacy Policy')
+    expect(pageMetadata('/thank-you', 'x', 'Thank you').title).toBe('Thank you')
   })
 })
 
@@ -56,10 +57,9 @@ describe('sitemap and robots', () => {
 })
 
 describe('Person JSON-LD', () => {
-  it('describes Justine, and leaves out anything still a PLACEHOLDER', () => {
+  it('describes Justine, with the contact email now that it is real', () => {
     const p = personJsonLd('https://kraft.dev')
-    expect(p).toMatchObject({ '@type': 'Person', name: 'Justine Acosta', url: 'https://kraft.dev', image: 'https://kraft.dev/assets/portrait.jpg' })
-    expect(p).not.toHaveProperty('email')
+    expect(p).toMatchObject({ '@type': 'Person', name: 'Justine Acosta', url: 'https://kraft.dev', image: 'https://kraft.dev/assets/portrait.jpg', email: `mailto:${profile.email}` })
     expect(p.sameAs).toEqual(['https://github.com/justineacosta', 'https://www.linkedin.com/in/justinesam023'])
   })
   it('cannot break out of its script tag', () => {
