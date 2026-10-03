@@ -13,11 +13,6 @@ coverage/
 # env
 .env*.local
 
-# design references (kept on disk only)
-reference/
-# original kape folder, left at the root while Windows holds a lock on it
-kapeportfolio/
-
 # os / editor
 .DS_Store
 Thumbs.db

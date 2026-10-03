@@ -5,9 +5,8 @@ import Image from 'next/image'
 const RING_R = 32
 
 /**
- * A certification medal in the shape of kapeportfolio's badge.svg
- * (reference/kapeportfolio/public/placeholders/badge.svg): a medallion with a
- * dashed inner ring and a ribbon (widened from 28/44 to 36/56), coloured from
+ * A certification medal in the shape of the original badge.svg placeholder:
+ * a medallion with a dashed inner ring and a ribbon (widened from 28/44 to 36/56), coloured from
  * Kraft's tokens, with the logo where the placeholder's "YOUR BADGE" text was.
  * The box is the medallion; the ribbon hangs below it without taking layout
  * room, and turns back by the caller's --cert-tilt so it always hangs straight

@@ -10,8 +10,6 @@ export default defineConfig([
     'out/**',
     'build/**',
     'next-env.d.ts',
-    'reference/**',
-    'kapeportfolio/**',
     '.superpowers/**',
     'test-results/**',
     'playwright-report/**',

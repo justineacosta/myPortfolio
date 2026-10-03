@@ -1,5 +1,5 @@
 /**
- * Geometry of kape's drum (reference/kapeportfolio/src/components/FunnelBarrel.tsx),
+ * Geometry of the sites drum (adapted from kape's FunnelBarrel),
  * kept pure so it can be tested. It is a wide, short cylinder of 3:4 cards,
  * drawn through a contained fade band. The top ring is wider than the rest
  * (the tornado look).
