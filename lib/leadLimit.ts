@@ -11,7 +11,7 @@ export const clientIp = (req: Request) =>
 // On `globalThis` because Next may bundle the contact route and the chat routes separately, and each bundle would otherwise count on its own.
 const allowed = (globalThis.__kraftLeadLimit ??= rateLimit({ limit: 5, windowMs: 10 * 60 * 1000 }))
 
-/** Whether `ip` may send another message to Justine. The contact form and the assistant's lead tools and form card share this one budget: 5 per 10 minutes. */
+/** Whether `ip` may send another message to Justine. The contact form uses this budget: 5 per 10 minutes. */
 export function leadAllowed(ip: string): boolean {
   return allowed(ip)
 }
