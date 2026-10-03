@@ -11,7 +11,7 @@ import { SCROLL_KEY } from './storage-keys'
  * restore, and scrolling is not recorded until that page has committed: the
  * page swap would otherwise clamp and overwrite it. The popstate listener is
  * installed once per page load, not per mount, so Back from a page outside the
- * site shell (Privacy, Terms) still finds it. A popstate to an entry Next
+ * site shell (Thank-you, the 404) still finds it. A popstate to an entry Next
  * doesn't own (no __NA state: a native #fragment such as the skip link) is
  * ignored, as Next ignores it, so nothing is left waiting for a commit.
  */
@@ -85,7 +85,7 @@ function onPop(e: PopStateEvent) {
 
 if (typeof window !== 'undefined') window.addEventListener('popstate', onPop)
 
-/** The site shell is going away (a page like Privacy has its own). Back into the shell then counts as a path change. */
+/** The site shell is going away (a page like Thank-you has its own). Back into the shell then counts as a path change. */
 export function leftShell() {
   committedPath = null
 }

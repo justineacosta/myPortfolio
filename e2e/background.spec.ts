@@ -35,7 +35,7 @@ test('a restored low tier keeps the contour off', async ({ page }) => {
   await expect(page.locator('[data-contour]')).toHaveCount(0)
 })
 
-for (const path of ['/', '/about', '/privacy']) {
+for (const path of ['/', '/about', '/thank-you']) {
   test(`Kraft's green glow drifts behind ${path}, under the page`, async ({ page }) => {
     await page.goto(path)
     const glow = page.locator('[data-glow]')

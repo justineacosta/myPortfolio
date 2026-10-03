@@ -4,7 +4,7 @@ import path from 'node:path'
 import { settleIntro } from './helpers'
 import { shown } from './pages'
 
-const ROUTES = shown(['/', '/projects', '/showcase', '/services', '/testimonials', '/about', '/contact', '/privacy', '/terms', '/thank-you', '/not-a-page'])
+const ROUTES = shown(['/', '/projects', '/showcase', '/services', '/testimonials', '/about', '/contact', '/thank-you', '/not-a-page'])
 const SIZES = [
   { name: 'desktop', width: 1440, height: 900 },
   { name: 'phone', width: 390, height: 844 },

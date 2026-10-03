@@ -2,7 +2,6 @@ import Image from 'next/image'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import AccessMenu from '@/components/shell/AccessMenu'
-import LegalLinks from '@/components/shell/LegalLinks'
 import PageGlow from '@/components/shell/PageGlow'
 import ThemeButton from '@/components/shell/ThemeButton'
 import { shellCopy } from '@/data/nav'
@@ -10,7 +9,7 @@ import { profile } from '@/data/profile'
 
 /**
  * The shell for the standalone pages (spec §9): the Kraft mark home, the
- * theme and access buttons, a document-scrolling page and the legal links.
+ * theme and access buttons and a document-scrolling page.
  * It has no sidebar and no intro.
  */
 export default function PlainShell({ children }: { children: ReactNode }) {
@@ -36,7 +35,6 @@ export default function PlainShell({ children }: { children: ReactNode }) {
         </main>
         <footer className="mx-auto flex w-full max-w-[880px] flex-wrap items-center gap-x-4 gap-y-2 border-t border-b1 px-4 py-6">
           <span className="font-mono text-[9.5px] tracking-[.06em] text-ink4">{profile.copyright}</span>
-          <LegalLinks className="ml-auto" />
         </footer>
       </div>
     </>
