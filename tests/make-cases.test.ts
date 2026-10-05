@@ -1,0 +1,43 @@
+import { readFileSync } from 'node:fs'
+import { describe, expect, it } from 'vitest'
+import { agenticFramework } from '@/data/agenticFramework'
+import { agents } from '@/data/agents'
+import { automations } from '@/data/automations'
+import { plan } from '@/data/buildPlan'
+import { CASES, withSite, type CaseSet } from '@/data/cases'
+import { CASE_PAGES, casePath } from '@/data/cases/pages'
+import { endToEnd } from '@/data/endToEnd'
+import { renderCases } from '@/lib/cases/render'
+
+describe('renderCases', () => {
+  it('writes every page each case has, and the committed files are up to date', () => {
+    for (const { path, html } of renderCases()) expect(readFileSync(`public${path}`, 'utf8').replace(/\r/g, ''), path).toBe(html)
+  })
+
+  it('maps CASE_PAGES ids to the five renderers', () => {
+    const key = 'oriel-portugal-residences'
+    const fake: Record<string, CaseSet> = {
+      [key]: {
+        automation: withSite(automations, key, 'automation'),
+        plan: withSite(plan, key, 'build-plan'),
+        framework: withSite(agenticFramework, key, 'agentic-framework'),
+        endToEnd: withSite(endToEnd, key, 'end-to-end'),
+        agents: withSite(agents, key, 'ai-agents'),
+      },
+    }
+    const out = renderCases(fake)
+    expect(out.map((o) => o.path)).toEqual(CASE_PAGES.map((p) => casePath(key, p.file)))
+    for (const { path, html } of out) {
+      const doc = new DOMParser().parseFromString(html, 'text/html')
+      expect(doc.querySelector('link[rel=canonical]')!.getAttribute('href'), path).toBe(path)
+      expect(doc.querySelector('a.site-home')!.getAttribute('href'), path).toBe('/samples/oriel-portugal-residences.html')
+    }
+  })
+
+  it('renders a case with only some pages, and nothing for no cases', () => {
+    const key = 'oriel-portugal-residences'
+    expect(renderCases({ [key]: { endToEnd: withSite(endToEnd, key, 'end-to-end') } }).map((o) => o.path)).toEqual([casePath(key, 'end-to-end.html')])
+    expect(renderCases({})).toEqual([])
+    expect(CASES).toBeDefined()
+  })
+})

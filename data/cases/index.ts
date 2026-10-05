@@ -1,0 +1,28 @@
+/**
+ * Every sample site's case pages: its own copies of the five generated
+ * standalone pages, written for that business. Heavy (all the content), so
+ * only Node, the build script and tests import it. Client code imports
+ * pages.ts. `npm run cases` renders each page into public/cases/<site>/.
+ */
+import type { AgenticFramework } from '../agenticFramework.ts'
+import type { Agents } from '../agents.ts'
+import type { Automations } from '../automations.ts'
+import type { Plan } from '../buildPlan.ts'
+import type { EndToEnd } from '../endToEnd.ts'
+import { projects } from '../projects.ts'
+import type { SiteLink } from '../../lib/brand/render.ts'
+import { CASE_PAGES, casePath, type CasePageId } from './pages.ts'
+
+/** The pages a site has; a site need not have all five. */
+export type CaseSet = { automation?: Automations; plan?: Plan; framework?: AgenticFramework; endToEnd?: EndToEnd; agents?: Agents }
+
+/** Keyed by folder: the site's file name without .html. */
+export const CASES: Record<string, CaseSet> = {}
+
+/** A page's content with its `site` link filled in: the sample site it belongs to, and its own path. */
+export function withSite<T extends object>(content: T, key: string, page: CasePageId): T & { site: SiteLink } {
+  const site = projects.sitesView.sites.find((s) => s.file === `${key}.html`)
+  if (!site) throw new Error(`No sample site for the case "${key}"`)
+  const file = CASE_PAGES.find((p) => p.id === page)!.file
+  return { ...content, site: { name: site.name, href: site.src, page: casePath(key, file) } }
+}
