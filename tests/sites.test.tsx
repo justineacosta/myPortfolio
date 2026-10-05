@@ -101,6 +101,99 @@ describe('Funnels and sites: the carousel and the preview', () => {
   })
 })
 
+describe('Funnels and sites: the case-page tabs', () => {
+  beforeEach(() => {
+    setDrumThrows(true)
+    answer(200)
+  })
+  afterEach(() => {
+    setDrumThrows(false)
+    vi.unstubAllGlobals()
+  })
+  const ORIEL = '/cases/oriel-portugal-residences'
+  const openSite = (name: string) => {
+    const view = openSites()
+    fireEvent.click(within(view).getByRole('button', { name: `Open ${name}` }))
+    return screen.getByRole('dialog', { name: `${name} preview` })
+  }
+
+  it('shows a tab row only for a site with case pages', () => {
+    const preview = openSite('Oriel')
+    const tabs = within(within(preview).getByRole('tablist', { name: 'Pages for this site' })).getAllByRole('tab')
+    expect(tabs.map((t) => t.textContent)).toEqual(['Site', 'Automation', 'Build plan', 'Framework', 'End-to-end', 'AI agents'])
+    expect(tabs[0]).toHaveAttribute('aria-selected', 'true')
+    fireEvent.click(within(preview).getByRole('button', { name: 'Close preview' }))
+    fireEvent.click(within(screen.getByRole('dialog', { name: 'Funnels and sites' })).getByRole('button', { name: 'Open Westmere' }))
+    expect(within(screen.getByRole('dialog', { name: 'Westmere preview' })).queryByRole('tablist')).toBeNull()
+  })
+
+  it('a tab swaps the page, the address bar and the new-tab link', async () => {
+    const preview = openSite('Oriel')
+    fireEvent.click(within(preview).getByRole('tab', { name: 'Automation' }))
+    const frame = await within(preview).findByTitle('Oriel · Automation')
+    expect(frame).toHaveAttribute('src', `${ORIEL}/automation.html`)
+    expect(within(preview).getByRole('link', { name: 'Open in new tab' })).toHaveAttribute('href', `${ORIEL}/automation.html`)
+    expect(preview.textContent).toContain(`${window.location.host}${ORIEL}/automation.html`)
+  })
+
+  it('keeps the site sandboxed and loads case pages unsandboxed', async () => {
+    const preview = openSite('Oriel')
+    const site = await within(preview).findByTitle('Oriel')
+    expect(site.getAttribute('sandbox')).toContain('allow-scripts')
+    expect(site.getAttribute('sandbox')).not.toContain('allow-same-origin')
+    fireEvent.click(within(preview).getByRole('tab', { name: 'Automation' }))
+    const page = await within(preview).findByTitle('Oriel · Automation')
+    // Case pages mirror the portfolio’s theme from window.parent, which needs same-origin.
+    expect(page).not.toHaveAttribute('sandbox')
+  })
+
+  it('says where a missing case page goes', async () => {
+    answer(404)
+    const preview = openSite('Oriel')
+    fireEvent.click(within(preview).getByRole('tab', { name: 'AI agents' }))
+    expect(await within(preview).findByText('ai-agents.html')).toBeInTheDocument()
+    expect(preview.querySelector('iframe')).toBeNull()
+  })
+
+  it('starts on Site every time, and a site without cases shows no tabs after one with them', async () => {
+    const view = openSites()
+    fireEvent.click(within(view).getByRole('button', { name: 'Open Oriel' }))
+    let preview = screen.getByRole('dialog', { name: 'Oriel preview' })
+    fireEvent.click(within(preview).getByRole('tab', { name: 'AI agents' }))
+    await within(preview).findByTitle('Oriel · AI agents')
+    fireEvent.click(within(preview).getByRole('button', { name: 'Close preview' }))
+    fireEvent.click(within(view).getByRole('button', { name: 'Open Westmere' }))
+    preview = screen.getByRole('dialog', { name: 'Westmere preview' })
+    expect(within(preview).queryByRole('tablist')).toBeNull()
+    expect(await within(preview).findByTitle('Westmere')).toHaveAttribute('src', sites.find((s) => s.name === 'Westmere')!.src)
+    fireEvent.click(within(preview).getByRole('button', { name: 'Close preview' }))
+    fireEvent.click(within(view).getByRole('button', { name: 'Open Oriel' }))
+    preview = screen.getByRole('dialog', { name: 'Oriel preview' })
+    expect(within(preview).getByRole('tab', { name: 'Site' })).toHaveAttribute('aria-selected', 'true')
+    expect(await within(preview).findByTitle('Oriel')).toHaveAttribute('src', sites[0].src)
+  })
+
+  it('moves between tabs with the arrow keys', () => {
+    const preview = openSite('Oriel')
+    const site = within(preview).getByRole('tab', { name: 'Site' })
+    site.focus()
+    fireEvent.keyDown(site, { key: 'ArrowRight' })
+    const automation = within(preview).getByRole('tab', { name: 'Automation' })
+    expect(automation).toHaveFocus()
+    expect(automation).toHaveAttribute('aria-selected', 'true')
+    fireEvent.keyDown(automation, { key: 'ArrowLeft' })
+    expect(site).toHaveFocus()
+    fireEvent.keyDown(site, { key: 'ArrowLeft' })
+    const last = within(preview).getByRole('tab', { name: 'AI agents' })
+    expect(last).toHaveFocus()
+    expect(last).toHaveAttribute('aria-selected', 'true')
+    fireEvent.keyDown(last, { key: 'Home' })
+    expect(site).toHaveFocus()
+    fireEvent.keyDown(site, { key: 'End' })
+    expect(last).toHaveFocus()
+  })
+})
+
 describe('Funnels and sites: the drum', () => {
   beforeEach(() => answer(200))
   afterEach(() => vi.unstubAllGlobals())

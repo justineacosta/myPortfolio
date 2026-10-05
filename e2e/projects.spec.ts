@@ -125,6 +125,40 @@ test('the sites view spins the 3D drum; its keyboard list opens a page, and Esca
   await expect(first).toBeFocused()
 })
 
+test('Oriel’s preview steps through its five case pages', async ({ page }) => {
+  const errors: string[] = []
+  page.on('console', (m) => m.type() === 'error' && errors.push(m.text()))
+  page.on('pageerror', (e) => errors.push(e.message))
+  await page.goto('/projects#sites')
+  await hydrated(page)
+  const view = page.getByRole('dialog', { name: 'Funnels and sites' })
+  // The drum comes up first; its keyboard list is the way in.
+  await expect(view.locator('canvas')).toBeVisible()
+  await page.keyboard.press('Tab')
+  const first = view.getByRole('list', { name: 'Sample sites' }).getByRole('button', { name: 'Open Oriel' })
+  await expect(first).toBeFocused()
+  await page.keyboard.press('Enter')
+  const preview = page.getByRole('dialog', { name: 'Oriel preview' })
+  await expect(preview).toBeVisible()
+  const tabs = preview.getByRole('tablist', { name: 'Pages for this site' })
+  const pages: [string, string, RegExp][] = [
+    ['Automation', 'Oriel · Automation', /What happens after someone asks Oriel for a viewing/],
+    ['Build plan', 'Oriel · Build plan', /Every viewing, email and model change/],
+    ['Framework', 'Oriel · Framework', /How I would build Oriel with AI/],
+    ['End-to-end', 'Oriel · End-to-end', /From a first question to the owners’ model/],
+    ['AI agents', 'Oriel · AI agents', /A bot that answers from the sheets/],
+  ]
+  for (const [tab, title, heading] of pages) {
+    await tabs.getByRole('tab', { name: tab }).click()
+    await expect(tabs.getByRole('tab', { name: tab })).toHaveAttribute('aria-selected', 'true')
+    await expect(preview.frameLocator(`iframe[title="${title}"]`).getByRole('heading', { level: 1 })).toContainText(heading)
+  }
+  await page.keyboard.press('Escape')
+  await expect(preview).toBeHidden()
+  await expect(view).toBeVisible()
+  expect(errors).toEqual([])
+})
+
 test('without WebGL, the Kraft carousel spins, and a focused page turns to the front and opens', async ({ page }) => {
   // A device where WebGL can't start at all.
   await page.addInitScript(() => {

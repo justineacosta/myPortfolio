@@ -20,6 +20,10 @@ describe('the case registry', () => {
     expect([...CASE_SITES].sort()).toEqual(Object.keys(CASES).sort())
   })
 
+  it('gives every case all five pages', () => {
+    for (const [key, set] of cases) for (const page of ['automation', 'plan', 'framework', 'endToEnd', 'agents'] as const) expect(set[page], `${key}: ${page}`).toBeDefined()
+  })
+
   it('keeps pages.ts free of runtime imports, so it stays light for the client bundle', () => {
     // SitePreview imports pages.ts, so it must not pull in index.ts, any content or any other runtime module.
     const src = readFileSync('data/cases/pages.ts', 'utf8')
