@@ -13,6 +13,7 @@ import { projects } from '../projects.ts'
 import type { SiteLink } from '../../lib/brand/render.ts'
 import { CASE_PAGES, casePath, type CasePageId } from './pages.ts'
 import orielAutomation from './oriel-portugal-residences/automation.ts'
+import orielPlan from './oriel-portugal-residences/buildPlan.ts'
 
 /** The pages a site has; a site need not have all five. */
 export type CaseSet = { automation?: Automations; plan?: Plan; framework?: AgenticFramework; endToEnd?: EndToEnd; agents?: Agents }
@@ -21,6 +22,7 @@ export type CaseSet = { automation?: Automations; plan?: Plan; framework?: Agent
 export const CASES: Record<string, CaseSet> = {
   'oriel-portugal-residences': {
     automation: withSite(orielAutomation, 'oriel-portugal-residences', 'automation'),
+    plan: withSite(orielPlan, 'oriel-portugal-residences', 'build-plan'),
   },
 }
 
