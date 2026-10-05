@@ -27,10 +27,11 @@ function hero(g: Automations, used: ToolId[]) {
   return `<header class="hero"><a class="home" href="/" target="_top">← ${esc(g.home)}</a>${siteBack(g.site)}<span class="kicker">${esc(g.kicker)}</span><h1>${esc(g.heading)}</h1><p class="lede">${esc(g.lede)}</p><p class="sample-note"><span aria-hidden="true">${iconSvg('Info', 16)}</span><span>${esc(g.sample)}</span></p>${toolStrip(used)}</header>`
 }
 
-function tab(f: Flow, i: number) {
+/** A tab names its flow's site; on one site's own page every flow shares that site, so it names the flow instead. */
+function tab(g: Automations, f: Flow, i: number) {
   const id = slug(f.code)
   const p = PLATFORMS[f.platform]
-  return `<button type="button" role="tab" class="tab" id="tab-${id}" aria-controls="${id}" aria-selected="${i === 0}" tabindex="${i === 0 ? 0 : -1}"><span class="tab-site">${esc(f.site)}</span><span class="platform">${logo(p.tool, 14)}${esc(p.name)}</span></button>`
+  return `<button type="button" role="tab" class="tab" id="tab-${id}" aria-controls="${id}" aria-selected="${i === 0}" tabindex="${i === 0 ? 0 : -1}"><span class="tab-site">${esc(g.site ? f.title : f.site)}</span><span class="platform">${logo(p.tool, 14)}${esc(p.name)}</span></button>`
 }
 
 /** One flow as a canvas: connectors in SVG, steps as buttons, a ball template per route, and the steps as a list. */
@@ -99,7 +100,7 @@ export function renderAutomations(g: Automations = A, themes: Themes = { dark: r
 ${backdropHtml()}${logoSheet(used)}
 <main class="page">
 ${hero(g, used)}
-<div class="flows"><div class="tabs" role="tablist" aria-label="${esc(g.tabsLabel)}">${g.flows.map(tab).join('')}</div>${panels}</div>
+<div class="flows"><div class="tabs" role="tablist" aria-label="${esc(g.tabsLabel)}">${g.flows.map((f, i) => tab(g, f, i)).join('')}</div>${panels}</div>
 </main>
 <footer class="foot"><span>${esc(g.footer.note)}</span><a href="/" target="_top">${esc(g.footer.by)}</a></footer>
 <div id="node-panel" class="panel" popover role="dialog" aria-labelledby="panel-label"><span class="ptools" data-p="tools" hidden></span><span class="ptype" data-p="type"></span><h3 id="panel-label" data-p="label"></h3><p class="pwhat" data-p="what"></p><dl></dl><button type="button" class="panel-close" data-p="close" aria-label="${esc(g.panel.close)}">×</button></div>

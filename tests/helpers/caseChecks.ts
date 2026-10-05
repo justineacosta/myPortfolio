@@ -75,6 +75,15 @@ export function checkAutomation(page: Automations, site: SiteInfo) {
   const p = prefixOf(site)
   expect(flows.map((f) => f.code)).toEqual([`${p}-01`, `${p}-02`, `${p}-03`])
   for (const f of flows) expect(f.href, f.code).toBe(site.src)
+  // On a site's own page the tabs show flow titles, so each must be unique and fit a tab.
+  const titles = flows.map((f) => f.title)
+  expect(new Set(titles).size, 'flow titles are unique').toBe(titles.length)
+  for (const t of titles) expect(t.length, `flow title “${t}” ≤ 22`).toBeLessThanOrEqual(22)
+  // Each flow has 5–9 steps (spec §6.1).
+  for (const f of flows) {
+    expect(f.nodes.length, `${f.code} has at least 5 nodes`).toBeGreaterThanOrEqual(5)
+    expect(f.nodes.length, `${f.code} has at most 9 nodes`).toBeLessThanOrEqual(9)
+  }
 
   const ids = flows.flatMap((f) => f.nodes.map((n) => n.id))
   expect(new Set(ids).size, 'node ids are unique across the page').toBe(ids.length)

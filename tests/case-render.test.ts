@@ -44,6 +44,18 @@ describe.each(rows)('%s page, site link', (_name, render, file) => {
   })
 })
 
+describe('Automation page, flow tabs', () => {
+  const tabs = (html: string) => [...new DOMParser().parseFromString(html, 'text/html').querySelectorAll('[role=tab] .tab-site')].map((t) => t.textContent)
+
+  it('on the general page, each tab names its flow’s site', () => {
+    expect(tabs(renderAutomations())).toEqual(automations.flows.map((f) => f.site))
+  })
+
+  it('on a site’s own page, each tab names its flow, since every flow shares the site', () => {
+    expect(tabs(renderAutomations({ ...automations, site }))).toEqual(automations.flows.map((f) => f.title))
+  })
+})
+
 describe('Build plan page, workflow platform', () => {
   it('plan: a workflow with a platform shows its logo and name on its section and canvas', () => {
     const [first, ...rest] = plan.workflows
