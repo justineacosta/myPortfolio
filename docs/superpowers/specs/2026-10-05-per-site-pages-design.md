@@ -38,7 +38,7 @@ That makes 55 new pages (11 sites × 5). They are delivered as a pilot (tooling 
 
 ### 4.1 Content
 
-```
+```text
 data/cases/
   index.ts                      the sites that have case pages, and their five files
   oriel-portugal-residences/
@@ -68,7 +68,7 @@ data/cases/
 
 `npm run cases` runs `scripts/make-cases.ts`. For every entry in `CASES` it calls the five existing renderers (`renderAutomations`, `renderPlan`, `renderAgenticFramework`, `renderEndToEnd`, `renderAgents`) with that site's content. It writes:
 
-```
+```text
 public/cases/<site>/automation.html
 public/cases/<site>/build-plan.html
 public/cases/<site>/agentic-framework.html
