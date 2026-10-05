@@ -86,7 +86,8 @@ function workflowSection(w: Workflow, index: NodeIndex) {
   return section(slug(w.code), w.code, w.title, `${w.nodes.length} nodes, ${decisions} ${decisions === 1 ? 'decision' : 'decisions'}.`, [{ heading: 'Watch for', list: w.watch }], main, canvas(w, index), platformChip(w))
 }
 
-const wfLink = (code: string) => `<a href="#${esc(code.startsWith('TM-H') ? 'helpers' : slug(code))}">${esc(code)}</a>`
+/** A helper code (TM-H01, OR-H02, …) links to the Helpers section; a workflow code links to its own section. */
+const wfLink = (code: string) => `<a href="#${esc(/-H\d+$/.test(code) ? 'helpers' : slug(code))}">${esc(code)}</a>`
 
 function sections(p: Plan, index: NodeIndex) {
   const s = p.start

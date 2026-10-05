@@ -14,6 +14,14 @@ describe('renderCases', () => {
     for (const { path, html } of renderCases()) expect(readFileSync(`public${path}`, 'utf8').replace(/\r/g, ''), path).toBe(html)
   })
 
+  it('resolves every in-page link on every case page', () => {
+    for (const { path, html } of renderCases()) {
+      const doc = new DOMParser().parseFromString(html, 'text/html')
+      const hrefs = [...doc.querySelectorAll('a[href^="#"]')].map((a) => a.getAttribute('href')!)
+      for (const href of hrefs) if (href !== '#') expect(doc.getElementById(decodeURIComponent(href.slice(1))), `${path}: ${href}`).not.toBeNull()
+    }
+  })
+
   it('maps CASE_PAGES ids to the five renderers', () => {
     const key = 'oriel-portugal-residences'
     const fake: Record<string, CaseSet> = {
