@@ -12,12 +12,17 @@ import type { EndToEnd } from '../endToEnd.ts'
 import { projects } from '../projects.ts'
 import type { SiteLink } from '../../lib/brand/render.ts'
 import { CASE_PAGES, casePath, type CasePageId } from './pages.ts'
+import orielAutomation from './oriel-portugal-residences/automation.ts'
 
 /** The pages a site has; a site need not have all five. */
 export type CaseSet = { automation?: Automations; plan?: Plan; framework?: AgenticFramework; endToEnd?: EndToEnd; agents?: Agents }
 
 /** Keyed by folder: the site's file name without .html. */
-export const CASES: Record<string, CaseSet> = {}
+export const CASES: Record<string, CaseSet> = {
+  'oriel-portugal-residences': {
+    automation: withSite(orielAutomation, 'oriel-portugal-residences', 'automation'),
+  },
+}
 
 /** A page's content with its `site` link filled in: the sample site it belongs to, and its own path. */
 export function withSite<T extends object>(content: T, key: string, page: CasePageId): T & { site: SiteLink } {
