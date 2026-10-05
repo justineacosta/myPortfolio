@@ -19,11 +19,27 @@ export type SiteInfo = { name: string; file: string; src: string }
 /** A site's folder key: its file name without .html. */
 export const keyOf = (site: SiteInfo) => site.file.replace(/\.html$/, '')
 
-/** A site's code prefix (OR for Oriel), from its first automation flow. */
-export function prefixOf(automation: Automations): string {
-  const m = automation.flows[0]?.code.match(/^([A-Z]{2,3})-01$/)
-  expect(m, 'the first flow is coded <PREFIX>-01').not.toBeNull()
-  return m![1]
+/** Each sample site's code prefix, from the spec's table: its flows are <PREFIX>-01..03 and its build plan helpers <PREFIX>-H01... A test invariant, so it lives here and not in the data. */
+export const SITE_PREFIX: Record<string, string> = {
+  'oriel-portugal-residences': 'OR',
+  'tidewell-vacation-rentals': 'TW',
+  'altitude-personal-training': 'AL',
+  'range-physical-therapy': 'RP',
+  'riverdale-and-brooks': 'RB',
+  'ostler-barbers': 'OS',
+  'harbor-and-pine-moving': 'HP',
+  'westmere-los-angeles': 'WM',
+  'ironline-utility-infrastructure': 'IL',
+  'meridian-werks': 'MW',
+  'meridian-energy-infrastructure': 'ME',
+}
+
+/** A site's code prefix: exactly two letters, from the table. */
+export function prefixOf(site: SiteInfo): string {
+  const p = SITE_PREFIX[keyOf(site)]
+  expect(p, `${keyOf(site)} has a code prefix in SITE_PREFIX`).toBeDefined()
+  expect(p, 'a prefix is exactly two letters').toMatch(/^[A-Z]{2}$/)
+  return p
 }
 
 /** Kahn's algorithm: the flow cables, without the loop-backs, never go round in a circle. */
@@ -56,7 +72,7 @@ export function checkAutomation(page: Automations, site: SiteInfo) {
   const { flows } = page
   expect(flows, 'three flows').toHaveLength(3)
   expect(flows.map((f) => f.platform)).toEqual(['n8n', 'make', 'zapier'])
-  const p = prefixOf(page)
+  const p = prefixOf(site)
   expect(flows.map((f) => f.code)).toEqual([`${p}-01`, `${p}-02`, `${p}-03`])
   for (const f of flows) expect(f.href, f.code).toBe(site.src)
 
@@ -79,8 +95,8 @@ export function checkAutomation(page: Automations, site: SiteInfo) {
   }
 }
 
-export function checkPlan(page: Plan, automation: Automations) {
-  const p = prefixOf(automation)
+export function checkPlan(page: Plan, automation: Automations, site: SiteInfo) {
+  const p = prefixOf(site)
   expect(page.workflows.map((w) => w.code)).toEqual(automation.flows.map((f) => f.code))
   expect(page.workflows.map((w) => w.platform)).toEqual(automation.flows.map((f) => f.platform))
   for (const h of page.helpers.list) expect(h.code, 'helper code').toMatch(new RegExp(`^${p}-H\\d\\d$`))

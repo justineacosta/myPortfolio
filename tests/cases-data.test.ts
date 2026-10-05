@@ -9,7 +9,7 @@ import { CASE_PAGES, CASE_SITES, casePath, type CasePageId } from '@/data/cases/
 import { endToEnd } from '@/data/endToEnd'
 import { projects } from '@/data/projects'
 import { findPlaceholders } from '@/scripts/placeholders'
-import { checkAgents, checkAutomation, checkCopy, checkEndToEnd, checkFramework, checkPlan, keyOf, type SiteInfo } from './helpers/caseChecks'
+import { checkAgents, checkAutomation, checkCopy, checkEndToEnd, checkFramework, checkPlan, keyOf, prefixOf, SITE_PREFIX, type SiteInfo } from './helpers/caseChecks'
 
 const SITES: SiteInfo[] = projects.sitesView.sites
 const siteOf = (key: string) => SITES.find((s) => s.file === `${key}.html`)!
@@ -18,8 +18,21 @@ const cases = Object.entries(CASES)
 describe('the case registry', () => {
   it('lists exactly the sites in CASES, and pages.ts never imports content', () => {
     expect([...CASE_SITES].sort()).toEqual(Object.keys(CASES).sort())
-    // pages.ts reaches the client bundle, so it must not pull in index.ts or any content file.
-    expect(readFileSync('data/cases/pages.ts', 'utf8')).not.toMatch(/from '\.\/(index|[a-z-]+\/)/)
+  })
+
+  it('keeps pages.ts free of runtime imports, so it stays light for the client bundle', () => {
+    // SitePreview imports pages.ts, so it must not pull in index.ts, any content or any other runtime module.
+    const src = readFileSync('data/cases/pages.ts', 'utf8')
+    const imports = src.match(/^\s*import\b.*$/gm) ?? []
+    for (const line of imports) expect(line, 'only type imports').toMatch(/^\s*import type\b/)
+    expect(src).not.toMatch(/\bimport\s*\(/)
+    expect(src).not.toMatch(/\brequire\s*\(/)
+  })
+
+  it('gives every sample site a two-letter code prefix', () => {
+    for (const s of SITES) expect(prefixOf(s), s.file).toMatch(/^[A-Z]{2}$/)
+    expect(Object.keys(SITE_PREFIX).sort()).toEqual(SITES.map(keyOf).sort())
+    expect(new Set(Object.values(SITE_PREFIX)).size, 'prefixes are unique').toBe(SITES.length)
   })
 
   it('keys every case by a real sample site', () => {
@@ -42,7 +55,7 @@ describe('the Build plan case pages', () => {
     for (const [key, set] of cases)
       if (set.plan) {
         expect(set.automation, `${key}: a plan needs its automation page`).toBeDefined()
-        checkPlan(set.plan, set.automation!)
+        checkPlan(set.plan, set.automation!, siteOf(key))
       }
   })
 })
@@ -125,6 +138,9 @@ describe('the checks can fail', () => {
     const platform = goodAutomation()
     platform.flows[1].platform = 'zapier'
     expect(() => checkAutomation(platform, site)).toThrow()
+    const prefix = goodAutomation()
+    prefix.flows.forEach((f, i) => (f.code = `TW-0${i + 1}`))
+    expect(() => checkAutomation(prefix, site)).toThrow()
     const bare = goodAutomation()
     bare.flows[0].nodes[0].reads = []
     expect(() => checkAutomation(bare, site)).toThrow()
@@ -132,22 +148,22 @@ describe('the checks can fail', () => {
 
   it('Build plan: passes a valid page, and fails on a missing node, another code or platform, or four phases', () => {
     const a = goodAutomation()
-    expect(() => checkPlan(goodPlan(), a)).not.toThrow()
+    expect(() => checkPlan(goodPlan(), a, site)).not.toThrow()
     const dangling = goodPlan()
     dangling.workflows[0].edges.push({ from: dangling.workflows[0].nodes[0].id, to: 'nowhere' })
-    expect(() => checkPlan(dangling, a)).toThrow()
+    expect(() => checkPlan(dangling, a, site)).toThrow()
     const code = goodPlan()
     code.helpers.list[0].code = 'TM-H01'
-    expect(() => checkPlan(code, a)).toThrow()
+    expect(() => checkPlan(code, a, site)).toThrow()
     const platform = goodPlan()
     platform.workflows[0].platform = 'zapier'
-    expect(() => checkPlan(platform, a)).toThrow()
+    expect(() => checkPlan(platform, a, site)).toThrow()
     const phases = goodPlan()
     phases.build.phases.pop()
-    expect(() => checkPlan(phases, a)).toThrow()
+    expect(() => checkPlan(phases, a, site)).toThrow()
     const untested = goodPlan()
     untested.tests.rows = untested.tests.rows.filter((r) => r.workflow !== 'OR-01')
-    expect(() => checkPlan(untested, a)).toThrow()
+    expect(() => checkPlan(untested, a, site)).toThrow()
   })
 
   it('AI agents: passes a valid page, and fails on a fourth build, a missing route, no Claude or another business', () => {
