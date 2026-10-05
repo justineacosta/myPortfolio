@@ -1,6 +1,6 @@
 /**
  * Oriel’s AI agents and RAG chatbots case page (spec 2026-10-05 per-site
- * pages): the Residence Q&A bot on its site chat and studio email, and the two
+ * pages): the Residence Q&A bot in its site chat, and the two
  * agents around every private viewing, drawn on the general page’s two
  * diagrams. data/cases/index.ts registers it; `npm run cases` renders it into
  * public/cases/oriel-portugal-residences/ai-agents.html. Only type imports,
@@ -27,7 +27,7 @@ const agents: Agents = {
   sample: 'Sample builds for Oriel, a fictional developer used across this portfolio, not a client project.',
   heroTools: ['claude', 'n8n', 'supabase'],
   sections: [
-    { id: 'glance', chip: 'At a glance', kicker: 'AT A GLANCE', title: 'Two patterns, one rule', blurb: 'Every build below is one of two patterns, and nothing an agent writes reaches a buyer without an architect’s yes.' },
+    { id: 'glance', chip: 'At a glance', kicker: 'AT A GLANCE', title: 'Two patterns, one rule', blurb: 'Every build below is one of two patterns. Nothing an agent drafts for a buyer’s inbox goes out without an architect’s yes; the chat answers only from the sheets.' },
     { id: 'rag', chip: 'RAG chatbots', kicker: 'HOW THE Q&A BOT WORKS', title: 'Search the sheets first, then answer', blurb: 'Oriel’s documents are prepared once. Every question then searches them before Claude says a word. Click any step.' },
     { id: 'agent', chip: 'Agents', kicker: 'HOW AN AGENT WORKS', title: 'Plan, use a tool, check, repeat', blurb: 'A viewing starts it. Claude plans, uses one tool at a time and checks the result until the job is done. Click any step.' },
     { id: 'builds', chip: 'The builds', kicker: 'THREE SAMPLE BUILDS', title: 'Three builds for Oriel', blurb: 'One bot for the questions before a viewing, two agents for the viewing itself. Show any one’s route on its diagram.' },
@@ -37,7 +37,7 @@ const agents: Agents = {
   glance: [
     { mark: '1', icon: 'Books', title: 'RAG chatbots', text: 'The Q&A bot searches Oriel’s residence sheets and notes first, then answers with the sheet it used.' },
     { mark: '2', icon: 'Robot', title: 'AI agents', text: 'They take one viewing, gather what they need from HubSpot, Airtable and the sheets, and finish the job.' },
-    { mark: '3', icon: 'UserCheck', title: 'The architect’s yes', text: 'Anything an agent writes to a buyer waits for the project architect to approve it.' },
+    { mark: '3', icon: 'UserCheck', title: 'The architect’s yes', text: 'Anything an agent drafts for a buyer’s inbox waits for the project architect. The chat answers only from the sheets.' },
   ],
   diagrams: {
     rag: {
@@ -52,27 +52,33 @@ const agents: Agents = {
             { id: 'revisions', name: 'Revision notes', icon: 'FileText', what: 'The approved note for each model revision: what changed, in plain words.' },
             { id: 'journal', name: 'Journal', icon: 'Newspaper', what: 'The studio’s journal entries on materials, process and neighbourhoods.' },
             { id: 'faqs', name: 'Studio FAQs', icon: 'Question', what: 'How viewings, the headset, the models and handover work.' },
-            { id: 'airtable', name: 'Airtable', tool: 'airtable', what: 'Where the sheets and revision notes are kept; a new row runs this again.' },
+            { id: 'airtable', name: 'Airtable', tool: 'airtable', what: 'Holds the sheets, and the notes from the revisions table OR-03 uses; a new row runs this again.' },
           ],
         },
         { id: 'chunk', at: [1, 0], kind: 'step', label: 'Split into passages', sub: 'A room or a change', icon: 'Scissors', what: 'Each sheet is cut room by room and each note change by change, so a search can return just the part that matters.' },
         { id: 'embed', at: [2, 0], kind: 'step', label: 'Embed', sub: 'Embeddings model', icon: 'Binary', what: 'An embeddings model turns each passage into a list of numbers that captures its meaning, so similar ideas sit close together.' },
         { id: 'store', at: [3, 0], kind: 'step', label: 'Store', sub: 'Supabase pgvector', icon: 'Database', tools: ['supabase'], what: 'The passages and their numbers are saved in Supabase with pgvector, ready to search. This runs again whenever a sheet or a note changes.' },
         {
-          id: 'ask', at: [0, 1], kind: 'start', label: 'A buyer asks', sub: 'Site chat or email', icon: 'ChatCircleText', pinType: 'CHANNEL',
-          what: 'Someone asks in the chat on Oriel’s site, or writes to studio@oriel.pt and the inbox flow passes the question on. n8n starts the run.',
+          id: 'ask', at: [0, 1], kind: 'start', label: 'A buyer asks', sub: 'In the site chat', icon: 'ChatCircleText', pinType: 'CHANNEL',
+          what: 'Someone asks in the chat on Oriel’s site. n8n starts the run. Email to the studio stays with the inbox flow and the people who answer it.',
           pins: [
             { id: 'chat', name: 'Site chat', icon: 'ChatCircleDots', what: 'The chat window on every page of Oriel’s site.' },
-            { id: 'gmail', name: 'Gmail', tool: 'gmail', what: 'A buyer’s question sent to studio@oriel.pt.' },
           ],
         },
         { id: 'qembed', at: [1, 1], kind: 'step', label: 'Embed the question', sub: 'Same model', icon: 'Binary', what: 'The question goes through the same embeddings model, so it can be compared with the stored passages.' },
         { id: 'search', at: [3, 1], kind: 'step', label: 'Search', sub: 'Top 5 passages', icon: 'MagnifyingGlass', tools: ['supabase'], what: 'A vector search in Supabase finds the five passages closest in meaning to the question.' },
         { id: 'answer', at: [4, 1], kind: 'step', label: 'Claude answers', sub: 'From the passages', icon: 'Sparkle', tools: ['claude'], what: 'Claude gets the question and those five passages, with one rule: answer only from them. Oriel publishes no prices, so it never gives one.' },
         { id: 'sure', at: [5, 1], kind: 'branch', label: 'Sure?', sub: 'The sheet says so', icon: 'Question', what: 'Did the passages hold the answer? A price, or a date the residence sheet does not give, counts as no. The bot never guesses.' },
-        { id: 'reply', at: [6, 1], kind: 'end', label: 'Reply with source', sub: 'Names the sheet', icon: 'ArrowBendUpLeft', what: 'In the chat, the answer goes straight back with the sheet or note it came from. An answer by email waits for an architect’s yes in Telegram first.' },
-        { id: 'book', at: [7, 1], kind: 'end', label: 'Book a viewing', sub: 'Cal.com', icon: 'CalendarCheck', tools: ['cal-com'], what: 'When someone wants to walk the residence, the bot asks the form’s four questions and the viewing flow books an architect on Cal.com.' },
-        { id: 'handoff', at: [5, 2], kind: 'end', label: 'Hand to the studio', sub: 'With the chat so far', icon: 'UserSwitch', tools: ['hubspot'], what: 'A hand-off: the whole chat goes to HubSpot as a task for the studio, who reply within one working day, so nobody asks twice.' },
+        { id: 'reply', at: [6, 1], kind: 'end', label: 'Reply with source', sub: 'Names the sheet', icon: 'ArrowBendUpLeft', what: 'The answer goes straight back in the chat, with the sheet or note it came from, so the buyer can check it. The bot never sends email.' },
+        { id: 'book', at: [7, 1], kind: 'end', label: 'Book a viewing', sub: 'Cal.com', icon: 'CalendarCheck', tools: ['cal-com'], what: 'When someone wants to walk the residence, the bot asks the form’s four questions and submits the viewing form with them, so the viewing flow books an architect on Cal.com.' },
+        {
+          id: 'handoff', at: [5, 2], kind: 'end', label: 'Hand to the studio', sub: 'With the chat so far', icon: 'UserSwitch', pinType: 'HANDOFF',
+          what: 'A hand-off: the bot asks for an email, then the whole chat goes to HubSpot as a task for the studio. A person replies within one working day.',
+          pins: [
+            { id: 'hubspot', name: 'HubSpot', tool: 'hubspot', what: 'The chat lands as a task for the studio, on the contact.' },
+            { id: 'gmail', name: 'Gmail', tool: 'gmail', what: 'A person at the studio, not the bot, replies from studio@oriel.pt.' },
+          ],
+        },
       ],
       cables: [
         flow('docs', 'chunk'),
@@ -122,7 +128,7 @@ const agents: Agents = {
             { id: 'hubspot', name: 'HubSpot', tool: 'hubspot', what: 'Reads the buyer’s request, past viewings and notes.' },
             { id: 'airtable', name: 'Airtable', tool: 'airtable', what: 'Reads the residence’s project and its latest model revision.' },
             { id: 'sheet', name: 'Residence sheet', icon: 'FilePdf', what: 'Reads the rooms, sizes, aspect and sun hours of the residence.' },
-            { id: 'chat', name: 'Site chat', icon: 'ChatCircleDots', what: 'Reads what the buyer asked the Q&A bot, if they asked anything.' },
+            { id: 'chat', name: 'Site chat', icon: 'ChatCircleDots', what: 'Reads what the buyer asked the Q&A bot, when the visitor is already a contact.' },
           ],
         },
         { id: 'check', at: [3, 0], kind: 'branch', label: 'Check the result', sub: 'Done yet?', icon: 'ListChecks', what: 'Claude looks at what came back. If the job is not done yet, it goes back to plan the next step.' },
@@ -172,8 +178,8 @@ const agents: Agents = {
       example: { ask: 'How much winter sun does Residence 3B’s living room get?', answer: 'Direct sun from 09:25 to 16:55 on 21 December. (Residence 3B sheet, Living & dining)' },
       tools: ['claude', 'n8n', 'supabase', 'airtable', 'gmail', 'cal-com', 'hubspot'],
       routes: ['prepare', 'answered', 'handoff', 'booked'],
-      pins: ['docs:sheets', 'docs:revisions', 'docs:journal', 'docs:faqs', 'docs:airtable', 'ask:chat', 'ask:gmail'],
-      caption: 'Oriel’s site chat or studio email → search the sheets, notes and FAQs → Claude answers → reply with the source, book or hand off',
+      pins: ['docs:sheets', 'docs:revisions', 'docs:journal', 'docs:faqs', 'docs:airtable', 'ask:chat', 'handoff:hubspot', 'handoff:gmail'],
+      caption: 'Oriel’s site chat → search the sheets, notes and FAQs → Claude answers → reply with the source, book a viewing or hand off',
     },
     {
       id: 'brief', kind: 'agent', name: 'Viewing brief agent', business: { name: 'Oriel', trade: 'residential developer' },
@@ -206,8 +212,8 @@ const agents: Agents = {
   guardrails: [
     { mark: 'G1', icon: 'Quotes', title: 'Answers only from Oriel’s documents', text: 'The bot answers from the passages it found and names the sheet or note. No source, no answer: the chat goes to the studio.' },
     { mark: 'G2', icon: 'Prohibit', title: 'Never quotes a price or a date not in the residence sheet', text: 'Oriel publishes no prices, so the bot never gives one. A date the sheet does not give goes to the studio too.' },
-    { mark: 'G3', icon: 'ShieldCheck', title: 'Anything to a buyer waits for an architect’s yes', text: 'Every follow-up an agent drafts, and every answer by email, stops for the architect in Telegram. In the live chat, the sheets are the limit.' },
-    { mark: 'G4', icon: 'Notebook', title: 'Every run is logged', text: 'Each question, tool call and send lands on the buyer’s HubSpot contact, so the studio can read it later.' },
+    { mark: 'G3', icon: 'ShieldCheck', title: 'Anything to a buyer waits for an architect’s yes', text: 'Every follow-up an agent drafts stops for the architect in Telegram before it goes out. The bot never emails; in the chat, the sheets are the limit.' },
+    { mark: 'G4', icon: 'Notebook', title: 'Every run is logged', text: 'Each question, tool call and send lands in a run log, and on the buyer’s HubSpot contact when the visitor is already a contact.' },
   ],
   glossary: [
     ['RAG', 'Retrieval-augmented generation: search Oriel’s own documents first, then answer from what was found.'],
@@ -227,7 +233,7 @@ const agents: Agents = {
     ['n8n', 'The workflow tool that runs each build: it listens for triggers and makes the tool calls.'],
     ['Supabase', 'A hosted Postgres database, used here as the store the Q&A bot searches.'],
     ['HubSpot', 'The CRM where Oriel keeps every buyer, their viewings and what they have been told.'],
-    ['Airtable', 'Where Oriel keeps its projects, its residence sheets and each model revision.'],
+    ['Airtable', 'Where Oriel keeps its projects, its residence sheets and the revisions table OR-03 watches.'],
   ],
   footer: { note: 'Sample builds, drawn the way I build them. Figures are illustrative.', by: 'Built by Justine Acosta' },
 }
