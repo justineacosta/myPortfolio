@@ -22,6 +22,8 @@ import tidewellPlan from './tidewell-vacation-rentals/buildPlan.ts'
 import tidewellAgents from './tidewell-vacation-rentals/agents.ts'
 import tidewellEndToEnd from './tidewell-vacation-rentals/endToEnd.ts'
 import tidewellFramework from './tidewell-vacation-rentals/agenticFramework.ts'
+import altitudeAutomation from './altitude-personal-training/automation.ts'
+import altitudePlan from './altitude-personal-training/buildPlan.ts'
 
 /** The pages a site has; a site need not have all five. */
 export type CaseSet = { automation?: Automations; plan?: Plan; framework?: AgenticFramework; endToEnd?: EndToEnd; agents?: Agents }
@@ -41,6 +43,10 @@ export const CASES: Record<string, CaseSet> = {
     agents: withSite(tidewellAgents, 'tidewell-vacation-rentals', 'ai-agents'),
     endToEnd: withSite(tidewellEndToEnd, 'tidewell-vacation-rentals', 'end-to-end'),
     framework: withSite(tidewellFramework, 'tidewell-vacation-rentals', 'agentic-framework'),
+  },
+  'altitude-personal-training': {
+    automation: withSite(altitudeAutomation, 'altitude-personal-training', 'automation'),
+    plan: withSite(altitudePlan, 'altitude-personal-training', 'build-plan'),
   },
 }
 
