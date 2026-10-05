@@ -17,6 +17,8 @@ import orielPlan from './oriel-portugal-residences/buildPlan.ts'
 import orielAgents from './oriel-portugal-residences/agents.ts'
 import orielEndToEnd from './oriel-portugal-residences/endToEnd.ts'
 import orielFramework from './oriel-portugal-residences/agenticFramework.ts'
+import tidewellAutomation from './tidewell-vacation-rentals/automation.ts'
+import tidewellPlan from './tidewell-vacation-rentals/buildPlan.ts'
 
 /** The pages a site has; a site need not have all five. */
 export type CaseSet = { automation?: Automations; plan?: Plan; framework?: AgenticFramework; endToEnd?: EndToEnd; agents?: Agents }
@@ -29,6 +31,10 @@ export const CASES: Record<string, CaseSet> = {
     agents: withSite(orielAgents, 'oriel-portugal-residences', 'ai-agents'),
     endToEnd: withSite(orielEndToEnd, 'oriel-portugal-residences', 'end-to-end'),
     framework: withSite(orielFramework, 'oriel-portugal-residences', 'agentic-framework'),
+  },
+  'tidewell-vacation-rentals': {
+    automation: withSite(tidewellAutomation, 'tidewell-vacation-rentals', 'automation'),
+    plan: withSite(tidewellPlan, 'tidewell-vacation-rentals', 'build-plan'),
   },
 }
 
