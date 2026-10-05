@@ -1,13 +1,14 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { PLATFORMS } from '../../data/automations.ts'
 import { KIND_LABELS, KIND_NOTES, plan as PLAN, type NodeKind, type Plan, type Rail, type Workflow } from '../../data/buildPlan.ts'
 import { livelyCss } from '../brand/lively.ts'
-import { contourJs, backdropHtml, logoBadges, logoSheet, revealJs, toolStrip, toolTemplates, toolsUsed, themeHeadJs, siteBack } from '../brand/render.ts'
+import { contourJs, backdropHtml, logo, logoBadges, logoSheet, revealJs, toolStrip, toolTemplates, toolsUsed, themeHeadJs, siteBack } from '../brand/render.ts'
 import type { ToolId } from '../brand/tools.ts'
 import { readContrast, readTokens } from '../tokens.ts'
 import { iconSvg } from './icons.ts'
 import { layout } from './layout.ts'
-import { pageCss, type Themes } from './styles.ts'
+import { pageCss, platformCss, type Themes } from './styles.ts'
 
 /** Where the page is served (public/build-plan.html). */
 export const PAGE_PATH = '/build-plan.html'
@@ -24,8 +25,14 @@ const card = (title: string, body: string) => `<div class="card"><h3>${esc(title
 const rail = (items: Rail[]) =>
   items.map((r) => `<div><h3>${esc(r.heading)}</h3>${r.body ? `<p>${esc(r.body)}</p>` : ''}${r.list ? list(r.list) : ''}</div>`).join('')
 
-function section(id: string, kicker: string, title: string, blurb: string, side: Rail[], main: string, wide = '') {
-  return `<section id="${esc(id)}" aria-labelledby="${esc(id)}-h"><header class="shead"><span class="kicker">${esc(kicker)}</span><h2 id="${esc(id)}-h">${esc(title)}</h2><p>${esc(blurb)}</p></header><aside class="rail">${rail(side)}</aside><div class="main">${main}</div>${wide}</section>`
+/** The platform chip: its logo and name, or nothing when the workflow names none. */
+function platformChip(w: Workflow) {
+  const p = w.platform && PLATFORMS[w.platform]
+  return p ? `<span class="platform">${logo(p.tool, 14)}${esc(p.name)}</span>` : ''
+}
+
+function section(id: string, kicker: string, title: string, blurb: string, side: Rail[], main: string, wide = '', chip = '') {
+  return `<section id="${esc(id)}" aria-labelledby="${esc(id)}-h"><header class="shead"><span class="kicker">${esc(kicker)}</span>${chip}<h2 id="${esc(id)}-h">${esc(title)}</h2><p>${esc(blurb)}</p></header><aside class="rail">${rail(side)}</aside><div class="main">${main}</div>${wide}</section>`
 }
 
 function hero(p: Plan, index: NodeIndex, used: ToolId[]) {
@@ -70,13 +77,13 @@ function canvas(w: Workflow, index: NodeIndex) {
       return `<li>${esc(n.label)} (${esc(KIND_LABELS[n.kind])}, ${esc(n.sub)})${next.length ? `, then ${esc(next.join('; '))}` : ''}</li>`
     })
     .join('')
-  return `<figure class="canvas" data-run data-routes="${esc(JSON.stringify(timing))}"><figcaption><span>${esc(w.code)} · ${esc(w.title)}</span><span class="pan"><span class="pan-hint" aria-hidden="true">Drag to explore</span><button type="button" class="pan-btn" data-pan="-1" aria-label="Scroll diagram left">‹</button><button type="button" class="pan-btn" data-pan="1" aria-label="Scroll diagram right">›</button></span></figcaption><div class="canvas-scroll" tabindex="0" role="group" aria-label="${esc(w.code)} diagram, scrolls sideways"><div class="stage" style="width:${l.width}px;height:${l.height}px"><svg class="edges" width="${l.width}" height="${l.height}" viewBox="0 0 ${l.width} ${l.height}" aria-hidden="true">${paths}</svg>${labels}${balls}${buttons}</div></div><ol class="steps sr-only">${steps}</ol></figure>`
+  return `<figure class="canvas" data-run data-routes="${esc(JSON.stringify(timing))}"><figcaption><span>${esc(w.code)} · ${esc(w.title)}${platformChip(w)}</span><span class="pan"><span class="pan-hint" aria-hidden="true">Drag to explore</span><button type="button" class="pan-btn" data-pan="-1" aria-label="Scroll diagram left">‹</button><button type="button" class="pan-btn" data-pan="1" aria-label="Scroll diagram right">›</button></span></figcaption><div class="canvas-scroll" tabindex="0" role="group" aria-label="${esc(w.code)} diagram, scrolls sideways"><div class="stage" style="width:${l.width}px;height:${l.height}px"><svg class="edges" width="${l.width}" height="${l.height}" viewBox="0 0 ${l.width} ${l.height}" aria-hidden="true">${paths}</svg>${labels}${balls}${buttons}</div></div><ol class="steps sr-only">${steps}</ol></figure>`
 }
 
 function workflowSection(w: Workflow, index: NodeIndex) {
   const decisions = w.nodes.filter((n) => n.kind === 'branch').length
   const main = `<div class="ote">${card('Outcome', `<p>${esc(w.outcome)}</p>`)}${card('Trigger', `<p>${esc(w.trigger)}</p>`)}${card('Exits', list(w.exits))}</div>`
-  return section(slug(w.code), w.code, w.title, `${w.nodes.length} nodes, ${decisions} ${decisions === 1 ? 'decision' : 'decisions'}.`, [{ heading: 'Watch for', list: w.watch }], main, canvas(w, index))
+  return section(slug(w.code), w.code, w.title, `${w.nodes.length} nodes, ${decisions} ${decisions === 1 ? 'decision' : 'decisions'}.`, [{ heading: 'Watch for', list: w.watch }], main, canvas(w, index), platformChip(w))
 }
 
 const wfLink = (code: string) => `<a href="#${esc(code.startsWith('TM-H') ? 'helpers' : slug(code))}">${esc(code)}</a>`
@@ -101,7 +108,9 @@ function sections(p: Plan, index: NodeIndex) {
 export function renderPlan(p: Plan = PLAN, themes: Themes = { dark: readTokens('dark'), light: readTokens('light'), contrast: readContrast() }): string {
   const index: NodeIndex = {}
   const parts = sections(p, index)
-  const used = toolsUsed([...p.workflows, ...p.helpers.list].flatMap((w) => w.nodes.map((n) => n.tools)))
+  const all = [...p.workflows, ...p.helpers.list]
+  const platforms = all.flatMap((w) => (w.platform ? [PLATFORMS[w.platform].tool] : []))
+  const used = toolsUsed([...all.flatMap((w) => w.nodes.map((n) => n.tools)), platforms])
   // Git may check the script out with CRLF on Windows; the page is the same everywhere.
   const client = readFileSync(join(process.cwd(), 'lib/buildPlan/client.js'), 'utf8').replace(/\r\n/g, '\n')
   return `<!doctype html>
@@ -120,7 +129,7 @@ export function renderPlan(p: Plan = PLAN, themes: Themes = { dark: readTokens('
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
-<style>${pageCss(themes)}${livelyCss()}</style>
+<style>${pageCss(themes)}${livelyCss()}${platforms.length ? platformCss : ''}</style>
 </head>
 <body>
 ${backdropHtml()}${logoSheet(used)}

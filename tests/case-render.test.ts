@@ -43,3 +43,26 @@ describe.each(rows)('%s page, site link', (_name, render, file) => {
     expect(render({ ...site, name: 'A & <B>' })).toContain('A &amp; &lt;B&gt;')
   })
 })
+
+describe('Build plan page, workflow platform', () => {
+  it('plan: a workflow with a platform shows its logo and name on its section and canvas', () => {
+    const [first, ...rest] = plan.workflows
+    const doc = new DOMParser().parseFromString(renderPlan({ ...plan, workflows: [{ ...first, platform: 'make' }, ...rest] }), 'text/html')
+    const id = first.code.toLowerCase()
+    for (const where of [`section#${id} .shead`, `section#${id} figcaption`]) {
+      const chip = doc.querySelector(`${where} .platform`)!
+      expect(chip.textContent).toBe('Make')
+      expect(chip.querySelector('svg')).not.toBeNull()
+    }
+    // The logo points at a symbol on the page, and the chip's style ships with it.
+    expect(doc.querySelector('symbol#logo-make')).not.toBeNull()
+    expect(doc.querySelector('style')!.textContent).toContain('.platform{')
+    // Only the workflow that names a platform shows one.
+    expect(doc.querySelectorAll('.platform')).toHaveLength(2)
+  })
+
+  it('plan: a workflow without a platform shows none', () => {
+    const doc = new DOMParser().parseFromString(readFileSync('public/build-plan.html', 'utf8'), 'text/html')
+    expect(doc.querySelector('.platform')).toBeNull()
+  })
+})

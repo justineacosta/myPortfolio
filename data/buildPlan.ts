@@ -7,6 +7,7 @@
  */
 import type { SiteLink } from '../lib/brand/render.ts'
 import type { ToolId } from '../lib/brand/tools.ts'
+import type { Platform } from './automations.ts'
 
 export type IconName =
   | 'ArrowsClockwise' | 'ArrowsSplit' | 'Calculator' | 'CalendarCheck' | 'ChatCircleText' | 'Clock' | 'Copy'
@@ -21,6 +22,8 @@ export type PlanEdge = { from: string; to: string; label?: string }
 export type Workflow = {
   code: string
   title: string
+  /** The tool this workflow is built on; unset on the general plan, which is all n8n. */
+  platform?: Platform
   outcome: string
   trigger: string
   exits: string[]
