@@ -18,7 +18,7 @@ const framework: AgenticFramework = {
   kicker: 'AGENTIC FRAMEWORK · TIDEWELL',
   heading: 'How I would build Tidewell with AI',
   lede: 'The tools, the rules and the loop I would use to build Tidewell’s site, its three flows, its Guest help bot and its two agents, one small branch at a time.',
-  stance: 'I make the calls and the AI does the typing. Owners approve repairs above $400, and a manager approves every rate change and anything Claude drafts for an owner or a guest.',
+  stance: 'I make the calls and the AI does the typing. Owners approve repairs above $400, and a manager approves every rate change, every reply to a review and anything Claude drafts for an owner’s inbox.',
   sections: [
     { id: 'glance', chip: 'At a glance', kicker: 'AT A GLANCE', title: 'Set up once, then loop, then ship', blurb: 'The whole framework for Tidewell in three lines.' },
     { id: 'jobs', chip: 'Two jobs', kicker: 'TWO JOBS', title: 'Who does what', blurb: 'The split that keeps Tidewell’s flows honest.' },
@@ -32,7 +32,7 @@ const framework: AgenticFramework = {
   stages: [
     { mark: '1', icon: 'Wrench', title: 'Set up once', text: 'A rules file for Tidewell (CLAUDE.md), the build plan, and test owners, test homes and a test manager’s calendar in HubSpot, Airtable and Cal.com, before the first task.' },
     { mark: '2', icon: 'ArrowsClockwise', title: 'Build in small loops', text: 'Frame, build, check, fold back. One branch of one flow, or one section of the site, per run, until its test row passes.' },
-    { mark: '3', icon: 'RocketLaunch', title: 'Ship on a yes', text: 'Nothing is published or switched on until I approve it, and a manager approves anything Claude drafts for an owner or a guest.' },
+    { mark: '3', icon: 'RocketLaunch', title: 'Ship on a yes', text: 'Nothing is published or switched on until I approve it, and a manager approves every rate change, every reply to a review and anything Claude drafts for an owner’s inbox.' },
   ],
   jobs: {
     columns: [
@@ -49,7 +49,7 @@ const framework: AgenticFramework = {
   ],
   rules: [
     { mark: 'R1', icon: 'FileText', title: 'Write the spec first', text: 'If I cannot say in a paragraph what a flow promises an owner, the agent will not find it in a thousand tokens. The build plan is that paragraph.', note: 'Spec before prompt' },
-    { mark: 'R2', icon: 'ShieldCheck', title: 'Every write is approval-gated', text: 'Agents draft. Nothing reaches Tidewell’s live site or a switched-on flow unreviewed, and a manager approves anything Claude drafts for an owner or a guest.', note: 'No autonomous writes' },
+    { mark: 'R2', icon: 'ShieldCheck', title: 'Every write is approval-gated', text: 'Agents draft. Nothing reaches Tidewell’s live site or a switched-on flow unreviewed, and a manager approves every rate change, every reply to a review and anything Claude drafts for an owner’s inbox.', note: 'No autonomous writes' },
     { mark: 'R3', icon: 'Scissors', title: 'One branch at a time', text: 'One branch, one test row, one context. A fresh session per branch beats one long session for all three markets.', note: 'Reset early, reset often' },
     { mark: 'R4', icon: 'ListChecks', title: 'The test row grades it', text: 'Each branch goes in with its row from the build plan’s test matrix, and is run against it before I look.', note: 'Self-review built in' },
   ],
