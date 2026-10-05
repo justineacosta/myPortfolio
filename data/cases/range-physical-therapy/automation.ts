@@ -84,7 +84,7 @@ const automation: Automations = {
       site: 'Range Physical Therapy',
       href: SITE,
       platform: 'zapier',
-      outcome: 'Every plan opens the moment it is paid, with its expiry date in writing, and its holder is reminded when two visits remain and again three weeks before the four months are up.',
+      outcome: 'Every plan opens the moment it is paid, with its expiry date in writing, and its holder is reminded when one or two visits remain and again three weeks before the four months are up.',
       nodes: [
         node('rp-bought', 'trigger', 'Plan bought', 'Stripe', 'CreditCard', ['stripe'], 'Starts when someone pays $1,020 for the six-visit plan on Stripe, from Start a plan on the site.', ['Name and email', 'Amount paid', 'Date paid'], 'The patient buys the plan themselves, at the published price, on Stripe’s own page. That payment is the plan’s start.'),
         node('rp-open', 'action', 'Open the plan', 'Airtable', 'Ticket', ['airtable'], 'Adds the plan to Plans: the buyer, the date, six visits, and an expiry four months on. Visits left counts down as Mara logs plan visits.', ['Name and email', 'Date paid', 'The Patients table'], 'Everything the reminders need, the visits left and the expiry date, is worked out in this one row.'),
