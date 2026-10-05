@@ -30,6 +30,12 @@ const logos = (...names: [string, string][]): Brand[] => names.map(([name, slug]
  * `npm run thumbs` to shoot its thumbnails.
  */
 const SITES: Site[] = [
+  ['Oriel', 'oriel-portugal-residences.html'],
+  ['Tidewell', 'tidewell-vacation-rentals.html'],
+  ['Altitude', 'altitude-personal-training.html'],
+  ['Range Physical Therapy', 'range-physical-therapy.html'],
+  ['Riverdale & Brooks', 'riverdale-and-brooks.html'],
+  ['Ostler', 'ostler-barbers.html'],
   ['Harbor & Pine Moving Co.', 'harbor-and-pine-moving.html'],
   ['Westmere', 'westmere-los-angeles.html'],
   ['Ironline Utility Infrastructure', 'ironline-utility-infrastructure.html'],

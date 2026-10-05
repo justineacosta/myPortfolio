@@ -19,7 +19,7 @@ describe('SiteCarousel (the Kraft spin ring)', () => {
   it('opens a page on a click', () => {
     const onOpen = vi.fn()
     render(<SiteCarousel sites={sites} onOpen={onOpen} running={false} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Open Westmere' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Open Tidewell' }))
     expect(onOpen).toHaveBeenCalledWith(sites[1])
   })
 

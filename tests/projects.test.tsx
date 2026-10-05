@@ -14,6 +14,7 @@ describe('Projects data', () => {
 
   it('keeps the sites, and the Automations card opens its flows page, with a real 16:10 screenshot on Home', () => {
     expect(projects.sitesView.sites.map((s) => s.name)).toEqual([
+      'Oriel', 'Tidewell', 'Altitude', 'Range Physical Therapy', 'Riverdale & Brooks', 'Ostler',
       'Harbor & Pine Moving Co.', 'Westmere', 'Ironline Utility Infrastructure', 'Meridian Werks', 'Meridian Energy Infrastructure',
     ])
     expect('reel' in projects).toBe(false)
