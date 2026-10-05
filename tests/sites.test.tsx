@@ -84,6 +84,8 @@ describe('Funnels and sites: the carousel and the preview', () => {
     // Nothing loads until the page is known to exist: never a 404 inside the window.
     expect(within(preview).queryByTitle('Meridian Werks')).toBeNull()
     expect(await within(preview).findByText(sites.find((s) => s.name === 'Meridian Werks')!.file)).toBeInTheDocument()
+    expect(preview.textContent).toContain('public/samples/')
+    expect(preview.textContent).not.toContain('public/cases/')
     expect(within(preview).queryByTitle('Meridian Werks')).toBeNull()
     expect(within(preview).getByRole('link', { name: 'Open in new tab' })).toBeInTheDocument()
   })
@@ -153,6 +155,9 @@ describe('Funnels and sites: the case-page tabs', () => {
     fireEvent.click(within(preview).getByRole('tab', { name: 'AI agents' }))
     expect(await within(preview).findByText('ai-agents.html')).toBeInTheDocument()
     expect(preview.querySelector('iframe')).toBeNull()
+    // Case pages live in public/cases/<site>/, never public/samples/.
+    expect(preview.textContent).toContain('Upload ai-agents.html to public/cases/oriel-portugal-residences/ and this page opens live.')
+    expect(preview.textContent).not.toContain('public/samples/')
   })
 
   it('starts on Site every time, and a site without cases shows no tabs after one with them', async () => {
@@ -171,6 +176,38 @@ describe('Funnels and sites: the case-page tabs', () => {
     preview = screen.getByRole('dialog', { name: 'Oriel preview' })
     expect(within(preview).getByRole('tab', { name: 'Site' })).toHaveAttribute('aria-selected', 'true')
     expect(await within(preview).findByTitle('Oriel')).toHaveAttribute('src', sites[0].src)
+  })
+
+  it('starts on Site when the same site is closed and reopened', async () => {
+    const view = openSites()
+    fireEvent.click(within(view).getByRole('button', { name: 'Open Oriel' }))
+    const preview = screen.getByRole('dialog', { name: 'Oriel preview' })
+    fireEvent.click(within(preview).getByRole('tab', { name: 'Framework' }))
+    await within(preview).findByTitle('Oriel · Framework')
+    fireEvent.click(within(preview).getByRole('button', { name: 'Close preview' }))
+    fireEvent.click(within(view).getByRole('button', { name: 'Open Oriel' }))
+    expect(within(preview).getByRole('tab', { name: 'Site' })).toHaveAttribute('aria-selected', 'true')
+    expect(await within(preview).findByTitle('Oriel')).toHaveAttribute('src', sites[0].src)
+    expect(within(preview).queryByTitle('Oriel · Framework')).toBeNull()
+  })
+
+  it('never shows a slow answer for a tab you have already left', async () => {
+    const pending = new Map<string, (status: number) => void>()
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => new Promise<Response>((resolve) => pending.set(url, (status) => resolve(new Response(null, { status }))))),
+    )
+    const preview = openSite('Oriel')
+    fireEvent.click(within(preview).getByRole('tab', { name: 'Automation' }))
+    fireEvent.click(within(preview).getByRole('tab', { name: 'Build plan' }))
+    // Automation's check comes back missing after the visitor has moved on to Build plan.
+    await act(async () => pending.get(`${ORIEL}/automation.html`)!(404))
+    expect(within(preview).queryByText('automation.html')).toBeNull()
+    expect(within(preview).queryByText('build-plan.html')).toBeNull()
+    expect(preview.querySelector('iframe')).toBeNull()
+    await act(async () => pending.get(`${ORIEL}/build-plan.html`)!(200))
+    expect(await within(preview).findByTitle('Oriel · Build plan')).toHaveAttribute('src', `${ORIEL}/build-plan.html`)
+    expect(within(preview).queryByText('automation.html')).toBeNull()
   })
 
   it('moves between tabs with the arrow keys', () => {

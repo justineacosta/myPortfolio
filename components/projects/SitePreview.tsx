@@ -140,7 +140,8 @@ export default function SitePreview({ site, onClose }: { site: Site | null; onCl
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 p-6 text-center text-ink2">
                 <UploadSimpleIcon size={26} aria-hidden />
                 <p className="text-sm">
-                  {p.upload} <strong className="text-ink">{src.split('/').pop()}</strong> {p.uploadTail}
+                  {p.upload} <strong className="text-ink">{src.split('/').pop()}</strong>{' '}
+                  {page ? `${p.uploadTo} public${src.slice(0, src.lastIndexOf('/') + 1)} ${p.caseTail}` : p.uploadTail}
                 </p>
                 <span className="font-mono text-[10.5px] tracking-[.12em] opacity-60">{p.uploadNote}</span>
               </div>
