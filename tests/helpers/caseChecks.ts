@@ -217,7 +217,8 @@ export function checkCopy(page: { site?: { name: string; href: string; page: str
       expect(o.label.length, o.label).toBeLessThanOrEqual(22)
       expect(o.sub.length, `${o.label}: ${o.sub}`).toBeLessThanOrEqual(22)
     }
-    if (Array.isArray(o.tools)) for (const t of o.tools) expect(TOOLS[t as ToolId], `tool ${String(t)}`).toBeTruthy()
+    // A list of tool ids. The framework's `tools` is a list of cards instead; each card's `tool` is checked on its own below.
+    if (Array.isArray(o.tools)) for (const t of o.tools) if (typeof t !== 'object') expect(TOOLS[t as ToolId], `tool ${String(t)}`).toBeTruthy()
     if (typeof o.tool === 'string') expect(TOOLS[o.tool as ToolId], `tool ${o.tool}`).toBeTruthy()
   }
 

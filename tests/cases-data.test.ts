@@ -253,6 +253,14 @@ describe('the checks can fail', () => {
     expect(() => checkCopy(long, site)).toThrow()
   })
 
+  it('every page: reads the framework’s tool cards as cards, and still fails on an unknown tool in one', () => {
+    const page = () => withLink(goodFramework(), 'agentic-framework')
+    expect(() => checkCopy(page(), site, 'agentic-framework.html')).not.toThrow()
+    const card = page()
+    card.tools[0].tool = 'notion' as never
+    expect(() => checkCopy(card, site)).toThrow()
+  })
+
   it('withSite fills the site from the carousel and the page path from CASE_PAGES, and refuses an unknown site', () => {
     const page = withLink({ title: 'x' }, 'ai-agents')
     expect(page.site).toEqual({ name: 'Oriel', href: '/samples/oriel-portugal-residences.html', page: '/cases/oriel-portugal-residences/ai-agents.html' })
