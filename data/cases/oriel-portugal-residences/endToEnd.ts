@@ -57,7 +57,7 @@ const STEPS: Step[] = [
   step('e1', 'E', [0, 0], 'trigger', 'New model revision', 'Airtable row', 'Cube', 'The studio adds a row to the Revisions table when a residence’s model changes, and the Zap starts.', ['airtable']),
   step('e2', 'E', [1, 0], 'step', 'Find who walked it', 'Viewings in HubSpot', 'UsersThree', 'Finds everyone with a walked viewing of that residence in HubSpot, including buyers who said not now.', ['hubspot']),
   step('e3', 'E', [2, 0], 'ai', 'Write the note', 'Claude, plain words', 'Sparkle', 'Claude turns the change log into a short note: which rooms changed, what changed and what it means for living there.', ['claude']),
-  step('e4', 'E', [3, 0], 'gate', 'Approved?', 'Architect, review page', 'UserCheck', 'A Telegram message points the project architect to Zapier’s review page. They approve the note or reject it to rewrite. No answer, nothing sent.', ['zapier', 'telegram']),
+  step('e4', 'E', [3, 0], 'gate', 'Approved?', 'Architect, review page', 'UserCheck', 'A Telegram message tells the project architect a note waits on Zapier’s review page, which sends its own link. They approve the note or reject it to rewrite. No answer, nothing sent.', ['zapier', 'telegram']),
   step('e5', 'E', [4, 0.5], 'step', 'Architect rewrites', 'In their own words', 'PencilSimple', 'The architect writes the note as it should read, starting from Claude’s draft. Only their words go out.', ['zapier']),
   step('e6', 'E', [5, 0], 'step', 'Send to each buyer', 'By name, from studio', 'PaperPlaneTilt', 'Each person who walked it gets the approved note by name from studio@oriel.pt, and it is logged on their HubSpot contact.', ['gmail', 'hubspot']),
 
