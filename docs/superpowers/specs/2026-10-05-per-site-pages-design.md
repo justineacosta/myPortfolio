@@ -5,6 +5,8 @@
 **Builds on:** PR #46 (six new sample sites, 11 in all)
 **Change, 2026-10-05 (planning):** the registry is split in two so the preview window never bundles page content. `data/cases/pages.ts` (client-safe) holds `CASE_PAGES`, `CASE_SITES` and `casePagesFor()`. `data/cases/index.ts` (Node and tests only) holds `CASES`. Each renderer's canonical link uses the case page's own path (`site.page`), and `SiteLink` carries `{ name, href, page }`.
 
+**Change, 2026-10-05 (pilot review):** the person’s-yes rule covers anything Claude drafts for a buyer’s inbox. A templated confirmation (e.g. a booking confirmation) sends on its own, and a RAG bot’s live chat answers, grounded in the site’s own documents with a source, need no yes. Pages must state the rule in that scope.
+
 ## 1. Goal
 
 Every sample site in the Funnels and sites carousel gets its own full set of the five write-up pages: **Automation**, **Build Plan**, **Agentic Framework**, **End-to-End Workflow** and **AI agents & RAG bots**. Each page is written for that business, so a visitor sees the website and the whole system behind it.

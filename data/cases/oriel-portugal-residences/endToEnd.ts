@@ -147,7 +147,7 @@ const endToEnd: EndToEnd = {
   kicker: 'END TO END · ORIEL',
   heading: 'From a first question to the owners’ model',
   lede: 'Every trigger, flow, bot and agent behind Oriel’s site, wired as one graph: a buyer’s first question, the viewing, the follow-up, the reservation and the model the owners keep.',
-  stance: 'Nothing an AI writes to a buyer’s inbox goes out without a person’s yes.',
+  stance: 'An architect approves anything Claude drafts for a buyer’s inbox.',
   caption: 'Oriel, end to end · 11 lanes',
   lanes: LANES,
   steps: STEPS.map((s) => (NUMBERED.has(s.lane) ? { ...s, n: s.at[0] + 1 } : s)),

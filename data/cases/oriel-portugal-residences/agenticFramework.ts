@@ -18,7 +18,7 @@ const framework: AgenticFramework = {
   kicker: 'AGENTIC FRAMEWORK · ORIEL',
   heading: 'How I would build Oriel with AI',
   lede: 'The tools, the rules and the loop I would use to build Oriel’s site, its three flows, its Q&A bot and its two agents, one small branch at a time.',
-  stance: 'I make the calls, the AI does the typing, and an architect approves what a buyer reads.',
+  stance: 'I make the calls, the AI does the typing, and an architect approves anything Claude drafts for a buyer’s inbox.',
   sections: [
     { id: 'glance', chip: 'At a glance', kicker: 'AT A GLANCE', title: 'Set up once, then loop, then ship', blurb: 'The whole framework for Oriel in three lines.' },
     { id: 'jobs', chip: 'Two jobs', kicker: 'TWO JOBS', title: 'Who does what', blurb: 'The split that keeps Oriel’s flows honest.' },
@@ -32,7 +32,7 @@ const framework: AgenticFramework = {
   stages: [
     { mark: '1', icon: 'Wrench', title: 'Set up once', text: 'A rules file for Oriel (CLAUDE.md), the build plan, and test contacts, a test mailbox and a test architect in HubSpot, Gmail and Cal.com, before the first task.' },
     { mark: '2', icon: 'ArrowsClockwise', title: 'Build in small loops', text: 'Frame, build, check, fold back. One branch of one flow, or one section of the site, per run, until its test row passes.' },
-    { mark: '3', icon: 'RocketLaunch', title: 'Ship on a yes', text: 'Nothing is published or switched on until I approve it, and nothing Claude drafts reaches a buyer’s inbox without an architect’s yes.' },
+    { mark: '3', icon: 'RocketLaunch', title: 'Ship on a yes', text: 'Nothing is published or switched on until I approve it, and an architect approves anything Claude drafts for a buyer’s inbox.' },
   ],
   jobs: {
     columns: [
@@ -49,7 +49,7 @@ const framework: AgenticFramework = {
   ],
   rules: [
     { mark: 'R1', icon: 'FileText', title: 'Write the spec first', text: 'If I cannot say in a paragraph what a flow promises a buyer, the agent will not find it in a thousand tokens. The build plan is that paragraph.', note: 'Spec before prompt' },
-    { mark: 'R2', icon: 'ShieldCheck', title: 'Every write is approval-gated', text: 'Agents draft. Nothing reaches Oriel’s live site, a switched-on flow or a buyer’s inbox unreviewed, and an architect approves what Claude writes to a buyer.', note: 'No autonomous writes' },
+    { mark: 'R2', icon: 'ShieldCheck', title: 'Every write is approval-gated', text: 'Agents draft. Nothing reaches Oriel’s live site or a switched-on flow unreviewed, and an architect approves anything Claude drafts for a buyer’s inbox.', note: 'No autonomous writes' },
     { mark: 'R3', icon: 'Scissors', title: 'One branch at a time', text: 'One branch, one test row, one context. A fresh session per branch beats one long session for the whole studio.', note: 'Reset early, reset often' },
     { mark: 'R4', icon: 'ListChecks', title: 'The test row grades it', text: 'Each branch goes in with its row from the build plan’s test matrix, and is run against it before I look.', note: 'Self-review built in' },
   ],

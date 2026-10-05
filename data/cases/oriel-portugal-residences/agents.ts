@@ -27,7 +27,7 @@ const agents: Agents = {
   sample: 'Sample builds for Oriel, a fictional developer used across this portfolio, not a client project.',
   heroTools: ['claude', 'n8n', 'supabase'],
   sections: [
-    { id: 'glance', chip: 'At a glance', kicker: 'AT A GLANCE', title: 'Two patterns, one rule', blurb: 'Every build below is one of two patterns. Nothing an agent drafts for a buyer’s inbox goes out without an architect’s yes; the chat answers only from the sheets.' },
+    { id: 'glance', chip: 'At a glance', kicker: 'AT A GLANCE', title: 'Two patterns, one rule', blurb: 'Every build below is one of two patterns. An architect approves anything Claude drafts for a buyer’s inbox; the chat answers only from the sheets.' },
     { id: 'rag', chip: 'RAG chatbots', kicker: 'HOW THE Q&A BOT WORKS', title: 'Search the sheets first, then answer', blurb: 'Oriel’s documents are prepared once. Every question then searches them before Claude says a word. Click any step.' },
     { id: 'agent', chip: 'Agents', kicker: 'HOW AN AGENT WORKS', title: 'Plan, use a tool, check, repeat', blurb: 'A viewing starts it. Claude plans, uses one tool at a time and checks the result until the job is done. Click any step.' },
     { id: 'builds', chip: 'The builds', kicker: 'THREE SAMPLE BUILDS', title: 'Three builds for Oriel', blurb: 'One bot for the questions before a viewing, two agents for the viewing itself. Show any one’s route on its diagram.' },
@@ -37,7 +37,7 @@ const agents: Agents = {
   glance: [
     { mark: '1', icon: 'Books', title: 'RAG chatbots', text: 'The Q&A bot searches Oriel’s residence sheets and notes first, then answers with the sheet it used.' },
     { mark: '2', icon: 'Robot', title: 'AI agents', text: 'They take one viewing, gather what they need from HubSpot, Airtable and the sheets, and finish the job.' },
-    { mark: '3', icon: 'UserCheck', title: 'The architect’s yes', text: 'Anything an agent drafts for a buyer’s inbox waits for the project architect. The chat answers only from the sheets.' },
+    { mark: '3', icon: 'UserCheck', title: 'The architect’s yes', text: 'The project architect approves anything Claude drafts for a buyer’s inbox. The chat answers only from the sheets.' },
   ],
   diagrams: {
     rag: {
@@ -132,7 +132,7 @@ const agents: Agents = {
           ],
         },
         { id: 'check', at: [3, 0], kind: 'branch', label: 'Check the result', sub: 'Done yet?', icon: 'ListChecks', what: 'Claude looks at what came back. If the job is not done yet, it goes back to plan the next step.' },
-        { id: 'needs', at: [4, 0], kind: 'branch', label: 'To a buyer?', sub: 'Or just the studio', icon: 'ShieldCheck', what: 'Is the result going to a buyer? Then it waits for the architect. A brief for the architect’s own eyes goes straight on.' },
+        { id: 'needs', at: [4, 0], kind: 'branch', label: 'To a buyer?', sub: 'Or just the studio', icon: 'ShieldCheck', what: 'Is the draft going to a buyer’s inbox? Then it waits for the architect. A brief for the architect’s own eyes goes straight on.' },
         { id: 'gate', at: [5, 0], kind: 'gate', label: 'Architect’s yes', sub: 'Approve in Telegram', icon: 'UserCheck', tools: ['telegram'], what: 'The project architect gets the draft in Telegram with Approve and Edit. Nothing is sent until they tap Approve; an edit goes back to Claude.' },
         {
           id: 'act', at: [6, 0], kind: 'end', label: 'Send and log', sub: 'Email or Telegram', icon: 'PaperPlaneTilt', pinType: 'OUTPUT',
@@ -212,7 +212,7 @@ const agents: Agents = {
   guardrails: [
     { mark: 'G1', icon: 'Quotes', title: 'Answers only from Oriel’s documents', text: 'The bot answers from the passages it found and names the sheet or note. No source, no answer: the chat goes to the studio.' },
     { mark: 'G2', icon: 'Prohibit', title: 'Never quotes a price or a date not in the residence sheet', text: 'Oriel publishes no prices, so the bot never gives one. A date the sheet does not give goes to the studio too.' },
-    { mark: 'G3', icon: 'ShieldCheck', title: 'Anything to a buyer waits for an architect’s yes', text: 'Every follow-up an agent drafts stops for the architect in Telegram before it goes out. The bot never emails; in the chat, the sheets are the limit.' },
+    { mark: 'G3', icon: 'ShieldCheck', title: 'Claude’s drafts for a buyer wait for a yes', text: 'Every follow-up an agent drafts stops for the architect in Telegram before it goes out. The bot never emails; in the chat, the sheets are the limit.' },
     { mark: 'G4', icon: 'Notebook', title: 'Every run is logged', text: 'Each question, tool call and send lands in a run log, and on the buyer’s HubSpot contact when the visitor is already a contact.' },
   ],
   glossary: [

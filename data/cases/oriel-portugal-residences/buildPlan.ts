@@ -111,7 +111,7 @@ const OR03: Workflow = {
   trigger: 'Zapier sees a new record in the Revisions table in Airtable.',
   exits: ['Sent as Claude wrote it', 'Sent as the architect rewrote it', 'Nobody to tell', 'Waiting on the architect'],
   watch: [
-    'Nothing reaches a buyer before the project architect answers. An unanswered request sends nothing.',
+    'No revision note reaches a buyer before the project architect answers. An unanswered request sends nothing.',
     'Human in the Loop sends no Telegram message itself: reviewers answer on a Zapier-hosted review page, so a Telegram Bot step tells the architect it is waiting, with a link to it.',
     'Human in the Loop’s own choices are Approved or Rejected; Rejected is read as Rewrite, so the branch still reads Approve or Rewrite, as on the Automation page.',
     'Zapier paths never join again, so both paths call the same Sub-Zap, OR-H03, and the send is built once.',
@@ -202,7 +202,7 @@ const plan: Plan = {
   kicker: 'BUILD PLAN · ORIEL',
   heading: 'Every viewing, email and model change, planned before a single step is placed.',
   lede:
-    'Three flows and three helpers for Oriel, a developer in Lisbon that builds every residence twice: first as a walkable model, then in stone. The viewing runs on n8n, the studio inbox on Make and the revision notice on Zapier. HubSpot holds the buyers, Airtable holds what the studio edits, Claude reads and drafts, and an architect approves anything Claude writes to a buyer.',
+    'Three flows and three helpers for Oriel, a developer in Lisbon that builds every residence twice: first as a walkable model, then in stone. The viewing runs on n8n, the studio inbox on Make and the revision notice on Zapier. HubSpot holds the buyers, Airtable holds what the studio edits, Claude reads and drafts, and an architect approves anything Claude drafts for a buyer’s inbox.',
   meta: [
     ['Client', 'Oriel Residential · Lisbon'],
     ['Platforms', 'n8n, Make and Zapier'],
@@ -213,7 +213,7 @@ const plan: Plan = {
     title: 'Before anything is built',
     blurb: 'The outcome, the entry points and every way a buyer’s story ends.',
     rail: [{ heading: 'Why plan first', body: 'Three platforms make it easy to lose track of which flow does what. This page names the outcome of each one before n8n, Make or Zapier is opened.' }],
-    outcome: 'Every viewing request is confirmed within one working day with an architect and a slot, every email to the studio reaches the person who should answer it, and nothing Claude writes reaches a buyer without a person’s yes.',
+    outcome: 'Every viewing request is confirmed within one working day with an architect and a slot, every email to the studio reaches the person who should answer it, and an architect approves anything Claude drafts for a buyer’s inbox.',
     trigger: 'Five entry points: the viewing form, the studio inbox, a new revision in Airtable, n8n’s own Error Trigger and a webhook that Make and Zapier report failures to.',
     exits: ['Reserved', 'Not now', 'Care request with the team', 'Flagged for a person'],
     outOfScope: ['Reservations, contracts and deposits', 'The models themselves and the headsets’ setup', 'Construction and site scheduling', 'The Residence Q&A bot and the agents, planned on their own page'],
