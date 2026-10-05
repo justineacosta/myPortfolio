@@ -4,6 +4,7 @@
  * examples of what Justine builds, not client projects.
  * public/ai-agents.html is generated from it: npm run agents-page
  */
+import type { SiteLink } from '../lib/brand/render.ts'
 import type { ToolId } from '../lib/brand/tools.ts'
 
 export type SectionId = 'glance' | 'rag' | 'agent' | 'builds' | 'guardrails' | 'glossary'
@@ -40,6 +41,8 @@ export type Build = {
 }
 export type Tile = { mark: string; icon: string; title: string; text: string }
 export type Agents = {
+  /** Set on a per-site copy: where its site lives and its own path. */
+  site?: SiteLink
   title: string
   description: string
   home: string

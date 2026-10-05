@@ -5,6 +5,7 @@
  * public/automations.html, and components/projects/FlowPeek.tsx draws each
  * flow's main route on the card. Only type imports, so Node can run it directly.
  */
+import type { SiteLink } from '../lib/brand/render.ts'
 import type { ToolId } from '../lib/brand/tools.ts'
 
 export type Platform = 'n8n' | 'make' | 'zapier'
@@ -14,6 +15,8 @@ export type FlowNode = { id: string; kind: FlowKind; label: string; sub: string;
 export type FlowEdge = { from: string; to: string; label?: string }
 export type Flow = { code: string; title: string; site: string; href: string; platform: Platform; outcome: string; nodes: FlowNode[]; edges: FlowEdge[] }
 export type Automations = {
+  /** Set on a per-site copy: where its site lives and its own path. */
+  site?: SiteLink
   title: string
   description: string
   /** The link back to the portfolio, shown when the page is opened on its own. */

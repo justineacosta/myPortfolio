@@ -3,6 +3,17 @@ import { join } from 'node:path'
 import { CONTOUR_FRAG, CONTOUR_TIMING } from '../contour.ts'
 import { TOOLS, type ToolId } from './tools.ts'
 
+/** A case page's way back to the sample site it belongs to, and its own path (for the canonical link). */
+export type SiteLink = { name: string; href: string; page: string }
+
+// Not `esc` from buildPlan/render.ts: that file imports this one.
+const escape = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+
+/** The second back link on a per-site case page, next to the portfolio one; empty on the general pages. */
+export function siteBack(s: SiteLink | undefined): string {
+  return s ? `<a class="home site-home" href="${escape(s.href)}" target="_top">← ${escape(s.name)} site</a>` : ''
+}
+
 /**
  * Tool logos for the three standalone pages (spec 2026-10-01-lively-pages
  * §3–4). Each page draws every logo it uses once, as a <symbol> in one hidden

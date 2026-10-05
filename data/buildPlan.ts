@@ -5,6 +5,7 @@
  * scripts/make-plan.ts renders it into public/build-plan.html. Only a type
  * import, so Node can run it directly.
  */
+import type { SiteLink } from '../lib/brand/render.ts'
 import type { ToolId } from '../lib/brand/tools.ts'
 
 export type IconName =
@@ -32,6 +33,8 @@ export type TestRow = { id: string; workflow: string; branch: string; input: str
 export type Phase = { name: string; tasks: string[] }
 type Head = { title: string; blurb: string; rail: Rail[] }
 export type Plan = {
+  /** Set on a per-site copy: where its site lives and its own path. */
+  site?: SiteLink
   title: string
   description: string
   kicker: string

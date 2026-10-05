@@ -4,7 +4,7 @@ import { endToEnd as E2E, KIND_TYPES, type EndToEnd, type StepKind } from '../..
 import { esc } from '../buildPlan/render.ts'
 import type { Themes } from '../buildPlan/styles.ts'
 import { livelyCss } from '../brand/lively.ts'
-import { contourJs, backdropHtml, glossaryLogo, logoBadges, logoSheet, revealJs, toolByName, toolStrip, toolTemplates, toolsUsed, themeHeadJs } from '../brand/render.ts'
+import { contourJs, backdropHtml, glossaryLogo, logoBadges, logoSheet, revealJs, toolByName, toolStrip, toolTemplates, toolsUsed, themeHeadJs, siteBack } from '../brand/render.ts'
 import type { ToolId } from '../brand/tools.ts'
 import { readContrast, readTokens } from '../tokens.ts'
 import { iconSvg } from './icons.ts'
@@ -39,7 +39,7 @@ function hero(g: EndToEnd, index: NodeIndex, used: ToolId[]) {
       return `<li><button type="button" class="key" data-node="key:${esc(k.id)}" aria-haspopup="dialog" aria-expanded="false"><span aria-hidden="true">${sample[k.id]}</span>${esc(k.label)}</button></li>`
     })
     .join('')
-  return `<header class="hero"><a class="home" href="/" target="_top">← ${esc(g.home)}</a><span class="kicker">${esc(g.kicker)}</span><h1>${esc(g.heading)}</h1><p class="lede">${esc(g.lede)}</p><p class="stance">${esc(g.stance)}</p>${toolStrip(used)}<ul class="legend" aria-label="How to read the graph">${legend}</ul></header>`
+  return `<header class="hero"><a class="home" href="/" target="_top">← ${esc(g.home)}</a>${siteBack(g.site)}<span class="kicker">${esc(g.kicker)}</span><h1>${esc(g.heading)}</h1><p class="lede">${esc(g.lede)}</p><p class="stance">${esc(g.stance)}</p>${toolStrip(used)}<ul class="legend" aria-label="How to read the graph">${legend}</ul></header>`
 }
 
 /** The whole graph in one frame: lane bands, cables in SVG, their labels, ball templates, and the steps as buttons. */
@@ -105,7 +105,7 @@ export function renderEndToEnd(g: EndToEnd = E2E, themes: Themes = { dark: readT
 <meta property="og:description" content="${esc(g.description)}">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary">
-<link rel="canonical" href="${PAGE_PATH}">
+<link rel="canonical" href="${g.site?.page ?? PAGE_PATH}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500&amp;display=swap">

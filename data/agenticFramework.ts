@@ -4,6 +4,7 @@
  * the card's own words. public/agentic-framework.html is generated from it:
  * npm run af-page
  */
+import type { SiteLink } from '../lib/brand/render.ts'
 import type { ToolId } from '../lib/brand/tools.ts'
 
 export type SectionId = 'glance' | 'jobs' | 'tools' | 'rules' | 'loop' | 'example' | 'habits' | 'glossary'
@@ -19,6 +20,8 @@ export type Card = { mark: string; icon: string; title: string; text: string; no
 export type Rule = Card & { mark: RuleId }
 export type Stage = 'Frame' | 'Build' | 'Check' | 'Fold back' | 'Ship'
 export type AgenticFramework = {
+  /** Set on a per-site copy: where its site lives and its own path. */
+  site?: SiteLink
   title: string
   description: string
   home: string
