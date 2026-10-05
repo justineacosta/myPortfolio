@@ -27,6 +27,8 @@ import altitudePlan from './altitude-personal-training/buildPlan.ts'
 import altitudeAgents from './altitude-personal-training/agents.ts'
 import altitudeEndToEnd from './altitude-personal-training/endToEnd.ts'
 import altitudeFramework from './altitude-personal-training/agenticFramework.ts'
+import rangeAutomation from './range-physical-therapy/automation.ts'
+import rangePlan from './range-physical-therapy/buildPlan.ts'
 
 /** The pages a site has; a site need not have all five. */
 export type CaseSet = { automation?: Automations; plan?: Plan; framework?: AgenticFramework; endToEnd?: EndToEnd; agents?: Agents }
@@ -53,6 +55,10 @@ export const CASES: Record<string, CaseSet> = {
     agents: withSite(altitudeAgents, 'altitude-personal-training', 'ai-agents'),
     endToEnd: withSite(altitudeEndToEnd, 'altitude-personal-training', 'end-to-end'),
     framework: withSite(altitudeFramework, 'altitude-personal-training', 'agentic-framework'),
+  },
+  'range-physical-therapy': {
+    automation: withSite(rangeAutomation, 'range-physical-therapy', 'automation'),
+    plan: withSite(rangePlan, 'range-physical-therapy', 'build-plan'),
   },
 }
 
