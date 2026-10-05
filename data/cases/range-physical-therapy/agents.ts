@@ -71,7 +71,7 @@ const agents: Agents = {
         { id: 'qembed', at: [1, 1], kind: 'step', label: 'Embed the question', sub: 'Same model', icon: 'Binary', what: 'The question goes through the same embeddings model, so it can be compared with the stored passages. It is never stored.' },
         { id: 'search', at: [3, 1], kind: 'step', label: 'Search', sub: 'Top 5 passages', icon: 'MagnifyingGlass', tools: ['supabase'], what: 'A vector search in Supabase finds the five passages closest in meaning to the question.' },
         { id: 'answer', at: [4, 1], kind: 'step', label: 'Claude answers', sub: 'From the passages', icon: 'Sparkle', tools: ['claude'], what: 'Claude gets the question and those five passages, with one rule: answer only from them. It never gives a price, a date or a figure the pages do not hold, and never a word of clinical advice.' },
-        { id: 'sure', at: [5, 1], kind: 'branch', label: 'Sure, not clinical?', sub: 'A page settles it', icon: 'Question', what: 'Did the passages hold the answer? Any symptom, pain, injury or question about treatment counts as no, and so does anything the pages do not say. An emergency is caught first. The bot never guesses.' },
+        { id: 'sure', at: [5, 1], kind: 'branch', label: 'Sure, not clinical?', sub: 'A page settles it', icon: 'Question', what: 'Did the passages hold the answer? Any symptom, pain or question about treatment counts as no, and so does anything the pages do not say. An emergency is pointed to 911 before any call is offered. The bot never guesses.' },
         { id: 'reply', at: [6, 1], kind: 'end', label: 'Reply with source', sub: 'Names the page', icon: 'ArrowBendUpLeft', what: 'The answer goes straight back in the chat, with the page it came from, so the visitor can check it. The bot never sends email.' },
         { id: 'book', at: [7, 1], kind: 'end', label: 'Book the evaluation', sub: 'Cal.com, 60 minutes', icon: 'CalendarCheck', tools: ['cal-com'], what: 'When someone wants to start, the bot opens Mara’s Cal.com Initial evaluation page in the chat, the same one Schedule your evaluation opens. The booking then runs RP-01 like any other.' },
         {
@@ -79,8 +79,8 @@ const agents: Agents = {
           what: 'A hand-off, with no advice. An emergency gets the site’s words first: if you think you are having a medical emergency, call 911. Anything else clinical gets the free 15-minute call with Mara. The bot forwards nothing.',
           pins: [
             { id: 'emergency', name: 'Call 911', icon: 'Siren', what: 'Shown first, for anything that sounds like an emergency, in the site’s own words: if you think you are having a medical emergency, call 911.' },
-            { id: 'call', name: 'Free 15-minute call', tool: 'cal-com', what: 'Mara’s Cal.com page for the free 15-minute call, opened in the chat. It asks for a name, an email and a phone, and nothing about health.' },
-            { id: 'phone', name: 'Phone', icon: 'Phone', what: '(303) 555-0142. Mara answers calls and texts herself.' },
+            { id: 'call', name: 'Free 15-minute call', tool: 'cal-com', what: 'Mara’s Cal.com page for the free 15-minute call, opened in the chat. It asks nothing about health.' },
+            { id: 'phone', name: 'Phone', icon: 'Phone', what: '(303) 555-0142, to call or text. As the site says, Mara answers email and texts herself.' },
             { id: 'gmail', name: 'Email Mara', tool: 'gmail', what: 'hello@rangept.co, for anyone who would rather write. The visitor writes it themselves: the bot never emails, and passes the chat to no one.' },
           ],
         },
@@ -122,7 +122,6 @@ const agents: Agents = {
           pins: [
             { id: 'email', name: 'New email', tool: 'gmail', what: 'Any email to hello@rangept.co, checked every minute. Attachments never reach Claude: an email with one is labelled For Mara unread.' },
             { id: 'cancel', name: 'Late cancellation', tool: 'cal-com', what: 'A visit cancelled from its Cal.com link with less than 24 hours to go. A change further ahead is free, and Cal.com’s own links handle it.' },
-            { id: 'handed', name: 'Change of visit', icon: 'ArrowsSplit', what: 'An email Inbox triage sorted Change of visit: it asks only to move or cancel a visit, with nothing clinical in it.' },
           ],
         },
         { id: 'plan', at: [1, 0], kind: 'step', label: 'Claude plans', sub: 'Picks the next step', icon: 'Brain', tools: ['claude'], what: 'Claude reads the goal, an email to sort or a cancelled visit to fill, then picks the single next step and the tool it needs. It keeps nothing from one run to the next.' },
@@ -130,7 +129,7 @@ const agents: Agents = {
           id: 'tool', at: [2, 0], kind: 'step', label: 'Use a tool', sub: 'One call at a time', icon: 'Wrench', pinType: 'TOOL',
           what: 'n8n makes one tool call for Claude: label the email in Gmail, search the site’s passages, read Mara’s openings in Cal.com, or read a patient’s scheduling row in Airtable. Nothing reads her notes system.',
           pins: [
-            { id: 'label', name: 'Gmail label', tool: 'gmail', what: 'Puts one label on the email: For Mara, Admin or Change of visit. It writes nothing else, anywhere.' },
+            { id: 'label', name: 'Gmail label', tool: 'gmail', what: 'Puts one label on the email: For Mara or Admin. It writes nothing else, anywhere.' },
             { id: 'facts', name: 'Site passages', tool: 'supabase', what: 'The same public, non-clinical passages the Clinic Q&A bot searches, so an admin reply states only what the site states.' },
             { id: 'openings', name: 'Openings', tool: 'cal-com', what: 'The cancelled visit, and Mara’s next openings, read through Cal.com’s API. No booking is made, moved or cancelled.' },
             { id: 'patients', name: 'Patients and Plans', tool: 'airtable', what: 'The patient’s name and email, and a plan’s visits left and expiry date. Scheduling and billing fields only.' },
@@ -138,7 +137,7 @@ const agents: Agents = {
           ],
         },
         { id: 'check', at: [3, 0], kind: 'branch', label: 'Check the result', sub: 'Done yet?', icon: 'ListChecks', what: 'Claude looks at what came back. If the job is not done yet, it goes back to plan the next step.' },
-        { id: 'needs', at: [4, 0], kind: 'branch', label: 'To a patient?', sub: 'Or a label only', icon: 'ShieldCheck', what: 'Is a draft on its way to a patient’s inbox? Then it waits for Mara. An email labelled For Mara or Change of visit has no draft here: the run ends with a ping or a hand-over, and a log line.' },
+        { id: 'needs', at: [4, 0], kind: 'branch', label: 'To a patient?', sub: 'Or a label only', icon: 'ShieldCheck', what: 'Is a draft on its way to a patient’s inbox? Then it waits for Mara. An email labelled For Mara has no draft: the run ends with a ping and a log line.' },
         { id: 'gate', at: [5, 0], kind: 'gate', label: 'Mara’s yes', sub: 'Approve in Telegram', icon: 'UserCheck', tools: ['telegram'], what: 'Mara gets the draft in Telegram with Approve and Edit. An edit goes back to Claude, and nothing is sent until she taps Approve.' },
         {
           id: 'act', at: [6, 0], kind: 'end', label: 'Send and log', sub: 'Email, or a ping', icon: 'PaperPlaneTilt', pinType: 'OUTPUT',
@@ -146,7 +145,6 @@ const agents: Agents = {
           pins: [
             { id: 'gmail', name: 'Gmail', tool: 'gmail', what: 'Sends the approved reply to the patient from hello@rangept.co.' },
             { id: 'ping', name: 'Ping to Mara', tool: 'telegram', what: 'Tells Mara an email is waiting For Mara, with no name, subject or words from it. She opens it in Gmail herself.' },
-            { id: 'handoff', name: 'To Reschedule', icon: 'ArrowsSplit', what: 'Hands an email sorted Change of visit to the Reschedule agent, which starts its own run.' },
             { id: 'sheets', name: 'Google Sheets', tool: 'google-sheets', what: 'Logs the run in the Agent runs tab: the time, the label, each tool call by name and Mara’s yes. Never the email’s words.' },
             { id: 'notes', name: 'Notes system', icon: 'NotePencil', what: 'Mara, by hand: whatever she reads in an email For Mara that belongs in her notes, she writes there herself.' },
           ],
@@ -195,17 +193,17 @@ const agents: Agents = {
       example: { ask: 'New email: “Do I get a superbill for plan visits?”', answer: 'Sorted Admin: a reply that a superbill comes after each visit, plan visits included, drafted from the site and waiting for Mara’s yes in Telegram.' },
       tools: ['claude', 'n8n', 'gmail', 'supabase', 'telegram', 'google-sheets'],
       routes: ['straight', 'notdone', 'changed', 'internal'],
-      pins: ['trigger:email', 'tool:label', 'tool:facts', 'tool:notes', 'act:gmail', 'act:ping', 'act:handoff', 'act:sheets', 'act:notes'],
+      pins: ['trigger:email', 'tool:label', 'tool:facts', 'tool:notes', 'act:gmail', 'act:ping', 'act:sheets', 'act:notes'],
       caption: 'A new email to hello@rangept.co → Claude picks one label → For Mara, untouched, with a ping; or an admin draft from the site → Mara’s yes in Telegram → send and log',
     },
     {
       id: 'reschedule', kind: 'agent', name: 'Reschedule agent', business: BUSINESS,
-      line: 'When a visit is cancelled inside 24 hours, or a patient emails to move one, it offers Mara’s next openings and drafts the reply for her yes.',
+      line: 'When a visit is cancelled inside 24 hours, it offers Mara’s next openings and drafts the reply for her yes.',
       example: { ask: 'Cal.com: tomorrow’s 7:00 am follow-up is cancelled, 16 hours ahead.', answer: 'A reply offering Mara’s next three openings, each a link to book, waiting for her yes in Telegram. No booking moved, nothing charged.' },
       tools: ['claude', 'n8n', 'cal-com', 'airtable', 'telegram', 'gmail', 'google-sheets'],
       routes: ['straight', 'notdone', 'changed'],
-      pins: ['trigger:cancel', 'trigger:handed', 'tool:openings', 'tool:patients', 'tool:notes', 'act:gmail', 'act:sheets'],
-      caption: 'A late cancellation in Cal.com, or a Change of visit email → Claude reads the openings and the patient’s row → a draft reply → Mara’s yes in Telegram → send and log',
+      pins: ['trigger:cancel', 'tool:openings', 'tool:patients', 'tool:notes', 'act:gmail', 'act:sheets'],
+      caption: 'A visit cancelled in Cal.com inside 24 hours → Claude reads the openings and the patient’s row → a draft reply → Mara’s yes in Telegram → send and log',
     },
   ],
   buildText: {
@@ -218,9 +216,9 @@ const agents: Agents = {
     tools: 'Tools',
   },
   guardrails: [
-    { mark: 'G1', icon: 'Quotes', title: 'Answers only from Range’s public pages', text: 'The bot answers from the passages it found and names the page. It never gives a price, a date or a figure the pages do not hold. Its index holds the site’s public, non-clinical pages only. No source, no answer.' },
+    { mark: 'G1', icon: 'Quotes', title: 'Answers only from Range’s public pages', text: 'The bot answers from the passages it found and names the page. It never gives a price, a date or a figure the pages do not hold. Its index holds the site’s public, non-clinical pages only. No source, no answer, except the 911 line, in the site footer’s own words.' },
     { mark: 'G2', icon: 'FirstAidKit', title: 'No clinical advice, ever', text: 'Any symptom, pain or question about treatment gets the free 15-minute call with Mara, and an emergency gets “call 911” first. No build gives advice of its own, and no reminder or reply says whether more visits would help.' },
-    { mark: 'G3', icon: 'LockKey', title: 'Nothing clinical is kept', text: 'Claude reads a clinical email once, only to sort it, and it is labelled For Mara and left untouched. Nothing clinical is stored, summarised or forwarded by Claude, Airtable or any flow, and n8n saves no runs of these builds.' },
+    { mark: 'G3', icon: 'LockKey', title: 'Nothing clinical is kept', text: 'Claude reads a clinical email once, only to sort it, and it is labelled For Mara and left untouched. Nothing clinical is stored, summarised or forwarded by Claude, Airtable or any flow, and n8n saves no runs of these builds. Before Claude reads any real patient email, Range would need a signed business associate agreement with each vendor that handles it.' },
     { mark: 'G4', icon: 'ShieldCheck', title: 'Mara says yes to Claude’s drafts for a patient’s inbox', text: 'Every reply Inbox triage or Reschedule drafts stops for Mara in Telegram before it goes out, and each run is logged with her yes. The bot never emails. No agent charges, refunds or moves a booking.' },
   ],
   glossary: [
@@ -235,8 +233,8 @@ const agents: Agents = {
     ['Trigger', 'The event that starts a run: a new email to hello@rangept.co, or a visit cancelled inside 24 hours.'],
     ['Tool call', 'One action an agent asks for, like putting a label on an email or reading Mara’s openings.'],
     ['For Mara', 'The Gmail label for anything clinical, or anything Claude is unsure of. The email is left untouched for Mara to read.'],
-    ['Admin', 'The Gmail label for a practical email, like a question about a superbill, which gets a drafted reply.'],
-    ['Change of visit', 'The Gmail label for an email that asks only to move or cancel a visit. Reschedule takes it from there.'],
+    ['Admin', 'The Gmail label for a practical email, like a question about a superbill or a visit to move, which gets a drafted reply.'],
+    ['Business associate agreement', 'A signed contract a clinic needs with each vendor that handles patient information, here Anthropic, Google and n8n’s host, before any real email is read.'],
     ['Notes system', 'Mara’s own clinic notes system, where everything clinical lives. No tool, flow or agent reads or writes it.'],
     ['Agent runs', 'The Google Sheets tab that logs each agent run: the time, the label, the tool calls and Mara’s yes, never an email’s words.'],
     ['Loop-back', 'A cable back to an earlier step: the agent tries again, or redoes a draft Mara sent back.'],
