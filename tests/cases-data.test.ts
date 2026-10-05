@@ -31,6 +31,9 @@ describe('the case registry', () => {
     for (const line of imports) expect(line, 'only type imports').toMatch(/^\s*import type\b/)
     expect(src).not.toMatch(/\bimport\s*\(/)
     expect(src).not.toMatch(/\brequire\s*\(/)
+    // A runtime re-export (export { … } from, export * from) pulls its module in as surely as an import does.
+    const reexports = src.match(/^\s*export\s+(?:type\s+)?(?:\*(?:\s+as\s+\w+)?|\{[^}]*\})\s*from\b/gm) ?? []
+    for (const line of reexports) expect(line, 'only type re-exports').toMatch(/^\s*export type\b/)
   })
 
   it('gives every sample site a two-letter code prefix', () => {
