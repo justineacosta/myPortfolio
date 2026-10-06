@@ -320,6 +320,20 @@ describe('the checks can fail', () => {
     reason.plan!.data.tables[1].fields.push('Reason for visit')
     expect(() => checkSite(reason, range, SITES)).toThrow(/Reason for visit/)
 
+    // A law firm’s tables never keep what the form asks people to hold back.
+    const riverdale = siteOf('riverdale-and-brooks')
+    const firm = () => structuredClone(CASES['riverdale-and-brooks'])
+    expect(() => checkSite(firm(), riverdale, SITES)).not.toThrow()
+    const situation = firm()
+    situation.plan!.data.tables[0].fields.push('Situation')
+    expect(() => checkSite(situation, riverdale, SITES)).toThrow(/Situation/)
+    const notes = firm()
+    notes.plan!.data.tables[1].fields.push('Case notes')
+    expect(() => checkSite(notes, riverdale, SITES)).toThrow(/Case notes/)
+    const advice = firm()
+    advice.agents = JSON.parse(JSON.stringify(advice.automation).replace(/legal advice/gi, 'answers'))
+    expect(() => checkSite(advice, riverdale, SITES)).toThrow(/legal advice/)
+
     const lonely = real()
     lonely.automation!.flows[0].nodes[0].tools = ['hubspot']
     const others = [lonely.plan, lonely.agents, lonely.endToEnd].map((p) => JSON.stringify(p))

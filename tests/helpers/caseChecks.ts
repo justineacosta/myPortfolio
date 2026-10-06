@@ -254,6 +254,7 @@ export const SENSITIVE: Record<string, { require: { page: keyof CaseSetInfo; tex
   },
   'riverdale-and-brooks': {
     require: [{ page: 'agents', text: /legal advice/i, why: 'the bot never gives legal advice' }],
+    bannedFields: /situation|confidential|privileged|case notes|facts/i,
   },
 }
 
@@ -313,11 +314,12 @@ export function checkSite(set: CaseSetInfo, site: SiteInfo, sites: SiteInfo[]) {
     for (const re of OVERBROAD_YES) expect(text, `${key} ${name}: states the person’s yes wider than built`).not.toMatch(re)
   }
 
+  // A trade rule is checked once its page is registered. A page still to come is
+  // left to “gives every case all five pages”, which fails until it lands.
   const rules = SENSITIVE[key]
   for (const r of rules?.require ?? []) {
     const page = set[r.page]
-    expect(page, `${key}: ${r.page} exists for its trade rule`).toBeDefined()
-    expect(JSON.stringify(page), `${key} ${r.page}: ${r.why}`).toMatch(r.text)
+    if (page) expect(JSON.stringify(page), `${key} ${r.page}: ${r.why}`).toMatch(r.text)
   }
   if (rules?.bannedFields && set.plan)
     for (const t of set.plan.data.tables) for (const f of t.fields) expect(f, `${key}: table ${t.name} stores ${f}`).not.toMatch(rules.bannedFields)
