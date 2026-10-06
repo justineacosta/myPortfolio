@@ -172,7 +172,7 @@ const agents: Agents = {
         flow('gate', 'act', 'approved'),
         loop('check', 'plan', 'not done yet'),
         loop('gate', 'plan', 'change it'),
-        { from: 'needs', to: 'act', kind: 'flow', label: 'no, to Ilse or internal', under: true },
+        { from: 'needs', to: 'act', kind: 'flow', label: 'no, Ilse or internal', under: true },
       ],
       routes: [
         { id: 'straight', nodes: [...RUN, 'needs', 'gate', 'act'] },

@@ -104,7 +104,7 @@ const framework: AgenticFramework = {
     { mark: '3', icon: 'TestTube', title: 'Test owners, never real ones', text: 'Every branch is walked with made-up test owners, test cars with made-up registrations and a test fleet client before a real owner meets it.' },
     { mark: '4', icon: 'Globe', title: 'Check it on the live site', text: 'Tests passing is not the end. I press Book a service on the workshop’s real site, send the four steps, and follow them.' },
   ],
-  closing: 'Done is an owner’s booking on Ilse’s list of calls within a minute of the form, not a diff.',
+  closing: 'Done is an owner’s booking held, carded and receipted within a minute of the form, and on Ilse’s list of calls the next working morning, not a diff.',
   glossary: [
     ['Claude Code', 'Anthropic’s AI coding tool. It works in the terminal, on real files.'],
     ['VS Code', 'Visual Studio Code, the code editor where I read what was written and edit by hand.'],
