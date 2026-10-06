@@ -44,6 +44,9 @@ import ostlerEndToEnd from './ostler-barbers/endToEnd.ts'
 import ostlerFramework from './ostler-barbers/agenticFramework.ts'
 import harborAutomation from './harbor-and-pine-moving/automation.ts'
 import harborPlan from './harbor-and-pine-moving/buildPlan.ts'
+import harborAgents from './harbor-and-pine-moving/agents.ts'
+import harborEndToEnd from './harbor-and-pine-moving/endToEnd.ts'
+import harborFramework from './harbor-and-pine-moving/agenticFramework.ts'
 
 /** The pages a site has; a site need not have all five. */
 export type CaseSet = { automation?: Automations; plan?: Plan; framework?: AgenticFramework; endToEnd?: EndToEnd; agents?: Agents }
@@ -95,6 +98,9 @@ export const CASES: Record<string, CaseSet> = {
   'harbor-and-pine-moving': {
     automation: withSite(harborAutomation, 'harbor-and-pine-moving', 'automation'),
     plan: withSite(harborPlan, 'harbor-and-pine-moving', 'build-plan'),
+    agents: withSite(harborAgents, 'harbor-and-pine-moving', 'ai-agents'),
+    endToEnd: withSite(harborEndToEnd, 'harbor-and-pine-moving', 'end-to-end'),
+    framework: withSite(harborFramework, 'harbor-and-pine-moving', 'agentic-framework'),
   },
 }
 
