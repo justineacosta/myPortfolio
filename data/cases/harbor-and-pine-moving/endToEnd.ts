@@ -39,11 +39,11 @@ const STEPS: Step[] = [
   step('a1', 'A', [0, 0], 'trigger', 'A visitor asks', 'In the site chat', 'ChatCircleText', 'A visitor opens the chat on Harbor & Pine’s site with a practical question, like which towns are covered or whether a piano needs crating.'),
   step('a2', 'A', [1, 0], 'trigger', 'Asks for an estimate', 'Get a free quote', 'Truck', 'Someone presses Get a free quote and fills in the three short steps: where they are moving from and to and the target moving date, the size and service, then their name, email and phone.'),
 
-  step('b1', 'B', [0, 0], 'step', 'Site chat', 'On every page', 'ChatCircleDots', 'The chat on every page of the site. It answers live from the pricing guide and FAQ, never gives a figure and never sends an email.'),
+  step('b1', 'B', [0, 0], 'step', 'Site chat', 'On every page', 'ChatCircleDots', 'The chat on every page of the site. It answers live from the pricing guide and FAQ, never gives a price and never sends an email.'),
   step('b2', 'B', [1, 0], 'step', 'Quote form', 'Three short steps', 'ClipboardText', 'Moving from, Moving to and Target moving date, then the home or office size and the service, then contact details. Its third step posts the whole request to HP-01.'),
 
   step('c1', 'C', [0, 0], 'step', 'Search the guide', 'Top 5 passages', 'MagnifyingGlass', 'The question is embedded and searched in Supabase against the pricing guide and FAQ, which hold how a move is priced in words, and no rates.', ['supabase']),
-  step('c2', 'C', [1, 0], 'ai', 'Claude answers', 'Only from passages', 'Sparkle', 'Claude gets the question and the five passages, with one rule: answer only from them. It never gives a price, a range, a date or a figure.', ['claude']),
+  step('c2', 'C', [1, 0], 'ai', 'Claude answers', 'Only from passages', 'Sparkle', 'Claude gets the question and the five passages, with one rule: answer only from them. It never gives a price or a range, and never invents a date or a figure.', ['claude']),
   step('c3', 'C', [2, 0], 'decision', 'Sure from a passage?', 'The guide settles it', 'Question', 'Did a passage hold the answer? How an estimate works counts as yes. A damage claim, a booked move, an invoice or anything the guide does not say counts as no.'),
   step('c4', 'C', [3, 0], 'step', 'Reply with a source', 'Live, in the chat', 'ArrowBendUpLeft', 'The answer goes back in the chat with its passage. A live answer needs no one’s yes, and the bot never sends an email.'),
   step('c5', 'C', [4, 0], 'end', 'Start your estimate', 'The quote form', 'ClipboardText', 'Asked for a price, the bot says how an estimate is set and opens the quote form, or offers (555) 014-2200. A coordinator, not a bot, writes the range.'),
@@ -57,7 +57,7 @@ const STEPS: Step[] = [
   step('d6', 'D', [5, 0], 'end', 'Record the deal', 'HubSpot, then Telegram', 'FlagCheckered', 'The deal moves to Estimate sent or Walkthrough, owned by the coordinator who answered, and the group hears who took it.', ['hubspot', 'telegram']),
 
   step('e1', 'E', [2, 0], 'trigger', 'Walkthrough booked', 'Cal.com', 'CalendarPlus', 'n8n hears a booking on the On-site walkthrough or Video walkthrough page in Cal.com, with its time and the customer’s notes. One run for each.', ['cal-com', 'n8n'], true),
-  step('e2', 'E', [3, 0], 'agent', 'Read the request', 'Deal, booking, guide', 'ClipboardText', 'One tool call at a time: the deal’s from, to, date, size and service in HubSpot, the booking’s notes, then the guide’s passages on the town, the ferry and specialty items.', ['hubspot', 'supabase']),
+  step('e2', 'E', [3, 0], 'agent', 'Read the request', 'Deal, booking, guide', 'ClipboardText', 'Finds the deal by the booker’s email, the latest open one at Walkthrough, and asks the coordinator if there are two; then reads the booking’s notes and the guide on the town, ferry and specialty items.', ['hubspot', 'supabase']),
   step('e3', 'E', [4, 0], 'ai', 'Write the brief', 'Claude, no price', 'PencilSimple', 'Claude writes a short brief: what to count, the town and the 20-mile line, and any piano, ferry, crane or long-distance run to plan for. It holds no range and no figure.', ['claude']),
   step('e4', 'E', [5, 0], 'end', 'To the coordinator', 'Telegram, then logged', 'PaperPlaneTilt', 'The brief is posted in the coordinators’ group for the deal’s coordinator, never to the customer, and the run is logged in Agent runs.', ['telegram', 'google-sheets']),
 
@@ -74,13 +74,13 @@ const STEPS: Step[] = [
   step('h1', 'H', [5, 0], 'step', 'Load and deliver', 'The crew, by hand', 'Package', 'The lead mover and crew wrap, load, drive and set the home back up, then walk the inventory with the customer. Nothing is subcontracted.'),
   step('h2', 'H', [6, 0], 'end', 'Raise the invoice', 'Stripe, by hand', 'Receipt', 'After the move, the coordinator raises the invoice by hand in Stripe, with the move named on it, and the customer pays on Stripe’s own page.', ['stripe']),
 
-  step('i1', 'I', [1, 0], 'trigger', 'Invoice overdue', '14 days, Stripe', 'Lightning', 'n8n hears from Stripe that an invoice is 14 days past its due date. One run for each invoice.', ['stripe', 'n8n'], true),
+  step('i1', 'I', [1, 0], 'trigger', 'Invoice overdue', '14 days, Stripe', 'Lightning', 'A Stripe automation sends invoice.overdue to an n8n webhook 14 days after an invoice’s due date. One run for each invoice.', ['stripe', 'n8n'], true),
   step('i2', 'I', [2, 0], 'agent', 'Read the invoice', 'Stripe, Moves, the log', 'ClipboardText', 'One tool call at a time: the amount due and payments in Stripe, the move it names and its coordinator in Moves, and any reminder already logged in Agent runs.', ['stripe', 'airtable']),
   step('i3', 'I', [3, 0], 'decision', 'Still owed?', 'And not yet reminded', 'Question', 'Is it still unpaid, with no reminder logged yet? Paid since, or already reminded once, and nothing is drafted for the customer.'),
   step('i4', 'I', [4, 0], 'ai', 'Draft the reminder', 'Claude, polite', 'PencilSimple', 'Claude drafts a short, polite reminder in the coordinator’s name: the invoice, the amount, the due date and its Stripe payment link. No fee and no discount.', ['claude']),
-  step('i5', 'I', [5, 0], 'gate', 'The coordinator’s yes', 'Approve in Telegram', 'UserCheck', 'An approval gate: the draft waits in the coordinators’ group for the move’s coordinator, with an n8n form: Approve or Change it. Nothing is sent until they approve.', ['telegram']),
+  step('i5', 'I', [5, 0], 'gate', 'The coordinator’s yes', 'Approve in Telegram', 'UserCheck', 'An approval gate: the draft waits in the coordinators’ group for the move’s coordinator, with an n8n form: Approve or Change it, and Coordinator. Nothing is sent until they approve.', ['telegram']),
   step('i6', 'I', [6, 0], 'end', 'Send the reminder', 'Gmail, then logged', 'PaperPlaneTilt', 'Gmail sends it from hello@harborandpine.example, and the run is logged in Agent runs with the coordinator’s yes. A reply reaches a person.', ['gmail', 'google-sheets']),
-  step('i7', 'I', [4, 1.5], 'end', 'Tell the coordinator', 'Telegram, a log only', 'Bell', 'The move’s coordinator hears the invoice is paid, or still open after a reminder, and calls if they choose. The run is logged in Agent runs.', ['telegram', 'google-sheets']),
+  step('i7', 'I', [4, 1.5], 'end', 'Tell the coordinator', 'Telegram, a log only', 'Bell', 'The coordinators hear the invoice is paid, already reminded or names no move, and a person calls if they choose. The run is logged in Agent runs.', ['telegram', 'google-sheets']),
 
   step('j1', 'J', [0, 0], 'trigger', 'A building asks', 'By email or phone', 'Buildings', 'A building’s management asks the move’s coordinator for a certificate of insurance before the move, with the holder and wording it needs.'),
   step('j2', 'J', [1, 0], 'step', 'Log the request', 'COI requests, by hand', 'Table', 'The coordinator gets the certificate from the insurer, attaches it to a row in COI requests and ticks Ready to check. No flow reaches the insurer.', ['airtable']),
@@ -169,7 +169,7 @@ const endToEnd: EndToEnd = {
       ['n8n', 'The automation tool estimate requests, the bot, both agents and the failed-run log run in.'],
       ['Make', 'The automation tool the move-day message runs in, with a Router that sends each move one of two ways.'],
       ['Zapier', 'The automation tool certificates of insurance run in, with a Filter and Human in the Loop.'],
-      ['Webhook', 'A web address the quote form posts to, which starts HP-01, and the one failed Make and Zapier steps post to.'],
+      ['Webhook', 'A web address another tool posts to: the quote form to HP-01, Stripe’s invoice.overdue to the Billing follow-up agent, and failed Make and Zapier steps to HP-H02.'],
       ['Claude', 'Anthropic’s AI model. It drafts HP-01’s range for the coordinators only, and answers, plans and drafts in the bot and the two agents.'],
       ['HubSpot', 'Where every estimate request is a deal in the Moves pipeline, owned by the coordinator who answered.'],
       ['Cal.com', 'Where customers book an on-site or video walkthrough with a coordinator.'],

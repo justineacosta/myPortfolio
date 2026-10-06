@@ -62,7 +62,7 @@ const agents: Agents = {
           what: 'What the bot may answer from: Harbor & Pine’s pricing guide and its FAQ, both written from what the site says. Nothing outside them counts, and the coordinators’ rate card is never in them.',
           pins: [
             { id: 'guide', name: 'Pricing guide', icon: 'FileText', what: 'How a move is priced, in words and with no rates: a written range from the rooms, stairs, access, parking, distance and packing; flexible dates usually price lower; the estimate holds unless the inventory changes; paper, cartons and tape are in the quoted price; no fuel surcharge invented on the tailgate; no deposit to hold a date.' },
-            { id: 'faq', name: 'FAQ', icon: 'Question', what: 'The answers the coordinators give most: the eight towns from Bellhaven to Cormorant Isle, the free on-site walkthrough within 20 miles of Bellhaven, long-distance runs on Tuesdays and Fridays with two to four days in transit, the six services, custom crating, ferry scheduling, certificates of insurance and the hours.' },
+            { id: 'faq', name: 'FAQ', icon: 'Question', what: 'The answers the coordinators give most: the eight towns from Bellhaven to Cormorant Isle, the free on-site walkthrough within 20 miles of Bellhaven, long-distance runs on Tuesdays and Fridays with two to four days in transit, the six services, specialty items and custom crating, ferry scheduling, certificates of insurance and the hours.' },
           ],
         },
         { id: 'chunk', at: [1, 0], kind: 'step', label: 'Split into passages', sub: 'One answer each', icon: 'Scissors', what: 'The guide is cut section by section and the FAQ answer by answer, so a search returns just the part that matters.' },
@@ -77,7 +77,7 @@ const agents: Agents = {
         },
         { id: 'qembed', at: [1, 1], kind: 'step', label: 'Embed the question', sub: 'Same model', icon: 'Binary', what: 'The question goes through the same embeddings model, so it can be compared with the stored passages.' },
         { id: 'search', at: [3, 1], kind: 'step', label: 'Search', sub: 'Top 5 passages', icon: 'MagnifyingGlass', tools: ['supabase'], what: 'A vector search in Supabase finds the five passages closest in meaning to the question.' },
-        { id: 'answer', at: [4, 1], kind: 'step', label: 'Claude answers', sub: 'From the passages', icon: 'Sparkle', tools: ['claude'], what: 'Claude gets the question and those five passages, with one rule: answer only from them. It never gives a price, a range, a date or a figure, and it cannot see any deal, move or invoice.' },
+        { id: 'answer', at: [4, 1], kind: 'step', label: 'Claude answers', sub: 'From the passages', icon: 'Sparkle', tools: ['claude'], what: 'Claude gets the question and those five passages, with one rule: answer only from them. It never gives a price or a range, never invents a date or a figure, and it cannot see any deal, move or invoice.' },
         { id: 'sure', at: [5, 1], kind: 'branch', label: 'Sure from a passage?', sub: 'The guide settles it', icon: 'Question', what: 'Did the passages hold the answer? How an estimate works counts as yes; what a move will cost is answered with how the price is set, never a figure. A damage claim, a booked move, an invoice or anything the guide does not say counts as no.' },
         { id: 'reply', at: [6, 1], kind: 'end', label: 'Reply with source', sub: 'Names the passage', icon: 'ArrowBendUpLeft', what: 'The answer goes straight back in the chat, with the passage it came from, so the customer can check it. A live answer from the guide and FAQ needs no one’s yes.' },
         { id: 'book', at: [7, 1], kind: 'end', label: 'Start your estimate', sub: 'The quote form', icon: 'ClipboardText', what: 'When someone wants a price, the bot opens the three-step quote form, where a coordinator reads every request and replies the same working day with a written range, or books a walkthrough. It offers (555) 014-2200 too, and books nothing itself.' },
@@ -124,20 +124,20 @@ const agents: Agents = {
       steps: [
         {
           id: 'trigger', at: [0, 0], kind: 'start', label: 'Overdue or booked', sub: 'Stripe or Cal.com', icon: 'Lightning', pinType: 'TRIGGER',
-          what: 'Two things start a run: Stripe telling n8n an invoice is 14 days past its due date, for the Billing follow-up agent, or a walkthrough booked in Cal.com, for the Walkthrough prep agent.',
+          what: 'Two things start a run: Stripe’s invoice.overdue event, which a Stripe automation sends to an n8n webhook 14 days after an invoice’s due date, for the Billing follow-up agent, or a walkthrough booked in Cal.com, for the Walkthrough prep agent.',
           pins: [
-            { id: 'stripe', name: 'An overdue invoice', tool: 'stripe', what: 'An invoice 14 days past its due date. Invoices are raised by hand in Stripe after the move, with the move named on them, so the agent can find its coordinator.' },
+            { id: 'stripe', name: 'An overdue invoice', tool: 'stripe', what: 'A Stripe automation sends the invoice.overdue event to an n8n webhook 14 days after an invoice’s due date. Invoices are raised by hand in Stripe after the move, with the move named on them, so the agent can find its coordinator.' },
             { id: 'walkthrough', name: 'A walkthrough booked', tool: 'cal-com', what: 'A customer books a time on the On-site walkthrough or Video walkthrough page, from the link HP-01 sent when a coordinator chose Walkthrough.' },
           ],
         },
         { id: 'plan', at: [1, 0], kind: 'step', label: 'Claude plans', sub: 'Picks the next step', icon: 'Brain', tools: ['claude'], what: 'Claude reads the goal, an overdue invoice to follow up or a walkthrough to prepare, then picks the single next step and the tool it needs.' },
         {
           id: 'tool', at: [2, 0], kind: 'step', label: 'Use a tool', sub: 'One call at a time', icon: 'Wrench', pinType: 'TOOL',
-          what: 'n8n makes one tool call for Claude, and every call reads: Stripe, Moves in Airtable, the deal in HubSpot, the booking in Cal.com, the guide and FAQ, or the Agent runs log. Nothing is changed, charged or booked.',
+          what: 'n8n makes one tool call for Claude, and every call reads: Stripe, Moves in Airtable, the deal in HubSpot, the booking in Cal.com, the guide and FAQ, or the Agent runs log. Nothing is changed, charged or booked. For an invoice, an empty Agent runs log means not reminded yet, and an invoice that names no move in Moves goes to a person in the coordinators’ group, with nothing drafted.',
           pins: [
             { id: 'stripe', name: 'Stripe', tool: 'stripe', what: 'The invoice: the amount due, the due date, any payment made and its own Stripe payment page. Read only: no invoice is changed, voided or charged.' },
             { id: 'moves', name: 'Moves', tool: 'airtable', what: 'The move the invoice names: its date, its Status and its coordinator, a link to Team. Read only.' },
-            { id: 'deal', name: 'The deal', tool: 'hubspot', what: 'The request in the Moves pipeline: moving from and to, the target moving date, the home or office size, the service and the coordinator who owns it. Read only.' },
+            { id: 'deal', name: 'The deal', tool: 'hubspot', what: 'Found from the booking by the attendee’s email: that contact’s most recent open deal at Walkthrough. With two open deals there, it writes no brief and asks the coordinators’ group which move it is. The request in the Moves pipeline: moving from and to, the target moving date, the home or office size, the service and the coordinator who owns it. Read only.' },
             { id: 'booking', name: 'The booking', tool: 'cal-com', what: 'The walkthrough’s time, on site or by video, and anything the customer wrote in its notes, like a baby grand or a third-floor walk-up.' },
             { id: 'guide', name: 'Guide and FAQ', tool: 'supabase', what: 'The same passages the Help-desk bot answers from: the eight towns, the free walkthrough within 20 miles of Bellhaven, the ferry to Cormorant Isle, long-distance runs and specialty items.' },
             { id: 'sheets', name: 'Agent runs', tool: 'google-sheets', what: 'The log of earlier runs, read so an invoice already followed up is never reminded twice.' },
@@ -146,7 +146,7 @@ const agents: Agents = {
         },
         { id: 'check', at: [3, 0], kind: 'branch', label: 'Check the result', sub: 'Done yet?', icon: 'ListChecks', what: 'Claude looks at what came back. If the job is not done yet, it goes back to plan the next step.' },
         { id: 'needs', at: [4, 0], kind: 'branch', label: 'Customer’s inbox?', sub: 'Or the coordinator', icon: 'ShieldCheck', what: 'Is a draft on its way to a customer’s inbox? Then it waits for the move’s coordinator. A walkthrough brief, a paid invoice or one already followed up goes to the coordinator only, with no gate.' },
-        { id: 'gate', at: [5, 0], kind: 'gate', label: 'The coordinator’s yes', sub: 'Approve in Telegram', icon: 'UserCheck', tools: ['telegram'], what: 'The draft waits in the coordinators’ Telegram group, named for the move’s coordinator, with a button that opens an n8n form: Approve or Change it. Opening it records nothing; only the form’s submit does.' },
+        { id: 'gate', at: [5, 0], kind: 'gate', label: 'The coordinator’s yes', sub: 'Approve in Telegram', icon: 'UserCheck', tools: ['telegram'], what: 'The draft waits in the coordinators’ Telegram group, named for the move’s coordinator, with a button that opens an n8n form: Approve or Change it, and Coordinator, who is answering. Opening it records nothing; only the form’s submit does, and Agent runs logs that name.' },
         {
           id: 'act', at: [6, 0], kind: 'end', label: 'Send and log', sub: 'Approved or internal', icon: 'PaperPlaneTilt', pinType: 'OUTPUT',
           what: 'An approved reminder goes from hello@harborandpine.example in the coordinator’s name, a brief or a note goes to the coordinators’ group, and every run is logged in the Agent runs tab.',
@@ -189,7 +189,7 @@ const agents: Agents = {
     {
       id: 'helpdesk', kind: 'rag', name: 'Help-desk RAG bot', business: BUSINESS,
       line: 'Answers Harbor & Pine Moving Co.’s customers from the pricing guide and FAQ; damage claims go to a person. It answers in the site chat only and never prices a move: it says how an estimate works, then offers the quote form or a call.',
-      example: { ask: 'Do you move pianos, and what does it add?', answer: 'Yes: uprights and baby grands, with custom crating built in-house when an item needs it. I can’t price it here. Start your estimate and a coordinator replies the same working day with a written range, or books a walkthrough. (Pricing guide, Specialty items)' },
+      example: { ask: 'Do you move pianos, and what does it add?', answer: 'Yes: uprights and baby grands, with custom crating built in-house when an item needs it. I can’t price it here. Start your estimate and a coordinator replies the same working day with a written range, or books a walkthrough. (FAQ, Specialty items)' },
       tools: ['claude', 'supabase', 'n8n'],
       routes: ['prepare', 'answered', 'handoff', 'booked'],
       pins: ['docs:guide', 'docs:faq', 'ask:chat', 'handoff:phone', 'handoff:email', 'handoff:claim'],
@@ -224,7 +224,7 @@ const agents: Agents = {
     tools: 'Tools',
   },
   guardrails: [
-    { mark: 'G1', icon: 'Quotes', title: 'Answers only from the guide and FAQ', text: 'The bot answers from the passages it found and names them. It never gives a price, a range, a date or a figure, and the coordinators’ rate card is never in its store. It cannot see a deal, a move or an invoice, books nothing, takes no payment and never emails.' },
+    { mark: 'G1', icon: 'Quotes', title: 'Answers only from the guide and FAQ', text: 'The bot answers from the passages it found and names them. It never gives a price or a range, never invents a date or a figure, and the coordinators’ rate card is never in its store. It cannot see a deal, a move or an invoice, books nothing, takes no payment and never emails.' },
     { mark: 'G2', icon: 'HandPalm', title: 'No price from a bot', text: `The site promises ${PROMISE} Asked what a move costs, the bot says how an estimate is set and opens the quote form, where a coordinator replies the same working day with a written range, or books a walkthrough. A damage claim, a booked move, an invoice or anything the guide does not settle goes to a person, by phone or email.` },
     { mark: 'G3', icon: 'ShieldCheck', title: 'The coordinator says yes to every customer email', text: `${YES} Every reminder the Billing follow-up agent drafts stops in the coordinators’ Telegram group for the move’s coordinator, and each run is logged with their yes. It never changes an invoice, adds a fee or offers a discount. The walkthrough brief goes to the coordinator only and holds no range. The move-day message is a fixed template and sends on its own, and the bot answers live, in the site chat only.` },
     { mark: 'G4', icon: 'Truck', title: 'Ferries, reviews and claims stay by hand', text: 'No build reaches a ferry operator, a crane hire, the insurer, a building’s portal or a review site, and none is claimed. The coordinators book ferries, cranes and crating by hand, and a person handles every damage claim and refund.' },
@@ -241,7 +241,7 @@ const agents: Agents = {
     ['Written range', 'A low and a high figure for a move, sent only by a coordinator, the same working day.'],
     ['Walkthrough', 'A coordinator counting rooms, stairs, access and parking, on site within 20 miles of Bellhaven or over video.'],
     ['Agent', 'An AI that takes a goal, picks its own tools and works step by step until the job is done.'],
-    ['Trigger', 'The event that starts a run: an invoice 14 days overdue, or a walkthrough booked.'],
+    ['Trigger', 'The event that starts a run: Stripe’s invoice.overdue, sent 14 days after an invoice’s due date, or a walkthrough booked.'],
     ['Tool call', 'One action an agent asks for, like reading an invoice in Stripe or a deal in HubSpot.'],
     ['Agent runs', 'The Google Sheets tab that logs each agent run: the time, each tool call and who said yes.'],
     ['Loop-back', 'A cable back to an earlier step: the agent tries again, or redoes a draft the coordinator sent back.'],

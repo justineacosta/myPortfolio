@@ -108,7 +108,7 @@ const framework: AgenticFramework = {
     ['Claude Code', 'Anthropic’s AI coding tool. It works in the terminal, on real files.'],
     ['VS Code', 'Visual Studio Code, the code editor where I read what was written and edit by hand.'],
     ['Codex', 'OpenAI’s coding agent, used here to review work it did not write.'],
-    ['Claude', 'Anthropic’s AI model, which works inside the estimate flow, the bot and the agents as well as building them.'],
+    ['Claude', 'Anthropic’s AI model inside the estimate flow, the bot and the two agents once they ship. Claude Code is what builds them.'],
     ['Opus', 'Claude’s most capable model, used for planning.'],
     ['Sonnet', 'Claude’s faster model, used for most of the building and inside the flow, the bot and the agents.'],
     ['n8n', 'The automation tool HP-01 runs in. A workflow can be written as a file and imported.'],

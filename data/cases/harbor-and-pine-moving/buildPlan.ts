@@ -231,7 +231,7 @@ const plan: Plan = {
   },
   data: {
     title: 'Where the data lives',
-    blurb: 'HubSpot for the sales board, three Airtable tables for the work, and three sheet tabs.',
+    blurb: 'HubSpot for the sales board, three Airtable tables for the work, and four sheet tabs.',
     rail: [
       { heading: 'Source of truth', body: 'HubSpot holds who asked and every estimate, as deals in the Moves pipeline. Airtable holds the work once a move is booked: the moves, the team and certificate requests. Google Sheets holds the rate card and the logs.' },
       { heading: 'One vocabulary per field', body: 'Every choice field takes one fixed list, and the flows, the templates and this page use the same words for it.' },
@@ -259,6 +259,7 @@ const plan: Plan = {
       ['Rate card', 'The coordinators’ crew, truck, mileage, packing and specialty rates, kept by Marisol and read by HP-01'],
       ['Failed runs', 'One row per failed run, from n8n, Make or Zapier, with no customer details'],
       ['Test matrix', 'The test rows below, with results'],
+      ['Agent runs', 'One row per run of the Billing follow-up or Walkthrough prep agent: the time, each tool call and who said yes, planned on the AI agents page'],
     ],
   },
   triggers: {
@@ -317,7 +318,7 @@ const plan: Plan = {
     blurb: 'Five phases, in the order they are built.',
     rail: [{ heading: 'Order', body: 'Foundation first, then one platform at a time, in the order of their codes: estimates on n8n, the move-day message on Make, then certificates on Zapier.' }],
     phases: [
-      { name: '1 · Foundation', tasks: ['Set up the Moves pipeline and its deal properties in HubSpot', 'Create the Airtable tables Moves, Team and COI requests', 'Create the Sheets tabs: Rate card, Failed runs, Test matrix', 'Add the connections on each platform: HP · HubSpot, HP · Gmail for hello@, HP · Telegram, HP · Airtable, HP · Anthropic', 'Build HP-H01 in n8n, then HP-H02 with HP-01 (not HP-H01) as the covered error workflow'] },
+      { name: '1 · Foundation', tasks: ['Set up the Moves pipeline and its deal properties in HubSpot', 'Create the Airtable tables Moves, Team and COI requests', 'Create the Sheets tabs: Rate card, Failed runs, Test matrix, Agent runs', 'Add the connections on each platform: HP · HubSpot, HP · Gmail for hello@, HP · Telegram, HP · Airtable, HP · Anthropic', 'Build HP-H01 in n8n, then HP-H02 with HP-01 (not HP-H01) as the covered error workflow'] },
       { name: '2 · Estimates on n8n', tasks: ['Fill the Rate card with Marisol', 'Set up the On-site walkthrough and Video walkthrough event types in Cal.com', 'Write both email templates with the coordinators', 'Build HP-01 with Limit Wait Time off on both Telegram gates, and point the form’s third step at /hp/estimate', 'Run tests t01–t09'] },
       { name: '3 · Move day on Make', tasks: ['Build HP-02, every writing or sending module with an error route to /hp/failed', 'Write the Tomorrow’s move template with the coordinators', 'Show the coordinators how Run once picks up a move they have just completed', 'Run tests t10–t15 with test moves'] },
       { name: '4 · Certificates on Zapier', tasks: ['Add Ready to check and the Ready changed field to COI requests', 'Build HP-03 with Name the answer and Log the answer before Approved only, and the Waiting view', 'Add the Zapier Manager zap that posts failures to /hp/failed', 'Run tests t16–t21 with a test manager’s address'] },
