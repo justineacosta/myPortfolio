@@ -158,7 +158,7 @@ describe('Funnels and sites: the case-page tabs', () => {
     expect(within(screen.getByRole('dialog', { name: `${NO_CASES} preview` })).queryByRole('tablist')).toBeNull()
   })
 
-  it('uses the real case list outside withoutCases(), so every site there has its tabs', () => {
+  it('gives Meridian Energy Infrastructure a tab row when the test keeps the real case list', () => {
     const preview = openSite(NO_CASES)
     expect(within(preview).getByRole('tablist', { name: 'Pages for this site' })).toBeInTheDocument()
   })
