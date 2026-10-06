@@ -18,7 +18,7 @@ const framework: AgenticFramework = {
   kicker: 'AGENTIC FRAMEWORK · TIDEWELL',
   heading: 'How I would build Tidewell with AI',
   lede: 'The tools, the rules and the loop I would use to build Tidewell’s site, its three flows, its Guest help bot and its two agents, one small branch at a time.',
-  stance: 'I make the calls and the AI does the typing. Owners approve repairs above $400, and a manager approves every rate change, every reply to a review and anything Claude drafts for an owner’s inbox.',
+  stance: 'I make the calls and the AI does the typing. Owners approve repairs above $400 unless guest safety is involved, and a manager approves every rate change, every reply to a review and anything Claude drafts for an owner’s inbox.',
   sections: [
     { id: 'glance', chip: 'At a glance', kicker: 'AT A GLANCE', title: 'Set up once, then loop, then ship', blurb: 'The whole framework for Tidewell in three lines.' },
     { id: 'jobs', chip: 'Two jobs', kicker: 'TWO JOBS', title: 'Who does what', blurb: 'The split that keeps Tidewell’s flows honest.' },
@@ -45,7 +45,7 @@ const framework: AgenticFramework = {
     { mark: '01', icon: 'TerminalWindow', tool: 'claude-code', title: 'Claude Code', text: 'The builder. Tidewell’s pages, the n8n workflow, the Make blueprints and a step list for each Zapier Zap, drafted from the build plan with a test for each branch.', note: 'Opus to plan, Sonnet to build' },
     { mark: '02', icon: 'FileCode', tool: 'vs-code', title: 'VS Code', text: 'The editor. Where I read every diff, and every prompt Claude will run inside a flow, and take over when precision beats speed.', note: 'Human in the loop' },
     { mark: '03', icon: 'Code', tool: 'codex', title: 'Codex', text: 'The second opinion. A fresh model reads each diff and each flow export for what the author missed.', note: 'Review pass, not a build pass' },
-    { mark: '04', icon: 'Sparkle', tool: 'claude', title: 'Claude', text: 'The model inside the flows. It outlines a projection, drafts a statement note, answers guests from the guides and proposes a rate. It never sends an email on its own.', note: 'Sonnet inside every flow' },
+    { mark: '04', icon: 'Sparkle', tool: 'claude', title: 'Claude', text: 'The model inside the bot, the agents and two of the three flows. It outlines a projection, drafts a statement note, answers guests from the guides and proposes a rate. TW-02 does not use it, and it never sends an email on its own.', note: 'Sonnet in the bot, agents, TW-01 and TW-03' },
   ],
   rules: [
     { mark: 'R1', icon: 'FileText', title: 'Write the spec first', text: 'If I cannot say in a paragraph what a flow promises an owner, the agent will not find it in a thousand tokens. The build plan is that paragraph.', note: 'Spec before prompt' },
@@ -106,7 +106,7 @@ const framework: AgenticFramework = {
     ['Codex', 'OpenAI’s coding agent, used here to review work it did not write.'],
     ['Claude', 'Anthropic’s AI model, which works inside Tidewell’s flows as well as building them.'],
     ['Opus', 'Claude’s most capable model, used for planning.'],
-    ['Sonnet', 'Claude’s faster model, used for most of the building and inside every flow.'],
+    ['Sonnet', 'Claude’s faster model, used for most of the building and inside the bot, the agents, TW-01 and TW-03.'],
     ['n8n', 'The automation tool TW-01 runs in. A workflow can be written as a file and imported.'],
     ['Make', 'The automation tool repair approval runs in. A scenario can be imported as a blueprint.'],
     ['Blueprint', 'A Make scenario saved as a file, so it can be drafted, read and imported.'],

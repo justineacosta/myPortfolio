@@ -73,7 +73,7 @@ const agents: Agents = {
         { id: 'reply', at: [6, 1], kind: 'end', label: 'Reply with source', sub: 'Names the guide', icon: 'ArrowBendUpLeft', what: 'The answer goes straight back in the chat, with the guide it came from, so the guest can check it. The bot never sends email.' },
         {
           id: 'handoff', at: [5, 2], kind: 'end', label: 'Hand to on call', sub: 'With the chat so far', icon: 'UserSwitch', pinType: 'HANDOFF',
-          what: 'A hand-off: the bot asks for a phone number, and the whole chat goes to the on-call person. A real person replies in under ten minutes, day or night.',
+          what: 'A hand-off: the bot asks for a phone number, and the whole chat goes to the on-call person. A real person replies, usually in under ten minutes, day or night.',
           pins: [
             { id: 'telegram', name: 'On-call chat', tool: 'telegram', what: 'The chat lands in the on-call person’s Telegram, pinned with sound when it is urgent.' },
             { id: 'phone', name: 'Phone', icon: 'Phone', what: 'The on-call person calls or texts the guest back. Anything that needs an email is written by a person, never the bot.' },
@@ -207,7 +207,7 @@ const agents: Agents = {
   },
   guardrails: [
     { mark: 'G1', icon: 'Quotes', title: 'Answers only from Tidewell’s guides', text: 'The bot answers from the passages it found and names the guide. It never gives a door code, a price or a date the guides do not hold. No source, no answer.' },
-    { mark: 'G2', icon: 'Siren', title: 'Lockouts and anything urgent go to a person', text: 'A lockout, a leak or no power goes straight to the on-call person in Telegram, who calls the guest back in under ten minutes. The bot does not try.' },
+    { mark: 'G2', icon: 'Siren', title: 'Lockouts and anything urgent go to a person', text: 'A lockout, a leak or no power goes straight to the on-call person in Telegram, who calls the guest back, usually in under ten minutes. The bot does not try.' },
     { mark: 'G3', icon: 'ShieldCheck', title: 'Rates and replies wait for the manager’s yes', text: 'Every rate Rate watch proposes moves an owner’s money, and every reply Review reply drafts goes to a guest, so both stop for the home’s manager in Telegram, who then sets the rate or posts the reply by hand. The bot never emails.' },
     { mark: 'G4', icon: 'Notebook', title: 'Every run is logged', text: 'Each agent run, tool call and approval lands in the Agent runs tab, with who said yes. Each chat is kept in n8n’s own run history.' },
   ],

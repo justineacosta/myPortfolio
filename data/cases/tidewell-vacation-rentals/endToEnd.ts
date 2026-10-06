@@ -36,23 +36,24 @@ const STEPS: Step[] = [
   step('b1', 'B', [0, 0], 'step', 'Assessment form', 'Two fields', 'Browser', 'The form sends the address and the email to an n8n webhook the moment it is sent. It asks nothing else, so the flow works from those two.', ['n8n']),
   step('b2', 'B', [1, 0], 'step', 'Guest help chat', 'On every page', 'ChatCircleDots', 'The chat behind Guest help on every page. It answers live from Tidewell’s guides, and it never sends an email.'),
 
-  step('c1', 'C', [0, 0], 'step', 'Find the market', 'Towns, in Airtable', 'MapPin', 'The webhook starts n8n. It looks for one of Tidewell’s nine towns in the address, and reads its market: the coast, the city or the mountains.', ['airtable']),
-  step('c2', 'C', [1, 0], 'decision', 'In our markets?', 'Nine towns', 'ArrowsSplit', 'An address in one of the three markets goes on to a manager. Any other address goes to the office.'),
+  step('c1', 'C', [0, 0], 'step', 'Find the market', 'Towns, in Airtable', 'MapPin', 'The webhook starts n8n. It looks for one of Tidewell’s eleven towns in the address, or a name one also goes by, like Wild Dunes, and reads its market: the coast, the city or the mountains.', ['airtable']),
+  step('c2', 'C', [1, 0], 'decision', 'In our markets?', 'Eleven towns', 'ArrowsSplit', 'An address in one of the three markets goes on to a manager. Any other address goes to the office.'),
   step('c3', 'C', [2, 0], 'step', 'Pick the manager', 'Fewest homes', 'IdentificationBadge', 'The manager in that market with the fewest homes, from those still under eighteen. The one who walks the house is the one who will run it.', ['airtable']),
   step('c4', 'C', [3, 0], 'step', 'Book the walkthrough', 'First free hour', 'CalendarCheck', 'Holds the first free hour in that manager’s Cal.com calendar, from two working days out, at the property. The owner can move it.', ['cal-com']),
   step('c5', 'C', [4, 0], 'step', 'Confirm the visit', 'A fixed template', 'EnvelopeSimple', 'A fixed template, not Claude, emails the date, time and manager from Gmail, and the owner and the assessment are saved in HubSpot. It sends on its own.', ['gmail', 'hubspot'], true),
   step('c6', 'C', [5, 0], 'ai', 'Outline a projection', 'For the manager only', 'Sparkle', 'Claude drafts an outline of the twelve-month projection from Tidewell’s homes in that town, and the manager gets it in Telegram. No owner sees it.', ['claude', 'telegram']),
   step('c7', 'C', [2, 1], 'end', 'Pass to the office', 'A HubSpot task', 'Buildings', 'An address outside the three markets is saved in HubSpot with a task, and the office is told on Telegram. A person writes back by hand.', ['hubspot', 'telegram']),
 
-  step('d1', 'D', [0, 0], 'trigger', 'A repair is logged', 'Jobs, every 15 min', 'Wrench', 'A manager or the crew logs a repair on the Jobs form in Airtable, with photos and a quote. Make picks it up within a quarter of an hour, on its own.', ['make', 'airtable'], true),
-  step('d2', 'D', [1, 0], 'decision', 'Above $400?', 'The quote amount', 'ArrowsSplit', 'Tidewell’s promise to owners: anything above $400 comes to them with photos and a quote. Anything less is the team’s to fix.'),
-  step('d3', 'D', [2, 1], 'step', 'Ask the owner', 'Photos and the quote', 'EnvelopeSimple', 'A fixed template emails the owner the photos, the quote and the amount, with two buttons: Approve and Decline. No words from Claude.', ['gmail']),
-  step('d4', 'D', [3, 1], 'gate', 'Owner’s yes', 'Approve or Decline', 'UserCheck', 'The owner’s money, so the owner’s yes. Nothing is booked until they press Approve, and an email left unanswered books nothing.', ['make']),
-  step('d5', 'D', [4, 0], 'step', 'Book the repair', 'To the crew', 'CalendarCheck', 'The job is marked Booked and sent to the maintenance crew for that market on Telegram.', ['airtable', 'telegram']),
-  step('d6', 'D', [5, 1], 'end', 'The manager calls', 'The owner declined', 'Phone', 'The job is marked Declined and the manager is told on Telegram. They call the owner to agree what happens next.', ['telegram']),
+  step('d1', 'D', [0, 1], 'trigger', 'A repair is logged', 'Jobs, every 15 min', 'Wrench', 'A manager or the crew logs a repair on the Jobs form in Airtable, with photos and a quote. Make picks it up within a quarter of an hour, on its own.', ['make', 'airtable'], true),
+  step('d2', 'D', [1, 1], 'decision', 'Over $400?', 'The quote', 'ArrowsSplit', 'Tidewell’s rule for owners: “Repairs above $400 need your approval unless guest safety is involved.” Anything less is the team’s to fix.'),
+  step('d3', 'D', [2, 2], 'step', 'Ask the owner', 'Photos and the quote', 'EnvelopeSimple', 'A fixed template emails the owner the photos, the quote and the amount, with two buttons: Approve and Decline. No words from Claude.', ['gmail']),
+  step('d4', 'D', [3, 2], 'gate', 'Owner’s yes', 'Approve or Decline', 'UserCheck', 'The owner’s money, so the owner’s yes. Each button opens a confirm page, and only Confirm there counts, so a mail scanner opening the link answers nothing. An email left unanswered books nothing.', ['make']),
+  step('d5', 'D', [5, 1], 'step', 'Book the repair', 'To the crew', 'CalendarCheck', 'The job is marked Booked and sent to the maintenance crew for that market on Telegram.', ['airtable', 'telegram']),
+  step('d6', 'D', [4, 2], 'end', 'The manager calls', 'The owner declined', 'Phone', 'The job is marked Declined and the manager is told on Telegram. They call the owner to agree what happens next.', ['telegram']),
+  step('d7', 'D', [2, 0], 'end', 'Booked for safety', 'Owner emailed', 'FirstAidKit', 'Above $400, but the manager ticked Guest safety on the Jobs form, and that tick is the yes the site allows. The job is booked and sent to the crew at once, and a fixed template emails the owner that it is already booked, for guest safety.', ['airtable', 'gmail']),
 
   step('e1', 'E', [0, 0], 'trigger', 'On the 9th', 'Schedule by Zapier', 'CalendarBlank', 'Zapier wakes on the morning of the 9th and takes every home still waiting for last month’s statement.', ['zapier'], true),
-  step('e2', 'E', [1, 0], 'step', 'Compile the month', 'Every figure, Airtable', 'Calculator', 'Bookings, the 22% management fee, repairs and restocking, added up from rows in Airtable. Every figure comes from a row, never from Claude.', ['airtable']),
+  step('e2', 'E', [1, 0], 'step', 'Compile the month', 'Every figure, Airtable', 'Calculator', 'Bookings, the home’s management fee (22% on the sample statement), repairs and restocking, added up from rows in Airtable. Every figure comes from a row, never from Claude.', ['airtable']),
   step('e3', 'E', [2, 0], 'ai', 'Draft the note', 'Claude, under 90 words', 'Sparkle', 'Claude drafts the manager’s note: what was fixed and when, what is coming up, and anything the owner will need to decide.', ['claude']),
   step('e4', 'E', [3, 0], 'gate', 'Manager’s yes', 'Zapier review page', 'UserCheck', 'Zapier emails the home’s manager a link to its review page, with the statement and the note. They approve it or reject it to rewrite. No answer, nothing sent.', ['zapier']),
   step('e5', 'E', [4, 0.5], 'step', 'Manager rewrites', 'In their own words', 'PencilSimple', 'The manager writes the note as it should read, on a second review page. Only their words go out.', ['zapier']),
@@ -62,7 +63,7 @@ const STEPS: Step[] = [
   step('f2', 'F', [1, 0], 'ai', 'Claude answers', 'Only from passages', 'Sparkle', 'Claude gets the question and the five passages, with one rule: answer only from them. It never gives a door code, a price or a date the guides lack.', ['claude']),
   step('f3', 'F', [2, 0], 'decision', 'Sure and not urgent?', 'A guide settles it', 'Question', 'Did a guide hold the answer? A lockout, a leak or anything urgent counts as no, and so does anything the guides do not say. The bot never guesses.'),
   step('f4', 'F', [3, 0], 'end', 'Reply with a source', 'Live, in the chat', 'ArrowBendUpLeft', 'The answer goes straight back in the chat with the guide it came from. A live answer from Tidewell’s own guides needs no yes.'),
-  step('f5', 'F', [3, 1], 'end', 'Hand to on call', 'Pinned in Telegram', 'UserSwitch', 'The whole chat goes to the on-call person in Telegram, pinned with sound. A real person calls or writes back in under ten minutes. Email stays with people.', ['telegram']),
+  step('f5', 'F', [3, 1], 'end', 'Hand to on call', 'Pinned in Telegram', 'UserSwitch', 'The whole chat goes to the on-call person in Telegram, pinned with sound. A real person calls or writes back, usually in under ten minutes. Email stays with people.', ['telegram']),
 
   step('g1', 'G', [0, 0], 'trigger', 'Every morning', '7 am, on a schedule', 'Clock', 'At 7 am n8n starts the agent once for each home. A schedule runs it, not anyone remembering.', ['n8n'], true),
   step('g2', 'G', [1, 0], 'agent', 'Compare nearby rates', 'Airtable and listings', 'Wrench', 'One tool call at a time: the home’s nightly rate and occupancy from Airtable, then nearby homes’ rates, from a feed Tidewell supplies or a sheet the team fills from the listing sites.', ['airtable']),
@@ -90,7 +91,9 @@ const STEPS: Step[] = [
 
 /** Lanes whose steps read in order, one per column, carry numbers; a branch’s side exit does not. */
 const NUMBERED = new Set<LaneId>(['C', 'D', 'E', 'G', 'H', 'I', 'J'])
-const SIDE = new Set(['c7', 'd6'])
+const SIDE = new Set(['c7', 'd6', 'd7'])
+/** A step whose number is not its column: Book the repair sits a column right, to keep the cables clear. */
+const NUMBER: Record<string, number> = { d5: 5 }
 
 // Order matters for the layout: cables that share a gap take its slots in turn, and side-channel cables take tracks from the outside in.
 const CABLES: Cable[] = [
@@ -105,7 +108,8 @@ const CABLES: Cable[] = [
   flow('c6', 'i1'),
   ...chain('d1', 'd2'),
   flow('d2', 'd5', '$400 or less'),
-  flow('d2', 'd3', 'yes'),
+  flow('d2', 'd3', 'over $400'),
+  flow('d2', 'd7', 'safety'),
   flow('d3', 'd4'),
   flow('d4', 'd5', 'approve'),
   flow('d4', 'd6', 'decline'),
@@ -137,10 +141,10 @@ const endToEnd: EndToEnd = {
   kicker: 'END TO END · TIDEWELL',
   heading: 'From an owner’s first request to the payout',
   lede: 'Every trigger, flow, bot and agent behind Tidewell’s site, wired as one graph: an owner’s assessment, the walkthrough, guests and their questions, repairs, rates and reviews, and the statement that arrives by the tenth with payment the same day.',
-  stance: 'Owners approve every repair above $400, and a manager approves every rate change, every reply to a review and anything Claude drafts for an owner’s inbox.',
+  stance: 'Owners approve every repair above $400 unless guest safety is involved, and a manager approves every rate change, every reply to a review and anything Claude drafts for an owner’s inbox.',
   caption: 'Tidewell, end to end · 10 lanes',
   lanes: LANES,
-  steps: STEPS.map((s) => (NUMBERED.has(s.lane) && !SIDE.has(s.id) ? { ...s, n: s.at[0] + 1 } : s)),
+  steps: STEPS.map((s) => (NUMBERED.has(s.lane) && !SIDE.has(s.id) ? { ...s, n: NUMBER[s.id] ?? s.at[0] + 1 } : s)),
   cables: CABLES,
   legend: [
     { id: 'cable', label: 'Cable', what: 'An owner, a guest, a job or a statement moving from one step to the next.' },
@@ -169,9 +173,11 @@ const endToEnd: EndToEnd = {
       ['Walkthrough', 'The hour a manager spends at the property before writing the projection.'],
       ['Projection', 'The written twelve-month revenue projection the manager sends after the walkthrough.'],
       ['Jobs form', 'The Airtable form a repair is logged on, with photos and a quote, which starts TW-02.'],
-      ['Management fee', 'Tidewell’s 22% of gross booking revenue, shown on every statement.'],
+      ['Guest safety', 'A box only a manager’s Jobs form has. Ticked on a repair above $400, it is the yes, and the owner is told the repair is already booked.'],
+      ['Confirm page', 'The page an owner’s Approve or Decline button opens. Only its Confirm button records the answer, so a mail scanner opening the link changes nothing.'],
+      ['Management fee', 'Tidewell’s share of booking revenue, 20–25% depending on the home and market, and 22% on the sample statement. Shown on every statement.'],
       ['Review page', 'A page Zapier hosts where the manager approves a note or rejects it to rewrite.'],
-      ['Approval gate', 'A hard stop. No repair above $400, rate change, reply to a review or draft for an owner’s inbox goes on until the right person says yes.'],
+      ['Approval gate', 'A hard stop. No repair above $400 (unless a manager ticks Guest safety), rate change, reply to a review or draft for an owner’s inbox goes on until the right person says yes.'],
       ['Check-in guide', 'How arrival works at a Tidewell home, from the door code to check-out.'],
       ['House rules', 'One set per home, like whether a dog may come.'],
       ['Local guide', 'Where Tidewell’s staff eat, swim and take visiting family.'],
