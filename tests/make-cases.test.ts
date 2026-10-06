@@ -9,12 +9,15 @@ import { CASE_PAGES, casePath } from '@/data/cases/pages'
 import { endToEnd } from '@/data/endToEnd'
 import { renderCases } from '@/lib/cases/render'
 
+// Each of the first two tests renders every case page, which grows with each site; under the full suite’s load that outruns the default five seconds.
+const ALL_PAGES = { timeout: 30_000 }
+
 describe('renderCases', () => {
-  it('writes every page each case has, and the committed files are up to date', () => {
+  it('writes every page each case has, and the committed files are up to date', ALL_PAGES, () => {
     for (const { path, html } of renderCases()) expect(readFileSync(`public${path}`, 'utf8').replace(/\r/g, ''), path).toBe(html)
   })
 
-  it('resolves every in-page link on every case page', () => {
+  it('resolves every in-page link on every case page', ALL_PAGES, () => {
     for (const { path, html } of renderCases()) {
       const doc = new DOMParser().parseFromString(html, 'text/html')
       const hrefs = [...doc.querySelectorAll('a[href^="#"]')].map((a) => a.getAttribute('href')!)
