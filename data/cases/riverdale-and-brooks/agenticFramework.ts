@@ -21,7 +21,7 @@ const framework: AgenticFramework = {
   kicker: 'AGENTIC FRAMEWORK · RIVERDALE & BROOKS',
   heading: 'How I would build Riverdale & Brooks with AI',
   lede: 'The tools, the rules and the loop I would use to build the firm’s site, its three flows, its Practice Q&A bot and its two agents, one small branch at a time, under one rule above the rest: nothing confidential in any of them, and no legal advice from any of them.',
-  stance: `I make the calls and the AI does the typing. ${YES} The legal rule holds everywhere: nothing confidential is stored in Claude, HubSpot, Airtable or any flow, and the conflict check is done by hand.`,
+  stance: `I make the calls and the AI does the typing. ${YES} The legal rule holds everywhere: nothing confidential is stored in Claude, Airtable, Telegram or any flow, and the conflict check is done by hand.`,
   sections: [
     { id: 'glance', chip: 'At a glance', kicker: 'AT A GLANCE', title: 'Set up once, then loop, then ship', blurb: 'The whole framework for Riverdale & Brooks in three lines.' },
     { id: 'jobs', chip: 'Two jobs', kicker: 'TWO JOBS', title: 'Who does what', blurb: 'The split that keeps the firm’s flows honest.' },
@@ -87,8 +87,8 @@ const framework: AgenticFramework = {
   },
   example: {
     items: [
-      { stage: 'Frame', text: 'Read the site: one form, Request a consultation, with an optional box for a few sentences about a situation and the line “Please don’t include confidential details yet”, a reply promised within one business day, and a consultation that is free for estate planning and otherwise $150 for thirty minutes, credited. Done means every request gets the right fee and a booking link within a minute, Ruth knows who asked, and the few sentences reach Daniel’s inbox alone and are saved nowhere.' },
-      { stage: 'Frame', text: 'Wrote RB-01’s spec and its seven test rows before any node: estate planning with the box filled, another area left blank, Something else, the same email twice, a sweep for TEST-SITUATION-01 in every store, a step that fails, and the Cal.com pages asking nothing more.' },
+      { stage: 'Frame', text: 'Read the site: one form, Request a consultation, with an optional box for a few sentences about a situation and the line “Please don’t include confidential details yet”, a reply promised within one business day, and a consultation that is free for estate planning and otherwise $150 for thirty minutes, credited. Done means every request gets the right fee and a link to request a time within a minute, Ruth knows who asked, and the few sentences reach Daniel’s inbox alone and are saved nowhere.' },
+      { stage: 'Frame', text: 'Wrote RB-01’s spec and its eight test rows before any node: estate planning with the box filled, another area left blank, Something else, the same email twice, a sweep for TEST-SITUATION-01 in every store, a step that fails, the Cal.com pages asking nothing more, and a booking held as a request until Ruth confirms it.' },
       { stage: 'Build', text: 'Built one branch per session, test first: the webhook and Keep contact and area, the Contacts row, Situation written? and the email to Daniel on his own connection, the Estate planning? switch and its two template replies, then the alert to Ruth through RB-H01.' },
       { stage: 'Check', text: 'Ran each row with test contacts and a test calendar. The TEST-SITUATION-01 sweep failed: Alert Ruth read the form from the Webhook step rather than from Keep contact and area, and the marker reached Ruth’s Telegram. Then a fresh reviewer model read the n8n export and saw that To Daniel’s inbox used the office@ connection, so a copy of the few sentences sat in the sent mail of office@, the shared mailbox, instead of only in Daniel’s own.' },
       { stage: 'Fold back', text: 'Each fix went in behind a check that failed first. Two rules went into CLAUDE.md: only Situation written? and To Daniel’s inbox may read the few sentences, and every other step reads from Keep contact and area; and the few sentences travel only on Daniel’s own Gmail connection, from and to daniel@, which no other step uses.' },
@@ -110,7 +110,7 @@ const framework: AgenticFramework = {
     ['Claude', 'Anthropic’s AI model, which works inside the firm’s bot and agents as well as building them.'],
     ['Opus', 'Claude’s most capable model, used for planning.'],
     ['Sonnet', 'Claude’s faster model, used for most of the building and inside the bot and agents.'],
-    ['Legal rule', 'Nothing confidential is stored in Claude, HubSpot, Airtable or any flow, and the conflict check is done by hand. What a matter is about stays with Daniel.'],
+    ['Legal rule', 'Nothing confidential is stored in Claude, Airtable, Telegram or any flow, and the conflict check is done by hand. What a matter is about stays with Daniel.'],
     ['Legal advice', 'Advice on someone’s own situation. Daniel gives it to his clients; no bot or agent ever does.'],
     ['Conflict check', 'Making sure the firm acts for no one on the other side. Daniel or Ruth runs it by hand, never a flow.'],
     ['Few sentences', 'The optional box on the form. They pass through n8n and Gmail only to reach Daniel’s inbox, and are saved nowhere.'],
@@ -119,7 +119,7 @@ const framework: AgenticFramework = {
     ['Blueprint', 'A Make scenario saved as a file, so it can be drafted, read and imported.'],
     ['Zapier', 'The automation tool the milestone notice runs in. Each Zap is built by hand from its step list.'],
     ['Webhook', 'An address a form posts to. Send request posts to RB-01’s webhook, /rb/consultation.'],
-    ['Connection', 'A sign-in a platform holds for one account. Daniel’s Gmail connection is his alone, and no other step uses it.'],
+    ['Connection', 'A sign-in a platform holds for one account. Daniel’s Gmail connections are his alone, and only the steps that send or draft from his address use them.'],
     ['Execution', 'n8n’s saved copy of a run. RB-01 saves none, so no request is kept in n8n.'],
     ['Stripe test mode', 'Stripe’s practice mode, where test cards pay and no money moves.'],
     ['Spec', 'A short written description of what done looks like, agreed before any code.'],
