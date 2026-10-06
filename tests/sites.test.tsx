@@ -55,11 +55,11 @@ describe('Funnels and sites: the carousel and the preview', () => {
 
   it('opens a site in the preview window, with the page and a new-tab link', async () => {
     const view = openSites()
-    fireEvent.click(within(view).getByRole('button', { name: 'Open Harbor & Pine Moving Co.' }))
-    const preview = screen.getByRole('dialog', { name: 'Harbor & Pine Moving Co. preview' })
+    fireEvent.click(within(view).getByRole('button', { name: 'Open Oriel' }))
+    const preview = screen.getByRole('dialog', { name: 'Oriel preview' })
     expect(preview).toHaveAttribute('open')
     expect(within(preview).getByRole('link', { name: 'Open in new tab' })).toHaveAttribute('href', sites[0].src)
-    const frame = await within(preview).findByTitle('Harbor & Pine Moving Co.')
+    const frame = await within(preview).findByTitle('Oriel')
     expect(frame).toHaveAttribute('src', sites[0].src)
     // A dropped-in client export may carry third-party scripts: they run, but not as the portfolio.
     expect(frame.getAttribute('sandbox')).toContain('allow-scripts')
@@ -83,7 +83,7 @@ describe('Funnels and sites: the carousel and the preview', () => {
     const preview = screen.getByRole('dialog', { name: 'Meridian Werks preview' })
     // Nothing loads until the page is known to exist: never a 404 inside the window.
     expect(within(preview).queryByTitle('Meridian Werks')).toBeNull()
-    expect(await within(preview).findByText(sites[3].file)).toBeInTheDocument()
+    expect(await within(preview).findByText(sites.find((s) => s.name === 'Meridian Werks')!.file)).toBeInTheDocument()
     expect(within(preview).queryByTitle('Meridian Werks')).toBeNull()
     expect(within(preview).getByRole('link', { name: 'Open in new tab' })).toBeInTheDocument()
   })
@@ -108,7 +108,7 @@ describe('Funnels and sites: the drum', () => {
   it('spins up the drum, and a pick opens the preview', async () => {
     const view = openSites()
     fireEvent.click(await within(view).findByText('drum pick'))
-    expect(screen.getByRole('dialog', { name: 'Harbor & Pine Moving Co. preview' })).toHaveAttribute('open')
+    expect(screen.getByRole('dialog', { name: 'Oriel preview' })).toHaveAttribute('open')
     expect(carousel(view)).toBeNull()
   })
 
@@ -157,7 +157,7 @@ describe('Funnels and sites: the drum', () => {
     const view = openSites()
     fireEvent.click(await within(view).findByText('drum pick'))
     expect(within(view).getByTestId('drum')).toHaveAttribute('data-paused', 'true')
-    const preview = screen.getByRole('dialog', { name: 'Harbor & Pine Moving Co. preview' })
+    const preview = screen.getByRole('dialog', { name: 'Oriel preview' })
     fireEvent.click(within(preview).getByRole('button', { name: projects.sitesView.preview.close }))
     expect(within(view).getByTestId('drum')).toHaveAttribute('data-paused', 'false')
   })
