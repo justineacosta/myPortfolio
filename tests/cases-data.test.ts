@@ -5,7 +5,7 @@ import { agents, type Agents } from '@/data/agents'
 import { automations } from '@/data/automations'
 import { plan } from '@/data/buildPlan'
 import { CASES, withSite } from '@/data/cases'
-import { CASE_PAGES, CASE_SITES, casePath, type CasePageId } from '@/data/cases/pages'
+import { CASE_PAGES, CASE_SITES, casePagesFor, casePath, type CasePageId } from '@/data/cases/pages'
 import { endToEnd } from '@/data/endToEnd'
 import { projects } from '@/data/projects'
 import { findPlaceholders } from '@/scripts/placeholders'
@@ -35,6 +35,12 @@ describe('the case registry', () => {
     // A runtime re-export (export { … } from, export * from) pulls its module in as surely as an import does.
     const reexports = src.match(/^\s*export\s+(?:type\s+)?(?:\*(?:\s+as\s+\w+)?|\{[^}]*\})\s*from\b/gm) ?? []
     for (const line of reexports) expect(line, 'only type re-exports').toMatch(/^\s*export type\b/)
+  })
+
+  // The sites test mocks casePagesFor, so the real guard is proved here: a site off CASE_SITES gets no tabs.
+  it('offers case pages only for a site on CASE_SITES', () => {
+    expect(casePagesFor('no-such-site.html')).toEqual([])
+    expect(casePagesFor('oriel-portugal-residences.html').map((p) => p.src)).toEqual(CASE_PAGES.map((p) => casePath('oriel-portugal-residences', p.file)))
   })
 
   it('gives every sample site a two-letter code prefix', () => {
@@ -379,7 +385,7 @@ describe('the checks can fail', () => {
   })
 
   it('a site: Ironline’s agents page must say it never gives switching instructions', () => {
-    // Ironline has no registered case pages yet, so this builds a minimal set: the agents page, as the Riverdale test does.
+    // A minimal set isolates the rule: the agents page alone, as the Riverdale test does.
     const ironline = siteOf('ironline-utility-infrastructure')
     // checkSite only reads the page as text here, so a title and a lede stand in for the whole page.
     const agentsPage = (lede: string) => ({ title: 'AI agents · Ironline', lede }) as unknown as Agents
