@@ -46,13 +46,13 @@ const LANES: Lane[] = [
 const STEPS: Step[] = [
   step('a1', 'A', [0, 0], 'trigger', 'A visitor asks', 'In the site chat', 'ChatCircleText', 'Someone asks in the chat on the site. Its workflow keeps no chat, and it never asks for a name, an email or a bill.', ['n8n']),
   step('a2', 'A', [1, 0], 'decision', 'Equipment words?', 'A fixed n8n If', 'ShieldWarning', 'Before any search or Claude, a fixed n8n If checks the question for equipment words the operations centre keeps, like breaker, reset or smoke. A match gets a fixed reply.', ['n8n'], true),
-  step('a3', 'A', [1, 1.5], 'end', 'Keep clear, call 911', 'Fixed reply', 'HandPalm', 'A fixed reply, never Claude’s: don’t touch, reset or switch off any equipment; for fire, smoke, damaged equipment or anyone hurt, keep clear and call 911, then your utility.'),
+  step('a3', 'A', [1, 1.5], 'end', 'Keep clear, call 911', 'Fixed reply', 'HandPalm', 'If you see fire, smoke or damaged equipment, or anyone is hurt, keep clear and call 911, then your utility. Don’t touch, reset or switch off any equipment. For anything else, call an energy advisor on (713) 555-0142.'),
   step('a4', 'A', [2, 0], 'step', 'Search the site', 'Top 5 passages', 'MagnifyingGlass', 'The question is searched in Supabase, which holds the site’s own pages and the figures they publish, from a Google Sheet. No prices: the site lists none.', ['supabase', 'google-sheets']),
   step('a5', 'A', [3, 0], 'ai', 'Claude answers', 'Published ranges only', 'Sparkle', 'Claude answers only from the five passages, naming the source, and quotes a figure only as the site publishes it. Never a saving, a production figure or a payment for this site.', ['claude']),
   step('a6', 'A', [4, 0], 'decision', 'On the page?', 'No site’s own number', 'Question', 'Claude’s own check, behind the fixed one: did a passage hold the answer, and does it stay with the site’s published figures? Yes only if both.'),
   step('a7', 'A', [5, 0], 'step', 'Reply with source', 'Names the page', 'ArrowBendUpLeft', 'The answer goes back in the chat with its source, like (Solutions guide). It answers live from the site’s pages, so it needs no one’s yes.'),
-  step('a8', 'A', [4, 1.5], 'end', 'To an energy advisor', 'Phone or email', 'UserSwitch', 'Not on the site, or a number only the survey can give: the bot points the visitor to an energy advisor, on (713) 555-0142 or by email. It forwards nothing itself.'),
-  step('a9', 'A', [5, 1.5], 'step', 'Offer an assessment', 'Opens the wizard', 'CalendarCheck', 'The bot asks “Book a site assessment?” and opens the site’s own wizard, the same path as Request a Site Assessment. It books nothing, and never calls it free.', ['cal-com']),
+  step('a8', 'A', [4, 1.5], 'end', 'To an energy advisor', 'Phone or email', 'UserSwitch', 'Not on the site, or a number only the survey gives: a fixed reply points to an energy advisor, (713) 555-0142 or email, and ends with the 911-then-utility line.'),
+  step('a9', 'A', [5, 1.5], 'step', 'Offer an assessment', 'Opens the wizard', 'CalendarCheck', 'The bot asks “Book a site assessment?” and opens the site’s own wizard. Cal.com belongs to ME-01’s Book the survey step; the bot books nothing, and never calls it free.'),
 
   step('b1', 'B', [0, 0], 'trigger', 'Requests a survey', 'The site’s wizard', 'Buildings', 'A facility or finance team answers the wizard’s four questions: the facility, the area and monthly spend, the location and the structure, then presses Book the site survey.'),
 
@@ -65,7 +65,7 @@ const STEPS: Step[] = [
   step('d1', 'D', [1, 0], 'trigger', 'Strong fit logged', 'Sheets Trigger', 'Lightning', 'A separate n8n workflow, not a step in ME-01, starts on a new Requests row with Route Strong fit, and reads ME-01’s score. It never scores again.', ['n8n', 'google-sheets'], true),
   step('d2', 'D', [2, 0], 'agent', 'Research the firm', 'Public pages only', 'Globe', 'The agent reads the firm’s own website and public pages, never anything about the person, and saves the research with its sources in Supabase, the CRM.', ['supabase']),
   step('d3', 'D', [3, 0], 'ai', 'Draft the email', 'No figure, no score', 'PencilSimple', 'Claude drafts the energy advisor’s first personal email. A fixed check turns any draft with a figure, a saving, a payment, the score or the word free into no draft.', ['claude']),
-  step('d4', 'D', [4, 0], 'gate', 'Advisor’s yes', 'In Telegram', 'UserCheck', 'An approval gate: an energy advisor opens the draft’s form in Telegram and approves it or sends it back with a note. Opening the form records nothing.', ['telegram']),
+  step('d4', 'D', [4, 0], 'gate', 'Advisor’s yes', 'In Telegram', 'UserCheck', 'An approval gate: an advisor approves the draft in Telegram or sends it back; only an Approve submit sends. After a day unanswered, the advisors are told it still needs them, and nothing sends.', ['telegram']),
   step('d5', 'D', [5, 0], 'end', 'Send the email', 'Word for word', 'PaperPlaneTilt', 'The approved email goes from projects@meridianenergy.com, signed by the advisor who approved it, and Supabase records who approved it and when.', ['gmail'], true),
 
   step('e1', 'E', [3, 0], 'gate', 'Advisor confirms', 'One business day', 'UserCheck', 'An approval gate: an energy advisor confirms the window in Cal.com within one business day, as the wizard promises, and Cal.com sends its own confirmation.', ['cal-com']),
@@ -97,7 +97,7 @@ const STEPS: Step[] = [
 
   step('j1', 'J', [0, 0], 'trigger', 'A run fails', 'n8n, Make or Zapier', 'Warning', 'n8n’s Error Trigger hears a failed ME-02 run, and a webhook hears a failed Make step in ME-01, or a failed or halted ME-03 run from Zapier Manager.', ['n8n'], true),
   step('j2', 'J', [1, 0], 'step', 'Log the failed run', 'Google Sheets', 'Table', 'A row in the Failed runs tab with what each source gives: Make’s step and error, n8n’s step and run link, or Zapier’s zap and time. No visitor’s details.', ['google-sheets']),
-  step('j3', 'J', [2, 0], 'end', 'Alert the team', 'Telegram, by flow', 'Bell', 'The team that owns the flow hears on Telegram: the advisors, operations or asset management. A failure is urgent, and nothing retries on its own.', ['telegram']),
+  step('j3', 'J', [2, 0], 'end', 'Alert the team', 'Telegram, by flow', 'Bell', 'The owning team hears on Telegram, urgently for a failure, and nothing retries. The two agents are not covered: a failed agent run leaves no draft, and a person writes it.', ['telegram']),
 ]
 
 /** Lanes whose steps read in order, one per column, carry numbers; a branch’s side exit does not. */
