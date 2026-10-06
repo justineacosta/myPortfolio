@@ -57,6 +57,8 @@ import ironlinePlan from './ironline-utility-infrastructure/buildPlan.ts'
 import ironlineAgents from './ironline-utility-infrastructure/agents.ts'
 import ironlineEndToEnd from './ironline-utility-infrastructure/endToEnd.ts'
 import ironlineFramework from './ironline-utility-infrastructure/agenticFramework.ts'
+import werksAutomation from './meridian-werks/automation.ts'
+import werksPlan from './meridian-werks/buildPlan.ts'
 
 /** The pages a site has; a site need not have all five. */
 export type CaseSet = { automation?: Automations; plan?: Plan; framework?: AgenticFramework; endToEnd?: EndToEnd; agents?: Agents }
@@ -125,6 +127,10 @@ export const CASES: Record<string, CaseSet> = {
     agents: withSite(ironlineAgents, 'ironline-utility-infrastructure', 'ai-agents'),
     endToEnd: withSite(ironlineEndToEnd, 'ironline-utility-infrastructure', 'end-to-end'),
     framework: withSite(ironlineFramework, 'ironline-utility-infrastructure', 'agentic-framework'),
+  },
+  'meridian-werks': {
+    automation: withSite(werksAutomation, 'meridian-werks', 'automation'),
+    plan: withSite(werksPlan, 'meridian-werks', 'build-plan'),
   },
 }
 

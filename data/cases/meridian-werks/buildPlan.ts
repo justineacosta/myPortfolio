@@ -1,0 +1,397 @@
+/**
+ * Meridian Werks’ Build plan case page (spec 2026-10-05 per-site pages): the
+ * blueprint behind the three flows on its Automation page, MW-01 on Zapier,
+ * MW-02 on n8n and MW-03 on Make, with the helpers, data, tests and handover
+ * they need. MW-01 is the general page’s Service booking, given depth.
+ * data/cases/index.ts registers it; `npm run cases` renders it into
+ * public/cases/meridian-werks/build-plan.html. Only type imports, so Node can
+ * run it directly.
+ */
+import type { IconName, NodeKind, Plan, PlanEdge, PlanNode, Workflow } from '../../buildPlan.ts'
+import type { ToolId } from '../../../lib/brand/tools.ts'
+
+const node = (id: string, kind: NodeKind, label: string, sub: string, icon: IconName, tools: ToolId[], type: string, settings: [string, string][], what: string): PlanNode =>
+  ({ id, kind, label, sub, icon, type, settings, what, tools })
+const edge = (from: string, to: string, label?: string): PlanEdge => (label ? { from, to, label } : { from, to })
+
+/** Who says yes, as on the Automation page. */
+const YES = 'Ilse Brandt, the workshop manager, confirms every booking by phone, prices every estimate, checks every health report before it reaches the owner’s inbox, and checks every fleet report before it reaches the client. Anton Vosloo signs off every pre-purchase inspection and every finding that is calibration work before its report goes. The owner’s yes, on the answer form or by phone to Ilse, is what starts the work, and a variation needs a new one. The booking receipt, the workshop messages and the fleet report email are fixed templates: the receipt and the messages send on their own, and the fleet report email only once Ilse has checked the report. In these flows Claude drafts only the plain-language summary in a health report, rewording what the technician recorded, and it never diagnoses.'
+
+/** Personal data, as every flow treats it. */
+const DATA = 'A registration number is personal data. It is kept on the job card and nowhere else: never in a Telegram group, an email subject, a fleet report, the Failed runs tab or anything Claude reads. The owner’s name, email and phone stay on the job card too, and messages link to the card instead. Amounts are in euros.'
+
+const MW01: Workflow = {
+  code: 'MW-01',
+  title: 'Service booking',
+  platform: 'zapier',
+  outcome: 'The slot is held, the job card is open and the workshop knows before the owner closes the page. The owner has a receipt at once, and Ilse confirms the booking by phone within one working day.',
+  trigger: 'Webhooks by Zapier’s Catch Hook starts the booking Zap when the site’s four-step form is sent; Schedule by Zapier starts the calls-due Zap at 07:30 each working morning.',
+  exits: ['Slot held, receipt sent, Ilse calls', 'Slot taken, receipt sent, Ilse calls', 'Calls due, Ilse told', 'Nothing due'],
+  watch: [
+    DATA,
+    'The site promises “We confirm by phone within one working day.” So the email is a receipt, not a confirmation: it says the request is in, whether the slot asked for is held, and that Ilse will call to confirm within one working day. Ilse makes the call, agrees the date, confirms the booking in Cal.com and sets the card Confirmed. Call by is an Airtable formula, WORKDAY(Received at, 1), Monday to Friday, skipping the holidays Ilse lists in it.',
+    'A Zap has one trigger, so MW-01 is two Zaps: MW-01 · Service booking · book and MW-01 · Service booking · calls due. The Automation page draws them as one flow. Neither Zap uses Paths: the one value that depends on whether the slot was held, the receipt’s line, comes from a Formatter Lookup Table, so the booking Zap is one straight line.',
+    'Hold the slot is a Code by Zapier step that posts the booking to Cal.com’s API and returns held yes or no, the booking’s ID and Cal.com’s answer. A slot another owner took a moment earlier is not an error: it returns held no, the card and the workshop message say so, and the receipt says Ilse will agree a time when she calls. Any other answer, like an expired key, also returns held no with Cal.com’s status, which the workshop message shows, so a broken key shows up on the first booking.',
+    'The Cal.com event type, Workshop visit, has Requires confirmation on, so a held slot is a request until Ilse confirms it, and Cal.com’s own emails to the attendee are turned off for it: the owner hears only the workshop’s receipt, and then Ilse.',
+    'The booking holds only what the site asks: the vehicle (make, model, year, the registration, optional, mileage in km and the use), the service, the date and the details, where the owner describes the symptom rather than the repair. Diagnosis is the workshop’s job, so no step reads the symptom to decide anything.',
+    'Find calls due is a Find Many Records with success when nothing is found turned on, so a morning with nothing due goes on to Any to call?, which stops there without a message instead of halting the run.',
+    'A failed step, like Open a job card, is caught by a Zapier Manager zap on New Zap Error, which posts the zap, the time and the error’s message to /mw/failed, and Ilse gets an urgent alert; the booking stays in the Zap’s history, so she opens the card by hand and calls the owner. A halted run is caught by a second Zapier Manager zap, on New Halted Task, with the zap and the time, as an ordinary alert.',
+  ],
+  nodes: [
+    node('a1', 'trigger', 'Booking form', 'Webhooks by Zapier', 'WebhooksLogo', ['zapier'], 'Zapier · Webhooks by Zapier › Catch Hook', [['Zap', 'MW-01 · Service booking · book'], ['Sent by', 'the site’s booking form, when step four is sent'], ['Vehicle', 'make, model, year, registration (optional), mileage in km, use: Private, Performance / track, Collection or Fleet / commercial'], ['Service', 'one of the eight on the site'], ['Date', 'the slot chosen, from Cal.com’s free slots'], ['Details', 'the symptom in the owner’s words, name, email, phone']], 'The owner sends the four steps, and the Zap starts at once.'),
+    node('a2', 'action', 'Hold the slot', 'Cal.com API', 'CalendarCheck', ['cal-com', 'zapier'], 'Zapier · Code by Zapier › Run JavaScript', [['Calls', 'the Cal.com API, POST a booking on the Workshop visit event type'], ['Sends', 'the slot, the owner’s name and email, the make, model and service; never the registration'], ['Requires confirmation', 'On, on the event type: the booking waits for Ilse'], ['Cal.com’s emails', 'turned off for this event type'], ['Returns', 'held (yes or no), the booking ID and Cal.com’s status; a taken slot is held no, never an error'], ['API key', 'in the step’s Input Data, which only Justine and Ilse can see']], 'Books the slot in the workshop calendar as a request, or reports that it was just taken.'),
+    node('a3', 'action', 'Word the receipt', 'Formatter', 'PencilSimple', ['zapier'], 'Zapier · Formatter by Zapier › Utilities › Lookup Table', [['Looks up', 'held, from Hold the slot'], ['yes', 'We are holding the slot you asked for, shown below.'], ['Fallback', 'The slot you asked for was taken a moment before your request, so it is not held. Ilse will agree a time with you when she calls.']], 'Picks the receipt’s line by whether the slot was held, so the Zap stays one straight line.'),
+    node('a4', 'action', 'Open a job card', 'Airtable', 'Table', ['airtable'], 'Zapier · Airtable › Create Record', [['Connection', 'MW · Airtable (Zapier)'], ['Table', 'Jobs'], ['Sets', 'the vehicle, Registration when given, the service, Symptom as written, Requested slot, Cal.com booking, Slot held, Cal.com status, the owner’s name, email and phone, Received at, Stage = Requested'], ['Call by', 'a formula on the table: the end of the next working day']], 'Opens the job card the technicians work from, the only place the registration is kept.'),
+    node('a5', 'action', 'Tell the workshop', 'Telegram', 'PaperPlaneTilt', ['telegram'], 'Zapier · Telegram Bot › Send Message', [['Connection', 'MW · Telegram (Zapier)'], ['Chat', 'Workshop, the group'], ['Says', 'the job number, make, model and year, the service, the symptom, the slot, Slot held and Cal.com’s status, and a link to the card'], ['Never says', 'the registration, or the owner’s name, email or phone']], 'Posts the booking in the workshop’s group chat.'),
+    node('a6', 'action', 'Email the owner', 'Gmail', 'EnvelopeSimple', ['gmail'], 'Zapier · Gmail › Send Email', [['Connection', 'MW · Gmail (Zapier), signed in as workshop@meridianwerks.nl'], ['To', 'the owner’s email'], ['Subject', 'Your booking request at Meridian Werks, never the registration'], ['Holds', 'the line from Word the receipt; the slot asked for and the service; “We confirm by phone within one working day: Ilse will call you”; Loodsweg 14, Unit B, reception at the second roller door, parking inside the gate; bring the keys and any service history; +31 10 244 1180'], ['Written by', 'a fixed template, not Claude']], 'Sends the owner a receipt, never a confirmation: the confirmation is Ilse’s call.'),
+    node('a7', 'approve', 'Ilse calls the owner', 'By phone', 'UserCheck', ['cal-com', 'airtable'], 'Ilse, by hand · not a Zap step', [['Who', 'Ilse, or whoever she asks to cover'], ['When', 'within one working day, by Call by'], ['Talks through', 'the symptom, the date and how the car arrives'], ['Then', 'confirms the booking in Cal.com, or books the time agreed, and sets Stage = Confirmed']], 'Ilse calls, agrees the date and confirms the booking. The site’s confirmation is this call.'),
+    node('a8', 'trigger', 'Each working morning', 'Schedule by Zapier', 'Clock', ['zapier'], 'Zapier · Schedule by Zapier › Every Day', [['Zap', 'MW-01 · Service booking · calls due'], ['Time of day', '07:30, Europe/Amsterdam'], ['Trigger on weekends?', 'No']], 'At 07:30 each working morning, the calls-due Zap starts.'),
+    node('a9', 'action', 'Find calls due', 'Airtable', 'MagnifyingGlass', ['airtable'], 'Zapier · Airtable › Find Many Records (With Line Item Support)', [['Table', 'Jobs'], ['Search Formula', 'Stage is Requested, and Call by is today or earlier'], ['Success when nothing is found', 'On, so a morning with nothing due goes on to the filter']], 'Looks for every booking still waiting for Ilse’s call on the day it is due.'),
+    node('a10', 'action', 'Any to call?', 'Filter by Zapier', 'GitBranch', ['zapier'], 'Zapier · Filter by Zapier › Only continue if', [['Record ID', 'exists']], 'Goes on only when a call is due today.'),
+    node('a11', 'end', 'List them for Ilse', 'Telegram', 'Warning', ['telegram'], 'Zapier · Telegram Bot › Send Message', [['Chat', 'Ilse’s own'], ['Says', 'one line per job: the job number, make and model, the service, Call by and a link to the card; never the registration']], 'Tells Ilse which owners she has to call today, so each one gets the call the site promises.'),
+  ],
+  edges: [
+    edge('a1', 'a2'), edge('a2', 'a3'), edge('a3', 'a4'), edge('a4', 'a5'), edge('a5', 'a6'), edge('a6', 'a7'),
+    edge('a8', 'a9'), edge('a9', 'a10'), edge('a10', 'a11'),
+  ],
+}
+
+const MW02: Workflow = {
+  code: 'MW-02',
+  title: 'Health report',
+  platform: 'n8n',
+  outcome: 'Every diagnosed car’s findings, photographs and fixed estimate reach the owner as a health report Ilse has checked, and work starts only on the owner’s yes. Any variation goes back to the owner for a new yes before it happens.',
+  trigger: 'Two Airtable Triggers in n8n, every minute: a job card set to Diagnostics done, and one set to Variation found.',
+  exits: ['Approved, the work released', 'Not now, call me first or no answer, Ilse calls', 'Ilse chose to call', 'Not priced, held for Ilse', 'Sent back to the technician', 'No findings, Ilse told'],
+  watch: [
+    DATA,
+    'The site promises “No work begins before the findings are documented and approved.” The technician documents them; Ilse prices them into a fixed estimate and checks the words; the owner approves. Only Release the work sets a job Approved, and only on the owner’s answer. An owner who approves by phone tells Ilse, who records the answer on the report and sets the job Approved by hand.',
+    'The site also promises “Any variation is approved before it happens.” A technician who finds work beyond the approved estimate stops that part, records it as a new finding and sets the job to Variation found. That starts MW-02 again, and its report is headed as a variation and holds only the new finding. Until the owner’s new yes, the work already approved goes on and the variation waits. The Automation page draws this as an arc back to Claude’s summary.',
+    'Claude never diagnoses. It reads each finding as the technician wrote it, its priority, and the car’s make, model and service, never the registration or the owner’s details. Its instructions say to reword only what is written: no finding, cause, part, price or date of its own. Ilse checks every draft against the technician’s words before it can reach the owner’s inbox.',
+    'Anton signs off every pre-purchase inspection and every calibration. When the job’s Service is Pre-purchase inspection, or any finding is ticked Calibration, Anton’s sign-off? sends the report to him first, on a Telegram form: Signed off, or Back to the technician, which withdraws the report, frees its findings for the next one and tells the technician.',
+    'n8n hands a poll’s records on together, and a Wait holds a whole run. So MW-02 is two parts: MW-02 · Health report · watch holds the two triggers and hands each job on its own, with Execute Sub-workflow set to Run once for each item and Wait for Sub-Workflow Completion off, to MW-02 · Health report · one job. Each job then has its own run, its own searches and its own answer form. The Automation page draws the two parts as one flow.',
+    'Find new findings has Always Output Data on, so a job set to Diagnostics done with no finding recorded hands an empty item to Any findings?, which tells Ilse and stops. It finds only findings with no report yet, so a variation’s report holds only the new one.',
+    'Anton signs off and Ilse prices and checks are Telegram’s Send message and wait for response, with a Custom Form, and Limit Wait Time off: n8n keeps the run, waiting at the gate with its data, until the form is sent. The button only opens the form; a link preview or a stray tap records nothing.',
+    'Owner answers is a Wait node set to resume On Form Submitted. The report’s button links to the run’s own form page, $execution.resumeFormUrl: opening it shows the form and records nothing, and only the form’s submit moves the run on, so a mail scanner that opens the link approves nothing. Limit Wait Time is seven days; n8n keeps the run, with its data, while it waits, and with no answer by then the run goes on as No answer, and Ilse calls.',
+    'Send or call? reads the report again after Ilse’s answer, so it sends what she left, not what Claude drafted. Send needs every finding priced; a Send with a finding unpriced is held, its findings freed, and Ilse is told why.',
+    'Draft the summary has On Error set to continue: if Claude fails or times out, the report opens with an empty summary, Ilse’s message says there is no draft, and she writes it herself. Open the report, Send health report and Release the work retry three times; if one still fails, the run fails and MW-H02 alerts Ilse with the step and a link to the run. Both parts of MW-02 keep their failed executions.',
+  ],
+  nodes: [
+    node('b1', 'trigger', 'Diagnostics done', 'Airtable Trigger', 'FlagCheckered', ['airtable', 'n8n'], 'n8n · Airtable Trigger', [['Workflow', 'MW-02 · Health report · watch'], ['Connection', 'MW · Airtable (n8n)'], ['Table', 'Jobs'], ['Trigger Field', 'Stage changed, a Last modified time field on Stage'], ['Formula', 'Stage is Diagnostics done'], ['Poll Times', 'Every Minute'], ['Download Attachments', 'Off']], 'The technician sets the job card to Diagnostics done once every finding is recorded, and n8n picks it up within a minute.'),
+    node('b2', 'trigger', 'Variation found', 'Airtable Trigger', 'Warning', ['airtable', 'n8n'], 'n8n · Airtable Trigger', [['Workflow', 'MW-02 · Health report · watch'], ['Table', 'Jobs'], ['Trigger Field', 'Stage changed'], ['Formula', 'Stage is Variation found'], ['Poll Times', 'Every Minute']], 'A technician who finds work beyond the approved estimate stops, records it and sets Variation found, which starts the report again.'),
+    node('b3', 'action', 'One job at a time', 'Execute Sub-workflow', 'Stack', ['n8n'], 'n8n · Execute Sub-workflow', [['Workflow', 'MW-02 · Health report · one job, which starts with When Executed by Another Workflow'], ['Mode', 'Run once for each item'], ['Wait for Sub-Workflow Completion', 'Off, as a run can wait days for an owner'], ['Hands over', 'the job’s record ID, Job number, Stage, Service, make, model and the owner’s email']], 'Hands each job to the rest of MW-02 on its own, so every search, gate and form belongs to one job.'),
+    node('b4', 'action', 'Find new findings', 'Airtable', 'MagnifyingGlass', ['airtable'], 'n8n · Airtable › Search records', [['Table', 'Findings'], ['Filter By Formula', 'Job number is the job’s, and Report is empty'], ['Always Output Data', 'On, so a job with no new finding goes on to the check as an empty item']], 'Looks for the findings the technician recorded that are not in a report yet.'),
+    node('b5', 'branch', 'Any findings?', 'IF', 'ArrowsSplit', ['n8n'], 'n8n · If', [['Found', 'the finding’s ID is not empty'], ['None', 'otherwise']], 'Goes on to the report when there are findings, and to Ilse when there are none.'),
+    node('b6', 'helper', 'Nothing recorded', 'MW-H01', 'Stack', ['n8n'], 'n8n · Execute Sub-workflow', [['Workflow', 'MW-H01 · Alert a person'], ['To', 'Ilse'], ['Urgent', 'no'], ['Says', 'the job was set to Diagnostics done or Variation found with no new finding recorded, and a link to the card']], 'Tells Ilse, so she can ask the technician to record the findings.'),
+    node('b7', 'action', 'Gather the findings', 'Aggregate', 'Stack', ['n8n'], 'n8n · Aggregate', [['Aggregate', 'All Item Data (Into a Single List)'], ['Put output in field', 'findings']], 'Gathers the findings into one item, so Claude runs once with the whole job.'),
+    node('b8', 'ai', 'Draft the summary', 'Claude', 'Sparkle', ['claude'], 'n8n · Basic LLM Chain + Anthropic Chat Model', [['Connection', 'MW · Anthropic (n8n)'], ['Model', 'Claude Sonnet 4.6'], ['Temperature', '0'], ['Reads', 'each finding as the technician wrote it, its priority, the make, model and service; never the registration or the owner’s details'], ['Returns', 'a short plain-language summary, grouped as needed now, upcoming and optional'], ['Rules', 'reword only what is written; never diagnose; no finding, cause, part, price or date of its own'], ['On Error', 'Continue, with an empty summary'], ['Goes to', 'Ilse only']], 'Claude rewords the technician’s findings into plain language for Ilse to check.'),
+    node('b9', 'action', 'Open the report', 'Airtable', 'Database', ['airtable'], 'n8n · Airtable › Create', [['Table', 'Reports'], ['Sets', 'Job, Kind = Health report or Variation (from Stage), Findings = the ones found, Summary draft and Summary = Claude’s draft, Status = With the workshop'], ['Retry on fail', 'On, 3 tries']], 'Opens the report row, which links the findings so the next report never repeats them.'),
+    node('b10', 'branch', 'Anton’s sign-off?', 'IF', 'ArrowsSplit', ['n8n'], 'n8n · If', [['Needed', 'Service is Pre-purchase inspection, or any finding is ticked Calibration'], ['Not needed', 'otherwise']], 'Sends a pre-purchase inspection or a calibration to Anton first, and everything else straight to Ilse.'),
+    node('b11', 'approve', 'Anton signs off', 'Telegram', 'UserCheck', ['telegram'], 'n8n · Telegram › Send message and wait for response', [['Connection', 'MW · Telegram (n8n)'], ['Chat', 'Anton’s own'], ['Message', 'the job number, make and model, the findings as written, Claude’s draft and a link to the report'], ['Response Type', 'Custom Form'], ['Form', 'Answer: Signed off or Back to the technician; Note'], ['Limit Wait Time', 'Off: n8n keeps the run waiting until the form is sent']], 'Asks Anton to sign off the findings, as he does every calibration and pre-purchase inspection.'),
+    node('b12', 'branch', 'Signed off?', 'IF', 'ArrowsSplit', ['n8n'], 'n8n · If', [['Signed off', 'Answer is Signed off'], ['Back', 'otherwise']], 'Goes on to Ilse once Anton signs off, and back to the technician when he does not.'),
+    node('b13', 'action', 'Withdraw the report', 'Airtable', 'XCircle', ['airtable'], 'n8n · Airtable › Update', [['Table', 'Reports'], ['Sets', 'Status = Sent back; Findings emptied, so the next report picks them up; Signed off note = Anton’s note']], 'Takes the report back, so the findings wait for the technician.'),
+    node('b14', 'end', 'Tell the technician', 'Telegram', 'PaperPlaneTilt', ['telegram'], 'n8n · Telegram › Send message', [['Chat ID', 'Technician chat ID, from the job card'], ['Says', 'Anton sent the findings back, his note, and a link to the card; set Diagnostics done again when ready']], 'Tells the technician what Anton wants looked at again.'),
+    node('b15', 'approve', 'Ilse prices and checks', 'Telegram', 'UserCheck', ['telegram'], 'n8n · Telegram › Send message and wait for response', [['Chat', 'Ilse’s own'], ['Message', 'the job number, make and model, Anton’s sign-off when there is one, a link to the report, and No draft: write the summary when Claude gave none'], ['Asks her to', 'price each finding, in euros, and check the Summary against the technician’s words, editing what she chooses'], ['Response Type', 'Custom Form'], ['Form', 'Answer: Send to the owner, or I will call the owner'], ['Limit Wait Time', 'Off']], 'Waits for Ilse to price the estimate, check the words and choose to send it or call.'),
+    node('b16', 'action', 'Read the report', 'Airtable', 'MagnifyingGlass', ['airtable'], 'n8n · Airtable › Get record', [['Table', 'Reports'], ['Record', 'the one opened'], ['Reads', 'Summary as Ilse left it, Price lines, Needed now total, Upcoming total, Optional total and Unpriced']], 'Reads the report as Ilse left it, so the owner gets her words and her prices.'),
+    node('b17', 'branch', 'Send or call?', 'Switch', 'ArrowsSplit', ['n8n'], 'n8n · Switch', [['Send', 'Answer is Send to the owner, and Unpriced is 0'], ['Call', 'Answer is I will call the owner'], ['Not priced', 'Answer is Send to the owner, and Unpriced is more than 0']], 'Sends a priced report, marks a call, and holds a report with a finding still unpriced.'),
+    node('b18', 'end', 'Mark for a call', 'Airtable', 'Database', ['airtable'], 'n8n · Airtable › Update', [['Table', 'Reports'], ['Sets', 'Status = Call instead'], ['Then', 'Ilse calls the owner and records their Answer on the report by hand']], 'Notes that Ilse is calling the owner instead of emailing them.'),
+    node('b19', 'action', 'Hold the report', 'Airtable', 'XCircle', ['airtable'], 'n8n · Airtable › Update', [['Table', 'Reports'], ['Sets', 'Status = Not sent; Findings emptied, so a new report picks them up']], 'Holds back a report with a finding still unpriced, and frees its findings.'),
+    node('b20', 'helper', 'Tell Ilse why', 'MW-H01', 'Stack', ['n8n'], 'n8n · Execute Sub-workflow', [['Workflow', 'MW-H01 · Alert a person'], ['To', 'Ilse'], ['Urgent', 'no'], ['Says', 'not emailed: a finding had no price; price it and set the job to Diagnostics done again, or call the owner']], 'Tells Ilse the report was not sent, and why.'),
+    node('b21', 'action', 'Fetch the photos', 'Airtable', 'MagnifyingGlass', ['airtable'], 'n8n · Airtable › Search records', [['Table', 'Findings'], ['Filter By Formula', 'Report is this report'], ['Download Attachments', 'On, the Photos field'], ['Always Output Data', 'On: a report always has findings, but a finding with no photograph still goes on, and the email simply has none']], 'Fetches the findings’ photographs as files, ready to attach.'),
+    node('b22', 'action', 'Gather the photos', 'Aggregate', 'Stack', ['n8n'], 'n8n · Aggregate', [['Aggregate', 'All Item Data (Into a Single List)'], ['Include Binaries', 'On, so every photograph travels on one item']], 'Puts every photograph on one item, so they go in one email.'),
+    node('b23', 'action', 'Send health report', 'Gmail', 'EnvelopeSimple', ['gmail'], 'n8n · Gmail › Send message', [['Connection', 'MW · Gmail (n8n), signed in as workshop@meridianwerks.nl'], ['To', 'the owner’s email'], ['Subject', 'Your health report from Meridian Werks: [make and model], or A variation to your estimate, for a variation; never the registration'], ['Holds', 'the Summary as Ilse left it, the price lines, the totals for needed now, upcoming and optional in euros, and one button, Give your answer, linking to $execution.resumeFormUrl'], ['Attachments', 'the photographs'], ['Says', 'no work begins until you answer; questions: +31 10 244 1180'], ['Written by', 'Claude’s draft, checked by Ilse, in a fixed template'], ['Append n8n Attribution', 'Off'], ['Retry on fail', 'On, 3 tries']], 'Emails the owner the health report, with the button to their answer form.'),
+    node('b24', 'action', 'Mark it sent', 'Airtable', 'FlagCheckered', ['airtable'], 'n8n · Airtable › Update', [['Reports', 'Status = Sent; Sent at = now'], ['Jobs', 'Stage = With the owner, for a health report; a variation leaves Stage at Variation found, as the approved work goes on']], 'Marks the report sent, and a diagnosed job waiting for the owner.'),
+    node('b25', 'approve', 'Owner answers', 'Wait, form', 'UserCheck', ['n8n'], 'n8n · Wait', [['Resume', 'On Form Submitted'], ['Form Title', 'Your answer on the estimate'], ['Form Fields', 'Answer, required: Needed now only, Needed now and upcoming, Everything listed, Not now, Call me first; Anything to add, optional'], ['Limit Wait Time', 'On, 7 days; then the run goes on as No answer'], ['Holds the run', 'n8n keeps the run, with its data, while it waits']], 'Waits for the owner’s answer. Opening the link shows the form; only its submit records anything.'),
+    node('b26', 'action', 'Record the answer', 'Airtable', 'Database', ['airtable'], 'n8n · Airtable › Update', [['Table', 'Reports'], ['Sets', 'Answer = the form’s, or No answer; Owner note; Answered at; Status = Answered'], ['Approved', 'a formula on each finding, from its Priority and the report’s Answer']], 'Records the owner’s answer, which marks each finding approved or not.'),
+    node('b27', 'branch', 'Approved?', 'Switch', 'ArrowsSplit', ['n8n'], 'n8n · Switch', [['Approved', 'Answer is Needed now only, Needed now and upcoming, or Everything listed'], ['Not yet', 'Answer is Not now, Call me first or No answer']], 'Sends a yes to the workshop, and anything else to Ilse.'),
+    node('b28', 'action', 'Release the work', 'Airtable', 'Database', ['airtable'], 'n8n · Airtable › Update', [['Table', 'Jobs'], ['Sets', 'Stage = Approved'], ['Approved total', 'a rollup on the job: the price of every approved finding'], ['Retry on fail', 'On, 3 tries']], 'Sets the job Approved, the only step that does.'),
+    node('b29', 'end', 'Tell the workshop', 'Telegram', 'PaperPlaneTilt', ['telegram'], 'n8n · Telegram › Send message', [['Chat', 'Workshop, the group'], ['Says', 'the job number, make and model, what is approved and a link to the card; never the registration']], 'Tells the workshop the owner said yes, and to what.'),
+    node('b30', 'helper', 'Ask Ilse to call', 'MW-H01', 'Stack', ['n8n'], 'n8n · Execute Sub-workflow', [['Workflow', 'MW-H01 · Alert a person'], ['To', 'Ilse'], ['Urgent', 'no'], ['Says', 'the owner’s answer, Not now, Call me first or No answer in seven days, their note, and a link to the report']], 'Tells Ilse to call the owner. Nothing begins without a yes.'),
+  ],
+  edges: [
+    edge('b1', 'b3'), edge('b2', 'b3'), edge('b3', 'b4'), edge('b4', 'b5'),
+    edge('b5', 'b7', 'Found'), edge('b5', 'b6', 'None'),
+    edge('b7', 'b8'), edge('b8', 'b9'), edge('b9', 'b10'),
+    edge('b10', 'b15', 'Not needed'), edge('b10', 'b11', 'Needed'),
+    edge('b11', 'b12'),
+    edge('b12', 'b15', 'Signed off'), edge('b12', 'b13', 'Back'),
+    edge('b13', 'b14'),
+    edge('b15', 'b16'), edge('b16', 'b17'),
+    edge('b17', 'b21', 'Send'), edge('b17', 'b18', 'Call'), edge('b17', 'b19', 'Not priced'),
+    edge('b19', 'b20'),
+    edge('b21', 'b22'), edge('b22', 'b23'), edge('b23', 'b24'), edge('b24', 'b25'), edge('b25', 'b26'), edge('b26', 'b27'),
+    edge('b27', 'b28', 'Approved'), edge('b27', 'b30', 'Not yet'),
+    edge('b28', 'b29'),
+  ],
+}
+
+const MW03: Workflow = {
+  code: 'MW-03',
+  title: 'Fleet report',
+  platform: 'make',
+  outcome: 'On the 1st of each month every fleet client’s report of last month’s jobs, days off the road, uptime and costs is drafted for Ilse, and each one goes to the client only after she has checked it.',
+  trigger: 'A Make scenario schedule at 06:00 on the 1st of each month drafts the reports; Airtable Watch Records, every 15 minutes, picks up each report Ilse sets to Checked.',
+  exits: ['Checked and sent', 'Drafted, waiting for Ilse', 'No active clients, nothing drafted'],
+  watch: [
+    DATA,
+    'In MW-03 that means a fleet report names each vehicle by the client’s own fleet number and its model, never by registration, and its subject names Meridian Werks, the month and the client only.',
+    'Ilse checks every report before it is sent. Only Ilse, and the flow’s own account, can change a report’s Status, through Airtable’s field editing permissions, and the flow only ever sets To check and Sent, never Checked. She may correct any line and add a note of her own.',
+    'Make gives a scenario one trigger, so MW-03 is two scenarios in one folder: MW-03 · Fleet report · draft and MW-03 · Fleet report · send. The Automation page draws them as one flow.',
+    'Find fleet clients and Gather the month are Airtable Make an API call modules, not search modules, so each always returns one bundle with the list, even an empty one. The filter before Each client routes on the list’s length: one or more goes on, and an empty list stops there, with no client to report. An empty list of jobs is a month with no visits: Jobs is 0, and the report says so.',
+    'The figures come from the job cards. Days off road is an Airtable formula on Jobs, the working days from In on to Out on; Invoiced is what Ilse invoiced, in euros; Report line is a formula: the date, the fleet number, the model, the work and the cost. Uptime is a formula on Fleet reports: 1 minus Days off road over Vehicles on contract times the month’s working days. Claude writes none of MW-03.',
+    'Report checked watches Status changing, with the formula Status is Checked and Sent at is empty. Mark it sent sets Status to Sent, so a later edit never sends a report twice.',
+    'Every module that writes or sends has an error route that posts the step and the error, never a report’s lines, to /mw/failed and ends in Break, with incomplete executions stored, so Make keeps the run to retry. MW-H02 logs it and alerts Ilse, urgently.',
+  ],
+  nodes: [
+    node('c1', 'trigger', 'On the 1st', 'Schedule', 'CalendarCheck', ['make'], 'Make · Scenario schedule', [['Scenario', 'MW-03 · Fleet report · draft'], ['Runs', 'monthly, on day 1, at 06:00 Europe/Amsterdam']], 'On the 1st of each month, the draft scenario wakes.'),
+    node('c2', 'action', 'Find fleet clients', 'Airtable API call', 'MagnifyingGlass', ['airtable'], 'Make · Airtable › Make an API call', [['Connection', 'MW · Airtable (Make)'], ['Call', 'GET /v0/{base}/Fleet clients'], ['Formula', 'Contract is Active'], ['Returns', 'one bundle with a list of records, even an empty one']], 'Asks for every fleet client with an active contract.'),
+    node('c3', 'action', 'Each client', 'Iterator', 'ArrowsClockwise', ['make'], 'Make · Flow Control › Iterator', [['Filter before it', 'the list’s length is 1 or more; an empty list stops here, with no client to report'], ['Array', 'the clients’ records']], 'Takes the clients one at a time, so each gets their own report.'),
+    node('c4', 'action', 'Gather the month', 'Airtable API call', 'Table', ['airtable'], 'Make · Airtable › Make an API call', [['Call', 'GET /v0/{base}/Jobs'], ['Formula', 'Fleet client is this client, and Out month is last month'], ['Returns', 'one bundle with a list, even an empty one: a month with no visits']], 'Asks for the client’s jobs that left the workshop last month.'),
+    node('c5', 'action', 'Draft the report', 'Airtable', 'Database', ['airtable'], 'Make · Airtable › Create a record', [['Table', 'Fleet reports'], ['Sets', 'Client, Month, Jobs = the list’s length, Days off road and Costs = the sums of the list’s Days off road and Invoiced, Lines = each job’s Report line, Status = To check'], ['Uptime', 'a formula on the table'], ['Never holds', 'a registration'], ['Written by', 'a fixed template, not Claude']], 'Writes the report on its own row, ready for Ilse.'),
+    node('c6', 'action', 'Tell Ilse', 'Telegram', 'PaperPlaneTilt', ['telegram'], 'Make · Telegram Bot › Send a text message or a reply', [['Connection', 'MW · Telegram (Make)'], ['Chat ID', 'Ilse’s own'], ['Says', 'a fleet report to check: the client, the month and a link to the row']], 'Tells Ilse each report is ready to check.'),
+    node('c7', 'approve', 'Ilse checks', 'In Airtable', 'UserCheck', ['airtable'], 'Ilse, by hand · not a Make step', [['Who', 'Ilse; only she, and the flow’s own account, may change Status, and the flow never sets Checked'], ['Reads', 'the report beside the job cards it came from'], ['Edits', 'any line, and Ilse’s note'], ['Then', 'sets Status = Checked']], 'Ilse reads, corrects and checks the report. Nothing goes to the client without it.'),
+    node('c8', 'wait', 'Report checked', 'Airtable', 'HourglassMedium', ['airtable'], 'Make · Airtable › Watch Records', [['Scenario', 'MW-03 · Fleet report · send'], ['Table', 'Fleet reports'], ['Trigger field', 'Status changed, a Last modified time field on Status'], ['Formula', 'Status is Checked, and Sent at is empty'], ['Schedule', 'every 15 minutes']], 'Make picks up each report Ilse has checked, within a quarter of an hour.'),
+    node('c9', 'action', 'Send the report', 'Gmail', 'EnvelopeSimple', ['gmail'], 'Make · Gmail › Send an email', [['Connection', 'MW · Gmail (Make), signed in as workshop@meridianwerks.nl'], ['To', 'the client’s Report email'], ['Subject', 'Meridian Werks fleet report, [month], [client]; never a registration'], ['Holds', 'jobs, days off the road, uptime and costs in euros, the lines by fleet number and model, Ilse’s note, and +31 10 244 1180'], ['Written by', 'a fixed template, not Claude']], 'Emails the checked report to the client.'),
+    node('c10', 'end', 'Mark it sent', 'Airtable', 'FlagCheckered', ['airtable'], 'Make · Airtable › Update a record', [['Table', 'Fleet reports'], ['Sets', 'Status = Sent; Sent at = now']], 'Marks the report sent, so it never goes twice.'),
+  ],
+  edges: [
+    edge('c1', 'c2'), edge('c2', 'c3'), edge('c3', 'c4'), edge('c4', 'c5'), edge('c5', 'c6'), edge('c6', 'c7'),
+    edge('c7', 'c8'), edge('c8', 'c9'), edge('c9', 'c10'),
+  ],
+}
+
+const H01: Workflow = {
+  code: 'MW-H01',
+  title: 'Alert a person',
+  platform: 'n8n',
+  outcome: 'Every message n8n sends the workshop reads the same way and lands in the right chat.',
+  trigger: 'Called by MW-02, when a job has no findings, a report is held or the owner has not said yes, and by MW-H02.',
+  exits: ['Message sent'],
+  watch: [
+    'A message holds the flow code, what happened and a link to the card, the report or the failed run, never a registration, an owner’s contact details or a finding’s text.',
+    'To picks the chat: Ilse is her own chat, Anton his, and Workshop the group of all seven.',
+    'A failure arrives with sound; anything else arrives with sound during opening hours, Monday to Friday 07:30–18:00 and Saturday 09:00–14:00, Rotterdam time, and silently otherwise.',
+    'MW-H02 is not set as MW-H01’s error workflow: a failure here would call MW-H02, which calls MW-H01 again, without end. If this workflow fails, n8n’s own instance-level error email is the only alert.',
+  ],
+  nodes: [
+    node('h1', 'trigger', 'Called by a workflow', 'Sub-workflow trigger', 'Stack', ['n8n'], 'n8n · When Executed by Another Workflow', [['Inputs', 'text, to, urgent, link']], 'Another workflow hands over a message, who it is for, and whether it is urgent.'),
+    node('h2', 'action', 'Pick the chat', 'Edit Fields', 'PencilSimple', ['n8n'], 'n8n · Edit Fields (Set)', [['Chat', 'Ilse: her own; Anton: his own; Workshop: the group'], ['Adds', 'the flow code, and the link, when there is one']], 'Picks the chat and puts the flow’s code and link under the message.'),
+    node('h3', 'end', 'Send on Telegram', 'Telegram', 'PaperPlaneTilt', ['telegram'], 'n8n · Telegram › Send message', [['Chat ID', 'the one picked'], ['Disable Notification', 'on, unless urgent or within opening hours']], 'Posts it in the chat.'),
+  ],
+  edges: [edge('h1', 'h2'), edge('h2', 'h3')],
+}
+
+const H02: Workflow = {
+  code: 'MW-H02',
+  title: 'Log a failed run',
+  platform: 'n8n',
+  outcome: 'Every failed or halted run, on any of the three platforms, is logged and reaches Ilse with what its platform gives about it.',
+  trigger: 'n8n’s Error Trigger, plus a webhook that Make and Zapier post to.',
+  exits: ['Logged and sent'],
+  watch: [
+    'A row holds the platform, the flow, the time and what its source gives, never a registration, an owner’s details or a report’s text. An n8n failure gives the failed step and a link to the run. A Make error route gives the step and the error. A Zapier Manager zap gives the zap and the time, and for an error its message, with no step or run link. The run itself holds the details, on its own platform.',
+    'A failure is urgent: it arrives with sound. A halted Zapier run is an ordinary alert, sent as MW-H01 sends anything else.',
+    'Every alert goes to Ilse, who runs the workshop’s day; she calls Justine when a flow needs fixing.',
+    'It never retries on its own. Ilse, or Justine, decides.',
+    'The webhook checks a shared secret, so nothing else can write to the log.',
+    'Covers both parts of MW-02 only, not MW-H01: MW-H01 is how this workflow alerts Ilse, so making it this workflow’s error workflow too would let the two call each other without end.',
+  ],
+  nodes: [
+    node('f1', 'trigger', 'MW-02 fails', 'Error Trigger', 'Warning', ['n8n'], 'n8n · Error Trigger', [['Covers', 'both parts of MW-02, as their error workflow'], ['Gives', 'the workflow, the failed step and a link to the run']], 'Starts whenever either part of MW-02 fails in n8n.'),
+    node('f2', 'trigger', 'Make or Zapier fails', 'POST /mw/failed', 'WebhooksLogo', ['n8n'], 'n8n · Webhook', [['Path', '/mw/failed'], ['Auth', 'Header auth, a shared secret'], ['Sent by', 'Make error routes, and two Zapier Manager zaps, on New Zap Error and New Halted Task'], ['Carries', 'Make: the step and the error; Zapier: the zap, the time, and an error’s message; and failed or halted']], 'Starts when a Make error route reports a failed step in MW-03, or a Zapier Manager zap reports a failed or halted run of MW-01.'),
+    node('f3', 'action', 'Shape the row', 'Edit Fields', 'PencilSimple', ['n8n'], 'n8n · Edit Fields (Set)', [['Row', 'platform, flow, time, failed or halted, then what the source gives: step, error, zap, run link; a field the source does not give stays empty'], ['Include Other Input Fields', 'Off']], 'Puts every kind of failure into one shape, and keeps nothing else.'),
+    node('f4', 'action', 'Log the failed run', 'Google Sheets', 'Table', ['google-sheets'], 'n8n · Google Sheets › Append row', [['Tab', 'Failed runs']], 'Adds the failure as a row in the Failed runs tab.'),
+    node('f5', 'helper', 'Alert Ilse', 'MW-H01', 'Stack', ['n8n'], 'n8n · Execute Sub-workflow', [['Workflow', 'MW-H01 · Alert a person'], ['Mode', 'Run once for each item'], ['To', 'Ilse'], ['Urgent', 'yes for a failure, no for a halted run']], 'Sends Ilse a Telegram message with the row’s fields: urgent for a failure, ordinary for a halt.'),
+  ],
+  edges: [edge('f1', 'f3'), edge('f2', 'f3'), edge('f3', 'f4'), edge('f4', 'f5')],
+}
+
+const plan: Plan = {
+  title: 'Meridian Werks · Build plan',
+  description: 'A build plan for Meridian Werks, an independent automotive workshop in Rotterdam: three flows on Zapier, n8n and Make, two helpers, a test matrix and a handover, planned before anything is built, with no work released before the owner says yes.',
+  kicker: 'BUILD PLAN · MERIDIAN WERKS',
+  heading: 'Every booking, health report and fleet report, planned before a single step is placed, and not one job started without the owner’s yes.',
+  lede:
+    'Three flows and two helpers for Meridian Werks, the independent workshop at Loodsweg 14, Unit B, Rotterdam, open since 2012, with six bays, an alignment cell and seven people. Bookings run on Zapier, health reports on n8n and fleet reports on Make. Airtable holds the job cards, the findings, the reports and the fleet clients, Cal.com the workshop calendar, Telegram every message to the workshop, and Google Sheets the logs. The site promises to confirm by phone within one working day, that no work begins before the findings are documented and approved, that any variation is approved before it happens, and monthly reporting for fleet contracts; each flow keeps one of those promises, and a person keeps each one with it. Claude drafts only the plain-language summary in a health report, rewording what the technician recorded; diagnosis is the workshop’s job. Amounts are in euros, and a registration number stays on the job card.',
+  meta: [
+    ['Client', 'Meridian Werks · Rotterdam, NL'],
+    ['Platforms', 'Zapier, n8n and Make'],
+    ['Workflows', '3 + 2 helpers'],
+    ['Prepared by', 'Justine Acosta'],
+  ],
+  start: {
+    title: 'Before anything is built',
+    blurb: 'The outcome, the entry points and every way a booking, a report or a month ends.',
+    rail: [
+      { heading: 'Why plan first', body: 'Meridian Werks measures before it touches anything, and writes down what it found. This page does the same for the flows: before Zapier, n8n or Make is opened, it pins down who says yes at each step, what Claude may and may not write, and where a registration number is allowed to go.' },
+      { heading: 'Who says yes', body: YES },
+      { heading: 'Personal data', body: DATA },
+    ],
+    outcome: 'Every booking is held, carded and receipted within a minute and confirmed by Ilse’s call within one working day, every diagnosed car’s health report reaches its owner checked and priced, with work released only on their yes, and every fleet client gets a checked report on the month.',
+    trigger: 'Ten entry points: a booking sent, a working-morning check, a job set to Diagnostics done, a job set to Variation found, the 1st of the month, a fleet report set to Checked, MW-02 or MW-H02 calling MW-H01, n8n’s own Error Trigger and a webhook that Make and Zapier report failures to.',
+    exits: ['Booked, receipted and called', 'Approved and released, or Ilse calls', 'Fleet report checked and sent'],
+    outOfScope: [
+      'Diagnosing a car: the technicians do it on the lift and the bench, and no flow or Claude step names a fault, a cause or a part of its own',
+      'Pricing: Ilse sets every fixed estimate by hand, in euros, and no flow or Claude step writes a price',
+      'Rescheduling and cancelling a booking, which Ilse does by phone or in Cal.com; the Inbox triage agent on the AI agents page sorts those emails',
+      'Pre-purchase inspections’ 142-point checklist and the road test, which the technicians and Anton do and record by hand',
+      'Invoicing, the 24-month parts and labour warranty, and RDW periodic inspection work, which the workshop does by hand',
+      'The Workshop Q&A bot and the two agents, Inbox triage and Weekly report, planned on the AI agents page',
+    ],
+  },
+  naming: {
+    title: 'Naming convention',
+    blurb: 'One vocabulary across Zapier, n8n and Make.',
+    rail: [
+      { heading: 'Why it matters', body: 'Three platforms and one workshop manager reading every alert. When a run fails, its name has to say which flow and which part it was, wherever it ran.' },
+      { heading: 'Rule of thumb', body: 'If a run log does not read like a sentence, rename the steps.' },
+    ],
+    rules: [
+      { name: 'Workflows', pattern: 'MW-[number] · [Title]', examples: ['MW-01 · Service booking', 'MW-H02 · Log a failed run'], rule: 'The same codes on every platform. The number is the build order; helpers get an H.' },
+      { name: 'Parts', pattern: 'MW-[number] · [Title] · [part]', examples: ['MW-01 · Service booking · calls due', 'MW-02 · Health report · one job', 'MW-03 · Fleet report · send'], rule: 'A flow one Zap, workflow or scenario cannot hold is split into parts in one folder. The Automation page draws them as one flow.' },
+      { name: 'Steps', pattern: '[Verb] [object]', examples: ['Hold the slot', 'Draft the summary', 'Send the report'], rule: 'Default names like “HTTP Request1” or “Router 2” never survive a build.' },
+      { name: 'Webhook paths', pattern: '/mw/[source]', examples: ['/mw/failed'], rule: 'One path per source, all lowercase.' },
+      { name: 'Connections', pattern: 'MW · [Service] ([platform])', examples: ['MW · Gmail (n8n)', 'MW · Airtable (Zapier)', 'MW · Telegram (Make)'], rule: 'Each platform holds its own connection, and the name says which one to renew. Gmail is signed in as workshop@meridianwerks.nl on all three.' },
+      { name: 'Choice fields', pattern: 'Plain words, one fixed list each', examples: ['Requested, Confirmed, In diagnostics, Diagnostics done, With the owner, Approved, Variation found, Done, Not going ahead', 'Needed now, Upcoming, Optional', 'Needed now only, Needed now and upcoming, Everything listed, Not now, Call me first, No answer', 'To check, Checked, Sent'], rule: 'Stage on Jobs, Priority on Findings, Answer on Reports, and Status on Fleet reports, in that order. The flows, the templates, the forms and this page use the same words.' },
+      { name: 'Airtable tables', pattern: 'Title case, one thing per table', examples: ['Jobs', 'Findings', 'Fleet reports'], rule: 'Flows read fields by name, never by position.' },
+    ],
+  },
+  data: {
+    title: 'Where the data lives',
+    blurb: 'Six Airtable tables for the work, and two sheet tabs.',
+    rail: [
+      { heading: 'Source of truth', body: 'Airtable holds the job cards, the findings and their photographs, the health reports, the team and the fleet clients and their reports. Cal.com holds the workshop calendar. Google Sheets holds the logs.' },
+      { heading: 'One vocabulary per field', body: 'Every choice field takes one fixed list, and the flows, the templates, the forms and this page use the same words for it.' },
+      { heading: 'The registration stays put', body: 'Registration is a field on Jobs and nowhere else. No lookup, formula, report line or message reads it.' },
+    ],
+    tables: [
+      { name: 'Jobs', fields: ['Job number', 'Received at', 'Owner name', 'Owner email', 'Owner phone', 'Make', 'Model', 'Year', 'Registration', 'Mileage (km)', 'Use', 'Service', 'Symptom', 'Requested slot', 'Cal.com booking', 'Slot held', 'Cal.com status', 'Call by', 'Stage', 'Stage changed', 'Technician', 'Technician chat ID', 'Approved total', 'Fleet client', 'Fleet number', 'In on', 'Out on', 'Days off road', 'Out month', 'Invoiced', 'Report line'], note: 'The job card, one row per booking, opened by MW-01 or by Ilse. Registration is optional and read by no flow. Use is Private, Performance / track, Collection or Fleet / commercial, and Service one of the site’s eight. Call by is WORKDAY(Received at, 1). Stage is Requested, Confirmed, In diagnostics, Diagnostics done, With the owner, Approved, Variation found, Done or Not going ahead, and Stage changed a Last modified time field on it. Technician chat ID is a lookup from Team. Approved total is a rollup of approved findings’ prices. Fleet client, Fleet number, In on, Out on and Invoiced are filled by Ilse; Days off road, Out month and Report line are formulas.' },
+      { name: 'Findings', fields: ['Job', 'Job number', 'Finding', 'Priority', 'Calibration', 'Photos', 'Price', 'Price line', 'Report', 'Approved', 'Technician'], note: 'One row per finding, written by the technician who diagnosed the car, in their own words. Priority is Needed now, Upcoming or Optional. Calibration is ticked for calibration work, which Anton signs off. Price, in euros, is Ilse’s. Approved is a formula from Priority and the report’s Answer.' },
+      { name: 'Reports', fields: ['Report', 'Job', 'Kind', 'Findings', 'Summary draft', 'Summary', 'Price lines', 'Needed now total', 'Upcoming total', 'Optional total', 'Unpriced', 'Status', 'Sent at', 'Answer', 'Owner note', 'Answered at'], note: 'One row per health report or variation, opened by MW-02. Kind is Health report or Variation. Summary draft is Claude’s, kept as it was; Summary is what Ilse sends. The totals are rollups of the findings by Priority, and Unpriced counts findings with no Price. Status is With the workshop, Sent back, Not sent, Call instead, Sent or Answered. Answer is Needed now only, Needed now and upcoming, Everything listed, Not now, Call me first or No answer.' },
+      { name: 'Team', fields: ['Name', 'Role', 'Telegram chat ID'], note: 'The seven people at Meridian Werks. Role is Founder, Workshop manager or Technician. Each starts the workshop’s Telegram bot once, so the flows can message them.' },
+      { name: 'Fleet clients', fields: ['Client', 'Contact name', 'Report email', 'Contract', 'Vehicles on contract'], note: 'One row per fleet client. Contract is Active or Ended.' },
+      { name: 'Fleet reports', fields: ['Client', 'Month', 'Jobs', 'Days off road', 'Uptime', 'Costs', 'Lines', 'Ilse’s note', 'Status', 'Status changed', 'Sent at'], note: 'One row per client per month, drafted by MW-03. Costs are in euros. Uptime is a formula. Status is To check, Checked or Sent; only Ilse, and the flow’s own account, may change it, and the flow never sets Checked.' },
+    ],
+    stages: [
+      ['Requested', 'A booking on its card, the slot held or not, waiting for Ilse’s call.'],
+      ['Confirmed', 'Ilse has called the owner and confirmed the date.'],
+      ['Diagnostics done', 'Every finding recorded, with photographs and a priority.'],
+      ['With the owner', 'A health report sent, checked and priced, waiting for the owner’s answer.'],
+      ['Approved', 'The owner said yes, and the work they approved is released.'],
+      ['Variation found', 'Work beyond the approved estimate, stopped until the owner’s new yes.'],
+      ['Done', 'The work finished and road-tested against the original complaint.'],
+    ],
+    exitStages: [
+      ['Not going ahead', 'The owner declined the work, set by Ilse after her call.'],
+      ['Sent back', 'A report Anton returned to the technician; its findings go in the next one.'],
+    ],
+    sheets: [
+      ['Failed runs', 'One row per failed or halted run, from Zapier, n8n or Make, with no registration and no owner details'],
+      ['Test matrix', 'The test rows below, with results'],
+    ],
+  },
+  triggers: {
+    title: 'What starts each workflow',
+    blurb: 'Every entry point, and the workflow it runs.',
+    rail: [
+      { heading: 'How it wires up', body: 'Each flow starts where its platform is strongest: Zapier’s Catch Hook for the site’s form, n8n’s Airtable Triggers for the job cards, and Make’s schedule and Watch Records for the month. Failures from all three end in one sheet.' },
+      { heading: 'The phone', body: 'The workshop’s number is +31 10 244 1180, Monday to Friday 07:30–18:00. People answer it, and no flow starts from a call.' },
+    ],
+    rows: [
+      ['A booking sent from the site’s four steps', 'Webhooks by Zapier, Catch Hook', 'MW-01'],
+      ['07:30, Monday to Friday', 'Schedule by Zapier', 'MW-01'],
+      ['A job card set to Diagnostics done', 'Airtable Trigger, every minute', 'MW-02'],
+      ['A job card set to Variation found', 'Airtable Trigger, every minute', 'MW-02'],
+      ['06:00 on the 1st of each month', 'Scenario schedule', 'MW-03'],
+      ['A fleet report set to Checked', 'Airtable Watch Records, every 15 minutes', 'MW-03'],
+      ['MW-02 or MW-H02', 'Execute Sub-workflow', 'MW-H01'],
+      ['An n8n run fails', 'Error Trigger', 'MW-H02'],
+      ['A Make or Zapier run fails or halts', 'Webhook POST /mw/failed', 'MW-H02'],
+    ],
+  },
+  workflows: [MW01, MW02, MW03],
+  helpers: {
+    title: 'Helpers',
+    blurb: 'Two small workflows the others call.',
+    rail: [{ heading: 'Why helpers', body: 'Alerts and failures are written once, in n8n, and all three platforms report failures to them. Zapier and Make message people with their own Telegram modules.' }],
+    list: [H01, H02],
+  },
+  tests: {
+    title: 'Test matrix',
+    blurb: 'One row per branch. Tick each one as it passes.',
+    rail: [
+      { heading: 'How to test', body: 'Each row is one branch, walked with test owners, test cars and a test fleet client before anything reaches a real owner.' },
+      { heading: 'Promise rows', body: 'Rows t01, t02, t07 and t10 to t21 prove the receipt never claims to confirm, that no work is released before the owner’s yes, that a variation waits for a new one, and that Claude never diagnoses. Ilse and Anton sign them off before go-live.' },
+      { heading: 'Test data', body: 'Test owners and test clients have made-up names, and no test row uses a real registration. Times, dates and prices in these rows are illustrative.' },
+    ],
+    rows: [
+      { id: 't01', workflow: 'MW-01', branch: 'Slot held', input: 'Test Owner A books Mechanical Service for a 2021 BMW M340i, a test registration, 48,200 km, Private, Tuesday 09:00: “A whine from the front at motorway speed.”', expected: 'A Cal.com booking waiting for confirmation, with no registration in it; a job card, Stage Requested, Slot held yes, the registration on the card only; a workshop group message with the make, model, service, symptom and slot, and no registration or contact details; a receipt saying the slot is held and that Ilse will call to confirm within one working day, never that it is confirmed; Call by the next working day' },
+      { id: 't02', workflow: 'MW-01', branch: 'Slot just taken', input: 'Test Owner B asks for the same Tuesday 09:00 a moment after t01', expected: 'No Cal.com booking; a job card with Slot held no and Cal.com’s status; the workshop told the slot is not held; a receipt saying the slot was taken and Ilse will agree a time when she calls; no error alert' },
+      { id: 't03', workflow: 'MW-01', branch: 'No registration', input: 'Test Owner C books a Pre-Purchase Inspection with Registration left empty', expected: 'The card with Registration empty; everything else as t01' },
+      { id: 't04', workflow: 'MW-01', branch: 'Friday evening', input: 'A booking sent on a Friday at 17:30', expected: 'Call by is the Monday, the next working day' },
+      { id: 't05', workflow: 'MW-01', branch: 'Calls due', input: 'The 07:30 check runs with t02’s card still Requested on its Call by day', expected: 'One Telegram message to Ilse listing it with a link, and no registration' },
+      { id: 't06', workflow: 'MW-01', branch: 'Nothing due', input: 'The 07:30 check runs with every card Confirmed', expected: 'Any to call? stops the Zap; no message; no halted run' },
+      { id: 't07', workflow: 'MW-01', branch: 'Ilse confirms', input: 'Ilse calls Test Owner A, agrees the time, confirms the booking in Cal.com and sets the card Confirmed', expected: 'The booking confirmed in Cal.com; the card Confirmed; off the next morning’s list; no email from any flow claims to confirm it' },
+      { id: 't08', workflow: 'MW-01', branch: 'Cal.com key expired', input: 'A test booking with the Cal.com API key revoked', expected: 'Slot held no, with Cal.com’s status on the card and in the workshop message; the receipt says Ilse will agree a time; Ilse renews the key' },
+      { id: 't09', workflow: 'MW-01', branch: 'Airtable fails', input: 'A test booking with the Airtable connection in Zapier revoked', expected: 'The Zap errors at Open a job card; the New Zap Error zap posts to /mw/failed; a row with the zap, the time and the error’s message, and an urgent alert to Ilse; she opens the card by hand from the Zap’s history and calls the owner' },
+      { id: 't10', workflow: 'MW-02', branch: 'Approved, needed now', input: 'A test Brake & Suspension job. Marc records “front pads 2 mm, discs lipped” needed now, “rear dampers misting” upcoming and “alignment off fast-road spec” optional, with photos. Ilse prices them €480, €1,150 and €140 and sends. Test Owner A answers Needed now only.', expected: 'Claude’s summary rewords the three findings and adds nothing; no sign-off from Anton asked; the email with the photographs, the three groups and their totals in euros, its subject the make and model with no registration; the needed-now finding Approved, the others not; the job Approved, total €480; the workshop group told, with no registration' },
+      { id: 't11', workflow: 'MW-02', branch: 'Calibration', input: 'A test Performance Refinement job with a finding ticked Calibration: “knock correction on cylinders 4 and 5 under load”', expected: 'Anton asked first, on his form; once he signs off, Ilse’s form; the rest as t10' },
+      { id: 't12', workflow: 'MW-02', branch: 'Pre-purchase inspection', input: 'Test Owner C’s pre-purchase inspection, with findings recorded and set to Diagnostics done', expected: 'Anton asked first, whatever the findings; nothing reaches Ilse or the owner before he signs off' },
+      { id: 't13', workflow: 'MW-02', branch: 'Anton sends it back', input: 'Anton answers Back to the technician with a note on t11', expected: 'The report Sent back, its findings freed; the technician messaged with Anton’s note; nothing to Ilse or the owner; Diagnostics done set again opens a new report with the same findings' },
+      { id: 't14', workflow: 'MW-02', branch: 'No findings', input: 'A test job set to Diagnostics done with no finding recorded', expected: 'Ilse told, with a link to the card; no report opened; nothing to the owner' },
+      { id: 't15', workflow: 'MW-02', branch: 'Ilse calls instead', input: 'Ilse answers I will call the owner on t10’s report', expected: 'The report Call instead; no email; Ilse records the owner’s answer by hand after the call' },
+      { id: 't16', workflow: 'MW-02', branch: 'Not priced', input: 'Ilse answers Send to the owner with one finding still unpriced', expected: 'No email; the report Not sent, its findings freed; Ilse told a finding had no price' },
+      { id: 't17', workflow: 'MW-02', branch: 'Link only opened', input: 'Open the answer link with a plain GET, as a mail scanner would, and close it', expected: 'The form shows; nothing recorded; the run still waiting; the job still With the owner' },
+      { id: 't18', workflow: 'MW-02', branch: 'Not now', input: 'Test Owner A answers Not now', expected: 'Answer Not now on the report; no finding approved; the job not Approved; Ilse told to call; nothing begins' },
+      { id: 't19', workflow: 'MW-02', branch: 'No answer', input: 'A test report left unanswered for seven days', expected: 'The run goes on as No answer; Ilse told to call; the job not Approved' },
+      { id: 't20', workflow: 'MW-02', branch: 'Variation approved', input: 'During t10’s work Marc records “coolant expansion tank cracked at the seam” needed now, with a photo, and sets Variation found; Ilse prices it €95; Test Owner A answers Needed now only', expected: 'A new report, Kind Variation, holding only that finding; the subject says a variation; the tank not touched before the answer; on the yes the job back to Approved and Approved total €575; the workshop told' },
+      { id: 't21', workflow: 'MW-02', branch: 'Variation declined', input: 'The same variation, answered Call me first', expected: 'The variation not approved; Ilse told to call; the work already approved goes on and the tank is not replaced without a new yes' },
+      { id: 't22', workflow: 'MW-02', branch: 'Nothing added', input: 'Joris records “misfire cylinder 3; swapping coils moved it to cylinder 2”', expected: 'The summary says the misfire followed the coil when the coils were swapped, and names no cause, part or price of its own; Ilse checks it against Joris’s words' },
+      { id: 't23', workflow: 'MW-02', branch: 'Claude fails', input: 'A test job with the Anthropic connection in n8n revoked', expected: 'The report opened with an empty summary; Ilse’s message says there is no draft; she writes it; nothing sends before her Send' },
+      { id: 't24', workflow: 'MW-02', branch: 'Email fails', input: 'A priced test report with the Gmail connection in n8n revoked', expected: 'After three tries the run fails; a row in Failed runs with the step and a link to the run; an urgent alert to Ilse; the report not marked sent; Ilse calls the owner' },
+      { id: 't25', workflow: 'MW-03', branch: 'Client with jobs', input: 'Test Fleet Client A, six vans on contract, with three jobs out last month, two days off the road and €1,260 invoiced', expected: 'A Fleet reports row, To check: Jobs 3, Days off road 2, Costs €1,260, an uptime figure, three lines by fleet number and model and no registration; Ilse messaged with a link' },
+      { id: 't26', workflow: 'MW-03', branch: 'No visits', input: 'Test Fleet Client B, with no job last month', expected: 'A report with Jobs 0 that says there were no visits; Ilse messaged' },
+      { id: 't27', workflow: 'MW-03', branch: 'No clients', input: 'The 1st, with no client Active', expected: 'The filter before Each client stops the run; no row; no message' },
+      { id: 't28', workflow: 'MW-03', branch: 'Ilse corrects', input: 'Ilse corrects a line on t25’s report, adds a note and sets it Checked', expected: 'Within 15 minutes the email to the client’s Report email, with her correction and note; the subject with the month and client and no registration; Status Sent' },
+      { id: 't29', workflow: 'MW-03', branch: 'Edited after sending', input: 'Ilse edits t28’s report after it was sent', expected: 'Nothing sent again: the formula needs Sent at empty' },
+      { id: 't30', workflow: 'MW-03', branch: 'Email fails', input: 'A checked report with the Gmail connection in Make revoked', expected: 'The error route posts the step and the error to /mw/failed and ends in Break; the run stored to retry; a row in Failed runs and an urgent alert to Ilse; the report stays Checked, not Sent' },
+    ],
+  },
+  build: {
+    title: 'Build order',
+    blurb: 'Five phases, in the order they are built.',
+    rail: [{ heading: 'Order', body: 'Foundation first, then one platform at a time, in the order of their codes: bookings on Zapier, health reports on n8n, then fleet reports on Make. The review with Ilse and Anton comes last, before anything is turned on.' }],
+    phases: [
+      { name: '1 · Foundation', tasks: ['Create the Airtable tables Jobs, Findings, Reports, Team, Fleet clients and Fleet reports', 'Create the Sheets tabs Failed runs and Test matrix', 'Add the connections on each platform: MW · Gmail, MW · Airtable, MW · Telegram, MW · Anthropic', 'Create the Telegram Workshop group, and have everyone in Team start the bot', 'Build MW-H01 in n8n, then MW-H02 with both parts of MW-02 (not MW-H01) as the covered error workflows'] },
+      { name: '2 · Bookings on Zapier', tasks: ['Set up the Workshop visit event type in Cal.com, with Requires confirmation on and its own emails off', 'Add the Call by formula with Ilse’s holidays', 'Write the receipt template with the one-working-day line, and have Ilse read it', 'Build the book and calls due Zaps, and the two Zapier Manager zaps, New Zap Error and New Halted Task, that post to /mw/failed', 'Run tests t01–t09'] },
+      { name: '3 · Health reports on n8n', tasks: ['Add the Findings and Reports fields: Priority, Calibration, the totals, Unpriced and the Approved formula', 'Write Claude’s instructions, and have Anton and Ilse read them against real findings', 'Write the health report and variation templates and the answer form', 'Build MW-02’s two parts, watch and one job', 'Run tests t10–t24'] },
+      { name: '4 · Fleet reports on Make', tasks: ['Add Fleet number, In on, Out on, Days off road, Out month, Invoiced and Report line to Jobs, and the Uptime formula to Fleet reports', 'Set Fleet reports’ Status so only Ilse, and the flow’s own account, can change it', 'Build the draft and send scenarios, every writing or sending module with an error route to /mw/failed', 'Run tests t25–t30'] },
+      { name: '5 · Review and hand over', tasks: ['Read every template, form and Claude’s instructions with Ilse and Anton, and sign off the promise rows', 'Search every test message, subject and Failed runs row for a registration, and find none', 'Run the whole matrix again', 'Walk Ilse, Anton and the technicians through the handover page, and turn every flow on'] },
+    ],
+  },
+  handover: {
+    title: 'Handover',
+    blurb: 'What Meridian Werks keeps.',
+    rail: [{ heading: 'Written for Ilse, Anton and the technicians', body: 'One page, no jargon, for the people who book the cars, diagnose them and price the work. It lives next to the flows.' }],
+    does: [
+      'Holds the slot for every booking, opens its job card, tells the workshop and sends the owner a receipt, then lists for Ilse each morning the owners she has to call.',
+      'Turns a technician’s findings into a health report Ilse has priced and checked, with Anton’s sign-off where it is needed, and releases the work only on the owner’s yes.',
+      'Sends every variation back to the owner for a new yes before the work goes ahead.',
+      'Drafts each fleet client’s monthly report on the 1st, and sends it once Ilse has checked it.',
+    ],
+    breaks: [
+      'Changing the receipt so it says a booking is confirmed: the site confirms by phone.',
+      'Letting Claude read the registration or the owner’s details, or adding anything to its instructions that names a fault, a cause or a price.',
+      'Setting a job Approved without the owner’s answer, or letting technicians start a variation before its new yes.',
+      'Putting the registration in a Telegram message, an email subject, a fleet report or the Failed runs tab.',
+      'Renaming a field in any of the six tables, or changing the Stage, Priority, Answer or Status choices.',
+      'A connection expiring on one platform but not the others, or the Cal.com API key expiring.',
+    ],
+    call: 'Justine Acosta, who built it. Failures already reach Ilse on Telegram, with what each platform gives: the zap and the time from Zapier, the step and a link to the run from n8n, the step and the error from Make.',
+    logs: 'Every failed or halted run, from any of the three platforms, is a row in the Failed runs tab and a Telegram message. Every job card keeps its booking and when Ilse called, every report who checked it, when it was sent and the owner’s answer, and every fleet report when it was checked and sent.',
+  },
+  footer: { note: 'A worked example. Meridian Werks is a fictional workshop, not a client project, and prices and figures are illustrative.', by: 'Built by Justine Acosta' },
+  home: 'Justine Acosta · Portfolio',
+}
+
+export default plan
