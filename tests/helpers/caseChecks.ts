@@ -108,6 +108,7 @@ export function checkPlan(page: Plan, automation: Automations, site: SiteInfo) {
   const p = prefixOf(site)
   expect(page.workflows.map((w) => w.code)).toEqual(automation.flows.map((f) => f.code))
   expect(page.workflows.map((w) => w.platform)).toEqual(automation.flows.map((f) => f.platform))
+  expect(page.workflows.map((w) => w.title), 'each workflow keeps its flow’s title').toEqual(automation.flows.map((f) => f.title))
   for (const h of page.helpers.list) expect(h.code, 'helper code').toMatch(new RegExp(`^${p}-H\\d\\d$`))
 
   const all: Workflow[] = [...page.workflows, ...page.helpers.list]
@@ -236,4 +237,94 @@ export function checkCopy(page: { site?: { name: string; href: string; page: str
   expect(text, 'curly quotes only').not.toContain('\\"')
   expect(text, 'the editor is VS Code').not.toMatch(/cursor/i)
   expect(text).not.toMatch(/gohighlevel|highlevel|\bghl\b/i)
+}
+
+/** A site's five pages, as CASES holds them. */
+export type CaseSetInfo = { automation?: Automations; plan?: Plan; framework?: AgenticFramework; endToEnd?: EndToEnd; agents?: Agents }
+
+/**
+ * What a site's trade needs on its pages (spec §6, sensitive trades). `require`
+ * is text a page must carry; `bannedFields` is a pattern no Build plan table
+ * field may match, so nothing it names is ever stored.
+ */
+export const SENSITIVE: Record<string, { require: { page: keyof CaseSetInfo; text: RegExp; why: string }[]; bannedFields?: RegExp }> = {
+  'range-physical-therapy': {
+    require: [{ page: 'agents', text: /\b911\b/, why: 'the bot points an emergency to 911' }],
+    bannedFields: /symptom|diagnos|injur|condition|treatment|reason|complaint|pain|referral|code|note/i,
+  },
+  'riverdale-and-brooks': {
+    require: [{ page: 'agents', text: /legal advice/i, why: 'the bot never gives legal advice' }],
+  },
+}
+
+/** The person’s-yes rule stated wider than the pages build it: a live chat bot answers without a yes (Lesson 9). */
+export const OVERBROAD_YES = [
+  /\b(?:anything|everything) (?:for|to|that reaches) (?:a|an|the) (?:client|guest|patient|buyer|owner)s?\b(?![’']s (?:inbox|email))/i,
+  // “anything Claude drafts for a patient” without “’s inbox”: what Claude or an agent writes, not a money rule like “anything above waits for the owner”.
+  /\b(?:anything|everything) (?:that )?(?:Claude|an? agent|the bot|AI)(?: [\w’']+){0,2} (?:for|to) (?:a|an|the) (?:client|guest|patient|buyer|owner)s?\b(?![’']s (?:inbox|email))/i,
+  /\b(?:anything|what) (?:a|an|the) (?:client|guest|patient|buyer|owner) reads\b/i,
+]
+
+/**
+ * The other names a site goes by in copy, beyond its carousel name, so a page
+ * that borrows another site’s short name is caught too.
+ */
+export const SITE_ALIASES: Record<string, string[]> = {
+  'range-physical-therapy': ['Range PT', 'Range Physical'],
+  'riverdale-and-brooks': ['Riverdale', 'Riverdale and Brooks'],
+  'harbor-and-pine-moving': ['Harbor & Pine', 'Harbor and Pine'],
+  'ironline-utility-infrastructure': ['Ironline'],
+  'meridian-werks': ['Meridian Werks'],
+  'meridian-energy-infrastructure': ['Meridian Energy'],
+}
+
+/** Every name a site goes by, as whole-word patterns: a single word keeps its capital, so “a range of” is no leak; longer names ignore case. */
+function namesOf(site: SiteInfo): RegExp[] {
+  const esc = (t: string) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return [site.name, ...(SITE_ALIASES[keyOf(site)] ?? [])].map((n) => new RegExp(`\\b${esc(n)}(?!\\w)`, n.includes(' ') ? 'i' : ''))
+}
+
+/** Every tool id a page names: lists of ids, a step’s or card’s `tool`, and the hero’s tools. */
+function toolsOf(page: object): Set<string> {
+  const found = new Set<string>()
+  for (const v of walk(page)) {
+    if (!v || typeof v !== 'object') continue
+    const o = v as Record<string, unknown>
+    for (const list of [o.tools, o.heroTools]) if (Array.isArray(list)) for (const t of list) if (typeof t === 'string') found.add(t)
+    if (typeof o.tool === 'string') found.add(o.tool)
+  }
+  return found
+}
+
+/**
+ * The rules that span a site’s pages: each is labelled a sample, no other
+ * site’s name leaks in, the person’s yes is never stated wider than built, the
+ * trade’s own rules hold, and a tool is never used on just one working page
+ * (the framework’s build tools aside).
+ */
+export function checkSite(set: CaseSetInfo, site: SiteInfo, sites: SiteInfo[]) {
+  const key = keyOf(site)
+  const pages = Object.entries(set).filter(([, p]) => p) as [keyof CaseSetInfo, object][]
+  for (const [name, page] of pages) {
+    const text = JSON.stringify(page)
+    expect(text, `${key} ${name}: says the business is fictional`).toMatch(/fictional/i)
+    expect(text, `${key} ${name}: marks its figures illustrative`).toMatch(/illustrative/i)
+    for (const other of sites) if (other.name !== site.name) for (const re of namesOf(other)) expect(text, `${key} ${name}: names another site, ${other.name}`).not.toMatch(re)
+    for (const re of OVERBROAD_YES) expect(text, `${key} ${name}: states the person’s yes wider than built`).not.toMatch(re)
+  }
+
+  const rules = SENSITIVE[key]
+  for (const r of rules?.require ?? []) {
+    const page = set[r.page]
+    expect(page, `${key}: ${r.page} exists for its trade rule`).toBeDefined()
+    expect(JSON.stringify(page), `${key} ${r.page}: ${r.why}`).toMatch(r.text)
+  }
+  if (rules?.bannedFields && set.plan)
+    for (const t of set.plan.data.tables) for (const f of t.fields) expect(f, `${key}: table ${t.name} stores ${f}`).not.toMatch(rules.bannedFields)
+
+  const working = (['automation', 'plan', 'agents', 'endToEnd'] as const).filter((n) => set[n]).map((n) => toolsOf(set[n]!))
+  if (working.length === 4) {
+    const all = new Set(working.flatMap((s) => [...s]))
+    for (const t of all) expect(working.filter((s) => s.has(t)).length, `${key}: tool ${t} appears on only one working page`).toBeGreaterThanOrEqual(2)
+  }
 }

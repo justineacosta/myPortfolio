@@ -136,11 +136,12 @@ const agents: Agents = {
         { id: 'gate', at: [5, 0], kind: 'gate', label: 'Architect’s yes', sub: 'Approve in Telegram', icon: 'UserCheck', tools: ['telegram'], what: 'The project architect gets the draft in Telegram with Approve and Edit. Nothing is sent until they tap Approve; an edit goes back to Claude.' },
         {
           id: 'act', at: [6, 0], kind: 'end', label: 'Send and log', sub: 'Email or Telegram', icon: 'PaperPlaneTilt', pinType: 'OUTPUT',
-          what: 'An approved follow-up goes to the buyer by email; a brief goes to the architect in Telegram. Either way the run is logged on the buyer’s HubSpot contact.',
+          what: 'An approved follow-up goes to the buyer by email; a brief goes to the architect in Telegram. Either way the run is logged on the buyer’s HubSpot contact and in the Agent runs tab in Google Sheets.',
           pins: [
             { id: 'gmail', name: 'Gmail', tool: 'gmail', what: 'Sends the approved follow-up to the buyer.' },
             { id: 'telegram', name: 'Telegram', tool: 'telegram', what: 'Sends the brief to the architect walking the viewing.' },
             { id: 'hubspot', name: 'HubSpot', tool: 'hubspot', what: 'Logs the run on the buyer’s contact timeline.' },
+            { id: 'sheets', name: 'Google Sheets', tool: 'google-sheets', what: 'Logs the run in the Agent runs tab: what came in, each tool call, and any yes.' },
           ],
         },
       ],

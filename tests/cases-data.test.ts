@@ -9,7 +9,7 @@ import { CASE_PAGES, CASE_SITES, casePath, type CasePageId } from '@/data/cases/
 import { endToEnd } from '@/data/endToEnd'
 import { projects } from '@/data/projects'
 import { findPlaceholders } from '@/scripts/placeholders'
-import { checkAgents, checkAutomation, checkCopy, checkEndToEnd, checkFramework, checkPlan, keyOf, prefixOf, SITE_PREFIX, type SiteInfo } from './helpers/caseChecks'
+import { checkAgents, checkAutomation, checkCopy, checkEndToEnd, checkFramework, checkPlan, checkSite, keyOf, prefixOf, SITE_PREFIX, type SiteInfo } from './helpers/caseChecks'
 
 const SITES: SiteInfo[] = projects.sitesView.sites
 const siteOf = (key: string) => SITES.find((s) => s.file === `${key}.html`)!
@@ -99,6 +99,12 @@ describe('every case page', () => {
   })
 })
 
+describe('every case site', () => {
+  it('is labelled a sample, names no other site, scopes the person’s yes, keeps its trade’s rules and uses each tool on two pages', () => {
+    for (const [key, set] of cases) checkSite(set, siteOf(key), SITES)
+  })
+})
+
 // CASES is empty until a site's content lands, so the loops above would pass on anything.
 // These build a small valid case from the general pages, then break it one way at a time.
 describe('the checks can fail', () => {
@@ -115,7 +121,7 @@ describe('the checks can fail', () => {
     const a = goodAutomation()
     const p = clone(plan)
     const was = p.workflows.slice(0, 3).map((w) => w.code)
-    const workflows = p.workflows.slice(0, 3).map((w, i) => ({ ...w, code: a.flows[i].code, platform: a.flows[i].platform }))
+    const workflows = p.workflows.slice(0, 3).map((w, i) => ({ ...w, code: a.flows[i].code, platform: a.flows[i].platform, title: a.flows[i].title }))
     const helpers = p.helpers.list.map((h, i) => ({ ...h, code: `OR-H0${i + 1}` }))
     const rows = p.tests.rows.filter((r) => was.includes(r.workflow)).map((r) => ({ ...r, workflow: a.flows[was.indexOf(r.workflow)].code }))
     return { ...p, title: 'Build plan · Oriel', workflows, helpers: { ...p.helpers, list: helpers }, tests: { ...p.tests, rows } }
@@ -266,6 +272,59 @@ describe('the checks can fail', () => {
     const card = page()
     card.tools[0].tool = 'notion' as never
     expect(() => checkCopy(card, site)).toThrow()
+  })
+
+  it('Build plan: fails when a workflow’s title drifts from its flow’s', () => {
+    const renamed = goodPlan()
+    renamed.workflows[0].title = 'Something else'
+    expect(() => checkPlan(renamed, goodAutomation(), site)).toThrow(/title/)
+  })
+
+  it('a site: passes a real one, and fails on a missing sample note, another site’s name, an over-broad yes, a broken trade rule or a one-page tool', () => {
+    const real = () => structuredClone(CASES['range-physical-therapy'])
+    const range = siteOf('range-physical-therapy')
+    expect(() => checkSite(real(), range, SITES)).not.toThrow()
+
+    const unlabelled = real()
+    unlabelled.automation = JSON.parse(JSON.stringify(unlabelled.automation).replace(/fictional/gi, 'real'))
+    expect(() => checkSite(unlabelled, range, SITES)).toThrow(/fictional/)
+
+    const leak = real()
+    leak.agents!.lede += ' Like Altitude, two doors down.'
+    expect(() => checkSite(leak, range, SITES)).toThrow(/Altitude/)
+
+    const wide = real()
+    wide.framework!.stance = 'Mara approves anything for a patient.'
+    expect(() => checkSite(wide, range, SITES)).toThrow(/wider/)
+    const drafted = real()
+    drafted.framework!.stance = 'Mara approves anything Claude drafts for a patient.'
+    expect(() => checkSite(drafted, range, SITES)).toThrow(/wider/)
+    const scoped = real()
+    scoped.framework!.stance = 'Mara approves anything Claude drafts for a patient’s inbox.'
+    expect(() => checkSite(scoped, range, SITES)).not.toThrow()
+    const short = real()
+    short.agents!.lede += ' Riverdale’s office is across town.'
+    expect(() => checkSite(short, range, SITES)).toThrow(/Riverdale/)
+    const reads = real()
+    reads.endToEnd!.stance = 'Mara checks what a patient reads.'
+    expect(() => checkSite(reads, range, SITES)).toThrow(/wider/)
+
+    const no911 = real()
+    no911.agents = JSON.parse(JSON.stringify(no911.agents).replace(/911/g, 'the clinic'))
+    expect(() => checkSite(no911, range, SITES)).toThrow(/911/)
+
+    const stored = real()
+    stored.plan!.data.tables[0].fields.push('Symptoms')
+    expect(() => checkSite(stored, range, SITES)).toThrow(/Symptoms/)
+    const reason = real()
+    reason.plan!.data.tables[1].fields.push('Reason for visit')
+    expect(() => checkSite(reason, range, SITES)).toThrow(/Reason for visit/)
+
+    const lonely = real()
+    lonely.automation!.flows[0].nodes[0].tools = ['hubspot']
+    const others = [lonely.plan, lonely.agents, lonely.endToEnd].map((p) => JSON.stringify(p))
+    if (others.every((t) => !t.includes('"hubspot"'))) expect(() => checkSite(lonely, range, SITES)).toThrow(/hubspot/)
+    else throw new Error('the fixture needs a tool no other Range page uses')
   })
 
   it('withSite fills the site from the carousel and the page path from CASE_PAGES, and refuses an unknown site', () => {
