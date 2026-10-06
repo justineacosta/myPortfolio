@@ -37,6 +37,8 @@ import riverdalePlan from './riverdale-and-brooks/buildPlan.ts'
 import riverdaleAgents from './riverdale-and-brooks/agents.ts'
 import riverdaleEndToEnd from './riverdale-and-brooks/endToEnd.ts'
 import riverdaleFramework from './riverdale-and-brooks/agenticFramework.ts'
+import ostlerAutomation from './ostler-barbers/automation.ts'
+import ostlerPlan from './ostler-barbers/buildPlan.ts'
 
 /** The pages a site has; a site need not have all five. */
 export type CaseSet = { automation?: Automations; plan?: Plan; framework?: AgenticFramework; endToEnd?: EndToEnd; agents?: Agents }
@@ -77,6 +79,10 @@ export const CASES: Record<string, CaseSet> = {
     agents: withSite(riverdaleAgents, 'riverdale-and-brooks', 'ai-agents'),
     endToEnd: withSite(riverdaleEndToEnd, 'riverdale-and-brooks', 'end-to-end'),
     framework: withSite(riverdaleFramework, 'riverdale-and-brooks', 'agentic-framework'),
+  },
+  'ostler-barbers': {
+    automation: withSite(ostlerAutomation, 'ostler-barbers', 'automation'),
+    plan: withSite(ostlerPlan, 'ostler-barbers', 'build-plan'),
   },
 }
 
