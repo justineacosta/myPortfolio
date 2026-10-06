@@ -28,7 +28,7 @@ const BUSINESS = { name: 'Westmere', trade: 'residential developer' }
 const YES = 'The hosting agent approves anything Claude drafts for a buyer’s inbox before it is sent.'
 
 /** The fair-housing rule, as on Westmere’s other pages. */
-const FAIR = 'Westmere is an Equal Housing Opportunity developer, DRE #02114471, so no bot or agent here screens, scores, sorts or ranks a buyer, and none reads a protected trait or a budget.'
+const FAIR = 'Westmere is an Equal Housing Opportunity developer, DRE #02114471, so no bot or agent here screens, scores, sorts or ranks a buyer, and none uses a protected trait or a budget: Claude is instructed to ignore anything about who a buyer is, and nothing it writes has a place for it.'
 
 const agents: Agents = {
   title: 'Westmere · AI agents and RAG chatbots',
@@ -123,18 +123,18 @@ const agents: Agents = {
           id: 'trigger', at: [0, 0], kind: 'start', label: 'Booked or held', sub: 'Cal.com or the host', icon: 'Lightning', pinType: 'TRIGGER',
           what: 'Two things start a run: a private viewing booked in Cal.com, for the Viewing prep agent, or the hosting agent marking a viewing held, for the Buyer follow-up agent.',
           pins: [
-            { id: 'booked', name: 'A viewing booked', tool: 'cal-com', what: 'A second webhook on the Private viewing event, beside the one WM-02 uses, posts each new booking to n8n: the residence, the day and time, and the hosting agent Cal.com picked in turn.' },
-            { id: 'held', name: 'A viewing held', icon: 'DoorOpen', what: 'Under the viewing brief in Telegram, a Viewing held button opens an n8n form: Held or Did not come, and an optional line on what the buyer asked about the residence. Opening it records nothing; only the form’s submit starts a run.' },
+            { id: 'booked', name: 'A viewing booked', tool: 'cal-com', what: 'A second webhook on the Private viewing event, beside the one WM-02 uses, posts each new booking to n8n: the residence, the day and time, and the hosting agent Cal.com picked in turn. It fires on new bookings only: a moved viewing keeps its brief, and WM-02 tells the host the new day and time. A cancelled one leaves the brief in the host’s chat, and nothing more is sent.' },
+            { id: 'held', name: 'A viewing held', icon: 'DoorOpen', what: 'Under the viewing brief in Telegram, a Viewing held button opens an n8n form: Held or Did not come, and an optional line on what the buyer asked about the residence. The link carries the viewing’s Cal.com booking ID and a signed token in hidden fields, and n8n’s Crypto node checks the token, so a stray or edited link starts nothing. Opening it records nothing; only the form’s submit starts a run, and Agent runs stops a second submit for the same viewing.' },
           ],
         },
         { id: 'plan', at: [1, 0], kind: 'step', label: 'Claude plans', sub: 'Picks the next step', icon: 'Brain', tools: ['claude'], what: 'Claude reads the goal, a viewing to prepare or a viewing to follow up, then picks the single next step and the tool it needs.' },
         {
           id: 'tool', at: [2, 0], kind: 'step', label: 'Use a tool', sub: 'One call at a time', icon: 'Wrench', pinType: 'TOOL',
-          what: 'n8n makes one tool call for Claude, and every call reads: the booking, the residence’s public facts, the buyer’s enquiry, the residence documents, Team or the Agent runs log. Nothing is changed or booked. No call reads a budget, a proof of funds or anything about who a buyer is.',
+          what: 'n8n makes one tool call for Claude, and every call reads: the booking, the residence’s public facts, the buyer’s enquiry, the residence documents, Team or the Agent runs log. Nothing is changed or booked. An empty result reaches Claude as not found, never as an error. No call asks for a budget, a proof of funds or anything about who a buyer is, and if a message mentions one, Claude is instructed to ignore it.',
           pins: [
             { id: 'booking', name: 'The booking', tool: 'cal-com', what: 'The viewing’s residence, day and time, and the hosting agent’s email. Read only.' },
-            { id: 'residences', name: 'Residences', tool: 'airtable', what: 'The residence’s public facts as the site gives them, like The Orchard Residences: $12,750,000, 4 bedrooms and a study, 3,850 sq ft, completion 2027 Q2, 2 of 3 remaining. Read only.' },
-            { id: 'enquiry', name: 'The enquiry', tool: 'hubspot', what: 'From the buyer’s HubSpot contact, three properties only: Residence of interest, Enquiry source and Enquiry message, their words as written. Claude takes from the message only what it asks about the residence. Read only.' },
+            { id: 'residences', name: 'Residences', tool: 'airtable', what: 'The residence’s public facts as the site gives them, like The Orchard Residences: $12,750,000, 4 bedrooms and a study, 3,850 sq ft, completion 2027 Q2, 2 of 3 remaining. A residence missing from Residences gives no brief: the host’s chat and the sales team’s group hear it is missing. Read only.' },
+            { id: 'enquiry', name: 'The enquiry', tool: 'hubspot', what: 'A HubSpot search by the booking’s email for two properties only: Enquiry message, the buyer’s words from their last enquiry as written, and Enquired on, its day. The search tolerates no match: a buyer who booked without enquiring may have no contact yet, since WM-02 saves it at the same moment. No contact, or an empty message, gives a facts-only brief. A message is always quoted with its day, so the brief shows when it is from an earlier enquiry. Claude takes from it only what it asks about the residence. Read only.' },
             { id: 'docs', name: 'Residence documents', tool: 'supabase', what: 'The same store the Document Q&A bot searches, filtered to the residence’s brochure, floor plans and specification. A metadata filter keeps every purchase contract out.' },
             { id: 'team', name: 'Team', tool: 'airtable', what: 'The hosting agent’s Telegram chat, found by their email. A host missing from Team gets no brief, and the sales team’s group hears instead.' },
             { id: 'sheets', name: 'Agent runs', tool: 'google-sheets', what: 'The log of earlier runs, read so a viewing never gets two follow-ups. An empty log means none sent yet.' },

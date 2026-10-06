@@ -28,7 +28,7 @@ const LANES: Lane[] = [
   { id: 'C', name: 'Residence enquiry (WM-01)', note: 'n8n. A fixed rule routes.' },
   { id: 'D', name: 'Private viewing (WM-02)', note: 'Make. The host hears first.' },
   { id: 'E', name: 'Viewing prep agent', note: 'For the hosting agent only.' },
-  { id: 'F', name: 'The agents', note: 'People, by hand.' },
+  { id: 'F', name: 'The sales agents', note: 'People, by hand.' },
   { id: 'G', name: 'Buyer follow-up agent', note: 'Waits for the host’s yes.' },
   { id: 'H', name: 'Full portfolio (WM-03)', note: 'Zapier. The director decides.' },
   { id: 'I', name: 'The sales team', note: 'Offers and escrow, by hand.' },
@@ -55,17 +55,17 @@ const STEPS: Step[] = [
 
   step('d1', 'D', [1, 0], 'trigger', 'Viewing booked', 'Cal.com to Make', 'CalendarCheck', 'Cal.com picks the hosting agent in turn and tells Make whenever a viewing is booked, moved or cancelled. A Router sends each one way.', ['cal-com', 'make'], true),
   step('d2', 'D', [2, 0], 'step', 'Save the viewing', 'HubSpot API call', 'Database', 'A booked or moved viewing’s day and time and its hosting agent go on the buyer’s contact, matched on email, so the enquiry and the viewing sit on one contact.', ['hubspot']),
-  step('d3', 'D', [3, 0], 'step', 'Tell the host', 'Telegram, or the team', 'PaperPlaneTilt', 'Make finds the host in Team and messages them on Telegram. A host missing from Team goes to the sales team’s group instead, so a person tells them.', ['airtable', 'telegram']),
+  step('d3', 'D', [3, 0], 'step', 'Tell the host', 'Telegram, or the team', 'PaperPlaneTilt', 'Make finds the host in Team and messages them on Telegram. A host missing from Team, or a message that fails, reaches the sales team instead, so a person tells them.', ['airtable', 'telegram']),
   step('d4', 'D', [4, 0], 'end', 'Confirm the viewing', 'A fixed template', 'EnvelopeSimple', 'The Router’s last route sends Westmere’s confirmation: the day and time, the gallery, the host’s name and +1 310 555 0148. It goes after the host is told, so the host knows even if it fails.', ['gmail'], true),
   step('d5', 'D', [2, 1.5], 'end', 'Clear the viewing', 'HubSpot API call', 'XCircle', 'A cancelled viewing’s day and time are cleared on the contact. Cal.com tells the hosting agent itself.', ['hubspot']),
 
-  step('e1', 'E', [2, 0], 'trigger', 'Viewing booked', 'Cal.com to n8n', 'CalendarPlus', 'A second Cal.com webhook on the Private viewing event starts one run in n8n for each new booking.', ['cal-com', 'n8n'], true),
-  step('e2', 'E', [3, 0], 'agent', 'Read the facts', 'Residence, enquiry', 'ClipboardText', 'One tool call at a time: the booking, the residence’s public facts in Residences, the enquiry on the HubSpot contact, and the residence’s documents in Supabase. Never a budget or a proof of funds.', ['hubspot', 'supabase']),
+  step('e1', 'E', [2, 0], 'trigger', 'Viewing booked', 'Cal.com to n8n', 'CalendarPlus', 'A second Cal.com webhook on the Private viewing event starts one run in n8n for each new booking. A moved viewing keeps its brief; WM-02 tells the host the new time.', ['cal-com', 'n8n'], true),
+  step('e2', 'E', [3, 0], 'agent', 'Read the facts', 'Residence, enquiry', 'ClipboardText', 'One tool call at a time: the booking, the residence’s facts, the enquiry message and its day, if the buyer has a contact yet, and the residence’s documents. No contact or no message gives a facts-only brief.', ['hubspot', 'supabase']),
   step('e3', 'E', [4, 0], 'ai', 'Write the brief', 'Claude, no scoring', 'PencilSimple', 'Claude writes a short brief: the residence’s facts to have ready and what the buyer asked about it. Nothing about who the buyer is, and no rating of the buyer.', ['claude']),
   step('e4', 'E', [5, 0], 'end', 'To the host only', 'Telegram, then logged', 'PaperPlaneTilt', 'The brief goes to the hosting agent’s own Telegram chat, never to the buyer, and the run is logged in Agent runs.', ['telegram', 'google-sheets']),
 
   step('f2', 'F', [5, 0], 'step', 'Host the viewing', 'At the sales gallery', 'DoorOpen', 'The hosting agent meets the buyer at 9200 Sunset Blvd, Suite 40, with the brief in hand, and shows the residence’s plans and specification.'),
-  step('f3', 'F', [6, 0], 'step', 'Mark it held', 'A form, from Telegram', 'CheckSquare', 'Under the brief, Viewing held opens an n8n form: Held or Did not come, and a line on what the buyer asked about the residence. Only the submit counts.'),
+  step('f3', 'F', [6, 0], 'step', 'Mark it held', 'A form, from Telegram', 'CheckSquare', 'Under the brief, Viewing held opens an n8n form: Held or Did not come, and a line on what the buyer asked about the residence. Its link carries a signed token for that viewing, and only the submit counts.'),
 
   step('g1', 'G', [1, 0], 'trigger', 'Viewing held', 'The host’s form', 'Lightning', 'The hosting agent’s form starts one run in n8n for the viewing.', ['n8n']),
   step('g2', 'G', [2, 0], 'agent', 'Read the viewing', 'Residence, enquiry', 'ClipboardText', 'One tool call at a time: the residence’s public facts, the enquiry on the contact, the residence’s documents, and Agent runs, so no viewing gets two follow-ups.', ['hubspot', 'google-sheets']),
@@ -154,7 +154,7 @@ const endToEnd: EndToEnd = {
   kicker: 'END TO END · WESTMERE',
   heading: 'From Enquire on this residence to a signed contract',
   lede: 'Every trigger, flow, bot and agent behind Westmere’s site, wired as one graph: an enquiry read for what the buyer asked, the listing agent’s call within minutes, a private viewing booked Tuesday to Saturday, the hosting agent’s brief and follow-up, the full portfolio and the valuation pack after proof of funds, and the contract the sales team asks the Document Q&A bot about.',
-  stance: `${YES} Westmere is an Equal Housing Opportunity developer, DRE #02114471, so no flow, bot or agent screens, scores, sorts or ranks a buyer, and none reads a protected trait or a budget. In WM-01 Claude sees only the message and the residence, and a fixed rule routes the result. A “qualified buyer” means proof of funds and nothing else, and only the sales director decides it, by hand. The brochure, the portfolio and the viewing confirmation are fixed templates and send on their own, and the Document Q&A bot answers the sales team only, never a buyer. Listing sites, offers and escrow are done by hand: no tool here reaches them.`,
+  stance: `${YES} Westmere is an Equal Housing Opportunity developer, DRE #02114471, so no flow, bot or agent screens, scores, sorts or ranks a buyer, and none uses a protected trait or a budget: Claude is instructed to ignore anything about who a buyer is, and nothing it writes has a place for it. In WM-01 Claude sees only the message and the residence, and a fixed rule routes the result. A “qualified buyer” means proof of funds and nothing else, and only the sales director decides it, by hand. The brochure, the portfolio and the viewing confirmation are fixed templates and send on their own, and the Document Q&A bot answers the sales team only, never a buyer. Listing sites, offers and escrow are done by hand: no tool here reaches them.`,
   caption: 'Westmere, end to end · 11 lanes',
   lanes: LANES,
   steps: STEPS.map((s) => {
