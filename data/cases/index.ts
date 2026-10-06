@@ -42,6 +42,31 @@ import ostlerPlan from './ostler-barbers/buildPlan.ts'
 import ostlerAgents from './ostler-barbers/agents.ts'
 import ostlerEndToEnd from './ostler-barbers/endToEnd.ts'
 import ostlerFramework from './ostler-barbers/agenticFramework.ts'
+import harborAutomation from './harbor-and-pine-moving/automation.ts'
+import harborPlan from './harbor-and-pine-moving/buildPlan.ts'
+import harborAgents from './harbor-and-pine-moving/agents.ts'
+import harborEndToEnd from './harbor-and-pine-moving/endToEnd.ts'
+import harborFramework from './harbor-and-pine-moving/agenticFramework.ts'
+import westmereAutomation from './westmere-los-angeles/automation.ts'
+import westmerePlan from './westmere-los-angeles/buildPlan.ts'
+import westmereAgents from './westmere-los-angeles/agents.ts'
+import westmereEndToEnd from './westmere-los-angeles/endToEnd.ts'
+import westmereFramework from './westmere-los-angeles/agenticFramework.ts'
+import ironlineAutomation from './ironline-utility-infrastructure/automation.ts'
+import ironlinePlan from './ironline-utility-infrastructure/buildPlan.ts'
+import ironlineAgents from './ironline-utility-infrastructure/agents.ts'
+import ironlineEndToEnd from './ironline-utility-infrastructure/endToEnd.ts'
+import ironlineFramework from './ironline-utility-infrastructure/agenticFramework.ts'
+import werksAutomation from './meridian-werks/automation.ts'
+import werksPlan from './meridian-werks/buildPlan.ts'
+import werksAgents from './meridian-werks/agents.ts'
+import werksEndToEnd from './meridian-werks/endToEnd.ts'
+import werksFramework from './meridian-werks/agenticFramework.ts'
+import energyAutomation from './meridian-energy-infrastructure/automation.ts'
+import energyPlan from './meridian-energy-infrastructure/buildPlan.ts'
+import energyAgents from './meridian-energy-infrastructure/agents.ts'
+import energyEndToEnd from './meridian-energy-infrastructure/endToEnd.ts'
+import energyFramework from './meridian-energy-infrastructure/agenticFramework.ts'
 
 /** The pages a site has; a site need not have all five. */
 export type CaseSet = { automation?: Automations; plan?: Plan; framework?: AgenticFramework; endToEnd?: EndToEnd; agents?: Agents }
@@ -89,6 +114,41 @@ export const CASES: Record<string, CaseSet> = {
     agents: withSite(ostlerAgents, 'ostler-barbers', 'ai-agents'),
     endToEnd: withSite(ostlerEndToEnd, 'ostler-barbers', 'end-to-end'),
     framework: withSite(ostlerFramework, 'ostler-barbers', 'agentic-framework'),
+  },
+  'harbor-and-pine-moving': {
+    automation: withSite(harborAutomation, 'harbor-and-pine-moving', 'automation'),
+    plan: withSite(harborPlan, 'harbor-and-pine-moving', 'build-plan'),
+    agents: withSite(harborAgents, 'harbor-and-pine-moving', 'ai-agents'),
+    endToEnd: withSite(harborEndToEnd, 'harbor-and-pine-moving', 'end-to-end'),
+    framework: withSite(harborFramework, 'harbor-and-pine-moving', 'agentic-framework'),
+  },
+  'westmere-los-angeles': {
+    automation: withSite(westmereAutomation, 'westmere-los-angeles', 'automation'),
+    plan: withSite(westmerePlan, 'westmere-los-angeles', 'build-plan'),
+    agents: withSite(westmereAgents, 'westmere-los-angeles', 'ai-agents'),
+    endToEnd: withSite(westmereEndToEnd, 'westmere-los-angeles', 'end-to-end'),
+    framework: withSite(westmereFramework, 'westmere-los-angeles', 'agentic-framework'),
+  },
+  'ironline-utility-infrastructure': {
+    automation: withSite(ironlineAutomation, 'ironline-utility-infrastructure', 'automation'),
+    plan: withSite(ironlinePlan, 'ironline-utility-infrastructure', 'build-plan'),
+    agents: withSite(ironlineAgents, 'ironline-utility-infrastructure', 'ai-agents'),
+    endToEnd: withSite(ironlineEndToEnd, 'ironline-utility-infrastructure', 'end-to-end'),
+    framework: withSite(ironlineFramework, 'ironline-utility-infrastructure', 'agentic-framework'),
+  },
+  'meridian-werks': {
+    automation: withSite(werksAutomation, 'meridian-werks', 'automation'),
+    plan: withSite(werksPlan, 'meridian-werks', 'build-plan'),
+    agents: withSite(werksAgents, 'meridian-werks', 'ai-agents'),
+    endToEnd: withSite(werksEndToEnd, 'meridian-werks', 'end-to-end'),
+    framework: withSite(werksFramework, 'meridian-werks', 'agentic-framework'),
+  },
+  'meridian-energy-infrastructure': {
+    automation: withSite(energyAutomation, 'meridian-energy-infrastructure', 'automation'),
+    plan: withSite(energyPlan, 'meridian-energy-infrastructure', 'build-plan'),
+    agents: withSite(energyAgents, 'meridian-energy-infrastructure', 'ai-agents'),
+    endToEnd: withSite(energyEndToEnd, 'meridian-energy-infrastructure', 'end-to-end'),
+    framework: withSite(energyFramework, 'meridian-energy-infrastructure', 'agentic-framework'),
   },
 }
 

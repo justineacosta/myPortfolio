@@ -22,6 +22,33 @@ vi.mock('@/components/projects/SiteDrum', () => ({
   },
 }))
 
+/**
+ * Every sample site has case pages now, so the tests that need a site without
+ * any set their own case list here. While `list` is null the preview sees the
+ * real CASE_SITES; withoutCases() leaves one site out for a single test, and
+ * afterEach puts the real list back.
+ */
+const caseList = vi.hoisted(() => ({ list: null as string[] | null }))
+vi.mock('@/data/cases/pages', async (importActual) => {
+  const real = await importActual<typeof import('@/data/cases/pages')>()
+  const sitesNow = () => caseList.list ?? real.CASE_SITES
+  return {
+    ...real,
+    get CASE_SITES() {
+      return sitesNow()
+    },
+    casePagesFor: (siteFile: string) => (sitesNow().includes(siteFile.replace(/\.html$/, '')) ? real.casePagesFor(siteFile) : []),
+  }
+})
+/** The site withoutCases() leaves off the case list the preview sees. */
+const NO_CASES = 'Meridian Energy Infrastructure'
+const withoutCases = async () => {
+  const { CASE_SITES } = await vi.importActual<typeof import('@/data/cases/pages')>('@/data/cases/pages')
+  const key = sites.find((s) => s.name === NO_CASES)!.file.replace(/\.html$/, '')
+  expect(CASE_SITES, 'the real list has the site, so leaving it out means something').toContain(key)
+  caseList.list = CASE_SITES.filter((k) => k !== key)
+}
+
 const TOUCH = { '(pointer: coarse) and (hover: none)': true }
 const setDrumThrows = (v: boolean) => ((globalThis as { drumThrows?: boolean }).drumThrows = v)
 /** The Kraft carousel: what a failed drum, and the closed view's pre-rendered HTML, show. */
@@ -111,6 +138,7 @@ describe('Funnels and sites: the case-page tabs', () => {
   afterEach(() => {
     setDrumThrows(false)
     vi.unstubAllGlobals()
+    caseList.list = null
   })
   const ORIEL = '/cases/oriel-portugal-residences'
   const openSite = (name: string) => {
@@ -119,14 +147,20 @@ describe('Funnels and sites: the case-page tabs', () => {
     return screen.getByRole('dialog', { name: `${name} preview` })
   }
 
-  it('shows a tab row only for a site with case pages', () => {
+  it('shows a tab row only for a site with case pages', async () => {
+    await withoutCases()
     const preview = openSite('Oriel')
     const tabs = within(within(preview).getByRole('tablist', { name: 'Pages for this site' })).getAllByRole('tab')
     expect(tabs.map((t) => t.textContent)).toEqual(['Site', 'Automation', 'Build plan', 'Framework', 'End-to-end', 'AI agents'])
     expect(tabs[0]).toHaveAttribute('aria-selected', 'true')
     fireEvent.click(within(preview).getByRole('button', { name: 'Close preview' }))
-    fireEvent.click(within(screen.getByRole('dialog', { name: 'Funnels and sites' })).getByRole('button', { name: 'Open Westmere' }))
-    expect(within(screen.getByRole('dialog', { name: 'Westmere preview' })).queryByRole('tablist')).toBeNull()
+    fireEvent.click(within(screen.getByRole('dialog', { name: 'Funnels and sites' })).getByRole('button', { name: `Open ${NO_CASES}` }))
+    expect(within(screen.getByRole('dialog', { name: `${NO_CASES} preview` })).queryByRole('tablist')).toBeNull()
+  })
+
+  it('gives Meridian Energy Infrastructure a tab row when the test keeps the real case list', () => {
+    const preview = openSite(NO_CASES)
+    expect(within(preview).getByRole('tablist', { name: 'Pages for this site' })).toBeInTheDocument()
   })
 
   it('a tab swaps the page, the address bar and the new-tab link', async () => {
@@ -161,16 +195,17 @@ describe('Funnels and sites: the case-page tabs', () => {
   })
 
   it('starts on Site every time, and a site without cases shows no tabs after one with them', async () => {
+    await withoutCases()
     const view = openSites()
     fireEvent.click(within(view).getByRole('button', { name: 'Open Oriel' }))
     let preview = screen.getByRole('dialog', { name: 'Oriel preview' })
     fireEvent.click(within(preview).getByRole('tab', { name: 'AI agents' }))
     await within(preview).findByTitle('Oriel · AI agents')
     fireEvent.click(within(preview).getByRole('button', { name: 'Close preview' }))
-    fireEvent.click(within(view).getByRole('button', { name: 'Open Westmere' }))
-    preview = screen.getByRole('dialog', { name: 'Westmere preview' })
+    fireEvent.click(within(view).getByRole('button', { name: `Open ${NO_CASES}` }))
+    preview = screen.getByRole('dialog', { name: `${NO_CASES} preview` })
     expect(within(preview).queryByRole('tablist')).toBeNull()
-    expect(await within(preview).findByTitle('Westmere')).toHaveAttribute('src', sites.find((s) => s.name === 'Westmere')!.src)
+    expect(await within(preview).findByTitle(NO_CASES)).toHaveAttribute('src', sites.find((s) => s.name === NO_CASES)!.src)
     fireEvent.click(within(preview).getByRole('button', { name: 'Close preview' }))
     fireEvent.click(within(view).getByRole('button', { name: 'Open Oriel' }))
     preview = screen.getByRole('dialog', { name: 'Oriel preview' })

@@ -1,11 +1,11 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { agenticFramework } from '@/data/agenticFramework'
-import { agents } from '@/data/agents'
+import { agents, type Agents } from '@/data/agents'
 import { automations } from '@/data/automations'
 import { plan } from '@/data/buildPlan'
 import { CASES, withSite } from '@/data/cases'
-import { CASE_PAGES, CASE_SITES, casePath, type CasePageId } from '@/data/cases/pages'
+import { CASE_PAGES, CASE_SITES, casePagesFor, casePath, type CasePageId } from '@/data/cases/pages'
 import { endToEnd } from '@/data/endToEnd'
 import { projects } from '@/data/projects'
 import { findPlaceholders } from '@/scripts/placeholders'
@@ -35,6 +35,12 @@ describe('the case registry', () => {
     // A runtime re-export (export { … } from, export * from) pulls its module in as surely as an import does.
     const reexports = src.match(/^\s*export\s+(?:type\s+)?(?:\*(?:\s+as\s+\w+)?|\{[^}]*\})\s*from\b/gm) ?? []
     for (const line of reexports) expect(line, 'only type re-exports').toMatch(/^\s*export type\b/)
+  })
+
+  // The sites test mocks casePagesFor, so the real guard is proved here: a site off CASE_SITES gets no tabs.
+  it('offers case pages only for a site on CASE_SITES', () => {
+    expect(casePagesFor('no-such-site.html')).toEqual([])
+    expect(casePagesFor('oriel-portugal-residences.html').map((p) => p.src)).toEqual(CASE_PAGES.map((p) => casePath('oriel-portugal-residences', p.file)))
   })
 
   it('gives every sample site a two-letter code prefix', () => {
@@ -354,6 +360,40 @@ describe('the checks can fail', () => {
     const others = [lonely.plan, lonely.agents, lonely.endToEnd].map((p) => JSON.stringify(p))
     if (others.every((t) => !t.includes('"hubspot"'))) expect(() => checkSite(lonely, range, SITES)).toThrow(/hubspot/)
     else throw new Error('the fixture needs a tool no other Range page uses')
+  })
+
+  it('Automation: a site keeps its general page’s platform order, and fails on any other', () => {
+    // Meridian Energy’s ME-01 is on Make, Meridian Werks’ MW-01 on Zapier: the general Automations page keeps those codes.
+    const meridian = siteOf('meridian-energy-infrastructure')
+    const inOrder = (order: ('n8n' | 'make' | 'zapier')[]) => {
+      const a = goodAutomation()
+      const by = Object.fromEntries(a.flows.map((f) => [f.platform, f]))
+      a.flows = order.map((platform, i) => ({ ...by[platform], code: `ME-0${i + 1}`, href: meridian.src }))
+      return a
+    }
+    expect(() => checkAutomation(inOrder(['make', 'n8n', 'zapier']), meridian)).not.toThrow()
+    expect(() => checkAutomation(inOrder(['n8n', 'make', 'zapier']), meridian)).toThrow()
+    const werks = siteOf('meridian-werks')
+    const werksFlows = goodAutomation()
+    const byPlatform = Object.fromEntries(werksFlows.flows.map((f) => [f.platform, f]))
+    werksFlows.flows = (['zapier', 'n8n', 'make'] as const).map((platform, i) => ({ ...byPlatform[platform], code: `MW-0${i + 1}`, href: werks.src }))
+    expect(() => checkAutomation(werksFlows, werks)).not.toThrow()
+    // A site with no override still needs n8n, Make, Zapier.
+    const reordered = goodAutomation()
+    reordered.flows.reverse().forEach((f, i) => (f.code = `OR-0${i + 1}`))
+    expect(() => checkAutomation(reordered, site)).toThrow()
+  })
+
+  it('a site: Ironline’s agents page must say it never gives switching instructions', () => {
+    // A minimal set isolates the rule: the agents page alone, as the Riverdale test does.
+    const ironline = siteOf('ironline-utility-infrastructure')
+    // checkSite only reads the page as text here, so a title and a lede stand in for the whole page.
+    const agentsPage = (lede: string) => ({ title: 'AI agents · Ironline', lede }) as unknown as Agents
+    const note = 'Ironline is a fictional business, and every figure is illustrative.'
+    const silent = { agents: agentsPage(`${note} The bot answers questions.`) }
+    expect(() => checkSite(silent, ironline, SITES)).toThrow(/switching/)
+    const said = { agents: agentsPage(`${note} The bot never gives switching or safety instructions.`) }
+    expect(() => checkSite(said, ironline, SITES)).not.toThrow()
   })
 
   it('withSite fills the site from the carousel and the page path from CASE_PAGES, and refuses an unknown site', () => {
