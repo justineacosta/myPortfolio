@@ -16,7 +16,7 @@ export const CASE_PAGES: { id: CasePageId; label: string; file: string }[] = [
 ]
 
 /** The sites that have case pages, by folder key (the site's file name without .html). Kept equal to the keys of CASES by a test. */
-export const CASE_SITES: string[] = ['oriel-portugal-residences', 'tidewell-vacation-rentals', 'altitude-personal-training', 'range-physical-therapy', 'riverdale-and-brooks', 'ostler-barbers', 'harbor-and-pine-moving']
+export const CASE_SITES: string[] = ['oriel-portugal-residences', 'tidewell-vacation-rentals', 'altitude-personal-training', 'range-physical-therapy', 'riverdale-and-brooks', 'ostler-barbers', 'harbor-and-pine-moving', 'westmere-los-angeles']
 
 export const casePath = (key: string, file: string) => `/cases/${key}/${file}`
 
