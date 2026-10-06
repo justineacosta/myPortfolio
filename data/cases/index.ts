@@ -62,6 +62,8 @@ import werksPlan from './meridian-werks/buildPlan.ts'
 import werksAgents from './meridian-werks/agents.ts'
 import werksEndToEnd from './meridian-werks/endToEnd.ts'
 import werksFramework from './meridian-werks/agenticFramework.ts'
+import energyAutomation from './meridian-energy-infrastructure/automation.ts'
+import energyPlan from './meridian-energy-infrastructure/buildPlan.ts'
 
 /** The pages a site has; a site need not have all five. */
 export type CaseSet = { automation?: Automations; plan?: Plan; framework?: AgenticFramework; endToEnd?: EndToEnd; agents?: Agents }
@@ -137,6 +139,10 @@ export const CASES: Record<string, CaseSet> = {
     agents: withSite(werksAgents, 'meridian-werks', 'ai-agents'),
     endToEnd: withSite(werksEndToEnd, 'meridian-werks', 'end-to-end'),
     framework: withSite(werksFramework, 'meridian-werks', 'agentic-framework'),
+  },
+  'meridian-energy-infrastructure': {
+    automation: withSite(energyAutomation, 'meridian-energy-infrastructure', 'automation'),
+    plan: withSite(energyPlan, 'meridian-energy-infrastructure', 'build-plan'),
   },
 }
 
