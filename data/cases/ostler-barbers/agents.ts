@@ -123,7 +123,7 @@ const agents: Agents = {
           what: 'Two things start a run: a booking OS-01 marks Cancelled in Bookings, for the Chair gap agent, or the 09:00 schedule each morning, for the Rebooking agent. n8n listens for both.',
           pins: [
             { id: 'freed', name: 'A freed chair', tool: 'airtable', what: 'A Bookings row OS-01 has just marked Cancelled, with its Freed on time: the barber, the day, the time and the service. Cal.com has already opened the hour again in that barber’s book.' },
-            { id: 'morning', name: 'Each morning', icon: 'Clock', what: 'Every day at 09:00, London time, an hour Tomas sets, as he sets the three weeks. n8n finds the bookings from three weeks before marked Booked for a cut, the Ostler cut, Taper & fade, Long hair & scissor work or the Apprentice cut, and starts one run for each.' },
+            { id: 'morning', name: 'Each morning', icon: 'Clock', what: 'Every day at 09:00, London time, an hour Tomas sets, as he sets the three weeks. n8n finds the bookings from three weeks before marked Booked for a cut, the Ostler cut, Taper & fade, Long hair & scissor work, the Signature or the Apprentice cut, and starts one run for each.' },
           ],
         },
         { id: 'plan', at: [1, 0], kind: 'step', label: 'Claude plans', sub: 'Picks the next step', icon: 'Brain', tools: ['claude'], what: 'Claude reads the goal, a freed hour to offer or a past cut to follow up, then picks the single next step and the tool it needs.' },
@@ -198,7 +198,7 @@ const agents: Agents = {
     },
     {
       id: 'rebook', kind: 'agent', name: 'Rebooking agent', business: BUSINESS,
-      line: 'Three weeks after a non-member’s cut, it drafts a “your next cut” note with their barber’s free times in the week ahead, so the next cut falls three or four weeks on, for the barber’s yes. It reads only bookings marked Booked for the Ostler cut, Taper & fade, Long hair & scissor work or the Apprentice cut, so it skips shaves, beard shapes and every Member’s cut and Member’s tidy, and anyone already booked again, and anyone in Members as Standing, Awaiting slot or Waiting list; a client marked Ended is no longer a member, and gets the note.',
+      line: 'Three weeks after a non-member’s cut, it drafts a “your next cut” note with their barber’s free times in the week ahead, so the next cut falls three or four weeks on, for the barber’s yes. It reads only bookings marked Booked for the Ostler cut, Taper & fade, Long hair & scissor work, the Signature or the Apprentice cut, so it skips shaves on their own, beard shapes and every Member’s cut and Member’s tidy, and anyone already booked again, and anyone in Members as Standing, Awaiting slot or Waiting list; a client marked Ended is no longer a member, and gets the note.',
       example: { ask: '09:00: a Taper & fade with Arun three weeks ago, and nothing booked since.', answer: 'A “your next cut” note with three of Arun’s free times next week and his booking link, waiting for Arun’s yes in Telegram.' },
       tools: ['claude', 'n8n', 'airtable', 'cal-com', 'gmail', 'telegram', 'google-sheets'],
       routes: ['straight', 'notdone', 'changed', 'internal'],
