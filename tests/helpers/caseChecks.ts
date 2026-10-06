@@ -7,7 +7,7 @@
 import { expect } from 'vitest'
 import type { AgenticFramework } from '@/data/agenticFramework'
 import type { Agents } from '@/data/agents'
-import type { Automations } from '@/data/automations'
+import type { Automations, Platform } from '@/data/automations'
 import type { Plan, Workflow } from '@/data/buildPlan'
 import { casePath } from '@/data/cases/pages'
 import type { EndToEnd } from '@/data/endToEnd'
@@ -68,10 +68,17 @@ function expectOneStepPerSpot(steps: { at: [number, number] }[], what: string) {
   expect(new Set(spots).size, `${what}: two steps in one spot`).toBe(spots.length)
 }
 
+/** The platforms a site's three flows run on, in code order. A site that keeps its general page's flow follows that page: Meridian Energy's ME-01 is Make, Meridian Werks' MW-01 is Zapier. Every other site runs n8n, Make, Zapier. */
+export const PLATFORM_ORDER: Record<string, Platform[]> = {
+  'meridian-energy-infrastructure': ['make', 'n8n', 'zapier'],
+  'meridian-werks': ['zapier', 'n8n', 'make'],
+}
+const DEFAULT_PLATFORM_ORDER: Platform[] = ['n8n', 'make', 'zapier']
+
 export function checkAutomation(page: Automations, site: SiteInfo) {
   const { flows } = page
   expect(flows, 'three flows').toHaveLength(3)
-  expect(flows.map((f) => f.platform)).toEqual(['n8n', 'make', 'zapier'])
+  expect(flows.map((f) => f.platform)).toEqual(PLATFORM_ORDER[keyOf(site)] ?? DEFAULT_PLATFORM_ORDER)
   const p = prefixOf(site)
   expect(flows.map((f) => f.code)).toEqual([`${p}-01`, `${p}-02`, `${p}-03`])
   for (const f of flows) expect(f.href, f.code).toBe(site.src)
@@ -264,6 +271,9 @@ export const SENSITIVE: Record<string, { require: { page: keyof CaseSetInfo; tex
   'riverdale-and-brooks': {
     require: [{ page: 'agents', text: /legal advice/i, why: 'the bot never gives legal advice' }],
     bannedFields: /situation|confidential|privileged|case notes|facts|notes?\b|description|details|summary|part(y|ies)|opposing/i,
+  },
+  'ironline-utility-infrastructure': {
+    require: [{ page: 'agents', text: /switching/i, why: 'the bot and agents never give switching or safety instructions' }],
   },
 }
 
