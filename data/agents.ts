@@ -226,7 +226,7 @@ export const agents: Agents = {
     {
       id: 'helpdesk', kind: 'rag', name: 'Help-desk RAG bot', business: { name: 'Harbor & Pine Moving Co.', trade: 'moving company' },
       line: 'Answers Harbor & Pine Moving Co.’s customers from the pricing guide and FAQ; damage claims go to a person.',
-      example: { ask: 'Do you move pianos, and what does it add?', answer: 'Yes. Uprights add $150; baby grands need a walkthrough first. (Pricing guide §4)' },
+      example: { ask: 'Do you move pianos, and what does it add?', answer: 'Yes: uprights and baby grands, crated in-house if needed. A coordinator prices it. (FAQ, Specialty items)' },
       tools: ['claude', 'supabase', 'n8n', 'gmail'], routes: ['prepare', 'answered', 'handoff'], pins: ['docs:docs', 'ask:chat', 'ask:gmail'],
       caption: 'Harbor & Pine’s site chat or Gmail → search the pricing guide and FAQ → Claude answers → reply with the source, or hand off',
     },
@@ -240,7 +240,7 @@ export const agents: Agents = {
     {
       id: 'sales', kind: 'rag', name: 'Website sales bot', business: { name: 'Meridian Energy Infrastructure', trade: 'commercial solar' },
       line: 'Answers Meridian Energy Infrastructure visitors’ cost and fit questions, then offers a site assessment.',
-      example: { ask: 'What would rooftop solar save on our distribution warehouse?', answer: 'Typically 18–27% below your blended retail rate (Solutions guide). Book a free site assessment?' },
+      example: { ask: 'What would rooftop solar save on our distribution warehouse?', answer: '18–27% below blended retail rate on a power purchase agreement (Solutions guide). Book a site assessment?' },
       tools: ['claude', 'supabase', 'n8n', 'cal-com'], routes: ['prepare', 'answered', 'booked'], pins: ['docs:docs', 'docs:sheets', 'ask:chat'],
       caption: 'Meridian Energy’s site chat → search the price sheet and solution pages → Claude answers → reply, then offer a Cal.com assessment',
     },
