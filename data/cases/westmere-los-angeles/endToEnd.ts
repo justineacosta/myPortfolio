@@ -95,8 +95,8 @@ const STEPS: Step[] = [
   step('j6', 'J', [6, 1.5], 'end', 'Says it isn’t there', 'Or: ask the director', 'UserSwitch', 'The bot says the answer isn’t in the documents, or isn’t one it gives, and points to the sales director. It forwards nothing.'),
 
   step('k1', 'K', [0, 0], 'trigger', 'A run fails', 'n8n, Make or Zapier', 'Warning', 'n8n’s Error Trigger hears a failed WM-01 run, and a webhook hears a failed Make step in WM-02, or a failed or halted WM-03 run from Zapier Manager.', ['n8n'], true),
-  step('k2', 'K', [1, 0], 'step', 'Log the failed run', 'Google Sheets', 'Table', 'A row in the Failed runs tab: the platform, the flow, the step, the error and a link to the run, never a buyer’s details.', ['google-sheets']),
-  step('k3', 'K', [2, 0], 'end', 'Alert the sales team', 'Their Telegram group', 'Bell', 'The sales team gets an urgent Telegram message with a link to the run. Nothing retries on its own: the sales director decides, or calls Justine.', ['telegram']),
+  step('k2', 'K', [1, 0], 'step', 'Log the failed run', 'Google Sheets', 'Table', 'A row in the Failed runs tab with what each source gives: n8n’s step and run link, Make’s step, error and viewing time, or Zapier’s zap and time. Never a buyer’s details.', ['google-sheets']),
+  step('k3', 'K', [2, 0], 'end', 'Alert the sales team', 'Their Telegram group', 'Bell', 'The sales team hears on Telegram: a failure urgently, a halted run as an ordinary alert. Nothing retries on its own: the sales director decides, or calls Justine.', ['telegram']),
 ]
 
 /** Lanes whose steps read in order, one per column, carry numbers; a branch’s side exit does not. */
