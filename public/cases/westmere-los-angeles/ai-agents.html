@@ -1,0 +1,951 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<script>// Light unless the visitor chose dark (spec 2026-10-01-light-backdrop §3.2). Runs first in <head>, before the
+// page draws. On its own, the page reads the portfolio's saved choice. Inside the site's dialog it starts in
+// the site's theme (dark unless the site says light, the site's own rule), which the page script then mirrors
+// live, so there is no flash.
+;(() => {
+  let dark = false
+  try {
+    dark = window.parent !== window ? window.parent.document.documentElement.dataset.theme !== 'light' : localStorage.getItem('kraft-theme') === 'dark'
+  } catch {
+    dark = false
+  }
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+  // On its own, carry the site's per-tab performance setting (lib/perf.ts), as the site's boot script does,
+  // so a device the site stepped down keeps the backdrop still. Inside the dialog, client.js mirrors it.
+  if (window.parent !== window) return
+  try {
+    const perf = sessionStorage.getItem('kraft-perf')
+    if (perf === 'mid' || perf === 'low') document.documentElement.dataset.perf = perf
+  } catch {
+    /* storage blocked: the page runs at full detail */
+  }
+})()
+</script>
+<title>Westmere · AI agents and RAG chatbots</title>
+<meta name="description" content="Westmere’s Document Q&amp;A bot for the sales team and its two agents for the hosting agent, Viewing prep and Buyer follow-up: two live diagrams, three sample builds and the guardrails that keep every buyer treated the same.">
+<meta property="og:title" content="Westmere · AI agents and RAG chatbots">
+<meta property="og:description" content="Westmere’s Document Q&amp;A bot for the sales team and its two agents for the hosting agent, Viewing prep and Buyer follow-up: two live diagrams, three sample builds and the guardrails that keep every buyer treated the same.">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<link rel="canonical" href="/cases/westmere-los-angeles/ai-agents.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>
+:root{--bg:#F2F5F1;--frame:#FFFFFF;--s0:#F7F9F5;--s1:#FFFFFF;--s2:#FBFCF9;--s3:#EFF3EC;--chip:#EDF2EB;--hover:#E7EEE6;--b1:rgba(11,46,30,.11);--b2:rgba(11,46,30,.22);--ink:#0B1310;--ink2:#3B4742;--ink3:#69756F;--ink4:#8A938E;--accent:#0E6B44;--onAccent:#F3FFF8;--wash:rgba(14,107,68,.09);--washB:rgba(14,107,68,.22);--glow:rgba(14,107,68,.3);--amb:150,205,175;color-scheme:light;--sans:"Geist",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+:root[data-theme=dark]{--bg:#050505;--frame:#060607;--s0:#0C0E10;--s1:#0A0B0D;--s2:#0F1113;--s3:#15181A;--chip:#141719;--hover:#101315;--b1:rgba(215,255,224,.075);--b2:rgba(215,255,224,.17);--ink:#F1F5F2;--ink2:#C2CBC5;--ink3:#7C8781;--ink4:#5C655F;--accent:#D7FFE0;--onAccent:#041008;--wash:rgba(215,255,224,.1);--washB:rgba(215,255,224,.2);--glow:rgba(215,255,224,.55);--amb:19,74,48;color-scheme:dark}
+:root[data-a11y-contrast=true]:not([data-theme=dark]){--ink2:#1E2824;--ink3:#38433E;--ink4:#56615B;--b1:rgba(11,46,30,.24);--b2:rgba(11,46,30,.42)}
+:root[data-a11y-contrast=true][data-theme=dark]{--ink2:#DCE3DE;--ink3:#B4BEB8;--ink4:#939D97;--b1:rgba(215,255,224,.18);--b2:rgba(215,255,224,.34)}
+*{box-sizing:border-box}
+html,.canvas-scroll,.table-wrap,.code{scrollbar-width:none}
+html::-webkit-scrollbar,.canvas-scroll::-webkit-scrollbar,.table-wrap::-webkit-scrollbar,.code::-webkit-scrollbar{display:none}
+[data-more-right]{mask-image:linear-gradient(to right,black calc(100% - 56px),transparent)}
+[data-more-left]{mask-image:linear-gradient(to left,black calc(100% - 56px),transparent)}
+[data-more-left][data-more-right]{mask-image:linear-gradient(to right,transparent,black 56px,black calc(100% - 56px),transparent)}
+.canvas[data-overflow] .canvas-scroll{cursor:grab}
+.canvas-scroll.dragging,.canvas-scroll.dragging .node{cursor:grabbing;user-select:none}
+html{font-size:100%;scroll-behavior:smooth;scroll-padding-top:64px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:.9375rem;line-height:1.6;-webkit-font-smoothing:antialiased;text-wrap:pretty}
+a{color:var(--accent)}
+:root[data-a11y-links=true] a{text-decoration:underline}
+h1,h2,h3{margin:0;text-wrap:balance}
+p{margin:0}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.toc{position:sticky;top:0;z-index:20;display:flex;gap:4px;overflow-x:auto;padding:10px 16px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--b1);scrollbar-width:none}
+.toc a{flex:none;padding:6px 11px;border-radius:999px;font-size:.8125rem;color:var(--ink3);text-decoration:none;white-space:nowrap}
+.toc a:hover{color:var(--ink)}
+.toc a[aria-current=true]{background:var(--wash);color:var(--accent)}
+.page{max-width:1100px;margin:0 auto;padding:32px 16px 80px;display:flex;flex-direction:column;gap:72px}
+.home{align-self:flex-start;font-size:.8125rem;color:var(--ink3);text-decoration:none}
+.home:hover{color:var(--accent)}
+:root[data-embedded] .home{display:none}
+.kicker{font-family:var(--mono);font-size:.6875rem;letter-spacing:.16em;color:var(--accent);text-transform:uppercase}
+.hero{display:flex;flex-direction:column;gap:18px;padding-top:24px}
+.hero h1{font-size:clamp(1.9rem,4.6vw,3rem);line-height:1.08;letter-spacing:-.035em;max-width:22ch}
+.lede{font-size:1.0625rem;color:var(--ink2);max-width:62ch}
+.meta{display:flex;flex-wrap:wrap;gap:10px 28px;margin:0;padding:16px 0;border-block:1px solid var(--b1)}
+.meta div{display:flex;flex-direction:column;gap:2px}
+.meta dt,.card h3,.rail h3,.sub{font-family:var(--mono);font-size:.625rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
+.card h3,.rail h3,.sub{color:var(--accent)}
+.meta dd{margin:0;font-size:.875rem}
+.legend{display:flex;flex-direction:row;flex-wrap:wrap;gap:8px 18px;margin:0;padding:0;list-style:none;font-size:.8125rem;color:var(--ink3)}
+.key{display:flex;align-items:center;gap:8px;padding:3px 6px;margin:-3px -6px;border:0;border-radius:8px;background:none;color:inherit;font:inherit;cursor:pointer}
+.key:hover{color:var(--ink);background:var(--wash)}
+section{display:grid;grid-template-columns:minmax(0,240px) minmax(0,1fr);gap:20px 40px;scroll-margin-top:64px}
+@media (max-width:820px){section{grid-template-columns:minmax(0,1fr)}}
+.shead{grid-column:1/-1;display:flex;flex-direction:column;gap:6px}
+.shead h2{font-size:clamp(1.35rem,2.6vw,1.75rem);letter-spacing:-.02em}
+.shead p{color:var(--ink3)}
+.rail{display:flex;flex-direction:column;gap:16px;font-size:.875rem;color:var(--ink2)}
+.rail div{display:flex;flex-direction:column;gap:6px}
+.main{min-width:0;display:flex;flex-direction:column;gap:18px}
+section>.canvas{grid-column:1/-1}
+ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.card{background:var(--s1);border:1px solid var(--b1);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:12px}
+.ote{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:700px){.ote{grid-template-columns:minmax(0,1fr)}}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:22px}
+.rule{display:flex;flex-direction:column;gap:8px;min-width:0}
+.rule h3{font-size:.9375rem}
+.rule p{font-size:.875rem;color:var(--ink2)}
+.code{margin:0;padding:14px 16px;border-radius:12px;background:var(--s0);border:1px solid var(--b1);font-family:var(--mono);font-size:.8125rem;line-height:1.7;color:var(--ink2);white-space:pre;overflow-x:auto}
+.code b{color:var(--accent);font-weight:500}
+code{font-family:var(--mono);font-size:.85em;background:var(--chip);padding:1px 6px;border-radius:6px}
+.fields{display:flex;flex-wrap:wrap;gap:6px}
+.note{font-size:.8125rem;color:var(--ink3)}
+.stages{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none}
+.stage-btn{padding:6px 10px;border-radius:9px;border:1px solid var(--b2);background:var(--s2);color:var(--ink);font:inherit;font-size:.8125rem;cursor:pointer}
+.stage-btn:hover{border-color:var(--accent)}
+.stages .exit .stage-btn{border-style:dashed;color:var(--ink3)}
+.table-wrap{overflow-x:auto;border:1px solid var(--b1);border-radius:14px;background:var(--s1)}
+table{width:100%;border-collapse:collapse;font-size:.875rem}
+th{padding:10px 14px;border-bottom:1px solid var(--b1);font-family:var(--mono);font-size:.625rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);text-align:left}
+td{padding:10px 14px;border-bottom:1px solid var(--b1);vertical-align:top}
+tr:last-child td{border-bottom:0}
+.tests{min-width:760px}
+.tests tr.done td{color:var(--ink3)}
+.tests input{width:18px;height:18px;accent-color:var(--accent);cursor:pointer}
+.tests-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;font-family:var(--mono);font-size:.75rem;color:var(--ink3)}
+.btn{font:inherit;font-size:.8125rem;font-weight:600;padding:8px 12px;border-radius:10px;border:1px solid var(--b2);background:var(--s1);color:var(--ink);cursor:pointer}
+.phases{display:grid;gap:12px;margin:0;padding:0;list-style:none}
+.phase-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.phase-head h3{font-family:var(--sans);font-size:1rem;letter-spacing:-.01em;text-transform:none;color:var(--ink)}
+.helper{display:flex;flex-direction:column;gap:10px}
+.helper h3{font-size:1rem}
+.helper p{color:var(--ink2);font-size:.875rem}
+.canvas{margin:0;display:flex;flex-direction:column;gap:10px;min-width:0}
+.canvas figcaption{display:flex;justify-content:space-between;gap:12px;font-family:var(--mono);font-size:.6875rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
+.pan{display:none;align-items:center;gap:6px}
+.canvas[data-overflow] .pan{display:flex}
+.pan-hint{margin-right:4px}
+.pan-btn{display:grid;place-items:center;width:28px;height:28px;border-radius:8px;border:1px solid var(--b2);background:var(--s1);color:var(--ink);font:inherit;font-size:1rem;line-height:1;cursor:pointer}
+.pan-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.pan-btn:disabled{opacity:.35;cursor:default}
+.canvas-scroll{overflow-x:auto;border-radius:16px;background-color:var(--s0);background-image:radial-gradient(var(--b2) 1px,transparent 1px);background-size:20px 20px;overscroll-behavior-x:contain}
+.stage{position:relative;margin:0 auto}
+.edges{position:absolute;inset:0}
+.edge{fill:none;stroke:var(--b2);stroke-width:1.6;transition:stroke .35s ease}
+.edge.lit{stroke:var(--accent);transition-duration:.08s}
+.edge-label{position:absolute;z-index:1;transform:translate(-50%,-50%);padding:1px 6px;border-radius:6px;border:1px solid var(--b1);background:var(--s0);font-family:var(--mono);font-size:.625rem;color:var(--ink2);white-space:nowrap}
+.run-dot{display:none}
+.run-ball{position:absolute;left:0;top:0;width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px var(--wash),0 0 14px 2px var(--glow);offset-anchor:50% 50%;offset-rotate:0deg;opacity:0;pointer-events:none}
+.node{position:absolute;z-index:1;width:56px;display:flex;flex-direction:column;align-items:center;gap:6px;padding:0;border:0;background:none;color:var(--ink);font:inherit;text-align:center;cursor:pointer}
+.node-card{position:relative;display:grid;place-items:center;width:56px;height:56px;border-radius:14px;border:1.5px solid var(--b2);background:var(--s2);color:var(--ink2);transition:border-color .2s,transform .2s,box-shadow .35s ease}
+.node.lit .node-card{border-color:var(--accent);box-shadow:0 0 0 3px var(--wash),0 0 20px -2px var(--glow);transition-duration:.08s}
+.node-card::before,.node-card::after{content:"";position:absolute;top:50%;width:8px;height:8px;margin-top:-4px;border-radius:50%;border:1.5px solid var(--b2);background:var(--s0)}
+.node-card::before{left:-5px}
+.node-card::after{right:-5px}
+.node[data-in="0"] .node-card::before,.node[data-out="0"] .node-card::after{display:none}
+.node:hover .node-card{border-color:var(--accent);transform:translateY(-1px)}
+.node-label{width:136px;font-size:.75rem;font-weight:600;line-height:1.25}
+.node-sub{width:136px;margin-top:-3px;font-family:var(--mono);font-size:.625rem;color:var(--ink3)}
+.k-trigger .node-card{border-radius:28px 14px 14px 28px}
+.k-ai .node-card{border-color:var(--accent);background:var(--wash);color:var(--accent)}
+.k-branch .node-card{color:var(--ink)}
+.k-wait .node-card{border-style:dashed}
+.k-approve .node-card{border-color:var(--accent);background:var(--accent);color:var(--onAccent)}
+.k-helper .node-card{box-shadow:4px 4px 0 -1.5px var(--s0),4px 4px 0 0 var(--b2)}
+.k-end .node-card{background:transparent;color:var(--ink3)}
+.legend .node-card{width:18px;height:18px;border-radius:6px}
+.legend .node-card::before,.legend .node-card::after{display:none}
+.legend .k-trigger .node-card{border-radius:9px 6px 6px 9px}
+.legend .k-helper .node-card{box-shadow:2px 2px 0 -1px var(--bg),2px 2px 0 0 var(--b2)}
+.steps{margin:0}
+.panel{position:fixed;inset:auto;margin:0;width:min(320px,calc(100vw - 24px));padding:16px;border-radius:14px;border:1px solid var(--b2);background:var(--s1);color:var(--ink);box-shadow:0 24px 60px -30px var(--glow)}
+.panel h3{font-size:1rem;padding-right:36px}
+.ptype{display:block;margin-bottom:4px;font-family:var(--mono);font-size:.6875rem;letter-spacing:.08em;color:var(--accent)}
+.pwhat{margin:10px 0 0;font-size:.875rem;line-height:1.55;color:var(--ink)}
+.panel dl{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin:12px 0 0;padding-top:12px;border-top:1px solid var(--b1);font-size:.8125rem}
+.panel dl[hidden]{display:none}
+.panel dt{color:var(--ink3)}
+.panel dd{margin:0}
+.panel-close{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:9px;border:1px solid var(--b1);background:var(--s2);color:var(--ink);font-size:1.1rem;line-height:1;cursor:pointer}
+.foot a{color:var(--ink2)}
+.foot{max-width:1100px;margin:0 auto;padding:24px 16px 48px;border-top:1px solid var(--b1);display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;font-size:.8125rem;color:var(--ink3)}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}.run-ball{display:none}.node-card{transition:none}}
+:root[data-a11y-motion=true]{scroll-behavior:auto}
+:root[data-a11y-motion=true] .run-ball{display:none}
+:root[data-a11y-motion=true] .node-card{transition:none}
+@media print{
+:root,:root[data-theme]{--bg:#F2F5F1;--frame:#FFFFFF;--s0:#F7F9F5;--s1:#FFFFFF;--s2:#FBFCF9;--s3:#EFF3EC;--chip:#EDF2EB;--hover:#E7EEE6;--b1:rgba(11,46,30,.11);--b2:rgba(11,46,30,.22);--ink:#0B1310;--ink2:#3B4742;--ink3:#69756F;--ink4:#8A938E;--accent:#0E6B44;--onAccent:#F3FFF8;--wash:rgba(14,107,68,.09);--washB:rgba(14,107,68,.22);--glow:rgba(14,107,68,.3);--amb:150,205,175;color-scheme:light}
+body{background:var(--frame)}
+.toc,.run-ball,.panel,.btn,.pan{display:none!important}
+[data-more-left],[data-more-right]{mask-image:none!important}
+.page{gap:40px;padding-top:0}
+section,.canvas,.card,tr{break-inside:avoid}
+.canvas-scroll{overflow:visible;border:0;background:none}
+.stage{zoom:.62}
+.steps.sr-only{position:static;width:auto;height:auto;margin:6px 0 0;overflow:visible;clip:auto;white-space:normal;font-size:.75rem;color:var(--ink2)}
+a[href^="http"]::after{content:" (" attr(href) ")";font-size:.75em;color:var(--ink3)}
+}
+
+.page>section{display:flex;flex-direction:column;gap:20px}
+.stance{font-weight:600;color:var(--ink)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:12px;margin:0;padding:0;list-style:none}
+.tile{display:flex;flex-direction:column;gap:8px;min-width:0;padding:18px;border-radius:16px;border:1px solid var(--b1);background:var(--s1)}
+.tile-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.tile-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;border:1px solid var(--b1);background:var(--chip);color:var(--accent)}
+.tile-mark{font-family:var(--mono);font-size:.625rem;letter-spacing:.14em;color:var(--ink3)}
+.tile h3{font-size:1rem;letter-spacing:-.01em}
+.tile p{font-size:.875rem;color:var(--ink2)}
+.tile-note{margin-top:auto;padding-top:4px;font-family:var(--mono);font-size:.6875rem;color:var(--ink3)}
+.jobs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:640px){.jobs{grid-template-columns:minmax(0,1fr)}}
+.job{display:flex;flex-direction:column;gap:10px;min-width:0;padding:18px;border-radius:16px;border:1px solid var(--b1);background:var(--s1)}
+.job:first-child{border-color:var(--washB);background:var(--wash)}
+.job h3{font-family:var(--mono);font-size:.6875rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+.job ul{gap:6px}
+.jobs-line{max-width:62ch;color:var(--ink3)}
+.legend .line{display:inline-block;width:26px;border-top:2px solid var(--b2)}
+.legend .line-signal{width:10px;height:10px;border:0;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px var(--wash)}
+.legend .line-loop{border-top:2px dashed var(--accent)}
+.legend .badge-lock{position:static}
+.edge.loop{stroke:color-mix(in srgb,var(--accent) 55%,var(--b2));stroke-dasharray:5 5}
+.edge.loop.lit{stroke:var(--accent)}
+.badge-lock{position:absolute;right:-8px;bottom:-8px;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;border:1px solid var(--b2);background:var(--s0);color:var(--accent)}
+.k-approve .node-card{outline:2px solid var(--accent);outline-offset:3px}
+.node-label,.node-sub{width:max-content;max-width:136px;padding:0 4px;border-radius:4px;background:var(--s0)}
+@media (max-width:480px){.pan-hint{display:none}}
+.pin{position:absolute;z-index:2;display:grid;place-items:center;width:24px;height:24px;padding:0;border-radius:50%;border:1px solid var(--accent);background:var(--s0);color:var(--accent);font-family:var(--mono);font-size:.5625rem;font-weight:500;cursor:pointer}
+.pin:hover,.pin[aria-expanded=true]{background:var(--accent);color:var(--onAccent)}
+.pin-sample{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;border:1px solid var(--accent);font-family:var(--mono);font-size:.5rem;color:var(--accent)}
+.timeline{display:flex;flex-direction:column;gap:0;margin:0;padding:0;list-style:none}
+.timeline li{display:grid;grid-template-columns:28px 92px minmax(0,1fr);gap:12px;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--b1)}
+@media (max-width:560px){.timeline li{grid-template-columns:28px minmax(0,1fr)}.timeline li p{grid-column:2}}
+.timeline p{color:var(--ink2)}
+.tl-n{font-family:var(--mono);font-size:.75rem;color:var(--ink3)}
+.tag{justify-self:start;padding:2px 8px;border-radius:999px;border:1px solid var(--b2);font-family:var(--mono);font-size:.625rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);white-space:nowrap}
+.t-frame{border-color:var(--accent);color:var(--accent)}
+.t-build{border-color:var(--washB);background:var(--wash);color:var(--accent)}
+.t-check{border-color:var(--ink3);color:var(--ink)}
+.t-fold-back{border-style:dashed;border-color:var(--accent);color:var(--accent)}
+.t-ship{border-color:var(--accent);background:var(--accent);color:var(--onAccent)}
+.see{align-self:flex-start;font-weight:600;text-decoration:none}
+.closing{font-size:clamp(1.6rem,4vw,2.5rem);font-weight:700;line-height:1.1;letter-spacing:-.03em;text-wrap:balance;color:var(--ink)}
+.gl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 32px;margin:0}
+@media (max-width:760px){.gl{grid-template-columns:minmax(0,1fr)}}
+.gl div{display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr);gap:12px;padding:12px 0;border-bottom:1px solid var(--b1)}
+.gl dt{font-family:var(--mono);font-size:.75rem;color:var(--accent)}
+.gl dd{margin:0;font-size:.875rem;color:var(--ink2)}
+@media print{
+.tile,.job,.tag,.pin,.node-card,.badge-lock{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+}
+
+.sample-note{display:flex;align-items:center;gap:8px;max-width:62ch;font-size:.875rem;color:var(--ink3)}
+.sample-note svg{flex:none;color:var(--accent)}
+.legend .line-index{border-top:2px dashed var(--ink3)}
+.legend .badge-branch{position:static;display:inline-block;margin:0 3px}
+.edge.index{stroke:var(--ink3);stroke-dasharray:3 5}
+.badge-branch{position:absolute;right:-6px;bottom:-6px;width:12px;height:12px;transform:rotate(45deg);border:1.5px solid var(--k,var(--accent));background:var(--s0)}
+.pin{border-color:var(--b2);background:var(--s0);color:var(--ink2)}
+.pin:hover,.pin[aria-expanded=true]{border-color:var(--accent);background:var(--s2);color:var(--accent)}
+.pin-sample{border-color:var(--b2)}
+.canvas :is(.node,.pin,.edge,.edge-label){transition:opacity .3s ease}
+.canvas[data-focus] :is(.node,.pin,.edge-label):not(.on-route){opacity:.28}
+.canvas[data-focus] .edge:not(.on-route){opacity:.2}
+.canvas[data-focus] .edge.on-route{stroke:var(--accent)}
+.canvas[data-focus] .node.on-route .node-card{border-color:var(--accent)}
+.focus-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0 0 12px;padding:10px 14px;border-radius:12px;border:1px solid var(--washB);background:var(--wash)}
+.focus-bar:not(.on){position:absolute;width:1px;height:1px;margin:0;padding:0;overflow:hidden;clip-path:inset(50%);border:0}
+.focus-text{flex:1 1 260px;min-width:0;margin:0;font-size:.875rem;color:var(--ink)}
+.focus-clear,.route-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;border:1px solid var(--b2);background:var(--s0);font:inherit;font-size:.8125rem;font-weight:500;color:var(--ink);cursor:pointer}
+.focus-clear:hover,.route-btn:hover{border-color:var(--accent);color:var(--accent)}
+.route-btn{align-self:flex-start}
+.route-btn[aria-pressed=true]{border-color:var(--accent);background:var(--accent);color:var(--onAccent)}
+.builds-kind{font-family:var(--mono);font-size:.6875rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
+.build h4{margin:0;font-size:1rem;letter-spacing:-.01em}
+.sample{font-family:var(--mono);font-size:.5625rem;letter-spacing:.14em;color:var(--accent)}
+.build .build-for{margin:0;font-family:var(--mono);font-size:.6875rem;letter-spacing:.04em;color:var(--ink3)}
+.build-example{display:flex;flex-direction:column;gap:6px;margin:2px 0 0;padding:10px 12px;border-radius:10px;border:1px solid var(--b1);background:var(--s0)}
+.build-example div{display:flex;flex-direction:column;gap:2px}
+.build-example dt{font-family:var(--mono);font-size:.5625rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.build-example dd{margin:0;font-size:.8125rem;color:var(--ink2)}
+.build-logos{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding-top:4px}
+@media (prefers-reduced-motion:reduce){.canvas :is(.node,.pin,.edge,.edge-label){transition:none}}
+:root[data-a11y-motion=true] .canvas :is(.node,.pin,.edge,.edge-label){transition:none}
+@media print{.route-btn,.focus-bar{display:none}}
+
+:root{--k-trigger:#B45309;--k-ai:#6D28D9;--k-branch:#1D4ED8;--k-helper:#0F766E;--logo-light:inline;--logo-dark:none}
+:root[data-theme=dark]{--k-trigger:#F5B041;--k-ai:#B79CFF;--k-branch:#7EB6FF;--k-helper:#5EEAD4;--logo-light:none;--logo-dark:inline}
+.k-trigger{--k:var(--k-trigger)}
+.k-ai{--k:var(--k-ai)}
+.k-branch{--k:var(--k-branch)}
+.k-helper{--k:var(--k-helper)}
+:is(.k-trigger,.k-ai,.k-branch,.k-helper) .node-card{border-color:color-mix(in srgb,var(--k) 45%,var(--b2));background:color-mix(in srgb,var(--k) 12%,var(--s2));color:var(--k)}
+:root[data-a11y-contrast=true] :is(.k-trigger,.k-helper) .node-card{border-color:var(--b2);background:var(--s2);color:var(--ink2)}
+:root[data-a11y-contrast=true] .k-branch .node-card{border-color:var(--b2);background:var(--s2);color:var(--ink)}
+:root[data-a11y-contrast=true] .k-ai .node-card{border-color:var(--accent);background:var(--wash);color:var(--accent)}
+:root[data-a11y-contrast=true] :is(.node.lit,.node:hover) .node-card{border-color:var(--accent)}
+.logo{display:inline-block;flex:none;vertical-align:middle}
+.logo.mono{color:var(--ink)}
+.logo-light{display:var(--logo-light)}
+.logo-dark{display:var(--logo-dark)}
+.logo-badges{position:absolute;top:-8px;right:-8px;display:flex}
+.logo-badge{position:relative;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;border:1px solid var(--b2);background:var(--s0);transition:box-shadow .35s ease}
+.logo-badge+.logo-badge{margin-left:-8px}
+.logo-badge:first-child{z-index:1}
+.node.lit .logo-badge{box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 30%,transparent),0 0 14px -2px var(--brand);transition-duration:.08s}
+.tools-strip{display:flex;flex-direction:column;gap:8px}
+.tools-strip-label{font-family:var(--mono);font-size:.625rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
+.tools-strip ul{display:flex;flex-direction:row;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.tool-chip{display:inline-flex;align-items:center;gap:7px;padding:5px 11px 5px 8px;border-radius:999px;border:1px solid var(--b1);background:var(--s1);font-size:.8125rem;color:var(--ink2)}
+.ptools{float:left;display:flex;flex-wrap:wrap;gap:4px 10px;max-width:calc(100% - 36px);margin:0 8px 4px 0}
+.ptools[hidden]{display:none}
+.panel .ptype{padding-right:36px}
+.panel h3{clear:left}
+.ptool{display:inline-flex;align-items:center;gap:6px;font-size:.75rem;font-weight:500;color:var(--ink2)}
+.gl-logo{display:inline-flex;margin-right:6px;vertical-align:-2px}
+.tile,.card,.tool-chip{transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+@media (hover:hover) and (prefers-reduced-motion:no-preference){
+:root:not([data-a11y-motion=true]) :is(.tile,.card,.tool-chip):hover{transform:translateY(-2px);border-color:var(--b2);box-shadow:0 10px 24px -14px color-mix(in srgb,var(--ink) 40%,transparent)}
+:root:not([data-a11y-motion=true]) .node:hover .node-card{transform:translateY(-2px)}
+:root:not([data-a11y-motion=true]) .node:not(.lit,.k-helper):hover .node-card{box-shadow:0 10px 20px -12px color-mix(in srgb,var(--k,var(--accent)) 70%,transparent)}
+}
+.page-glow{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;contain:paint}
+.page-glow > *{position:absolute;top:-24%;left:6%;width:66vw;height:66vw;border-radius:50%;background:radial-gradient(circle at 50% 50%,rgba(var(--amb),.62),rgba(var(--amb),0) 62%);filter:blur(26px);animation:kDrift 28s ease-in-out infinite}
+@keyframes kDrift{0%,100%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(3%,-4%,0) scale(1.08)}}
+:root[data-perf=low] .page-glow > *{animation:none}
+:root[data-a11y-motion=true] .page-glow > *{animation:none}
+:root[data-a11y-contrast=true] .page-glow{display:none}
+.page,.foot{position:relative;z-index:1}
+canvas[data-contour]{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.reveal-on [data-reveal]{transition:opacity .6s ease,transform .6s ease}
+.reveal-on [data-reveal]:not(.in){opacity:0;transform:translateY(12px)}
+:root[data-a11y-motion=true] [data-reveal]{opacity:1!important;transform:none!important;transition:none!important}
+@media (prefers-reduced-motion: reduce){.page-glow > *{animation:none}[data-reveal]{opacity:1!important;transform:none!important}}
+@media print{
+:root,:root[data-theme]{--k-trigger:#B45309;--k-ai:#6D28D9;--k-branch:#1D4ED8;--k-helper:#0F766E;--logo-light:inline;--logo-dark:none}
+.page-glow{display:none}
+canvas[data-contour]{display:none}
+[data-reveal]{opacity:1!important;transform:none!important;transition:none!important}
+.logo,.logo-badge,.tool-chip,:is(.k-trigger,.k-ai,.k-branch,.k-helper) .node-card{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<div class="page-glow" aria-hidden="true"><div></div></div><svg class="logo-sheet" width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true" focusable="false"><symbol id="logo-claude" viewBox="0 0 256 257"><path fill="#d97757" d="m50.228 170.321l50.357-28.257l.843-2.463l-.843-1.361h-2.462l-8.426-.518l-28.775-.778l-24.952-1.037l-24.175-1.296l-6.092-1.297L0 125.796l.583-3.759l5.12-3.434l7.324.648l16.202 1.101l24.304 1.685l17.629 1.037l26.118 2.722h4.148l.583-1.685l-1.426-1.037l-1.101-1.037l-25.147-17.045l-27.22-18.017l-14.258-10.37l-7.713-5.25l-3.888-4.925l-1.685-10.758l7-7.713l9.397.649l2.398.648l9.527 7.323l20.35 15.75L94.817 91.9l3.889 3.24l1.555-1.102l.195-.777l-1.75-2.917l-14.453-26.118l-15.425-26.572l-6.87-11.018l-1.814-6.61c-.648-2.723-1.102-4.991-1.102-7.778l7.972-10.823L71.42 0l10.63 1.426l4.472 3.888l6.61 15.101l10.694 23.786l16.591 32.34l4.861 9.592l2.592 8.879l.973 2.722h1.685v-1.556l1.36-18.211l2.528-22.36l2.463-28.776l.843-8.1l4.018-9.722l7.971-5.25l6.222 2.981l5.12 7.324l-.713 4.73l-3.046 19.768l-5.962 30.98l-3.889 20.739h2.268l2.593-2.593l10.499-13.934l17.628-22.036l7.778-8.749l9.073-9.657l5.833-4.601h11.018l8.1 12.055l-3.628 12.443l-11.342 14.388l-9.398 12.184l-13.48 18.147l-8.426 14.518l.778 1.166l2.01-.194l30.46-6.481l16.462-2.982l19.637-3.37l8.88 4.148l.971 4.213l-3.5 8.62l-20.998 5.184l-24.628 4.926l-36.682 8.685l-.454.324l.519.648l16.526 1.555l7.065.389h17.304l32.21 2.398l8.426 5.574l5.055 6.805l-.843 5.184l-12.962 6.611l-17.498-4.148l-40.83-9.721l-14-3.5h-1.944v1.167l11.666 11.406l21.387 19.314l26.767 24.887l1.36 6.157l-3.434 4.86l-3.63-.518l-23.526-17.693l-9.073-7.972l-20.545-17.304h-1.36v1.814l4.73 6.935l25.017 37.59l1.296 11.536l-1.814 3.76l-6.481 2.268l-7.13-1.297l-14.647-20.544l-15.1-23.138l-12.185-20.739l-1.49.843l-7.194 77.448l-3.37 3.953l-7.778 2.981l-6.48-4.925l-3.436-7.972l3.435-15.749l4.148-20.544l3.37-16.333l3.046-20.285l1.815-6.74l-.13-.454l-1.49.194l-15.295 20.999l-23.267 31.433l-18.406 19.702l-4.407 1.75l-7.648-3.954l.713-7.064l4.277-6.286l25.47-32.405l15.36-20.092l9.917-11.6l-.065-1.686h-.583L44.07 198.125l-12.055 1.555l-5.185-4.86l.648-7.972l2.463-2.593l20.35-13.999z"/></symbol><symbol id="logo-n8n" viewBox="0 0 256 135"><path fill="#ea4b71" d="M229.053 53.895c-12.557 0-23.107-8.588-26.099-20.21h-30.886a13.474 13.474 0 0 0-13.29 11.258l-1.107 6.645a26.9 26.9 0 0 1-8.757 15.78a26.9 26.9 0 0 1 8.757 15.78l1.107 6.646a13.474 13.474 0 0 0 13.29 11.259h3.939c2.992-11.623 13.542-20.21 26.098-20.21c14.883 0 26.948 12.064 26.948 26.946s-12.065 26.948-26.948 26.948c-12.556 0-23.107-8.588-26.098-20.21h-3.939c-13.173 0-24.415-9.524-26.58-22.518l-1.108-6.645a13.474 13.474 0 0 0-13.29-11.259h-10.676c-2.99 11.623-13.542 20.21-26.098 20.21c-12.557 0-23.107-8.587-26.099-20.21H53.046c-2.992 11.623-13.542 20.21-26.099 20.21C12.065 94.316 0 82.252 0 67.369s12.065-26.947 26.947-26.947c12.557 0 23.107 8.588 26.099 20.21h15.171c2.992-11.622 13.542-20.21 26.099-20.21c12.556 0 23.107 8.588 26.098 20.21h10.676a13.474 13.474 0 0 0 13.29-11.258l1.107-6.645c2.166-12.994 13.408-22.517 26.581-22.517h30.886C205.945 8.588 216.496 0 229.053 0C243.935 0 256 12.065 256 26.947s-12.065 26.948-26.947 26.948m0-13.474c7.441 0 13.473-6.032 13.473-13.474c0-7.441-6.032-13.473-13.473-13.473s-13.474 6.032-13.474 13.473s6.032 13.474 13.474 13.474M26.947 80.842c7.442 0 13.474-6.032 13.474-13.474c0-7.44-6.032-13.473-13.474-13.473c-7.441 0-13.473 6.032-13.473 13.473s6.032 13.474 13.473 13.474m80.842-13.474c0 7.442-6.032 13.474-13.473 13.474S80.842 74.81 80.842 67.368c0-7.44 6.032-13.473 13.474-13.473c7.441 0 13.473 6.032 13.473 13.473m107.79 40.421c0 7.442-6.032 13.474-13.474 13.474c-7.441 0-13.473-6.032-13.473-13.474c0-7.441 6.032-13.473 13.473-13.473s13.474 6.032 13.474 13.473"/></symbol><symbol id="logo-supabase" viewBox="0 0 256 263"><defs><linearGradient id="lg-supabase-SVGMPst3dYn" x1="20.862%" x2="63.426%" y1="20.687%" y2="44.071%"><stop offset="0%" stop-color="#249361"/><stop offset="100%" stop-color="#3ecf8e"/></linearGradient><linearGradient id="lg-supabase-SVGNaiFRdXR" x1="1.991%" x2="21.403%" y1="-13.158%" y2="34.708%"><stop offset="0%"/><stop offset="100%" stop-opacity="0"/></linearGradient></defs><path fill="url(#lg-supabase-SVGMPst3dYn)" d="M149.602 258.579c-6.718 8.46-20.338 3.824-20.5-6.977l-2.367-157.984h106.229c19.24 0 29.971 22.223 18.007 37.292z"/><path fill="url(#lg-supabase-SVGNaiFRdXR)" fill-opacity=".2" d="M149.602 258.579c-6.718 8.46-20.338 3.824-20.5-6.977l-2.367-157.984h106.229c19.24 0 29.971 22.223 18.007 37.292z"/><path fill="#3ecf8e" d="M106.399 4.37c6.717-8.461 20.338-3.826 20.5 6.976l1.037 157.984H23.037c-19.241 0-29.973-22.223-18.008-37.292z"/></symbol><symbol id="logo-telegram" viewBox="0 0 256 256"><defs><linearGradient id="lg-telegram-SVG6DaOZcwt" x1="50%" x2="50%" y1="0%" y2="100%"><stop offset="0%" stop-color="#2aabee"/><stop offset="100%" stop-color="#229ed9"/></linearGradient></defs><path fill="url(#lg-telegram-SVG6DaOZcwt)" d="M128 0C94.06 0 61.48 13.494 37.5 37.49A128.04 128.04 0 0 0 0 128c0 33.934 13.5 66.514 37.5 90.51C61.48 242.506 94.06 256 128 256s66.52-13.494 90.5-37.49c24-23.996 37.5-56.576 37.5-90.51s-13.5-66.514-37.5-90.51C194.52 13.494 161.94 0 128 0"/><path fill="#fff" d="M57.94 126.648q55.98-24.384 74.64-32.152c35.56-14.786 42.94-17.354 47.76-17.441c1.06-.017 3.42.245 4.96 1.49c1.28 1.05 1.64 2.47 1.82 3.467c.16.996.38 3.266.2 5.038c-1.92 20.24-10.26 69.356-14.5 92.026c-1.78 9.592-5.32 12.808-8.74 13.122c-7.44.684-13.08-4.912-20.28-9.63c-11.26-7.386-17.62-11.982-28.56-19.188c-12.64-8.328-4.44-12.906 2.76-20.386c1.88-1.958 34.64-31.748 35.26-34.45c.08-.338.16-1.598-.6-2.262c-.74-.666-1.84-.438-2.64-.258c-1.14.256-19.12 12.152-54 35.686c-5.1 3.508-9.72 5.218-13.88 5.128c-4.56-.098-13.36-2.584-19.9-4.708c-8-2.606-14.38-3.984-13.82-8.41c.28-2.304 3.46-4.662 9.52-7.072"/></symbol><symbol id="logo-cal-com" viewBox="0 0 24 24"><defs><clipPath id="lg-cal-com-cal"><rect x="0" y="9" width="9.6" height="6"/></clipPath></defs><rect width="24" height="24" rx="5.5" fill="#292929"/><g transform="translate(3.576 -9.6) scale(1.8)"><path fill="#fff" clip-path="url(#lg-cal-com-cal)" d="M2.408 14.488C1.035 14.488 0 13.4 0 12.058c0-1.346.982-2.443 2.408-2.443.758 0 1.282.233 1.691.765l-.66.55a1.343 1.343 0 0 0-1.03-.442c-.93 0-1.44.711-1.44 1.57 0 .86.559 1.557 1.44 1.557.413 0 .765-.147 1.043-.443l.651.573c-.391.51-.929.743-1.695.743zM6.948 10.913h.89v3.49h-.89v-.51c-.185.362-.493.604-1.083.604-.943 0-1.695-.82-1.695-1.826 0-1.007.752-1.825 1.695-1.825.585 0 .898.241 1.083.604zm.026 1.758c0-.546-.374-.998-.964-.998-.568 0-.938.457-.938.998 0 .528.37.998.938.998.586 0 .964-.456.964-.998zM8.467 9.503h.89v4.895h-.89zM9.752 13.937a.53.53 0 0 1 .542-.528c.313 0 .533.242.533.528a.527.527 0 0 1-.533.537.534.534 0 0 1-.542-.537zM14.23 13.839c-.33.403-.832.658-1.426.658a1.806 1.806 0 0 1-1.84-1.826c0-1.007.778-1.825 1.84-1.825.572 0 1.07.241 1.4.622l-.687.577c-.172-.215-.396-.376-.713-.376-.568 0-.938.456-.938.998 0 .541.37.997.938.997.343 0 .58-.179.757-.42zM14.305 12.671c0-1.007.78-1.825 1.84-1.825 1.061 0 1.84.818 1.84 1.825 0 1.007-.779 1.826-1.84 1.826-1.06-.005-1.84-.82-1.84-1.826zm2.778 0c0-.546-.37-.998-.938-.998-.568-.004-.937.452-.937.998 0 .542.37.998.937.998.568 0 .938-.456.938-.998zM24 12.269v2.13h-.89v-1.911c0-.604-.281-.864-.704-.864-.396 0-.678.197-.678.864v1.91h-.89v-1.91c0-.604-.285-.864-.704-.864-.396 0-.744.197-.744.864v1.91h-.89v-3.49h.89v.484c.185-.376.52-.564 1.035-.564.489 0 .898.241 1.123.649.224-.417.554-.65 1.153-.65.731.005 1.299.56 1.299 1.442z"/></g></symbol><symbol id="logo-airtable" viewBox="0 0 24 24"><path fill="#18BFFF" d="M11.992 1.966c-.434 0-.87.086-1.28.257L1.779 5.917c-.503.208-.49.908.012 1.116l8.982 3.558a3.266 3.266 0 0 0 2.454 0l8.982-3.558c.503-.196.503-.908.012-1.116l-8.957-3.694a3.255 3.255 0 0 0-1.272-.257zM23.4 8.056a.589.589 0 0 0-.222.045l-10.012 3.877a.612.612 0 0 0-.38.564v8.896a.6.6 0 0 0 .821.552L23.62 18.1a.583.583 0 0 0 .38-.551V8.653a.6.6 0 0 0-.6-.596zM.676 8.095a.644.644 0 0 0-.48.19C.086 8.396 0 8.53 0 8.69v8.355c0 .442.515.737.908.54l6.27-3.006.307-.147 2.969-1.436c.466-.22.43-.908-.061-1.092L.883 8.138a.57.57 0 0 0-.207-.044z"/></symbol><symbol id="logo-hubspot" viewBox="0 0 24 24"><path fill="#FF7A59" d="M18.164 7.93V5.084a2.198 2.198 0 001.267-1.978v-.067A2.2 2.2 0 0017.238.845h-.067a2.2 2.2 0 00-2.193 2.193v.067a2.196 2.196 0 001.252 1.973l.013.006v2.852a6.22 6.22 0 00-2.969 1.31l.012-.01-7.828-6.095A2.497 2.497 0 104.3 4.656l-.012.006 7.697 5.991a6.176 6.176 0 00-1.038 3.446c0 1.343.425 2.588 1.147 3.607l-.013-.02-2.342 2.343a1.968 1.968 0 00-.58-.095h-.002a2.033 2.033 0 102.033 2.033 1.978 1.978 0 00-.1-.595l.005.014 2.317-2.317a6.247 6.247 0 104.782-11.134l-.036-.005zm-.964 9.378a3.206 3.206 0 113.215-3.207v.002a3.206 3.206 0 01-3.207 3.207z"/></symbol><symbol id="logo-google-sheets" viewBox="0 0 24 24"><path fill="#34A853" d="M11.318 12.545H7.91v-1.909h3.41v1.91zM14.728 0v6h6l-6-6zm1.363 10.636h-3.41v1.91h3.41v-1.91zm0 3.273h-3.41v1.91h3.41v-1.91zM20.727 6.5v15.864c0 .904-.732 1.636-1.636 1.636H4.909a1.636 1.636 0 0 1-1.636-1.636V1.636C3.273.732 4.005 0 4.909 0h9.318v6.5h6.5zm-3.273 2.773H6.545v7.909h10.91v-7.91zm-6.136 4.636H7.91v1.91h3.41v-1.91z"/></symbol><symbol id="logo-gmail" viewBox="0 0 256 204"><defs><linearGradient id="lg-gmail-SVGHzDbHcwG" x1="165" x2="165" y1="44" y2="166" gradientUnits="userSpaceOnUse"><stop stop-color="#60d673"/><stop offset=".17" stop-color="#42c868"/><stop offset=".39" stop-color="#0ebc5f"/><stop offset=".62" stop-color="#00a9bb"/><stop offset=".86" stop-color="#3c90ff"/><stop offset="1" stop-color="#3186ff"/></linearGradient><linearGradient id="lg-gmail-SVG41ATXboZ" x1="8" x2="184" y1="46.13" y2="46.13" gradientUnits="userSpaceOnUse"><stop offset=".08" stop-color="#ff63a0"/><stop offset=".3" stop-color="#fc413d"/><stop offset=".5" stop-color="#fc413d"/><stop offset=".65" stop-color="#fc413d"/><stop offset=".72" stop-color="#fc5c30"/><stop offset=".86" stop-color="#feb10c"/><stop offset=".91" stop-color="#fec700"/><stop offset=".96" stop-color="#ffdb0f"/></linearGradient></defs><path fill="url(#lg-gmail-SVGHzDbHcwG)" d="M146 44h38v110c0 6.627-5.373 12-12 12h-20a6 6 0 0 1-6-6z" transform="translate(-11.636 -37.818)scale(1.45454)"/><path fill="#fc413d" d="M55.273 26.182H0v160c0 9.638 7.816 17.454 17.455 17.454h29.09a8.727 8.727 0 0 0 8.728-8.728z"/><path fill="url(#lg-gmail-SVG41ATXboZ)" d="M39.226 30.456c-8.033-6.752-20.018-5.714-26.77 2.319c-6.752 8.032-5.714 20.017 2.319 26.77l76.078 63.949a8 8 0 0 0 10.295 0l76.078-63.95c8.032-6.752 9.07-18.737 2.318-26.77c-6.752-8.032-18.737-9.07-26.769-2.318L96 78.18z" transform="translate(-11.636 -37.818)scale(1.45454)"/></symbol></svg>
+<nav class="toc" aria-label="Sections"><a href="#glance">At a glance</a><a href="#rag">RAG chatbots</a><a href="#agent">Agents</a><a href="#builds">The builds</a><a href="#guardrails">Guardrails</a><a href="#glossary">Glossary</a></nav>
+<main class="page">
+<header class="hero"><a class="home" href="/" target="_top">← Justine Acosta · Portfolio</a><a class="home site-home" href="/samples/westmere-los-angeles.html" target="_top">← Westmere site</a><span class="kicker">AI AGENTS AND RAG CHATBOTS · WESTMERE</span><h1>A contracts bot for the sales team, and two agents the hosting agent stands behind</h1><p class="lede">A sale at Westmere runs on paper: purchase contracts, specifications, floor plans and a private viewing at the sales gallery, Tuesday to Saturday, by appointment only. This is the bot the sales team asks about a buyer’s contracts, the agent that readies the hosting agent for a viewing, the agent that drafts the follow-up afterwards, and the two patterns underneath all three. Westmere is an Equal Housing Opportunity developer, DRE #02114471, so no bot or agent here screens, scores, sorts or ranks a buyer, and none reads a protected trait or a budget. The bot is internal: it answers the sales team, never a buyer. The hosting agent approves anything Claude drafts for a buyer’s inbox before it is sent.</p><p class="sample-note"><span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm16-40a8,8,0,0,1-8,8,16,16,0,0,1-16-16V128a8,8,0,0,1,0-16,16,16,0,0,1,16,16v40A8,8,0,0,1,144,176ZM112,84a12,12,0,1,1,12,12A12,12,0,0,1,112,84Z"></path></svg></span><span>Sample builds for Westmere, a fictional Los Angeles residential developer used across this portfolio, not a client project. Figures are illustrative.</span></p><div class="tools-strip"><span class="tools-strip-label" id="tools-strip-label">Tools on this page</span><ul aria-labelledby="tools-strip-label"><li class="tool-chip"><svg class="logo" width="16" height="16" aria-hidden="true" focusable="false"><use href="#logo-claude"/></svg>Claude</li><li class="tool-chip"><svg class="logo" width="16" height="16" aria-hidden="true" focusable="false"><use href="#logo-n8n"/></svg>n8n</li><li class="tool-chip"><svg class="logo" width="16" height="16" aria-hidden="true" focusable="false"><use href="#logo-supabase"/></svg>Supabase</li><li class="tool-chip"><svg class="logo" width="16" height="16" aria-hidden="true" focusable="false"><use href="#logo-telegram"/></svg>Telegram</li><li class="tool-chip"><svg class="logo" width="16" height="16" aria-hidden="true" focusable="false"><use href="#logo-cal-com"/></svg>Cal.com</li><li class="tool-chip"><svg class="logo" width="16" height="16" aria-hidden="true" focusable="false"><use href="#logo-airtable"/></svg>Airtable</li><li class="tool-chip"><svg class="logo" width="16" height="16" aria-hidden="true" focusable="false"><use href="#logo-hubspot"/></svg>HubSpot</li><li class="tool-chip"><svg class="logo" width="16" height="16" aria-hidden="true" focusable="false"><use href="#logo-google-sheets"/></svg>Google Sheets</li><li class="tool-chip"><svg class="logo" width="16" height="16" aria-hidden="true" focusable="false"><use href="#logo-gmail"/></svg>Gmail</li></ul></div></header>
+<section id="glance" aria-labelledby="glance-h"><header class="shead"><span class="kicker">AT A GLANCE</span><h2 id="glance-h">Two patterns, one rule</h2><p>Every build below is one of two patterns. The hosting agent approves anything Claude drafts for a buyer’s inbox before it is sent. The bot answers the sales team live, from the documents, and never a buyer.</p></header><ul class="tiles"><li class="tile"><span class="tile-top"><span class="tile-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M231.65,194.55,198.46,36.75a16,16,0,0,0-19-12.39L132.65,34.42a16.08,16.08,0,0,0-12.3,19l33.19,157.8A16,16,0,0,0,169.16,224a16.25,16.25,0,0,0,3.38-.36l46.81-10.06A16.09,16.09,0,0,0,231.65,194.55ZM136,50.15c0-.06,0-.09,0-.09l46.8-10,3.33,15.87L139.33,66Zm6.62,31.47,46.82-10.05,3.34,15.9L146,97.53Zm6.64,31.57,46.82-10.06,13.3,63.24-46.82,10.06ZM216,197.94l-46.8,10-3.33-15.87L212.67,182,216,197.85C216,197.91,216,197.94,216,197.94ZM104,32H56A16,16,0,0,0,40,48V208a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V48A16,16,0,0,0,104,32ZM56,48h48V64H56Zm0,32h48v96H56Zm48,128H56V192h48v16Z"></path></svg></span><span class="tile-mark">1</span></span><h3>RAG chatbots</h3><p>The Document Q&amp;A bot searches the purchase contracts and residence documents first, then answers the sales team with the page, or says it isn’t there. No legal or tax advice, and nothing about who a buyer is.</p></li><li class="tile"><span class="tile-top"><span class="tile-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M200,48H136V16a8,8,0,0,0-16,0V48H56A32,32,0,0,0,24,80V192a32,32,0,0,0,32,32H200a32,32,0,0,0,32-32V80A32,32,0,0,0,200,48Zm16,144a16,16,0,0,1-16,16H56a16,16,0,0,1-16-16V80A16,16,0,0,1,56,64H200a16,16,0,0,1,16,16Zm-52-56H92a28,28,0,0,0,0,56h72a28,28,0,0,0,0-56Zm-24,16v24H116V152ZM80,164a12,12,0,0,1,12-12h8v24H92A12,12,0,0,1,80,164Zm84,12h-8V152h8a12,12,0,0,1,0,24ZM72,108a12,12,0,1,1,12,12A12,12,0,0,1,72,108Zm88,0a12,12,0,1,1,12,12A12,12,0,0,1,160,108Z"></path></svg></span><span class="tile-mark">2</span></span><h3>AI agents</h3><p>Viewing prep and Buyer follow-up each take one viewing, gather what they need one tool at a time, and draft one thing. Neither scores, sorts or ranks a buyer.</p></li><li class="tile"><span class="tile-top"><span class="tile-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M144,157.68a68,68,0,1,0-71.9,0c-20.65,6.76-39.23,19.39-54.17,37.17a8,8,0,0,0,12.25,10.3C50.25,181.19,77.91,168,108,168s57.75,13.19,77.87,37.15a8,8,0,0,0,12.25-10.3C183.18,177.07,164.6,164.44,144,157.68ZM56,100a52,52,0,1,1,52,52A52.06,52.06,0,0,1,56,100Zm197.66,33.66-32,32a8,8,0,0,1-11.32,0l-16-16a8,8,0,0,1,11.32-11.32L216,148.69l26.34-26.35a8,8,0,0,1,11.32,11.32Z"></path></svg></span><span class="tile-mark">3</span></span><h3>The hosting agent’s yes</h3><p>The hosting agent approves anything Claude drafts for a buyer’s inbox before it is sent. The viewing brief goes to the hosting agent only, the brochure, the portfolio and the viewing confirmation are fixed templates and send on their own, and the bot never reaches a buyer, so it needs no yes.</p></li></ul></section>
+<section id="rag" aria-labelledby="rag-h"><header class="shead"><span class="kicker">HOW THE DOCUMENT Q&amp;A BOT WORKS</span><h2 id="rag-h">Search the documents first, then answer</h2><p>The purchase contracts and residence documents are prepared once, with the parties left out. Every question then searches them before Claude says a word. Click any step.</p></header><ul class="legend" aria-label="How to read the RAG diagram"><li><button type="button" class="key" data-node="key:rag:cable" aria-haspopup="dialog" aria-expanded="false"><span aria-hidden="true"><span class="line"></span></span>Cable</button></li><li><button type="button" class="key" data-node="key:rag:signal" aria-haspopup="dialog" aria-expanded="false"><span aria-hidden="true"><span class="line line-signal"></span></span>Live signal</button></li><li><button type="button" class="key" data-node="key:rag:index" aria-haspopup="dialog" aria-expanded="false"><span aria-hidden="true"><span class="line line-index"></span></span>Index</button></li><li><button type="button" class="key" data-node="key:rag:branch" aria-haspopup="dialog" aria-expanded="false"><span aria-hidden="true"><span class="badge-branch" aria-hidden="true"></span></span>Branch</button></li><li><button type="button" class="key" data-node="key:rag:pin" aria-haspopup="dialog" aria-expanded="false"><span aria-hidden="true"><span class="pin-sample"></span></span>Pin</button></li></ul><figure class="canvas" data-diagram="rag" data-run data-routes="[{&quot;len&quot;:504,&quot;stops&quot;:[[&quot;docs&quot;,0],[&quot;chunk&quot;,168],[&quot;embed&quot;,336],[&quot;store&quot;,504]],&quot;spans&quot;:[[0,28,140],[1,196,308],[2,364,476]]},{&quot;len&quot;:1008,&quot;stops&quot;:[[&quot;ask&quot;,0],[&quot;qembed&quot;,168],[&quot;search&quot;,504],[&quot;answer&quot;,672],[&quot;sure&quot;,840],[&quot;reply&quot;,1008]],&quot;spans&quot;:[[4,28,140],[5,196,476],[6,532,644],[7,700,812],[8,868,980]]},{&quot;len&quot;:990,&quot;stops&quot;:[[&quot;ask&quot;,0],[&quot;qembed&quot;,168],[&quot;search&quot;,504],[&quot;answer&quot;,672],[&quot;sure&quot;,840],[&quot;handoff&quot;,990]],&quot;spans&quot;:[[4,28,140],[5,196,476],[6,532,644],[7,700,812],[9,908,962]]}]"><figcaption><span>The Document Q&amp;A bot · 3 ways through</span><span class="pan"><span class="pan-hint" aria-hidden="true">Drag to explore</span><button type="button" class="pan-btn" data-pan="-1" aria-label="Scroll the RAG diagram left">‹</button><button type="button" class="pan-btn" data-pan="1" aria-label="Scroll the RAG diagram right">›</button></span></figcaption><div class="focus-bar"><p class="focus-text" role="status"></p><button type="button" class="focus-clear" hidden>Show all</button></div><div class="canvas-scroll" tabindex="0" role="group" aria-label="The Document Q&amp;A bot · 3 ways through, scrolls sideways"><div class="stage" style="width:1192px;height:482px"><svg class="edges" width="1192" height="482" viewBox="0 0 1192 482" aria-hidden="true"><path class="edge" data-edge="0" d="M120 60C176 60 176 60 232 60"/><path class="edge" data-edge="1" d="M288 60C344 60 344 60 400 60"/><path class="edge" data-edge="2" d="M456 60C512 60 512 60 568 60"/><path class="edge index" data-edge="3" d="M596 128C596 146 596 164 596 182"/><path class="edge" data-edge="4" d="M120 210C176 210 176 210 232 210"/><path class="edge" data-edge="5" d="M288 210C428 210 428 210 568 210"/><path class="edge" data-edge="6" d="M624 210C680 210 680 210 736 210"/><path class="edge" data-edge="7" d="M792 210C848 210 848 210 904 210"/><path class="edge" data-edge="8" d="M960 210C1016 210 1016 210 1072 210"/><path class="edge" data-edge="9" d="M932 278C932 296 932 314 932 332"/></svg><span class="edge-label" data-edge="3" aria-hidden="true" style="left:596px;top:155px">the index it searches</span><span class="edge-label" data-edge="8" aria-hidden="true" style="left:1016px;top:210px">yes</span><span class="edge-label" data-edge="9" aria-hidden="true" style="left:932px;top:305px">no</span><span class="run-dot" aria-hidden="true" data-route="0" style="offset-path:path('M92 60L120 60C176 60 176 60 232 60L260 60L288 60C344 60 344 60 400 60L428 60L456 60C512 60 512 60 568 60L596 60')"></span><span class="run-dot" aria-hidden="true" data-route="1" style="offset-path:path('M92 210L120 210C176 210 176 210 232 210L260 210L288 210C428 210 428 210 568 210L596 210L624 210C680 210 680 210 736 210L764 210L792 210C848 210 848 210 904 210L932 210L960 210C1016 210 1016 210 1072 210L1100 210')"></span><span class="run-dot" aria-hidden="true" data-route="2" style="offset-path:path('M92 210L120 210C176 210 176 210 232 210L260 210L288 210C428 210 428 210 568 210L596 210L624 210C680 210 680 210 736 210L764 210L792 210C848 210 848 210 904 210L932 210L932 278C932 296 932 314 932 332L932 360')"></span><button type="button" class="node k-trigger" style="left:64px;top:32px" data-node="docs" data-in="0" data-out="1" aria-haspopup="dialog" aria-expanded="false"><span class="node-card" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 256 256"><path d="M213.66,66.34l-40-40A8,8,0,0,0,168,24H88A16,16,0,0,0,72,40V56H56A16,16,0,0,0,40,72V216a16,16,0,0,0,16,16H168a16,16,0,0,0,16-16V200h16a16,16,0,0,0,16-16V72A8,8,0,0,0,213.66,66.34ZM168,216H56V72h76.69L168,107.31v84.53c0,.06,0,.11,0,.16s0,.1,0,.16V216Zm32-32H184V104a8,8,0,0,0-2.34-5.66l-40-40A8,8,0,0,0,136,56H88V40h76.69L200,75.31Zm-56-32a8,8,0,0,1-8,8H88a8,8,0,0,1,0-16h48A8,8,0,0,1,144,152Zm0,32a8,8,0,0,1-8,8H88a8,8,0,0,1,0-16h48A8,8,0,0,1,144,184Z"></path></svg></span><span class="node-label">Contracts and specs</span><span class="node-sub">Uploaded by the team</span></button><button type="button" class="pin" style="left:66px;top:134px" data-node="pin:docs:contracts" aria-label="Source: Purchase contracts" aria-haspopup="dialog" aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 256 256"><path d="M224,152a8,8,0,0,1-8,8H192v16h16a8,8,0,0,1,0,16H192v16a8,8,0,0,1-16,0V152a8,8,0,0,1,8-8h32A8,8,0,0,1,224,152ZM92,172a28,28,0,0,1-28,28H56v8a8,8,0,0,1-16,0V152a8,8,0,0,1,8-8H64A28,28,0,0,1,92,172Zm-16,0a12,12,0,0,0-12-12H56v24h8A12,12,0,0,0,76,172Zm88,8a36,36,0,0,1-36,36H112a8,8,0,0,1-8-8V152a8,8,0,0,1,8-8h16A36,36,0,0,1,164,180Zm-16,0a20,20,0,0,0-20-20h-8v40h8A20,20,0,0,0,148,180ZM40,112V40A16,16,0,0,1,56,24h96a8,8,0,0,1,5.66,2.34l56,56A8,8,0,0,1,216,88v24a8,8,0,0,1-16,0V96H152a8,8,0,0,1-8-8V40H56v72a8,8,0,0,1-16,0ZM160,80h28.69L160,51.31Z"></path></svg></button><button type="button" class="pin" style="left:94px;top:134px" data-node="pin:docs:residence" aria-label="Source: Residence documents" aria-haspopup="dialog" aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 256 256"><path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216Zm-32-80a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,136Zm0,32a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,168Z"></path></svg></button><button type="button" class="node k-action" style="left:232px;top:32px" data-node="chunk" data-in="1" data-out="1" aria-haspopup="dialog" aria-expanded="false"><span class="node-card" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 256 256"><path d="M157.73,113.13A8,8,0,0,1,159.82,102L227.48,55.7a8,8,0,0,1,9,13.21l-67.67,46.3a7.92,7.92,0,0,1-4.51,1.4A8,8,0,0,1,157.73,113.13Zm80.87,85.09a8,8,0,0,1-11.12,2.08L136,137.7,93.49,166.78a36,36,0,1,1-9-13.19L121.83,128,84.44,102.41a35.86,35.86,0,1,1,9-13.19l143,97.87A8,8,0,0,1,238.6,198.22ZM80,180a20,20,0,1,0-5.86,14.14A19.85,19.85,0,0,0,80,180ZM74.14,90.13a20,20,0,1,0-28.28,0A19.85,19.85,0,0,0,74.14,90.13Z"></path></svg></span><span class="node-label">Split by page</span><span class="node-sub">Parties left out</span></button><button type="button" class="node k-action" style="left:400px;top:32px" data-node="embed" data-in="1" data-out="1" aria-haspopup="dialog" aria-expanded="false"><span class="node-card" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 256 256"><path d="M94,24C71.63,24,56,43.74,56,72s15.63,48,38,48,38-19.74,38-48S116.37,24,94,24Zm0,80c-17.37,0-22-20.11-22-32s4.63-32,22-32,22,20.11,22,32S111.37,104,94,104Zm72,32c-22.37,0-38,19.74-38,48s15.63,48,38,48,38-19.74,38-48S188.37,136,166,136Zm0,80c-17.37,0-22-20.11-22-32s4.63-32,22-32,22,20.11,22,32S183.37,216,166,216ZM145,49.22a8,8,0,0,1,3.11-10.88l24-13.33A8,8,0,0,1,184,32v80a8,8,0,0,1-16,0V45.6l-12.12,6.73A8,8,0,0,1,145,49.22ZM104,144v80a8,8,0,0,1-16,0V157.6l-12.12,6.73a8,8,0,0,1-7.76-14l24-13.33A8,8,0,0,1,104,144Z"></path></svg></span><span class="node-label">Embed</span><span class="node-sub">Embeddings model</span></button><button type="button" class="node k-action" style="left:568px;top:32px" data-node="store" data-in="1" data-out="1" aria-haspopup="dialog" aria-expanded="false"><span class="node-card" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 256 256"><path d="M128,24C74.17,24,32,48.6,32,80v96c0,31.4,42.17,56,96,56s96-24.6,96-56V80C224,48.6,181.83,24,128,24Zm80,104c0,9.62-7.88,19.43-21.61,26.92C170.93,163.35,150.19,168,128,168s-42.93-4.65-58.39-13.08C55.88,147.43,48,137.62,48,128V111.36c17.06,15,46.23,24.64,80,24.64s62.94-9.68,80-24.64ZM69.61,53.08C85.07,44.65,105.81,40,128,40s42.93,4.65,58.39,13.08C200.12,60.57,208,70.38,208,80s-7.88,19.43-21.61,26.92C170.93,115.35,150.19,120,128,120s-42.93-4.65-58.39-13.08C55.88,99.43,48,89.62,48,80S55.88,60.57,69.61,53.08ZM186.39,202.92C170.93,211.35,150.19,216,128,216s-42.93-4.65-58.39-13.08C55.88,195.43,48,185.62,48,176V159.36c17.06,15,46.23,24.64,80,24.64s62.94-9.68,80-24.64V176C208,185.62,200.12,195.43,186.39,202.92Z"></path></svg><span class="logo-badges"><span class="logo-badge" style="--brand:#3ECF8E"><svg class="logo" width="12" height="12" aria-hidden="true" focusable="false"><use href="#logo-supabase"/></svg></span></span></span><span class="node-label">Store</span><span class="node-sub">Supabase pgvector</span></button><button type="button" class="node k-trigger" style="left:64px;top:182px" data-node="ask" data-in="0" data-out="1" aria-haspopup="dialog" aria-expanded="false"><span class="node-card" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 256 256"><path d="M168,112a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,112Zm-8,24H96a8,8,0,0,0,0,16h64a8,8,0,0,0,0-16Zm72-8A104,104,0,0,1,79.12,219.82L45.07,231.17a16,16,0,0,1-20.24-20.24l11.35-34.05A104,104,0,1,1,232,128Zm-16,0A88,88,0,1,0,51.81,172.06a8,8,0,0,1,.66,6.54L40,216,77.4,203.53a7.85,7.85,0,0,1,2.53-.42,8,8,0,0,1,4,1.08A88,88,0,0,0,216,128Z"></path></svg></span><span class="node-label">The sales team asks</span><span class="node-sub">In their own chat</span></button><button type="button" class="pin" style="left:80px;top:284px" data-node="pin:ask:chat" aria-label="Channel: Team chat" aria-haspopup="dialog" aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 256 256"><path d="M140,128a12,12,0,1,1-12-12A12,12,0,0,1,140,128ZM84,116a12,12,0,1,0,12,12A12,12,0,0,0,84,116Zm88,0a12,12,0,1,0,12,12A12,12,0,0,0,172,116Zm60,12A104,104,0,0,1,79.12,219.82L45.07,231.17a16,16,0,0,1-20.24-20.24l11.35-34.05A104,104,0,1,1,232,128Zm-16,0A88,88,0,1,0,51.81,172.06a8,8,0,0,1,.66,6.54L40,216,77.4,203.53a7.85,7.85,0,0,1,2.53-.42,8,8,0,0,1,4,1.08A88,88,0,0,0,216,128Z"></path></svg></button><button type="button" class="node k-action" style="left:232px;top:182px" data-node="qembed" data-in="1" data-out="1" aria-haspopup="dialog" aria-expanded="false"><span class="node-card" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 256 256"><path d="M94,24C71.63,24,56,43.74,56,72s15.63,48,38,48,38-19.74,38-48S116.37,24,94,24Zm0,80c-17.37,0-22-20.11-22-32s4.63-32,22-32,22,20.11,22,32S111.37,104,94,104Zm72,32c-22.37,0-38,19.74-38,48s15.63,48,38,48,38-19.74,38-48S188.37,136,166,136Zm0,80c-17.37,0-22-20.11-22-32s4.63-32,22-32,22,20.11,22,32S183.37,216,166,216ZM145,49.22a8,8,0,0,1,3.11-10.88l24-13.33A8,8,0,0,1,184,32v80a8,8,0,0,1-16,0V45.6l-12.12,6.73A8,8,0,0,1,145,49.22ZM104,144v80a8,8,0,0,1-16,0V157.6l-12.12,6.73a8,8,0,0,1-7.76-14l24-13.33A8,8,0,0,1,104,144Z"></path></svg></span><span class="node-label">Embed the question</span><span class="node-sub">Same model</span></button><button type="button" class="node k-action" style="left:568px;top:182px" data-node="search" data-in="1" data-out="1" aria-haspopup="dialog" aria-expanded="false"><span class="node-card" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 256 256"><path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"></path></svg><span class="logo-badges"><span class="logo-badge" style="--brand:#3ECF8E"><svg class="logo" width="12" height="12" aria-hidden="true" focusable="false"><use href="#logo-supabase"/></svg></span></span></span><span class="node-label">Search</span><span class="node-sub">Top 5 passages</span></button><button type="button" class="node k-ai" style="left:736px;top:182px" data-node="answer" data-in="1" data-out="1" aria-haspopup="dialog" aria-expanded="false"><span class="node-card" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 256 256"><path d="M197.58,129.06,146,110l-19-51.62a15.92,15.92,0,0,0-29.88,0L78,110l-51.62,19a15.92,15.92,0,0,0,0,29.88L78,178l19,51.62a15.92,15.92,0,0,0,29.88,0L146,178l51.62-19a15.92,15.92,0,0,0,0-29.88ZM137,164.22a8,8,0,0,0-4.74,4.74L112,223.85,91.78,169A8,8,0,0,0,87,164.22L32.15,144,87,123.78A8,8,0,0,0,91.78,119L112,64.15,132.22,119a8,8,0,0,0,4.74,4.74L191.85,144ZM144,40a8,8,0,0,1,8-8h16V16a8,8,0,0,1,16,0V32h16a8,8,0,0,1,0,16H184V64a8,8,0,0,1-16,0V48H152A8,8,0,0,1,144,40ZM248,88a8,8,0,0,1-8,8h-8v8a8,8,0,0,1-16,0V96h-8a8,8,0,0,1,0-16h8V72a8,8,0,0,1,16,0v8h8A8,8,0,0,1,248,88Z"></path></svg><span class="logo-badges"><span class="logo-badge" style="--brand:#D97757"><svg class="logo" width="12" height="12" aria-hidden="true" focusable="false"><use href="#logo-claude"/></svg></span></span></span><span class="node-label">Claude answers</span><span class="node-sub">From the passages</span></button><button type="button" class="node k-branch" style="left:904px;top:182px" data-node="sure" data-in="1" data-out="1" aria-haspopup="dialog" aria-expanded="false"><span class="node-card" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 256 256"><path d="M140,180a12,12,0,1,1-12-12A12,12,0,0,1,140,180ZM128,72c-22.06,0-40,16.15-40,36v4a8,8,0,0,0,16,0v-4c0-11,10.77-20,24-20s24,9,24,20-10.77,20-24,20a8,8,0,0,0-8,8v8a8,8,0,0,0,16,0v-.72c18.24-3.35,32-17.9,32-35.28C168,88.15,150.06,72,128,72Zm104,56A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z"></path></svg><span class="badge-branch" aria-hidden="true"></span></span><span class="node-label">On the page?</span><span class="node-sub">The documents decide</span></button><button type="button" class="node k-end" style="left:1072px;top:182px" data-node="reply" data-in="1" data-out="0" aria-haspopup="dialog" aria-expanded="false"><span class="node-card" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 256 256"><path d="M232,200a8,8,0,0,1-16,0,88.1,88.1,0,0,0-88-88H51.31l34.35,34.34a8,8,0,0,1-11.32,11.32l-48-48a8,8,0,0,1,0-11.32l48-48A8,8,0,0,1,85.66,61.66L51.31,96H128A104.11,104.11,0,0,1,232,200Z"></path></svg></span><span class="node-label">Reply with the page</span><span class="node-sub">Document and clause</span></button><button type="button" class="node k-end" style="left:904px;top:332px" data-node="handoff" data-in="1" data-out="0" aria-haspopup="dialog" aria-expanded="false"><span class="node-card" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 256 256"><path d="M253.66,133.66l-24,24a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L216,132.69V128A88,88,0,0,0,56.49,76.67a8,8,0,0,1-13-9.34A104,104,0,0,1,232,128v4.69l10.34-10.35a8,8,0,0,1,11.32,11.32Zm-41.18,55A104,104,0,0,1,24,128v-4.69L13.66,133.66A8,8,0,0,1,2.34,122.34l24-24a8,8,0,0,1,11.32,0l24,24a8,8,0,0,1-11.32,11.32L40,123.31V128a87.62,87.62,0,0,0,22.24,58.41A79.66,79.66,0,0,1,98.3,157.66a48,48,0,1,1,59.4,0,79.59,79.59,0,0,1,36.08,28.78,89.68,89.68,0,0,0,5.71-7.11,8,8,0,0,1,13,9.34ZM128,152a32,32,0,1,0-32-32A32,32,0,0,0,128,152Zm0,64a88.2,88.2,0,0,0,53.92-18.49,64,64,0,0,0-107.84,0A87.57,87.57,0,0,0,128,216Z"></path></svg></span><span class="node-label">Says it isn’t there</span><span class="node-sub">Or: ask the director</span></button><button type="button" class="pin" style="left:892px;top:434px" data-node="pin:handoff:director" aria-label="Handoff: The sales director" aria-haspopup="dialog" aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24ZM74.08,197.5a64,64,0,0,1,107.84,0,87.83,87.83,0,0,1-107.84,0ZM96,120a32,32,0,1,1,32,32A32,32,0,0,1,96,120Zm97.76,66.41a79.66,79.66,0,0,0-36.06-28.75,48,48,0,1,0-59.4,0,79.66,79.66,0,0,0-36.06,28.75,88,88,0,1,1,131.52,0Z"></path></svg></button><button type="button" class="pin" style="left:920px;top:434px" data-node="pin:handoff:advice" aria-label="Handoff: Legal or tax" aria-haspopup="dialog" aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 256 256"><path d="M239.43,133l-32-80h0a8,8,0,0,0-9.16-4.84L136,62V40a8,8,0,0,0-16,0V65.58L54.26,80.19A8,8,0,0,0,48.57,85h0v.06L16.57,165a7.92,7.92,0,0,0-.57,3c0,23.31,24.54,32,40,32s40-8.69,40-32a7.92,7.92,0,0,0-.57-3L66.92,93.77,120,82V208H104a8,8,0,0,0,0,16h48a8,8,0,0,0,0-16H136V78.42L187,67.1,160.57,133a7.92,7.92,0,0,0-.57,3c0,23.31,24.54,32,40,32s40-8.69,40-32A7.92,7.92,0,0,0,239.43,133ZM56,184c-7.53,0-22.76-3.61-23.93-14.64L56,109.54l23.93,59.82C78.76,180.39,63.53,184,56,184Zm144-32c-7.53,0-22.76-3.61-23.93-14.64L200,77.54l23.93,59.82C222.76,148.39,207.53,152,200,152Z"></path></svg></button><button type="button" class="pin" style="left:948px;top:434px" data-node="pin:handoff:who" aria-label="Handoff: Who a buyer is" aria-haspopup="dialog" aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 256 256"><path d="M120,136V96a8,8,0,0,1,16,0v40a8,8,0,0,1-16,0Zm8,48a12,12,0,1,0-12-12A12,12,0,0,0,128,184ZM224,56v56c0,52.72-25.52,84.67-46.93,102.19-23.06,18.86-46,25.27-47,25.53a8,8,0,0,1-4.2,0c-1-.26-23.91-6.67-47-25.53C57.52,196.67,32,164.72,32,112V56A16,16,0,0,1,48,40H208A16,16,0,0,1,224,56Zm-16,0L48,56l0,56c0,37.3,13.82,67.51,41.07,89.81A128.25,128.25,0,0,0,128,223.62a129.3,129.3,0,0,0,39.41-22.2C194.34,179.16,208,149.07,208,112Z"></path></svg></button></div></div><ol class="steps sr-only"><li>Contracts and specs (Uploaded by the team), uses Purchase contracts, Residence documents, then Split by page</li><li>Split by page (Parties left out), then Embed</li><li>Embed (Embeddings model), then Store</li><li>Store (Supabase pgvector)</li><li>The sales team asks (In their own chat), uses Team chat, then Embed the question</li><li>Embed the question (Same model), then Search</li><li>Search (Top 5 passages), then Claude answers</li><li>Claude answers (From the passages), then On the page?</li><li>On the page? (The documents decide), then Reply with the page if yes; Says it isn’t there if no</li><li>Reply with the page (Document and clause)</li><li>Says it isn’t there (Or: ask the director), uses The sales director, Legal or tax, Who a buyer is</li></ol></figure></section>
+<section id="agent" aria-labelledby="agent-h"><header class="shead"><span class="kicker">HOW AN AGENT WORKS</span><h2 id="agent-h">Plan, use a tool, check, repeat</h2><p>A booked viewing or a viewing held starts it. Claude plans, uses one tool at a time and checks the result until the job is done. Click any step.</p></header><ul class="legend" aria-label="How to read the agent diagram"><li><button type="button" class="key" data-node="key:agent:cable" aria-haspopup="dialog" aria-expanded="false"><span aria-hidden="true"><span class="line"></span></span>Cable</button></li><li><button type="button" class="key" data-node="key:agent:signal" aria-haspopup="dialog" aria-expanded="false"><span aria-hidden="true"><span class="line line-signal"></span></span>Live signal</button></li><li><button type="button" class="key" data-node="key:agent:loop" aria-haspopup="dialog" aria-expanded="false"><span aria-hidden="true"><span class="line line-loop"></span></span>Loop-back</button></li><li><button type="button" class="key" data-node="key:agent:branch" aria-haspopup="dialog" aria-expanded="false"><span aria-hidden="true"><span class="badge-branch" aria-hidden="true"></span></span>Branch</button></li><li><button type="button" class="key" data-node="key:agent:gate" aria-haspopup="dialog" aria-expanded="false"><span aria-hidden="true"><span class="badge-lock"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 256 256"><path d="M208,80H176V56a48,48,0,0,0-96,0V80H48A16,16,0,0,0,32,96V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V96A16,16,0,0,0,208,80ZM96,56a32,32,0,0,1,64,0V80H96ZM208,208H48V96H208V208Z"></path></svg></span></span>Approval gate</button></li><li><button type="button" class="key" data-node="key:agent:pin" aria-haspopup="dialog" aria-expanded="false"><span aria-hidden="true"><span class="pin-sample"></span></span>Pin</button></li></ul><figure class="canvas" data-diagram="agent" data-run data-routes="[{&quot;len&quot;:1008,&quot;stops&quot;:[[&quot;trigger&quot;,0],[&quot;plan&quot;,168],[&quot;tool&quot;,336],[&quot;check&quot;,504],[&quot;needs&quot;,672],[&quot;gate&quot;,840],[&quot;act&quot;,1008]],&quot;spans&quot;:[[0,28,140],[1,196,308],[2,364,476],[3,532,644],[4,700,812],[5,868,980]]},{&quot;len&quot;:1777.7,&quot;stops&quot;:[[&quot;trigger&quot;,0],[&quot;plan&quot;,168],[&quot;tool&quot;,336],[&quot;check&quot;,504],[&quot;plan&quot;,937.7],[&quot;tool&quot;,1105.7],[&quot;check&quot;,1273.7],[&quot;needs&quot;,1441.7],[&quot;gate&quot;,1609.7],[&quot;act&quot;,1777.7]],&quot;spans&quot;:[[0,28,140],[1,196,308],[2,364,476],[6,532,909.7],[1,965.7,1077.7],[2,1133.7,1245.7],[3,1301.7,1413.7],[4,1469.7,1581.7],[5,1637.7,1749.7]]},{&quot;len&quot;:2460.1,&quot;stops&quot;:[[&quot;trigger&quot;,0],[&quot;plan&quot;,168],[&quot;tool&quot;,336],[&quot;check&quot;,504],[&quot;needs&quot;,672],[&quot;gate&quot;,840],[&quot;plan&quot;,1620.1],[&quot;tool&quot;,1788.1],[&quot;check&quot;,1956.1],[&quot;needs&quot;,2124.1],[&quot;gate&quot;,2292.1],[&quot;act&quot;,2460.1]],&quot;spans&quot;:[[0,28,140],[1,196,308],[2,364,476],[3,532,644],[4,700,812],[7,868,1592.1],[1,1648.1,1760.1],[2,1816.1,1928.1],[3,1984.1,2096.1],[4,2152.1,2264.1],[5,2320.1,2432.1]]},{&quot;len&quot;:1985.4,&quot;stops&quot;:[[&quot;trigger&quot;,0],[&quot;plan&quot;,168],[&quot;tool&quot;,336],[&quot;check&quot;,504],[&quot;plan&quot;,937.7],[&quot;tool&quot;,1105.7],[&quot;check&quot;,1273.7],[&quot;needs&quot;,1441.7],[&quot;act&quot;,1985.4]],&quot;spans&quot;:[[0,28,140],[1,196,308],[2,364,476],[6,532,909.7],[1,965.7,1077.7],[2,1133.7,1245.7],[3,1301.7,1413.7],[8,1509.7,1887.4]]}]"><figcaption><span>An agent for one private viewing · 4 ways round</span><span class="pan"><span class="pan-hint" aria-hidden="true">Drag to explore</span><button type="button" class="pan-btn" data-pan="-1" aria-label="Scroll the agent diagram left">‹</button><button type="button" class="pan-btn" data-pan="1" aria-label="Scroll the agent diagram right">›</button></span></figcaption><div class="focus-bar"><p class="focus-text" role="status"></p><button type="button" class="focus-clear" hidden>Show all</button></div><div class="canvas-scroll" tabindex="0" role="group" aria-label="An agent for one private viewing · 4 ways round, scrolls sideways"><div class="stage" style="width:1192px;height:321px"><svg class="edges" width="1192" height="321" viewBox="0 0 1192 321" aria-hidden="true"><path class="edge" data-edge="0" d="M120 148C176 148 176 148 232 148"/><path class="edge" data-edge="1" d="M288 148C344 148 344 148 400 148"/><path class="edge" data-edge="2" d="M456 148C512 148 512 148 568 148"/><path class="edge" data-edge="3" d="M624 148C680 148 680 148 736 148"/><path class="edge" data-edge="4" d="M792 148C848 148 848 148 904 148"/><path class="edge" data-edge="5" d="M960 148C1016 148 1016 148 1072 148"/><path class="edge loop" data-edge="6" d="M596 120C596 44 260 44 260 120"/><path class="edge loop" data-edge="7" d="M932 120C932 8 260 8 260 120"/><path class="edge" data-edge="8" d="M764 216C764 306 1100 306 1100 246"/></svg><span class="edge-label" data-edge="3" aria-hidden="true" style="left:680px;top:148px">done</span><span class="edge-label" data-edge="4" aria-hidden="true" style="left:848px;top:148px">yes</span><span class="edge-label" data-edge="5" aria-hidden="true" style="left:1016px;top:148px">approved</span><span class="edge-label" data-edge="6" aria-hidden="true" style="left:428px;top:63px">not done yet</span><span class="edge-label" data-edge="7" aria-hidden="true" style="left:596px;top:36px">change it</span><span class="edge-label" data-edge="8" aria-hidden="true" style="left:932px;top:287px">no, the host only</span><span class="run-dot" aria-hidden="true" data-route="0" style="offset-path:path('M92 148L120 148C176 148 176 148 232 148L260 148L288 148C344 148 344 148 400 148L428 148L456 148C512 148 512 148 568 148L596 148L624 148C680 148 680 148 736 148L764 148L792 148C848 148 848 148 904 148L932 148L960 148C1016 148 1016 148 1072 148L1100 148')"></span><span class="run-dot" aria-hidden="true" data-route="1" style="offset-path:path('M92 148L120 148C176 148 176 148 232 148L260 148L288 148C344 148 344 148 400 148L428 148L456 148C512 148 512 148 568 148L596 148L596 120C596 44 260 44 260 120L260 148L288 148C344 148 344 148 400 148L428 148L456 148C512 148 512 148 568 148L596 148L624 148C680 148 680 148 736 148L764 148L792 148C848 148 848 148 904 148L932 148L960 148C1016 148 1016 148 1072 148L1100 148')"></span><span class="run-dot" aria-hidden="true" data-route="2" style="offset-path:path('M92 148L120 148C176 148 176 148 232 148L260 148L288 148C344 148 344 148 400 148L428 148L456 148C512 148 512 148 568 148L596 148L624 148C680 148 680 148 736 148L764 148L792 148C848 148 848 148 904 148L932 148L932 120C932 8 260 8 260 120L260 148L288 148C344 148 344 148 400 148L428 148L456 148C512 148 512 148 568 148L596 148L624 148C680 148 680 148 736 148L764 148L792 148C848 148 848 148 904 148L932 148L960 148C1016 148 1016 148 1072 148L1100 148')"></span><span class="run-dot" aria-hidden="true" data-route="3" style="offset-path:path('M92 148L120 148C176 148 176 148 232 148L260 148L288 148C344 148 344 148 400 148L428 148L456 148C512 148 512 148 568 148L596 148L596 120C596 44 260 44 260 120L260 148L288 148C344 148 344 148 400 148L428 148L456 148C512 148 512 148 568 148L596 148L624 148C680 148 680 148 736 148L764 148L764 216C764 306 1100 306 1100 246L1100 148')"></span><button type="button" class="node k-trigger" style="left:64px;top:120px" data-node="trigger" data-in="0" data-out="1" aria-haspopup="dialog" aria-expanded="false"><span class="node-card" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 256 256"><path d="M215.79,118.17a8,8,0,0,0-5-5.66L153.18,90.9l14.66-73.33a8,8,0,0,0-13.69-7l-112,120a8,8,0,0,0,3,13l57.63,21.61L88.16,238.43a8,8,0,0,0,13.69,7l112-120A8,8,0,0,0,215.79,118.17ZM109.37,214l10.47-52.38a8,8,0,0,0-5-9.06L62,132.71l84.62-90.66L136.16,94.43a8,8,0,0,0,5,9.06l52.8,19.8Z"></path></svg></span><span class="node-label">Booked or held</span><span class="node-sub">Cal.com or the host</span></button><button type="button" class="pin" style="left:66px;top:222px" data-node="pin:trigger:booked" aria-label="Trigger: A viewing booked" aria-haspopup="dialog" aria-expanded="false"><svg class="logo" width="14" height="14" aria-hidden="true" focusable="false"><use href="#logo-cal-com"/></svg></button><button type="button" class="pin" style="left:94px;top:222px" data-node="pin:trigger:held" aria-label="Trigger: A viewing held" aria-haspopup="dialog" aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 256 256"><path d="M232,216H208V40a16,16,0,0,0-16-16H64A16,16,0,0,0,48,40V216H24a8,8,0,0,0,0,16H232a8,8,0,0,0,0-16Zm-40,0H176V40h16ZM64,40h96V216H64Zm80,92a12,12,0,1,1-12-12A12,12,0,0,1,144,132Z"></path></svg></button><button type="button" class="node k-ai" style="left:232px;top:120px" data-node="plan" data-in="1" data-out="1" aria-haspopup="dialog" aria-expanded="false"><span class="node-card" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 256 256"><path d="M248,124a56.11,56.11,0,0,0-32-50.61V72a48,48,0,0,0-88-26.49A48,48,0,0,0,40,72v1.39a56,56,0,0,0,0,101.2V176a48,48,0,0,0,88,26.49A48,48,0,0,0,216,176v-1.41A56.09,56.09,0,0,0,248,124ZM88,208a32,32,0,0,1-31.81-28.56A55.87,55.87,0,0,0,64,180h8a8,8,0,0,0,0-16H64A40,40,0,0,1,50.67,86.27,8,8,0,0,0,56,78.73V72a32,32,0,0,1,64,0v68.26A47.8,47.8,0,0,0,88,128a8,8,0,0,0,0,16,32,32,0,0,1,0,64Zm104-44h-8a8,8,0,0,0,0,16h8a55.87,55.87,0,0,0,7.81-.56A32,32,0,1,1,168,144a8,8,0,0,0,0-16,47.8,47.8,0,0,0-32,12.26V72a32,32,0,0,1,64,0v6.73a8,8,0,0,0,5.33,7.54A40,40,0,0,1,192,164Zm16-52a8,8,0,0,1-8,8h-4a36,36,0,0,1-36-36V80a8,8,0,0,1,16,0v4a20,20,0,0,0,20,20h4A8,8,0,0,1,208,112ZM60,120H56a8,8,0,0,1,0-16h4A20,20,0,0,0,80,84V80a8,8,0,0,1,16,0v4A36,36,0,0,1,60,120Z"></path></svg><span class="logo-badges"><span class="logo-badge" style="--brand:#D97757"><svg class="logo" width="12" height="12" aria-hidden="true" focusable="false"><use href="#logo-claude"/></svg></span></span></span><span class="node-label">Claude plans</span><span class="node-sub">Picks the next step</span></button><button type="button" class="node k-action" style="left:400px;top:120px" data-node="tool" data-in="1" data-out="1" aria-haspopup="dialog" aria-expanded="false"><span class="node-card" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 256 256"><path d="M226.76,69a8,8,0,0,0-12.84-2.88l-40.3,37.19-17.23-3.7-3.7-17.23,37.19-40.3A8,8,0,0,0,187,29.24,72,72,0,0,0,88,96,72.34,72.34,0,0,0,94,124.94L33.79,177c-.15.12-.29.26-.43.39a32,32,0,0,0,45.26,45.26c.13-.13.27-.28.39-.42L131.06,162A72,72,0,0,0,232,96,71.56,71.56,0,0,0,226.76,69ZM160,152a56.14,56.14,0,0,1-27.07-7,8,8,0,0,0-9.92,1.77L67.11,211.51a16,16,0,0,1-22.62-22.62L109.18,133a8,8,0,0,0,1.77-9.93,56,56,0,0,1,58.36-82.31l-31.2,33.81a8,8,0,0,0-1.94,7.1L141.83,108a8,8,0,0,0,6.14,6.14l26.35,5.66a8,8,0,0,0,7.1-1.94l33.81-31.2A56.06,56.06,0,0,1,160,152Z"></path></svg></span><span class="node-label">Use a tool</span><span class="node-sub">One call at a time</span></button><button type="button" class="pin" style="left:332px;top:222px" data-node="pin:tool:booking" aria-label="Tool: The booking" aria-haspopup="dialog" aria-expanded="false"><svg class="logo" width="14" height="14" aria-hidden="true" focusable="false"><use href="#logo-cal-com"/></svg></button><button type="button" class="pin" style="left:360px;top:222px" data-node="pin:tool:residences" aria-label="Tool: Residences" aria-haspopup="dialog" aria-expanded="false"><svg class="logo" width="14" height="14" aria-hidden="true" focusable="false"><use href="#logo-airtable"/></svg></button><button type="button" class="pin" style="left:388px;top:222px" data-node="pin:tool:enquiry" aria-label="Tool: The enquiry" aria-haspopup="dialog" aria-expanded="false"><svg class="logo" width="14" height="14" aria-hidden="true" focusable="false"><use href="#logo-hubspot"/></svg></button><button type="button" class="pin" style="left:416px;top:222px" data-node="pin:tool:docs" aria-label="Tool: Residence documents" aria-haspopup="dialog" aria-expanded="false"><svg class="logo" width="14" height="14" aria-hidden="true" focusable="false"><use href="#logo-supabase"/></svg></button><button type="button" class="pin" style="left:444px;top:222px" data-node="pin:tool:team" aria-label="Tool: Team" aria-haspopup="dialog" aria-expanded="false"><svg class="logo" width="14" height="14" aria-hidden="true" focusable="false"><use href="#logo-airtable"/></svg></button><button type="button" class="pin" style="left:472px;top:222px" data-node="pin:tool:sheets" aria-label="Tool: Agent runs" aria-haspopup="dialog" aria-expanded="false"><svg class="logo" width="14" height="14" aria-hidden="true" focusable="false"><use href="#logo-google-sheets"/></svg></button><button type="button" class="pin" style="left:500px;top:222px" data-node="pin:tool:byhand" aria-label="Tool: By hand only" aria-haspopup="dialog" aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 256 256"><path d="M188,88a27.75,27.75,0,0,0-12,2.71V60a28,28,0,0,0-41.36-24.6A28,28,0,0,0,80,44v6.71A27.75,27.75,0,0,0,68,48,28,28,0,0,0,40,76v76a88,88,0,0,0,176,0V116A28,28,0,0,0,188,88Zm12,64a72,72,0,0,1-144,0V76a12,12,0,0,1,24,0v44a8,8,0,0,0,16,0V44a12,12,0,0,1,24,0v68a8,8,0,0,0,16,0V60a12,12,0,0,1,24,0v68.67A48.08,48.08,0,0,0,120,176a8,8,0,0,0,16,0,32,32,0,0,1,32-32,8,8,0,0,0,8-8V116a12,12,0,0,1,24,0Z"></path></svg></button><button type="button" class="node k-branch" style="left:568px;top:120px" data-node="check" data-in="1" data-out="1" aria-haspopup="dialog" aria-expanded="false"><span class="node-card" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 256 256"><path d="M224,128a8,8,0,0,1-8,8H128a8,8,0,0,1,0-16h88A8,8,0,0,1,224,128ZM128,72h88a8,8,0,0,0,0-16H128a8,8,0,0,0,0,16Zm88,112H128a8,8,0,0,0,0,16h88a8,8,0,0,0,0-16ZM82.34,42.34,56,68.69,45.66,58.34A8,8,0,0,0,34.34,69.66l16,16a8,8,0,0,0,11.32,0l32-32A8,8,0,0,0,82.34,42.34Zm0,64L56,132.69,45.66,122.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32,0l32-32a8,8,0,0,0-11.32-11.32Zm0,64L56,196.69,45.66,186.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32,0l32-32a8,8,0,0,0-11.32-11.32Z"></path></svg><span class="badge-branch" aria-hidden="true"></span></span><span class="node-label">Check the result</span><span class="node-sub">Done yet?</span></button><button type="button" class="node k-branch" style="left:736px;top:120px" data-node="needs" data-in="1" data-out="1" aria-haspopup="dialog" aria-expanded="false"><span class="node-card" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 256 256"><path d="M208,40H48A16,16,0,0,0,32,56v56c0,52.72,25.52,84.67,46.93,102.19,23.06,18.86,46,25.26,47,25.53a8,8,0,0,0,4.2,0c1-.27,23.91-6.67,47-25.53C198.48,196.67,224,164.72,224,112V56A16,16,0,0,0,208,40Zm0,72c0,37.07-13.66,67.16-40.6,89.42A129.3,129.3,0,0,1,128,223.62a128.25,128.25,0,0,1-38.92-21.81C61.82,179.51,48,149.3,48,112l0-56,160,0ZM82.34,141.66a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35a8,8,0,0,1,11.32,11.32l-56,56a8,8,0,0,1-11.32,0Z"></path></svg><span class="badge-branch" aria-hidden="true"></span></span><span class="node-label">Buyer’s inbox?</span><span class="node-sub">Or the host only</span></button><button type="button" class="node k-approve" style="left:904px;top:120px" data-node="gate" data-in="1" data-out="1" aria-haspopup="dialog" aria-expanded="false"><span class="node-card" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 256 256"><path d="M144,157.68a68,68,0,1,0-71.9,0c-20.65,6.76-39.23,19.39-54.17,37.17a8,8,0,0,0,12.25,10.3C50.25,181.19,77.91,168,108,168s57.75,13.19,77.87,37.15a8,8,0,0,0,12.25-10.3C183.18,177.07,164.6,164.44,144,157.68ZM56,100a52,52,0,1,1,52,52A52.06,52.06,0,0,1,56,100Zm197.66,33.66-32,32a8,8,0,0,1-11.32,0l-16-16a8,8,0,0,1,11.32-11.32L216,148.69l26.34-26.35a8,8,0,0,1,11.32,11.32Z"></path></svg><span class="badge-lock"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 256 256"><path d="M208,80H176V56a48,48,0,0,0-96,0V80H48A16,16,0,0,0,32,96V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V96A16,16,0,0,0,208,80ZM96,56a32,32,0,0,1,64,0V80H96ZM208,208H48V96H208V208Z"></path></svg></span><span class="logo-badges"><span class="logo-badge" style="--brand:#26A5E4"><svg class="logo" width="12" height="12" aria-hidden="true" focusable="false"><use href="#logo-telegram"/></svg></span></span></span><span class="node-label">The host’s yes</span><span class="node-sub">Approve in Telegram</span></button><button type="button" class="node k-end" style="left:1072px;top:120px" data-node="act" data-in="1" data-out="0" aria-haspopup="dialog" aria-expanded="false"><span class="node-card" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 256 256"><path d="M227.32,28.68a16,16,0,0,0-15.66-4.08l-.15,0L19.57,82.84a16,16,0,0,0-2.49,29.8L102,154l41.3,84.87A15.86,15.86,0,0,0,157.74,248q.69,0,1.38-.06a15.88,15.88,0,0,0,14-11.51l58.2-191.94c0-.05,0-.1,0-.15A16,16,0,0,0,227.32,28.68ZM157.83,231.85l-.05.14,0-.07-40.06-82.3,48-48a8,8,0,0,0-11.31-11.31l-48,48L24.08,98.25l-.07,0,.14,0L216,40Z"></path></svg></span><span class="node-label">Send and log</span><span class="node-sub">Approved or internal</span></button><button type="button" class="pin" style="left:1046px;top:222px" data-node="pin:act:gmail" aria-label="Output: Gmail" aria-haspopup="dialog" aria-expanded="false"><svg class="logo" width="14" height="14" aria-hidden="true" focusable="false"><use href="#logo-gmail"/></svg></button><button type="button" class="pin" style="left:1074px;top:222px" data-node="pin:act:telegram" aria-label="Output: Telegram" aria-haspopup="dialog" aria-expanded="false"><svg class="logo" width="14" height="14" aria-hidden="true" focusable="false"><use href="#logo-telegram"/></svg></button><button type="button" class="pin" style="left:1102px;top:222px" data-node="pin:act:sheets" aria-label="Output: Google Sheets" aria-haspopup="dialog" aria-expanded="false"><svg class="logo" width="14" height="14" aria-hidden="true" focusable="false"><use href="#logo-google-sheets"/></svg></button><button type="button" class="pin" style="left:1130px;top:222px" data-node="pin:act:host" aria-label="Output: The host, by hand" aria-haspopup="dialog" aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24ZM74.08,197.5a64,64,0,0,1,107.84,0,87.83,87.83,0,0,1-107.84,0ZM96,120a32,32,0,1,1,32,32A32,32,0,0,1,96,120Zm97.76,66.41a79.66,79.66,0,0,0-36.06-28.75,48,48,0,1,0-59.4,0,79.66,79.66,0,0,0-36.06,28.75,88,88,0,1,1,131.52,0Z"></path></svg></button></div></div><ol class="steps sr-only"><li>Booked or held (Cal.com or the host), uses A viewing booked, A viewing held, then Claude plans</li><li>Claude plans (Picks the next step), then Use a tool</li><li>Use a tool (One call at a time), uses The booking, Residences, The enquiry, Residence documents, Team, Agent runs, By hand only, then Check the result</li><li>Check the result (Done yet?), then Buyer’s inbox? if done; Claude plans if not done yet</li><li>Buyer’s inbox? (Or the host only), then The host’s yes if yes; Send and log if no, the host only</li><li>The host’s yes (Approve in Telegram), then Send and log if approved; Claude plans if change it</li><li>Send and log (Approved or internal), uses Gmail, Telegram, Google Sheets, The host, by hand</li></ol></figure></section>
+<section id="builds" aria-labelledby="builds-h"><header class="shead"><span class="kicker">THREE SAMPLE BUILDS</span><h2 id="builds-h">Three builds for Westmere</h2><p>One bot for the sales team, two agents for the hosting agent. Show any one’s route on its diagram.</p></header><h3 class="builds-kind">RAG chatbots</h3><ul class="tiles builds"><li class="tile build" id="build-docqa"><span class="tile-top"><span class="sample">SAMPLE BUILD</span><span class="tile-mark">RAG chatbot</span></span><h4>Document Q&amp;A bot</h4><p class="build-for">For Westmere · residential developer</p><p>Westmere’s sales team asks about a buyer’s contracts; it answers with the page, or says it isn’t there. It is internal: it answers the sales team in their own chat from the purchase contracts and residence documents, never a buyer, and gives no legal or tax advice and nothing about who a buyer is.</p><dl class="build-example"><div><dt>Asked</dt><dd>When does the buyer’s deposit on the Orchard sale stop being refundable?</dd></div><div><dt>Answer</dt><dd>When the 17-day inspection period ends. (Purchase agreement, page 7, §12.2)</dd></div></dl><span class="build-logos" aria-hidden="true"><svg class="logo" width="18" height="18" aria-hidden="true" focusable="false"><use href="#logo-claude"/></svg><svg class="logo" width="18" height="18" aria-hidden="true" focusable="false"><use href="#logo-supabase"/></svg><svg class="logo" width="18" height="18" aria-hidden="true" focusable="false"><use href="#logo-n8n"/></svg></span><span class="sr-only">Tools: Claude, Supabase, n8n</span><button type="button" class="route-btn" data-build="docqa" aria-pressed="false" aria-label="Show its route: Document Q&amp;A bot"><span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 256 256"><path d="M200,168a32.06,32.06,0,0,0-31,24H72a32,32,0,0,1,0-64h96a40,40,0,0,0,0-80H72a8,8,0,0,0,0,16h96a24,24,0,0,1,0,48H72a48,48,0,0,0,0,96h97a32,32,0,1,0,31-40Zm0,48a16,16,0,1,1,16-16A16,16,0,0,1,200,216Z"></path></svg></span>Show its route</button></li></ul><h3 class="builds-kind">AI agents</h3><ul class="tiles builds"><li class="tile build" id="build-prep"><span class="tile-top"><span class="sample">SAMPLE BUILD</span><span class="tile-mark">AI agent</span></span><h4>Viewing prep agent</h4><p class="build-for">For Westmere · residential developer</p><p>When a private viewing is booked, it reads the booking, the residence’s public facts and the buyer’s enquiry, and writes the hosting agent a short brief: the facts to have ready and what the buyer asked about the residence. It goes to that agent only, never to the buyer, and it never scores, sorts or says anything about who the buyer is.</p><dl class="build-example"><div><dt>Trigger</dt><dd>Cal.com: a Thursday private viewing booked for The Orchard Residences; the enquiry asked about the lap pool and completion.</dd></div><div><dt>Result</dt><dd>A brief in the hosting agent’s own Telegram: $12,750,000, 4 bedrooms and a study, 3,850 sq ft, completion 2027 Q2, 2 of 3 remaining; have the pool and deck plan and the specification ready. Nothing about the buyer but their questions.</dd></div></dl><span class="build-logos" aria-hidden="true"><svg class="logo" width="18" height="18" aria-hidden="true" focusable="false"><use href="#logo-claude"/></svg><svg class="logo" width="18" height="18" aria-hidden="true" focusable="false"><use href="#logo-n8n"/></svg><svg class="logo" width="18" height="18" aria-hidden="true" focusable="false"><use href="#logo-cal-com"/></svg><svg class="logo" width="18" height="18" aria-hidden="true" focusable="false"><use href="#logo-airtable"/></svg><svg class="logo" width="18" height="18" aria-hidden="true" focusable="false"><use href="#logo-hubspot"/></svg><svg class="logo" width="18" height="18" aria-hidden="true" focusable="false"><use href="#logo-supabase"/></svg><svg class="logo" width="18" height="18" aria-hidden="true" focusable="false"><use href="#logo-telegram"/></svg><svg class="logo" width="18" height="18" aria-hidden="true" focusable="false"><use href="#logo-google-sheets"/></svg></span><span class="sr-only">Tools: Claude, n8n, Cal.com, Airtable, HubSpot, Supabase, Telegram, Google Sheets</span><button type="button" class="route-btn" data-build="prep" aria-pressed="false" aria-label="Show its route: Viewing prep agent"><span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 256 256"><path d="M200,168a32.06,32.06,0,0,0-31,24H72a32,32,0,0,1,0-64h96a40,40,0,0,0,0-80H72a8,8,0,0,0,0,16h96a24,24,0,0,1,0,48H72a48,48,0,0,0,0,96h97a32,32,0,1,0,31-40Zm0,48a16,16,0,1,1,16-16A16,16,0,0,1,200,216Z"></path></svg></span>Show its route</button></li><li class="tile build" id="build-followup"><span class="tile-top"><span class="sample">SAMPLE BUILD</span><span class="tile-mark">AI agent</span></span><h4>Buyer follow-up agent</h4><p class="build-for">For Westmere · residential developer</p><p>After a private viewing, when the hosting agent marks it held, it drafts a short follow-up in that agent’s name: thanks, answers from the residence’s public facts, and the ways to go on. The draft waits for the hosting agent’s yes. Every buyer who viewed gets the same kind of note: it never scores or sorts them, and never mentions a budget or the valuation figures.</p><dl class="build-example"><div><dt>Trigger</dt><dd>Telegram: the hosting agent marks Thursday’s Orchard viewing held.</dd></div><div><dt>Result</dt><dd>A follow-up in the host’s name with the floor plans, completion 2027 Q2 and how to book a second viewing or request the full portfolio, drafted and waiting for their yes in Telegram.</dd></div></dl><span class="build-logos" aria-hidden="true"><svg class="logo" width="18" height="18" aria-hidden="true" focusable="false"><use href="#logo-claude"/></svg><svg class="logo" width="18" height="18" aria-hidden="true" focusable="false"><use href="#logo-n8n"/></svg><svg class="logo" width="18" height="18" aria-hidden="true" focusable="false"><use href="#logo-hubspot"/></svg><svg class="logo" width="18" height="18" aria-hidden="true" focusable="false"><use href="#logo-airtable"/></svg><svg class="logo" width="18" height="18" aria-hidden="true" focusable="false"><use href="#logo-supabase"/></svg><svg class="logo" width="18" height="18" aria-hidden="true" focusable="false"><use href="#logo-gmail"/></svg><svg class="logo" width="18" height="18" aria-hidden="true" focusable="false"><use href="#logo-telegram"/></svg><svg class="logo" width="18" height="18" aria-hidden="true" focusable="false"><use href="#logo-google-sheets"/></svg></span><span class="sr-only">Tools: Claude, n8n, HubSpot, Airtable, Supabase, Gmail, Telegram, Google Sheets</span><button type="button" class="route-btn" data-build="followup" aria-pressed="false" aria-label="Show its route: Buyer follow-up agent"><span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 256 256"><path d="M200,168a32.06,32.06,0,0,0-31,24H72a32,32,0,0,1,0-64h96a40,40,0,0,0,0-80H72a8,8,0,0,0,0,16h96a24,24,0,0,1,0,48H72a48,48,0,0,0,0,96h97a32,32,0,1,0,31-40Zm0,48a16,16,0,1,1,16-16A16,16,0,0,1,200,216Z"></path></svg></span>Show its route</button></li></ul></section>
+<section id="guardrails" aria-labelledby="guardrails-h"><header class="shead"><span class="kicker">GUARDRAILS</span><h2 id="guardrails-h">Four rules every build follows</h2><p>They are what keep an Equal Housing Opportunity developer’s bot and agents fair to every buyer.</p></header><ul class="tiles"><li class="tile"><span class="tile-top"><span class="tile-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M100,56H40A16,16,0,0,0,24,72v64a16,16,0,0,0,16,16h60v8a32,32,0,0,1-32,32,8,8,0,0,0,0,16,48.05,48.05,0,0,0,48-48V72A16,16,0,0,0,100,56Zm0,80H40V72h60ZM216,56H156a16,16,0,0,0-16,16v64a16,16,0,0,0,16,16h60v8a32,32,0,0,1-32,32,8,8,0,0,0,0,16,48.05,48.05,0,0,0,48-48V72A16,16,0,0,0,216,56Zm0,80H156V72h60Z"></path></svg></span><span class="tile-mark">G1</span></span><h3>Answers only from the documents</h3><p>The bot answers from the passages it found and names the document, page and clause. It never invents a date, price or figure, and gives no legal or tax advice. It is internal: it answers the sales team in their own chat, never a buyer, books nothing and never emails.</p></li><li class="tile"><span class="tile-top"><span class="tile-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M239.43,133l-32-80h0a8,8,0,0,0-9.16-4.84L136,62V40a8,8,0,0,0-16,0V65.58L54.26,80.19A8,8,0,0,0,48.57,85h0v.06L16.57,165a7.92,7.92,0,0,0-.57,3c0,23.31,24.54,32,40,32s40-8.69,40-32a7.92,7.92,0,0,0-.57-3L66.92,93.77,120,82V208H104a8,8,0,0,0,0,16h48a8,8,0,0,0,0-16H136V78.42L187,67.1,160.57,133a7.92,7.92,0,0,0-.57,3c0,23.31,24.54,32,40,32s40-8.69,40-32A7.92,7.92,0,0,0,239.43,133ZM56,184c-7.53,0-22.76-3.61-23.93-14.64L56,109.54l23.93,59.82C78.76,180.39,63.53,184,56,184Zm144-32c-7.53,0-22.76-3.61-23.93-14.64L200,77.54l23.93,59.82C222.76,148.39,207.53,152,200,152Z"></path></svg></span><span class="tile-mark">G2</span></span><h3>Nothing about who a buyer is</h3><p>Westmere is an Equal Housing Opportunity developer, DRE #02114471, so no bot or agent here screens, scores, sorts or ranks a buyer, and none reads a protected trait or a budget. The store keeps the terms of a contract and leaves out the parties. The viewing brief carries only what the buyer asked about the residence, and every buyer who viewed gets the same kind of follow-up. A “qualified buyer” means proof of funds and nothing else, and only the sales director decides it, by hand, in WM-03. No agent reads it.</p></li><li class="tile"><span class="tile-top"><span class="tile-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M208,40H48A16,16,0,0,0,32,56v56c0,52.72,25.52,84.67,46.93,102.19,23.06,18.86,46,25.26,47,25.53a8,8,0,0,0,4.2,0c1-.27,23.91-6.67,47-25.53C198.48,196.67,224,164.72,224,112V56A16,16,0,0,0,208,40Zm0,72c0,37.07-13.66,67.16-40.6,89.42A129.3,129.3,0,0,1,128,223.62a128.25,128.25,0,0,1-38.92-21.81C61.82,179.51,48,149.3,48,112l0-56,160,0ZM82.34,141.66a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35a8,8,0,0,1,11.32,11.32l-56,56a8,8,0,0,1-11.32,0Z"></path></svg></span><span class="tile-mark">G3</span></span><h3>The hosting agent says yes to every buyer email</h3><p>The hosting agent approves anything Claude drafts for a buyer’s inbox before it is sent. Every follow-up the Buyer follow-up agent drafts stops in the hosting agent’s own Telegram chat, and each run is logged with their yes. The viewing brief goes to the hosting agent only. The brochure, the portfolio and the viewing confirmation are fixed templates and send on their own, and the bot never reaches a buyer, so it needs no yes.</p></li><li class="tile"><span class="tile-top"><span class="tile-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M240,208H224V96a16,16,0,0,0-16-16H144V32a16,16,0,0,0-24.88-13.32L39.12,72A16,16,0,0,0,32,85.34V208H16a8,8,0,0,0,0,16H240a8,8,0,0,0,0-16ZM208,96V208H144V96ZM48,85.34,128,32V208H48ZM112,112v16a8,8,0,0,1-16,0V112a8,8,0,1,1,16,0Zm-32,0v16a8,8,0,0,1-16,0V112a8,8,0,1,1,16,0Zm0,56v16a8,8,0,0,1-16,0V168a8,8,0,0,1,16,0Zm32,0v16a8,8,0,0,1-16,0V168a8,8,0,0,1,16,0Z"></path></svg></span><span class="tile-mark">G4</span></span><h3>Listings, offers and escrow stay by hand</h3><p>No build reaches a listing site, an escrow company or Kestrel Valuation Partners, and none is claimed. The sales team lists, takes offers and runs escrow by hand, and the valuation pack goes out only through WM-03, after the sales director confirms proof of funds.</p></li></ul></section>
+<section id="glossary" aria-labelledby="glossary-h"><header class="shead"><span class="kicker">PLAIN ENGLISH</span><h2 id="glossary-h">Every term on this page, in one line</h2><p>Plain English for the technical words above.</p></header><dl class="gl"><div><dt>RAG</dt><dd>Retrieval-augmented generation: search Westmere’s own documents first, then answer from what was found.</dd></div><div><dt>Purchase contract</dt><dd>A signed purchase agreement for one sale, filed by its residence. The bot reads its terms, never its parties.</dd></div><div><dt>Residence documents</dt><dd>Each residence’s brochure, floor plans and specification, as Westmere issues them.</dd></div><div><dt>Passage</dt><dd>One clause of a contract or one section of a document, as the search returns it and the answer cites it.</dd></div><div><dt>Embedding</dt><dd>A list of numbers that captures what a piece of text means, so similar ideas sit close together.</dd></div><div><dt>Vector search</dt><dd>Finding the stored passages whose embeddings sit closest to the question’s.</dd></div><div><dt>pgvector</dt><dd>A Postgres add-on that stores embeddings and runs vector search, here inside Supabase.</dd></div><div><dt>Hand-off</dt><dd>Passing a question to a person, here the sales director. The bot forwards nothing.</dd></div><div><dt>Agent</dt><dd>An AI that takes a goal, picks its own tools and works step by step until the job is done.</dd></div><div><dt>Trigger</dt><dd>The event that starts a run: a private viewing booked in Cal.com, or the hosting agent marking one held.</dd></div><div><dt>Tool call</dt><dd>One action an agent asks for, like reading a residence in Airtable or a contact in HubSpot.</dd></div><div><dt>Agent runs</dt><dd>The Google Sheets tab that logs each agent run: the time, each tool call and who said yes.</dd></div><div><dt>Loop-back</dt><dd>A cable back to an earlier step: the agent tries again, or redoes a draft the hosting agent sent back.</dd></div><div><dt>Approval gate</dt><dd>A point where the run stops until the hosting agent says yes. The hosting agent approves anything Claude drafts for a buyer’s inbox before it is sent.</dd></div><div><dt>Hosting agent</dt><dd>The sales agent Cal.com picks in turn to host a private viewing at the sales gallery.</dd></div><div><dt>Listing agent</dt><dd>The sales agent who holds a residence, alerted when a buyer asks to view or talk.</dd></div><div><dt>Sales director</dt><dd>The person who confirms proof of funds, keeps the documents and answers what the bot cannot.</dd></div><div><dt>Proof of funds</dt><dd>The only thing that makes a buyer qualified. The sales director checks it by hand; no bot or agent reads it.</dd></div><div><dt>Fair housing</dt><dd>The rule that no buyer is screened, sorted or scored on who they are, which Westmere follows as an Equal Housing Opportunity developer.</dd></div><div><dt><span class="gl-logo" aria-hidden="true"><svg class="logo" width="14" height="14" aria-hidden="true" focusable="false"><use href="#logo-claude"/></svg></span>Claude</dt><dd>Anthropic’s AI model. It answers in the bot, plans and drafts in the two agents, and reads WM-01’s enquiries.</dd></div><div><dt><span class="gl-logo" aria-hidden="true"><svg class="logo" width="14" height="14" aria-hidden="true" focusable="false"><use href="#logo-n8n"/></svg></span>n8n</dt><dd>The workflow tool that runs each build: it listens for triggers and makes the tool calls.</dd></div><div><dt><span class="gl-logo" aria-hidden="true"><svg class="logo" width="14" height="14" aria-hidden="true" focusable="false"><use href="#logo-supabase"/></svg></span>Supabase</dt><dd>A hosted Postgres database, used here as the store of passages from the contracts and residence documents.</dd></div><div><dt><span class="gl-logo" aria-hidden="true"><svg class="logo" width="14" height="14" aria-hidden="true" focusable="false"><use href="#logo-airtable"/></svg></span>Airtable</dt><dd>Where Westmere keeps its residences, its team, portfolio requests and documents.</dd></div><div><dt><span class="gl-logo" aria-hidden="true"><svg class="logo" width="14" height="14" aria-hidden="true" focusable="false"><use href="#logo-hubspot"/></svg></span>HubSpot</dt><dd>Where every buyer is a contact, with the residence they asked about and their next viewing.</dd></div></dl></section>
+</main>
+<footer class="foot"><span>Sample builds, drawn the way I build them. Westmere is fictional, and figures are illustrative.</span><a href="/" target="_top">Built by Justine Acosta</a></footer>
+<div id="node-panel" class="panel" popover role="dialog" aria-labelledby="panel-label"><span class="ptools" data-p="tools" hidden></span><span class="ptype" data-p="type"></span><h3 id="panel-label" data-p="label"></h3><p class="pwhat" data-p="what"></p><dl></dl><button type="button" class="panel-close" data-p="close" aria-label="Close details">×</button></div>
+<template id="tool-claude"><span class="ptool"><svg class="logo" width="14" height="14" aria-hidden="true" focusable="false"><use href="#logo-claude"/></svg>Claude</span></template><template id="tool-n8n"><span class="ptool"><svg class="logo" width="14" height="14" aria-hidden="true" focusable="false"><use href="#logo-n8n"/></svg>n8n</span></template><template id="tool-supabase"><span class="ptool"><svg class="logo" width="14" height="14" aria-hidden="true" focusable="false"><use href="#logo-supabase"/></svg>Supabase</span></template><template id="tool-telegram"><span class="ptool"><svg class="logo" width="14" height="14" aria-hidden="true" focusable="false"><use href="#logo-telegram"/></svg>Telegram</span></template><template id="tool-cal-com"><span class="ptool"><svg class="logo" width="14" height="14" aria-hidden="true" focusable="false"><use href="#logo-cal-com"/></svg>Cal.com</span></template><template id="tool-airtable"><span class="ptool"><svg class="logo" width="14" height="14" aria-hidden="true" focusable="false"><use href="#logo-airtable"/></svg>Airtable</span></template><template id="tool-hubspot"><span class="ptool"><svg class="logo" width="14" height="14" aria-hidden="true" focusable="false"><use href="#logo-hubspot"/></svg>HubSpot</span></template><template id="tool-google-sheets"><span class="ptool"><svg class="logo" width="14" height="14" aria-hidden="true" focusable="false"><use href="#logo-google-sheets"/></svg>Google Sheets</span></template><template id="tool-gmail"><span class="ptool"><svg class="logo" width="14" height="14" aria-hidden="true" focusable="false"><use href="#logo-gmail"/></svg>Gmail</span></template>
+<script type="application/json" id="graph-nodes">{"docs":{"label":"Contracts and specs","type":"START","what":"What the bot may answer from: the signed purchase contracts, filed by sale, and each residence’s documents. Nothing outside them counts, and no proof of funds is ever among them.","settings":[]},"chunk":{"label":"Split by page","type":"STEP","what":"Each document is cut clause by clause, keeping its page and clause number. The parties’ names, addresses and signature pages are left out, so the store holds the terms, never who a buyer is.","settings":[]},"embed":{"label":"Embed","type":"STEP","what":"An embeddings model turns each passage into a list of numbers that captures its meaning, so similar ideas sit close together.","settings":[]},"store":{"label":"Store","type":"STEP","what":"The passages and their numbers are saved in Supabase with pgvector, each tagged with its document, sale, page and clause. This runs again whenever the sales director uploads a document.","settings":[],"tools":["supabase"]},"ask":{"label":"The sales team asks","type":"START","what":"A sales agent or the sales director asks in the team’s chat page, behind a sign-in, and n8n starts the run. Buyers never see it: it answers the sales team, sends no email and reaches no buyer.","settings":[]},"qembed":{"label":"Embed the question","type":"STEP","what":"The question goes through the same embeddings model, so it can be compared with the stored passages.","settings":[]},"search":{"label":"Search","type":"STEP","what":"A vector search in Supabase finds the five passages closest in meaning to the question, from the sale it names and that residence’s documents.","settings":[],"tools":["supabase"]},"answer":{"label":"Claude answers","type":"STEP","what":"Claude gets the question and those five passages, with one rule: answer only from them, with the document, page and clause. It never invents a date, price or figure, gives no legal or tax advice, and answers nothing about who a buyer is.","settings":[],"tools":["claude"]},"sure":{"label":"On the page?","type":"DECISION","what":"Did a passage hold the answer? A date, a deadline, a deposit term or a clause counts as yes. Anything the documents do not say, a legal or tax question, or a question about who a buyer is counts as no.","settings":[]},"reply":{"label":"Reply with the page","type":"END","what":"The answer goes straight back in the team’s chat, with the document, page and clause, so the agent can open the contract and check. It reaches the sales team only, so it needs no one’s yes.","settings":[]},"handoff":{"label":"Says it isn’t there","type":"END","what":"The bot says the answer isn’t in the documents, or that the question is not one it answers, and points to the sales director. It forwards nothing and emails no one.","settings":[]},"key:rag:cable":{"label":"Cable","type":"LEGEND","what":"Work moving from one step to the next.","settings":[]},"key:rag:signal":{"label":"Live signal","type":"LEGEND","what":"A ball is one question going through right now.","settings":[]},"key:rag:index":{"label":"Index","type":"LEGEND","what":"A dashed cable to the store the search reads.","settings":[]},"key:rag:branch":{"label":"Branch","type":"LEGEND","what":"A yes-or-no decision. The cable labels say which way.","settings":[]},"key:rag:pin":{"label":"Pin","type":"LEGEND","what":"A source, channel or tool this step can use. Click one to read it.","settings":[]},"pin:docs:contracts":{"label":"Purchase contracts","type":"SOURCE","what":"Each signed purchase agreement as a PDF, filed by the sale it belongs to, like The Orchard Residences, Residence 2. The sales director uploads it once escrow opens. It holds the terms: the deposit, the inspection period, the dates and the clauses.","settings":[]},"pin:docs:residence":{"label":"Residence documents","type":"SOURCE","what":"For each of the five residences: the brochure, the floor plans and the specification, as Westmere issues them. The same public facts the site gives, in full.","settings":[]},"pin:ask:chat":{"label":"Team chat","type":"CHANNEL","what":"n8n’s hosted chat, behind a sign-in, for the sales team only. A question names the sale, like the Orchard sale, never a buyer. It remembers nothing after the window closes.","settings":[]},"pin:handoff:director":{"label":"The sales director","type":"HANDOFF","what":"Anything the documents do not settle goes to the sales director, who holds every contract and decides what to tell a buyer.","settings":[]},"pin:handoff:advice":{"label":"Legal or tax","type":"HANDOFF","what":"The bot gives no legal or tax advice. It says what the contract’s words are, with the page, and that what they mean for a buyer is a question for Westmere’s counsel or the buyer’s own advisers.","settings":[]},"pin:handoff:who":{"label":"Who a buyer is","type":"HANDOFF","what":"Never answered. The store has no names, and the bot says it does not answer questions about who a buyer is: their family, origin, faith, age, health, means or anything else.","settings":[]},"trigger":{"label":"Booked or held","type":"START","what":"Two things start a run: a private viewing booked in Cal.com, for the Viewing prep agent, or the hosting agent marking a viewing held, for the Buyer follow-up agent.","settings":[]},"plan":{"label":"Claude plans","type":"STEP","what":"Claude reads the goal, a viewing to prepare or a viewing to follow up, then picks the single next step and the tool it needs.","settings":[],"tools":["claude"]},"tool":{"label":"Use a tool","type":"STEP","what":"n8n makes one tool call for Claude, and every call reads: the booking, the residence’s public facts, the buyer’s enquiry, the residence documents, Team or the Agent runs log. Nothing is changed or booked. No call reads a budget, a proof of funds or anything about who a buyer is.","settings":[]},"check":{"label":"Check the result","type":"DECISION","what":"Claude looks at what came back. If the job is not done yet, it goes back to plan the next step.","settings":[]},"needs":{"label":"Buyer’s inbox?","type":"DECISION","what":"Is a draft on its way to a buyer’s inbox? Then it waits for the hosting agent. A viewing brief, a viewing the buyer did not come to, or one already followed up goes to the hosting agent only, with no gate.","settings":[]},"gate":{"label":"The host’s yes","type":"APPROVAL GATE","what":"The draft waits in the hosting agent’s own Telegram chat, with a button that opens an n8n form: Approve, or Change it with a note. Opening it records nothing; only the form’s submit does. n8n keeps the run while it waits.","settings":[],"tools":["telegram"]},"act":{"label":"Send and log","type":"END","what":"An approved follow-up goes from private@westmere.la in the hosting agent’s name, a brief or a note goes to the hosting agent’s own chat, and every run is logged in the Agent runs tab.","settings":[]},"key:agent:cable":{"label":"Cable","type":"LEGEND","what":"Work moving from one step to the next.","settings":[]},"key:agent:signal":{"label":"Live signal","type":"LEGEND","what":"A ball is one viewing going through right now.","settings":[]},"key:agent:loop":{"label":"Loop-back","type":"LEGEND","what":"A dashed cable back to an earlier step.","settings":[]},"key:agent:branch":{"label":"Branch","type":"LEGEND","what":"A yes-or-no decision. The cable labels say which way.","settings":[]},"key:agent:gate":{"label":"Approval gate","type":"LEGEND","what":"The run stops here until the hosting agent says yes.","settings":[]},"key:agent:pin":{"label":"Pin","type":"LEGEND","what":"A source, channel or tool this step can use. Click one to read it.","settings":[]},"pin:trigger:booked":{"label":"A viewing booked","type":"TRIGGER","what":"A second webhook on the Private viewing event, beside the one WM-02 uses, posts each new booking to n8n: the residence, the day and time, and the hosting agent Cal.com picked in turn.","settings":[],"tools":["cal-com"]},"pin:trigger:held":{"label":"A viewing held","type":"TRIGGER","what":"Under the viewing brief in Telegram, a Viewing held button opens an n8n form: Held or Did not come, and an optional line on what the buyer asked about the residence. Opening it records nothing; only the form’s submit starts a run.","settings":[]},"pin:tool:booking":{"label":"The booking","type":"TOOL","what":"The viewing’s residence, day and time, and the hosting agent’s email. Read only.","settings":[],"tools":["cal-com"]},"pin:tool:residences":{"label":"Residences","type":"TOOL","what":"The residence’s public facts as the site gives them, like The Orchard Residences: $12,750,000, 4 bedrooms and a study, 3,850 sq ft, completion 2027 Q2, 2 of 3 remaining. Read only.","settings":[],"tools":["airtable"]},"pin:tool:enquiry":{"label":"The enquiry","type":"TOOL","what":"From the buyer’s HubSpot contact, three properties only: Residence of interest, Enquiry source and Enquiry message, their words as written. Claude takes from the message only what it asks about the residence. Read only.","settings":[],"tools":["hubspot"]},"pin:tool:docs":{"label":"Residence documents","type":"TOOL","what":"The same store the Document Q&A bot searches, filtered to the residence’s brochure, floor plans and specification. A metadata filter keeps every purchase contract out.","settings":[],"tools":["supabase"]},"pin:tool:team":{"label":"Team","type":"TOOL","what":"The hosting agent’s Telegram chat, found by their email. A host missing from Team gets no brief, and the sales team’s group hears instead.","settings":[],"tools":["airtable"]},"pin:tool:sheets":{"label":"Agent runs","type":"TOOL","what":"The log of earlier runs, read so a viewing never gets two follow-ups. An empty log means none sent yet.","settings":[],"tools":["google-sheets"]},"pin:tool:byhand":{"label":"By hand only","type":"TOOL","what":"Not a tool call: no build reaches a listing site, an escrow company or Kestrel Valuation Partners, and none reads or decides proof of funds. The sales team and the sales director do those by hand.","settings":[]},"pin:act:gmail":{"label":"Gmail","type":"OUTPUT","what":"Sends the approved follow-up from private@westmere.la, word for word as the hosting agent approved it, with +1 310 555 0148, DRE #02114471 and Equal Housing Opportunity. A reply reaches the sales team and a person.","settings":[],"tools":["gmail"]},"pin:act:telegram":{"label":"Telegram","type":"OUTPUT","what":"Posts the viewing brief, or a note that nothing was drafted, in the hosting agent’s own chat. Never to a buyer.","settings":[],"tools":["telegram"]},"pin:act:sheets":{"label":"Google Sheets","type":"OUTPUT","what":"Logs the run in the Agent runs tab: the time, the viewing, each tool call by name, and who said yes. Never a buyer’s details beyond the viewing.","settings":[],"tools":["google-sheets"]},"pin:act:host":{"label":"The host, by hand","type":"OUTPUT","what":"The hosting agent answers any reply, calls a buyer if they choose, and passes any offer to the sales team. Proof of funds stays the sales director’s call. No build does any of it.","settings":[]}}</script>
+<script type="application/json" id="agent-builds">{"docqa":{"diagram":"rag","name":"Document Q&A bot","caption":"Westmere’s team chat → search the purchase contracts and residence documents → Claude answers → reply with the page, or say it isn’t there","routes":[0,1,2],"nodes":["docs","chunk","embed","store","ask","qembed","search","answer","sure","reply","handoff"],"edges":[0,1,2,3,4,5,6,7,8,9],"pins":["pin:docs:contracts","pin:docs:residence","pin:ask:chat","pin:handoff:director","pin:handoff:advice","pin:handoff:who"]},"prep":{"diagram":"agent","name":"Viewing prep agent","caption":"A private viewing booked in Cal.com → Claude reads the booking, the residence and the enquiry → a brief for the hosting agent only → posted and logged","routes":[3],"nodes":["trigger","plan","tool","check","needs","act"],"edges":[0,1,2,3,6,8],"pins":["pin:trigger:booked","pin:tool:booking","pin:tool:residences","pin:tool:enquiry","pin:tool:docs","pin:tool:team","pin:tool:byhand","pin:act:telegram","pin:act:sheets"]},"followup":{"diagram":"agent","name":"Buyer follow-up agent","caption":"Westmere viewing marked held → Claude reads the residence, the enquiry and the log → a follow-up in the host’s name → the hosting agent’s yes → send and log","routes":[0,1,2,3],"nodes":["trigger","plan","tool","check","needs","gate","act"],"edges":[0,1,2,3,4,5,6,7,8],"pins":["pin:trigger:held","pin:tool:residences","pin:tool:enquiry","pin:tool:docs","pin:tool:sheets","pin:tool:byhand","pin:act:gmail","pin:act:telegram","pin:act:sheets","pin:act:host"]}}</script>
+<script>// The End-to-End Workflow page's behaviour (public/end-to-end.html), inlined
+// by lib/endToEnd/render.ts. Adapted from lib/buildPlan/client.js, without its
+// test matrix. Plain browser JS, no libraries (spec §4.3).
+;(() => {
+  const root = document.documentElement
+
+  // Inside the portfolio's dialog, wear the site's theme, access settings and performance setting.
+  // The site treats a missing data-theme as dark. Its text size is left out:
+  // the site already zooms the whole window, iframe included.
+  const MIRROR = ['data-a11y-motion', 'data-a11y-contrast', 'data-a11y-links', 'data-perf']
+  let host = null
+  try {
+    if (window.parent !== window) host = window.parent.document.documentElement
+  } catch {
+    host = null
+  }
+  if (host) {
+    const mirror = () => {
+      root.dataset.theme = host.dataset.theme === 'light' ? 'light' : 'dark'
+      for (const name of MIRROR) {
+        const v = host.getAttribute(name)
+        if (v === null) root.removeAttribute(name)
+        else root.setAttribute(name, v)
+      }
+    }
+    mirror()
+    new MutationObserver(mirror).observe(host, { attributes: true, attributeFilter: ['data-theme', ...MIRROR] })
+    root.dataset.embedded = ''
+  }
+  const reduced = () => root.dataset.a11yMotion === 'true' || matchMedia('(prefers-reduced-motion: reduce)').matches
+  const panel = document.getElementById('node-panel')
+
+  if (host) {
+    // Escape closes the site's window, as it does everywhere else on the site,
+    // unless it is closing the settings panel.
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape' || e.defaultPrevented || panel.matches(':popover-open')) return
+      window.frameElement?.closest('dialog')?.close()
+    })
+    // Section links scroll in place and add no history, so Back still closes the window.
+    document.addEventListener('click', (e) => {
+      const a = e.target.closest('a[href^="#"]')
+      if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+      const target = document.getElementById(a.getAttribute('href').slice(1))
+      if (!target) return
+      e.preventDefault()
+      const top = target.getBoundingClientRect().top + scrollY - 64
+      window.scrollTo({ top, behavior: reduced() ? 'auto' : 'smooth' })
+      history.replaceState(null, '', a.getAttribute('href'))
+    })
+  }
+
+  // The lane chips mark the lane on screen.
+  const links = [...document.querySelectorAll('.toc a')]
+  const linkFor = new Map(links.map((a) => [a.getAttribute('href').slice(1), a]))
+  const spy = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        if (!e.isIntersecting) continue
+        const a = linkFor.get(e.target.id)
+        if (!a) continue
+        for (const l of links) l.removeAttribute('aria-current')
+        a.setAttribute('aria-current', 'true')
+        const bar = a.parentElement
+        bar.scrollLeft = a.offsetLeft - bar.clientWidth / 2 + a.clientWidth / 2
+      }
+    },
+    { rootMargin: '-15% 0px -70% 0px' },
+  )
+  for (const id of linkFor.keys()) {
+    const s = document.getElementById(id)
+    if (s) spy.observe(s)
+  }
+
+  // A step (or a key item, or a job stage) explains itself in a small panel,
+  // like n8n's side panel: what happens there first, then its settings. The
+  // panel stays beside its step as the page or a diagram scrolls, and closes
+  // once the step leaves the screen. Clicking the open step closes it.
+  const nodes = JSON.parse(document.getElementById('graph-nodes').textContent)
+  const closeBtn = panel.querySelector('[data-p=close]')
+  let shown = null
+  let side = 'below'
+  let pressedShown = false
+  const view = () => [document.documentElement.clientWidth, document.documentElement.clientHeight]
+  const close = (focusBack) => {
+    if (!shown) return
+    const back = shown
+    shown = null
+    back.setAttribute('aria-expanded', 'false')
+    if (panel.matches(':popover-open')) panel.hidePopover()
+    if (focusBack) back.focus({ preventScroll: true })
+  }
+  const place = () => {
+    if (!shown) return
+    const r = shown.getBoundingClientRect()
+    const [vw, vh] = view()
+    if (r.bottom < 0 || r.top > vh || r.right < 0 || r.left > vw) {
+      close(false)
+      return
+    }
+    const w = panel.offsetWidth
+    const h = panel.offsetHeight
+    panel.style.left = `${Math.max(12, Math.min(r.left + r.width / 2 - w / 2, vw - w - 12))}px`
+    panel.style.top = `${side === 'below' ? r.bottom + 8 : Math.max(12, r.top - h - 10)}px`
+  }
+  const open = (btn) => {
+    const n = nodes[btn.dataset.node]
+    if (!n) return
+    close(false)
+    panel.querySelector('[data-p=type]').textContent = n.type
+    panel.querySelector('[data-p=label]').textContent = n.label
+    panel.querySelector('[data-p=what]').textContent = n.what
+    // The step's tools, copied from the page's templates (none for key items and pins).
+    const tools = panel.querySelector('[data-p=tools]')
+    if (tools) {
+      tools.replaceChildren(...(n.tools || []).map((t) => document.getElementById(`tool-${t}`).content.cloneNode(true)))
+      tools.hidden = !n.tools?.length
+    }
+    panel.querySelector('dl').hidden = n.settings.length === 0
+    panel.querySelector('dl').replaceChildren(
+      ...n.settings.flatMap(([k, v]) => {
+        const dt = document.createElement('dt')
+        dt.textContent = k
+        const dd = document.createElement('dd')
+        dd.textContent = v
+        return [dt, dd]
+      }),
+    )
+    shown = btn
+    btn.setAttribute('aria-expanded', 'true')
+    // The source puts the panel right after its step in the Tab order.
+    panel.showPopover({ source: btn })
+    side = btn.getBoundingClientRect().bottom + 8 + panel.offsetHeight > view()[1] - 12 ? 'above' : 'below'
+    place()
+    closeBtn.focus()
+  }
+  panel.addEventListener('toggle', (e) => {
+    if (e.newState === 'closed') close(true)
+  })
+  closeBtn.addEventListener('click', () => close(true))
+  document.addEventListener(
+    'pointerdown',
+    (e) => {
+      pressedShown = !!shown && e.target.closest('[data-node]') === shown
+    },
+    true,
+  )
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-node]')
+    const pressed = pressedShown
+    pressedShown = false
+    if (!btn) return
+    if (pressed || btn === shown) close(true)
+    else open(btn)
+  })
+  let frame = 0
+  const follow = () => {
+    if (!shown || frame) return
+    frame = requestAnimationFrame(() => {
+      frame = 0
+      place()
+    })
+  }
+  document.addEventListener('scroll', follow, { capture: true, passive: true })
+  addEventListener('resize', follow)
+
+  // Balls stand for jobs moving through each workflow while it is on screen.
+  // They leave one at a time, a random 0.7–2 s apart (at most three on a
+  // graph), and each takes one random route from start to end. A step or
+  // connector lights up as a ball passes. Reduced motion turns it all off.
+  const SPEED = 220 // px a second
+  const MAX = 5
+  const runs = [...document.querySelectorAll('.canvas[data-run]')].map((fig) => ({
+    fig,
+    routes: JSON.parse(fig.dataset.routes || '[]'),
+    paths: [...fig.querySelectorAll('.run-dot')].map((d) => d.style.offsetPath),
+    stage: fig.querySelector('.stage'),
+    nodes: new Map([...fig.querySelectorAll('.node[data-node]')].map((b) => [b.dataset.node, b])),
+    edges: [...fig.querySelectorAll('.edge')],
+    balls: [],
+    timer: 0,
+    on: false,
+  }))
+  const launch = (r) => {
+    if (r.balls.length >= MAX || !r.routes.length) return
+    // A page may limit the balls to some routes (data-only="0,2"): the agents page's Show its route.
+    const only = r.fig.dataset.only ? r.fig.dataset.only.split(',').map(Number) : null
+    const pool = only ?? r.routes.map((_, k) => k)
+    const i = pool[Math.floor(Math.random() * pool.length)]
+    const el = document.createElement('span')
+    el.className = 'run-ball'
+    el.setAttribute('aria-hidden', 'true')
+    el.dataset.route = String(i)
+    el.style.offsetPath = r.paths[i]
+    r.stage.insertBefore(el, r.stage.querySelector('.node'))
+    const duration = Math.max(400, (r.routes[i].len / SPEED) * 1000)
+    const anim = el.animate(
+      [
+        { offsetDistance: '0%', opacity: 0 },
+        { offsetDistance: '2%', opacity: 1, offset: 0.02 },
+        { offsetDistance: '98%', opacity: 1, offset: 0.98 },
+        { offsetDistance: '100%', opacity: 0 },
+      ],
+      { duration, easing: 'linear' },
+    )
+    const ball = { el, anim, route: r.routes[i] }
+    r.balls.push(ball)
+    anim.finished.then(
+      () => {
+        el.remove()
+        r.balls = r.balls.filter((b) => b !== ball)
+      },
+      () => {},
+    )
+  }
+  const schedule = (r) => {
+    clearTimeout(r.timer)
+    if (!r.on) return
+    r.timer = setTimeout(() => {
+      launch(r)
+      schedule(r)
+    }, 700 + Math.random() * 1300)
+  }
+  const play = (r) => {
+    if (r.on) return
+    r.on = true
+    r.fig.classList.add('playing')
+    for (const b of r.balls) b.anim.play()
+    if (!r.balls.length) launch(r)
+    schedule(r)
+  }
+  const stop = (r, drop) => {
+    r.on = false
+    clearTimeout(r.timer)
+    r.fig.classList.remove('playing')
+    for (const b of r.balls) {
+      if (drop) b.anim.cancel()
+      else b.anim.pause()
+    }
+    if (drop) {
+      for (const b of r.balls) b.el.remove()
+      r.balls = []
+    }
+    for (const el of r.fig.querySelectorAll('.lit')) el.classList.remove('lit')
+  }
+  const byFig = new Map(runs.map((r) => [r.fig, r]))
+  const run = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      const r = byFig.get(e.target)
+      if (e.isIntersecting && !reduced()) play(r)
+      else stop(r, reduced())
+    }
+  })
+  for (const r of runs) run.observe(r.fig)
+  const light = () => {
+    for (const r of runs) {
+      if (!r.on) continue
+      if (reduced()) {
+        stop(r, true)
+        continue
+      }
+      const lit = new Set()
+      const litEdges = new Set()
+      for (const b of r.balls) {
+        const t = ((Number(b.anim.currentTime) || 0) / 1000) * SPEED
+        for (const [key, at] of b.route.stops) if (Math.abs(t - at) < 30) lit.add(key)
+        for (const [i, from, to] of b.route.spans) if (t >= from && t <= to) litEdges.add(i)
+      }
+      for (const [key, el] of r.nodes) el.classList.toggle('lit', lit.has(key))
+      r.edges.forEach((el, i) => el.classList.toggle('lit', litEdges.has(i)))
+    }
+    requestAnimationFrame(light)
+  }
+  requestAnimationFrame(light)
+
+  // Wide diagrams, tables and code blocks scroll sideways with no scrollbar.
+  // Fading edges show there is more; diagrams also pan by dragging with the
+  // mouse (touch already swipes), and the arrow buttons step through them.
+  const scrollers = [...document.querySelectorAll('.canvas-scroll, .table-wrap, pre.code')]
+  const edges = (s) => {
+    const max = s.scrollWidth - s.clientWidth
+    s.toggleAttribute('data-more-left', s.scrollLeft > 2)
+    s.toggleAttribute('data-more-right', s.scrollLeft < max - 2)
+    const fig = s.closest('.canvas')
+    if (!fig) return
+    fig.toggleAttribute('data-overflow', max > 1)
+    const [back, next] = fig.querySelectorAll('.pan-btn')
+    back.disabled = s.scrollLeft <= 2
+    next.disabled = s.scrollLeft >= max - 2
+  }
+  const fit = () => {
+    for (const s of scrollers) edges(s)
+  }
+  for (const s of scrollers) s.addEventListener('scroll', () => edges(s), { passive: true })
+  fit()
+  addEventListener('resize', fit)
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('.pan-btn')
+    if (!b) return
+    const s = b.closest('.canvas').querySelector('.canvas-scroll')
+    s.scrollBy({ left: Number(b.dataset.pan) * s.clientWidth * 0.7, behavior: reduced() ? 'auto' : 'smooth' })
+  })
+  let drag = null
+  let dragged = false
+  document.addEventListener('pointerdown', (e) => {
+    dragged = false
+    const s = e.target.closest('.canvas-scroll')
+    if (!s || e.pointerType !== 'mouse' || e.button !== 0 || s.scrollWidth <= s.clientWidth) return
+    drag = { s, x: e.clientX, left: s.scrollLeft, id: e.pointerId }
+  })
+  document.addEventListener('pointermove', (e) => {
+    if (!drag || e.pointerId !== drag.id) return
+    const dx = e.clientX - drag.x
+    if (!dragged && Math.abs(dx) < 5) return
+    if (!dragged) {
+      dragged = true
+      drag.s.classList.add('dragging')
+      drag.s.setPointerCapture(e.pointerId)
+    }
+    drag.s.scrollLeft = drag.left - dx
+  })
+  const release = () => {
+    if (drag) drag.s.classList.remove('dragging')
+    drag = null
+  }
+  document.addEventListener('pointerup', release)
+  document.addEventListener('pointercancel', release)
+  // The click that ends a drag is not a click on a step.
+  document.addEventListener(
+    'click',
+    (e) => {
+      if (!dragged) return
+      dragged = false
+      e.preventDefault()
+      e.stopPropagation()
+    },
+    true,
+  )
+})()
+</script>
+<script>// The agents page's Show its route (spec 2026-10-01-agents-page §4.3),
+// inlined by lib/agents/render.ts after End-to-End's client. One build at a
+// time: its diagram lights the build's steps, cables and pins, dims the rest,
+// and sends balls down its routes only (data-only, read by the client). Plain
+// browser JS, no libraries.
+;(() => {
+  const builds = JSON.parse(document.getElementById('agent-builds').textContent)
+  const root = document.documentElement
+  const reduced = () => root.dataset.a11yMotion === 'true' || matchMedia('(prefers-reduced-motion: reduce)').matches
+  const panel = document.getElementById('node-panel')
+  let current = null
+
+  const clear = (focusBack) => {
+    if (!current) return
+    const { fig, btn } = current
+    current = null
+    fig.removeAttribute('data-focus')
+    fig.removeAttribute('data-only')
+    for (const el of fig.querySelectorAll('.on-route')) el.classList.remove('on-route')
+    const bar = fig.querySelector('.focus-bar')
+    bar.classList.remove('on')
+    bar.querySelector('.focus-text').textContent = ''
+    bar.querySelector('.focus-clear').hidden = true
+    btn.setAttribute('aria-pressed', 'false')
+    if (focusBack) btn.focus({ preventScroll: true })
+  }
+
+  const show = (btn) => {
+    const b = builds[btn.dataset.build]
+    if (!b) return
+    clear(false)
+    const fig = document.querySelector(`figure[data-diagram="${b.diagram}"]`)
+    fig.setAttribute('data-focus', btn.dataset.build)
+    fig.setAttribute('data-only', b.routes.join(','))
+    const mark = (sel) => {
+      for (const el of fig.querySelectorAll(sel)) el.classList.add('on-route')
+    }
+    for (const n of b.nodes) mark(`.node[data-node="${CSS.escape(n)}"]`)
+    for (const e of b.edges) mark(`[data-edge="${e}"]`)
+    for (const p of b.pins) mark(`.pin[data-node="${CSS.escape(p)}"]`)
+    // Balls already on other routes finish now, so only this build's routes run.
+    for (const ball of fig.querySelectorAll('.run-ball'))
+      if (!b.routes.includes(Number(ball.dataset.route))) for (const a of ball.getAnimations()) a.finish()
+    const bar = fig.querySelector('.focus-bar')
+    bar.classList.add('on')
+    bar.querySelector('.focus-text').textContent = `${b.name}: ${b.caption}`
+    const all = bar.querySelector('.focus-clear')
+    all.hidden = false
+    btn.setAttribute('aria-pressed', 'true')
+    current = { fig, btn }
+    fig.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'center' })
+    all.focus({ preventScroll: true })
+  }
+
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-build]')
+    if (btn) {
+      if (current && current.btn === btn) clear(true)
+      else show(btn)
+      return
+    }
+    if (e.target.closest('.focus-clear')) clear(true)
+  })
+
+  // Escape closes the innermost thing first: the details panel (the page
+  // client's), then a route, then (inside the site) the site's window. This
+  // runs before the client's listener, which leaves a handled Escape alone.
+  document.addEventListener(
+    'keydown',
+    (e) => {
+      if (e.key !== 'Escape' || !current || panel.matches(':popover-open')) return
+      e.preventDefault()
+      clear(true)
+    },
+    true,
+  )
+})()
+</script>
+<script>const CONTOUR = {"frag":"\n  uniform float uTime;\n  uniform vec2  uMouse;\n  uniform float uMousePace;\n  uniform float uAspect;\n  uniform vec3  uBg;    // Kraft --bg\n  uniform vec3  uLine;  // Kraft --amb\n  varying vec2 vUv;\n  \n  vec3 mod289(vec3 x){return x-floor(x*(1./289.))*289.;}\n  vec4 mod289(vec4 x){return x-floor(x*(1./289.))*289.;}\n  vec4 permute(vec4 x){return mod289(((x*34.)+1.)*x);}\n  vec4 taylorInvSqrt(vec4 r){return 1.79284291400159-.85373472095314*r;}\n  float snoise(vec3 v){\n    const vec2 C=vec2(1./6.,1./3.);const vec4 D=vec4(0.,.5,1.,2.);\n    vec3 i=floor(v+dot(v,C.yyy));vec3 x0=v-i+dot(i,C.xxx);\n    vec3 g=step(x0.yzx,x0.xyz);vec3 l=1.-g;\n    vec3 i1=min(g.xyz,l.zxy);vec3 i2=max(g.xyz,l.zxy);\n    vec3 x1=x0-i1+C.xxx;vec3 x2=x0-i2+C.yyy;vec3 x3=x0-D.yyy;\n    i=mod289(i);\n    vec4 p=permute(permute(permute(i.z+vec4(0.,i1.z,i2.z,1.))+i.y+vec4(0.,i1.y,i2.y,1.))+i.x+vec4(0.,i1.x,i2.x,1.));\n    float n_=.142857142857;vec3 ns=n_*D.wyz-D.xzx;\n    vec4 j=p-49.*floor(p*ns.z*ns.z);vec4 x_=floor(j*ns.z);vec4 y_=floor(j-7.*x_);\n    vec4 x=x_*ns.x+ns.yyyy;vec4 y=y_*ns.x+ns.yyyy;vec4 h=1.-abs(x)-abs(y);\n    vec4 b0=vec4(x.xy,y.xy);vec4 b1=vec4(x.zw,y.zw);\n    vec4 s0=floor(b0)*2.+1.;vec4 s1=floor(b1)*2.+1.;\n    vec4 sh=-step(h,vec4(0.));\n    vec4 a0=b0.xzyw+s0.xzyw*sh.xxyy;vec4 a1=b1.xzyw+s1.xzyw*sh.zzww;\n    vec3 p0=vec3(a0.xy,h.x);vec3 p1=vec3(a0.zw,h.y);vec3 p2=vec3(a1.xy,h.z);vec3 p3=vec3(a1.zw,h.w);\n    vec4 norm=taylorInvSqrt(vec4(dot(p0,p0),dot(p1,p1),dot(p2,p2),dot(p3,p3)));\n    p0*=norm.x;p1*=norm.y;p2*=norm.z;p3*=norm.w;\n    vec4 m=max(.6-vec4(dot(x0,x0),dot(x1,x1),dot(x2,x2),dot(x3,x3)),0.);m=m*m;\n    return 42.*dot(m*m,vec4(dot(p0,x0),dot(p1,x1),dot(p2,x2),dot(p3,x3)));\n  }\n\n\n  const float SCALE             = 0.72;\n  const float NOISE_DETAIL      = 3.0;\n  const float DISTORT_SCALE     = 0.55;\n  const float DISTORT_INTENSITY = 0.50;\n  const float HAIRLINE_PIXELS   = 1.5;\n  const float CURSOR_SCALE      = 1.5;\n  const float CURSOR_INTENSITY  = 0.05;\n  const float LINE_ALPHA        = 0.55; // tuned in Task 11 against both themes\n  const vec2  ANISOTROPY        = vec2(1.0, 1.0);\n\n  void main(){\n    vec2 uv = vUv;\n    uv.x *= uAspect;\n    vec2 mouse = uMouse * 0.5 + 0.5;\n    mouse.x *= uAspect;\n    float cursor = 1.0 - distance(mouse, uv) * CURSOR_SCALE;\n    cursor *= uMousePace;\n    cursor = clamp(cursor, 0.0, 1.0);\n\n    float noiseDistort = 0.5 + snoise(vec3(uv * DISTORT_SCALE, uTime * 0.1)) * 0.5;\n    vec2 warpedUv = (uv + cursor * CURSOR_INTENSITY + noiseDistort * DISTORT_INTENSITY) * SCALE * ANISOTROPY;\n    float n = snoise(vec3(warpedUv, uTime));\n    float bands = (n * 0.5 + 0.5) * NOISE_DETAIL;\n\n    float contour = fract(bands);\n    float dist    = abs(contour - 0.5);\n    float w       = fwidth(bands) * HAIRLINE_PIXELS * 0.5;\n    float line    = 1.0 - smoothstep(0.0, w, dist);\n\n    vec3 lineCol = uLine + cursor * 0.04;\n    gl_FragColor = vec4(mix(uBg, lineCol, line * LINE_ALPHA), 1.0);\n  }\n","frameInterval":33.333333333333336,"drift":0.09,"follow":4,"pace":8,"theme":7}
+// The portfolio's contour lines behind a standalone page (spec 2026-10-01-light-backdrop §4.2), drawn with
+// plain WebGL 1 instead of three.js. CONTOUR (the site's shader and timing, lib/contour.ts) is declared just
+// above by the renderer. Same limits as the site: after load, at idle, fine pointer, motion allowed, not the
+// low performance setting. If anything is missing, the flat --bg carries the page. The browser pauses
+// requestAnimationFrame in a hidden tab, so the contour rests there too.
+;(() => {
+  const root = document.documentElement
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)')
+  const coarse = matchMedia('(pointer: coarse) and (hover: none)')
+  const perf = () => {
+    if (root.dataset.perf) return root.dataset.perf
+    try {
+      return sessionStorage.getItem('kraft-perf')
+    } catch {
+      return null
+    }
+  }
+  const allowed = () => !reduce.matches && root.dataset.a11yMotion !== 'true' && !coarse.matches && perf() !== 'low'
+  /** A token (`#rrggbb`, or Kraft's bare `r,g,b` for --amb) as 0–1 channels. */
+  const color = (name) => {
+    const v = getComputedStyle(root).getPropertyValue(name).trim()
+    const hex = /^#([0-9a-f]{6})$/i.exec(v)
+    if (hex) return [0, 2, 4].map((i) => parseInt(hex[1].slice(i, i + 2), 16) / 255)
+    const t = v.split(',').map((n) => Number(n.trim()))
+    return t.length === 3 && t.every((n) => Number.isFinite(n) && n >= 0) ? t.map((n) => Math.min(255, n) / 255) : null
+  }
+
+  let stop = null
+  let ready = false
+  const start = () => {
+    if (stop || !ready || !allowed()) return
+    const bg = color('--bg')
+    const line = color('--amb')
+    if (!bg || !line) return
+    const canvas = document.createElement('canvas')
+    canvas.setAttribute('data-contour', '')
+    canvas.setAttribute('aria-hidden', 'true')
+    const gl = canvas.getContext('webgl', { antialias: false, alpha: false, depth: false })
+    if (!gl || !gl.getExtension('OES_standard_derivatives')) return
+    const compile = (type, src) => {
+      const s = gl.createShader(type)
+      gl.shaderSource(s, src)
+      gl.compileShader(s)
+      return gl.getShaderParameter(s, gl.COMPILE_STATUS) ? s : null
+    }
+    const vs = compile(gl.VERTEX_SHADER, 'attribute vec2 p;varying vec2 vUv;void main(){vUv=p*.5+.5;gl_Position=vec4(p,0.,1.);}')
+    const fs = compile(gl.FRAGMENT_SHADER, `#extension GL_OES_standard_derivatives : enable\nprecision highp float;\n${CONTOUR.frag}`)
+    if (!vs || !fs) return
+    const prog = gl.createProgram()
+    gl.attachShader(prog, vs)
+    gl.attachShader(prog, fs)
+    gl.linkProgram(prog)
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return
+    gl.useProgram(prog)
+    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer())
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), gl.STATIC_DRAW)
+    const at = gl.getAttribLocation(prog, 'p')
+    gl.enableVertexAttribArray(at)
+    gl.vertexAttribPointer(at, 2, gl.FLOAT, false, 0, 0)
+    const u = Object.fromEntries(['uTime', 'uMouse', 'uMousePace', 'uAspect', 'uBg', 'uLine'].map((n) => [n, gl.getUniformLocation(prog, n)]))
+
+    // 1x pixel density, like the site.
+    const size = () => {
+      canvas.width = innerWidth
+      canvas.height = innerHeight
+      gl.viewport(0, 0, canvas.width, canvas.height)
+      gl.uniform1f(u.uAspect, innerWidth / innerHeight)
+    }
+    size()
+    // The theme (or high contrast) changes the tokens; the colours ease to them on the contour's own clock.
+    let target = { bg, line }
+    const themeWatch = new MutationObserver(() => {
+      const nb = color('--bg')
+      const nl = color('--amb')
+      if (nb && nl) target = { bg: nb, line: nl }
+    })
+    themeWatch.observe(root, { attributes: true, attributeFilter: ['data-theme', 'data-a11y-contrast'] })
+    const tgt = { x: 0, y: 0 }
+    const cur = { x: 0, y: 0 }
+    const onMove = (e) => {
+      tgt.x = (e.clientX / innerWidth) * 2 - 1
+      tgt.y = -(e.clientY / innerHeight) * 2 + 1
+    }
+    addEventListener('mousemove', onMove)
+    addEventListener('resize', size)
+
+    let raf = 0
+    let time = 0
+    let last = performance.now() - CONTOUR.frameInterval
+    let lastX = 0
+    let lastY = 0
+    let pace = 0
+    const ease = (from, to, k) => from.forEach((v, i) => (from[i] = v + (to[i] - v) * k))
+    const frame = (now) => {
+      raf = requestAnimationFrame(frame)
+      if (now - last < CONTOUR.frameInterval - 1) return
+      const dt = Math.min(0.05, (now - last) / 1000)
+      last = now
+      time += CONTOUR.drift * dt
+      const follow = 1 - Math.exp(-CONTOUR.follow * dt)
+      cur.x += (tgt.x - cur.x) * follow
+      cur.y += (tgt.y - cur.y) * follow
+      const speed = Math.min(1, Math.hypot((cur.x - lastX) / Math.max(dt, 0.001), (cur.y - lastY) / Math.max(dt, 0.001)) * 0.4)
+      pace += (speed - pace) * (1 - Math.exp(-CONTOUR.pace * dt))
+      lastX = cur.x
+      lastY = cur.y
+      const k = 1 - Math.exp(-CONTOUR.theme * dt)
+      ease(bg, target.bg, k)
+      ease(line, target.line, k)
+      gl.uniform1f(u.uTime, time)
+      gl.uniform2f(u.uMouse, cur.x, cur.y)
+      gl.uniform1f(u.uMousePace, pace)
+      gl.uniform3fv(u.uBg, bg)
+      gl.uniform3fv(u.uLine, line)
+      gl.drawArrays(gl.TRIANGLES, 0, 6)
+    }
+    const halt = () => {
+      cancelAnimationFrame(raf)
+      themeWatch.disconnect()
+      removeEventListener('mousemove', onMove)
+      removeEventListener('resize', size)
+      canvas.removeEventListener('webglcontextlost', lost)
+      canvas.remove()
+      const lose = gl.getExtension('WEBGL_lose_context')
+      if (lose) lose.loseContext()
+      stop = null
+    }
+    const lost = (e) => {
+      e.preventDefault()
+      halt()
+    }
+    canvas.addEventListener('webglcontextlost', lost)
+    stop = halt
+    document.body.prepend(canvas)
+    raf = requestAnimationFrame(frame)
+  }
+
+  const recheck = () => {
+    if (stop && !allowed()) stop()
+    else start()
+  }
+  const begin = () => {
+    const go = () => {
+      ready = true
+      start()
+    }
+    if ('requestIdleCallback' in window) requestIdleCallback(go, { timeout: 3000 })
+    else setTimeout(go, 1500)
+  }
+  if (document.readyState === 'complete') begin()
+  else addEventListener('load', begin, { once: true })
+  reduce.addEventListener('change', recheck)
+  coarse.addEventListener('change', recheck)
+  new MutationObserver(recheck).observe(root, { attributes: true, attributeFilter: ['data-a11y-motion', 'data-perf'] })
+})()
+</script>
+<script>// Scroll-in reveal for the standalone pages (spec 2026-10-01-lively-pages §6).
+// Nothing is hidden unless this runs and motion is allowed, so the page is
+// whole with JavaScript off, under reduced motion and in print. Whatever is
+// on screen at load shows at once. It runs after the page's own script, which
+// has already copied the site's motion setting onto <html>.
+;(() => {
+  const root = document.documentElement
+  if (root.dataset.a11yMotion === 'true' || matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) return
+  const seen = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        if (!e.isIntersecting) continue
+        e.target.classList.add('in')
+        seen.unobserve(e.target)
+      }
+    },
+    { rootMargin: '0px 0px -8% 0px' },
+  )
+  for (const el of document.querySelectorAll('.tools-strip,.tiles,.jobs,.timeline,.gl,.gloss dl,.ote,.cards,.rules,.phases,.stages,.closing')) {
+    el.setAttribute('data-reveal', '')
+    if (el.getBoundingClientRect().top < innerHeight) el.classList.add('in')
+    else seen.observe(el)
+  }
+  root.classList.add('reveal-on')
+})()
+</script>
+</body>
+</html>

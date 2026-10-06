@@ -49,6 +49,9 @@ import harborEndToEnd from './harbor-and-pine-moving/endToEnd.ts'
 import harborFramework from './harbor-and-pine-moving/agenticFramework.ts'
 import westmereAutomation from './westmere-los-angeles/automation.ts'
 import westmerePlan from './westmere-los-angeles/buildPlan.ts'
+import westmereAgents from './westmere-los-angeles/agents.ts'
+import westmereEndToEnd from './westmere-los-angeles/endToEnd.ts'
+import westmereFramework from './westmere-los-angeles/agenticFramework.ts'
 
 /** The pages a site has; a site need not have all five. */
 export type CaseSet = { automation?: Automations; plan?: Plan; framework?: AgenticFramework; endToEnd?: EndToEnd; agents?: Agents }
@@ -107,6 +110,9 @@ export const CASES: Record<string, CaseSet> = {
   'westmere-los-angeles': {
     automation: withSite(westmereAutomation, 'westmere-los-angeles', 'automation'),
     plan: withSite(westmerePlan, 'westmere-los-angeles', 'build-plan'),
+    agents: withSite(westmereAgents, 'westmere-los-angeles', 'ai-agents'),
+    endToEnd: withSite(westmereEndToEnd, 'westmere-los-angeles', 'end-to-end'),
+    framework: withSite(westmereFramework, 'westmere-los-angeles', 'agentic-framework'),
   },
 }
 
