@@ -34,8 +34,17 @@ try {
       if (q) faq.push({ q: clean(q.textContent), a: clean(d.textContent.replace(q.textContent, '')) })
     }
     // Menu and nav toggles are not accordions; their links are read below anyway.
-    for (const b of document.querySelectorAll('button[aria-expanded="false"]')) {
-      if (b.closest('nav, header, [role="menu"], [role="dialog"]')) continue
+    // Read any accordion that starts open before another click closes it.
+    const toggles = [...document.querySelectorAll('button[aria-expanded]')].filter((b) => !b.closest('nav, header, [role="menu"], [role="dialog"]'))
+    for (const b of toggles.filter((b) => b.getAttribute('aria-expanded') === 'true')) {
+      const panel = document.getElementById(b.getAttribute('aria-controls') ?? '')
+      // Without a linked panel, the answer sits beside the button: climb until a box holds more than the question.
+      let box = b.parentElement
+      for (let i = 0; box && i < 3 && box.innerText.length - b.innerText.length < 20; i++) box = box.parentElement
+      const a = panel ? panel.innerText : (box?.innerText ?? '').replace(b.innerText, '')
+      if (clean(a)) faq.push({ q: clean(b.textContent), a: clean(a) })
+    }
+    for (const b of toggles.filter((b) => b.getAttribute('aria-expanded') === 'false')) {
       const before = new Set(document.body.innerText.split('\n'))
       b.click()
       await new Promise((r) => setTimeout(r, 60))
