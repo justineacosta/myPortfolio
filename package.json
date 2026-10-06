@@ -21,7 +21,8 @@
     "af-page": "node scripts/make-af.ts && node scripts/shoot-af.mjs",
     "agents-page": "node scripts/make-agents.ts && node scripts/shoot-agents.mjs",
     "automations-page": "node scripts/make-automations.ts && node scripts/shoot-automations.mjs",
-    "cases": "node scripts/make-cases.ts"
+    "cases": "node scripts/make-cases.ts",
+    "site-facts": "node scripts/site-facts.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
