@@ -12,7 +12,7 @@ const flow = (from: string, to: string, label?: string): Cable => ({ from, to, k
 const loop = (from: string, to: string, label: string): Cable => ({ from, to, kind: 'loop', label })
 
 /** The person’s-yes rule, word for word as on the firm’s other pages. */
-const YES = 'Ruth approves any reply Claude drafts before it reaches anyone’s inbox; Daniel approves every monthly invoice before it goes out.'
+const YES = 'Ruth approves any reply Claude drafts before it reaches anyone’s inbox, Daniel approves every monthly invoice before it goes out.'
 
 const framework: AgenticFramework = {
   title: 'Riverdale & Brooks · Agentic framework',
@@ -90,7 +90,7 @@ const framework: AgenticFramework = {
       { stage: 'Frame', text: 'Read the site: one form, Request a consultation, with an optional box for a few sentences about a situation and the line “Please don’t include confidential details yet”, a reply promised within one business day, and a consultation that is free for estate planning and otherwise $150 for thirty minutes, credited. Done means every request gets the right fee and a booking link within a minute, Ruth knows who asked, and the few sentences reach Daniel’s inbox alone and are saved nowhere.' },
       { stage: 'Frame', text: 'Wrote RB-01’s spec and its seven test rows before any node: estate planning with the box filled, another area left blank, Something else, the same email twice, a sweep for TEST-SITUATION-01 in every store, a step that fails, and the Cal.com pages asking nothing more.' },
       { stage: 'Build', text: 'Built one branch per session, test first: the webhook and Keep contact and area, the Contacts row, Situation written? and the email to Daniel on his own connection, the Estate planning? switch and its two template replies, then the alert to Ruth through RB-H01.' },
-      { stage: 'Check', text: 'Ran each row with test contacts and a test calendar. The TEST-SITUATION-01 sweep failed: Alert Ruth read the form from the Webhook step rather than from Keep contact and area, and the marker reached Ruth’s Telegram. Then a fresh reviewer model read the n8n export and saw that To Daniel’s inbox used the office@ connection, so the few sentences sat in office@’s sent mail, where the inbox agent sorts.' },
+      { stage: 'Check', text: 'Ran each row with test contacts and a test calendar. The TEST-SITUATION-01 sweep failed: Alert Ruth read the form from the Webhook step rather than from Keep contact and area, and the marker reached Ruth’s Telegram. Then a fresh reviewer model read the n8n export and saw that To Daniel’s inbox used the office@ connection, so a copy of the few sentences sat in the sent mail of office@, the shared mailbox, instead of only in Daniel’s own.' },
       { stage: 'Fold back', text: 'Each fix went in behind a check that failed first. Two rules went into CLAUDE.md: only Situation written? and To Daniel’s inbox may read the few sentences, and every other step reads from Keep contact and area; and the few sentences travel only on Daniel’s own Gmail connection, from and to daniel@, which no other step uses.' },
       { stage: 'Ship', text: 'I approved it, pointed Send request at /rb/consultation, sent one test request carrying TEST-SITUATION-01 through the live site, and watched the free reply land, Ruth’s alert reach Telegram without the marker, and the marker reach Daniel’s inbox alone, with no execution saved in n8n.' },
     ],

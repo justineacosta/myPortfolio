@@ -45,7 +45,7 @@ const agents: Agents = {
   glance: [
     { mark: '1', icon: 'Books', title: 'RAG chatbots', text: 'The Practice Q&A bot searches the practice areas, the fees, the FAQ and the visiting details first, then answers with the page it used.' },
     { mark: '2', icon: 'Robot', title: 'AI agents', text: 'Inbox triage and Consultation prep each take one email or one booked consultation, gather what they need, and finish the job for Ruth or Daniel.' },
-    { mark: '3', icon: 'UserCheck', title: 'Ruth’s yes', text: 'Ruth approves any reply Claude drafts before it reaches anyone’s inbox; Daniel approves every monthly invoice before it goes out. Mail from a client, a court or opposing counsel reaches Daniel untouched.' },
+    { mark: '3', icon: 'UserCheck', title: 'Ruth’s yes', text: 'Ruth approves any reply Claude drafts before it reaches anyone’s inbox, Daniel approves every monthly invoice before it goes out. Mail from a client, a court or opposing counsel reaches Daniel untouched.' },
   ],
   diagrams: {
     rag: {
@@ -67,7 +67,7 @@ const agents: Agents = {
         { id: 'store', at: [3, 0], kind: 'step', label: 'Store', sub: 'Supabase pgvector', icon: 'Database', tools: ['supabase'], what: 'The passages and their numbers are saved in Supabase with pgvector, ready to search. Nothing a visitor types is ever added. This runs again whenever a fee, the hours or a guide changes.' },
         {
           id: 'ask', at: [0, 1], kind: 'start', label: 'A visitor asks', sub: 'In the site chat', icon: 'ChatCircleText', pinType: 'CHANNEL',
-          what: 'Someone asks in the chat on the firm’s site. The chat opens with the site’s own line: please don’t include confidential details yet. n8n saves no execution, so no chat is kept.',
+          what: 'Someone asks in the chat on the firm’s site. It opens with the site’s line: please don’t include confidential details yet. Details typed anyway are not repeated or used, and no chat is kept.',
           pins: [
             { id: 'chat', name: 'Site chat', icon: 'ChatCircleDots', what: 'The chat window on every page of the site. It remembers nothing after the window closes, and never sends an email.' },
           ],
@@ -124,7 +124,7 @@ const agents: Agents = {
           id: 'trigger', at: [0, 0], kind: 'start', label: 'Email or booking', sub: 'Gmail or Cal.com', icon: 'Lightning', pinType: 'TRIGGER',
           what: 'Two things start a run: a new email to office@riverdalebrooks.law for Inbox triage, or a consultation booked in Cal.com for Consultation prep. n8n listens for both, and keeps no run once it ends.',
           pins: [
-            { id: 'email', name: 'New email', tool: 'gmail', what: 'Any email to office@, never daniel@, checked every minute. n8n first looks the sender up in Contacts, with Always Output Data on; no row means not a client. A client’s email, or one with an attachment, is labelled For Daniel unread.' },
+            { id: 'email', name: 'New email', tool: 'gmail', what: 'Any email to office@, never daniel@. n8n first looks the sender up in Contacts, with Always Output Data on, so no row means not a client. An existing client, a row with a matter, or an email with an attachment is labelled For Daniel unread.' },
             { id: 'booking', name: 'New booking', tool: 'cal-com', what: 'A consultation booked on either Cal.com event type: its type, time, office or video, name and email. Nothing more is asked, so there is nothing about a situation to read.' },
           ],
         },
@@ -134,7 +134,7 @@ const agents: Agents = {
           what: 'n8n makes one tool call for Claude: label the email in Gmail, look a sender or an area up in Airtable, search the site’s passages, or read the booking in Cal.com. Nothing reads daniel@.',
           pins: [
             { id: 'label', name: 'Gmail label', tool: 'gmail', what: 'Puts one label on the email in office@: For Daniel, New enquiry or Admin. It writes nothing else, anywhere.' },
-            { id: 'clients', name: 'Contacts', tool: 'airtable', what: 'Whether a sender has a matter, checked by n8n before Claude sees an email, and the area a booked person asked about. Contact and area fields only, so no situation to read.' },
+            { id: 'clients', name: 'Contacts', tool: 'airtable', what: 'Whether a sender is an existing client, meaning a Contacts row with a matter, checked by n8n before Claude sees an email, and the area a booked person asked about. Contact and area fields only, so no situation to read.' },
             { id: 'facts', name: 'Site passages', tool: 'supabase', what: 'The passages the Practice Q&A bot searches, guides included, so a reply or a prep says only what the site says.' },
             { id: 'booking', name: 'The booking', tool: 'cal-com', what: 'The booked consultation, read through Cal.com’s API. No booking is made, moved or cancelled.' },
             { id: 'byhand', name: 'By hand only', icon: 'HandPalm', what: 'Not a tool call: nothing reaches daniel@, the client portal, a court or the conflict list. Daniel and Ruth work those by hand.' },
@@ -150,7 +150,7 @@ const agents: Agents = {
             { id: 'gmail', name: 'Gmail', tool: 'gmail', what: 'Sends the approved reply from office@riverdalebrooks.law, never from Daniel’s own address.' },
             { id: 'ping', name: 'Ping to Daniel', tool: 'telegram', what: 'Tells Daniel an email waits For Daniel, with no name, subject or words from it. He opens it in office@ himself.' },
             { id: 'prep', name: 'Prep for Daniel', tool: 'telegram', what: 'The prep, in Daniel’s own Telegram chat: the time, office or video, the area, the fee and the checklist.' },
-            { id: 'sheets', name: 'Google Sheets', tool: 'google-sheets', what: 'Logs the run in the Agent runs tab: the time, the label, each tool call by name and Ruth’s yes. Never an email’s words.' },
+            { id: 'sheets', name: 'Google Sheets', tool: 'google-sheets', what: 'Logs the run in the Agent runs tab: the time, whether an email or a booking started it, each tool call by name, and any label or yes. Never an email’s words.' },
             { id: 'daniel', name: 'Daniel, by hand', icon: 'UserCircle', what: 'Daniel answers mail For Daniel himself, and he or Ruth runs the conflict check by hand before any engagement letter.' },
           ],
         },
@@ -223,9 +223,9 @@ const agents: Agents = {
   },
   guardrails: [
     { mark: 'G1', icon: 'Quotes', title: 'Answers only from the firm’s public pages', text: 'The bot answers from the passages it found and names the page. It never gives a price, a date or a figure the pages do not hold: the site lists no flat-fee amounts, so neither does the bot. Its index holds the site’s public pages and guides only, and nothing a visitor types.' },
-    { mark: 'G2', icon: 'Scales', title: 'No legal advice, ever', text: 'The bot never gives legal advice, and says so. Any question about someone’s own situation gets a consultation or a call with Daniel, and the bot asks people not to share confidential details in the chat. Criminal defense or personal injury gets the phone number, for a referral to colleagues the firm trusts.' },
-    { mark: 'G3', icon: 'LockKey', title: 'Nothing confidential is kept', text: `A client’s email, or one with an attachment, goes For Daniel before Claude sees it. Of any other office@ email, Claude sees the sender, subject and text once, only to sort it: it keeps no copy, summary or note, the log holds the label alone, and n8n keeps no run once it ends. Mail from a court or opposing counsel, or with confidential details anyway, goes For Daniel untouched, with no draft. No build reads the form’s few sentences or reaches daniel@, the client portal, a court or the conflict list; the conflict check is done by hand. ${VENDORS}` },
-    { mark: 'G4', icon: 'ShieldCheck', title: 'Ruth says yes to every reply Claude drafts', text: 'Ruth approves any reply Claude drafts before it reaches anyone’s inbox; Daniel approves every monthly invoice before it goes out. Every reply Inbox triage drafts stops for Ruth in Telegram, and each run is logged with her yes. A templated reply from the consultation flow sends on its own, the bot answers live in the site chat only and never emails, and a prep goes to Daniel alone. No build sends from Daniel’s address.' },
+    { mark: 'G2', icon: 'Scales', title: 'No legal advice, ever', text: 'The bot never gives legal advice, and says so. Any question about someone’s own situation gets a consultation or a call with Daniel, and the bot asks people not to share confidential details in the chat. If someone types them anyway, the bot does not repeat or act on them: it says it can’t advise and offers a consultation or a call, and the chat is kept nowhere. Criminal defense or personal injury gets the phone number, for a referral to colleagues the firm trusts.' },
+    { mark: 'G3', icon: 'LockKey', title: 'Nothing confidential is kept', text: `An existing client’s email, meaning a Contacts row with a matter, or one with an attachment, goes For Daniel before Claude sees it. Of any other office@ email, within one run Claude sees the sender, subject and text, to sort it and, for a New enquiry or Admin email, to draft the reply. It keeps no copy, summary or note, the log holds none of the words, and n8n keeps no run once it ends. Mail from a court or opposing counsel, or with confidential details anyway, goes For Daniel untouched, with no draft. No build reads the form’s few sentences or reaches daniel@, the client portal, a court or the conflict list; the conflict check is done by hand. ${VENDORS}` },
+    { mark: 'G4', icon: 'ShieldCheck', title: 'Ruth says yes to every reply Claude drafts', text: 'Ruth approves any reply Claude drafts before it reaches anyone’s inbox, Daniel approves every monthly invoice before it goes out. Every reply Inbox triage drafts stops for Ruth in Telegram, and each run is logged with her yes. A templated reply from the consultation flow sends on its own, the bot answers live in the site chat only and never emails, and a prep goes to Daniel alone. No build sends from Daniel’s address.' },
   ],
   glossary: [
     ['RAG', 'Retrieval-augmented generation: search the firm’s own pages first, then answer from what was found.'],
@@ -243,10 +243,11 @@ const agents: Agents = {
     ['Admin', 'The Gmail label for a practical email, like a question about parking or the hours, which gets a drafted reply.'],
     ['Prep', 'The note the Consultation prep agent sends Daniel before a consultation: the booking, the area and the checklist. Nobody else gets it.'],
     ['Confidentiality terms', `A vendor’s written terms on how it keeps what it is given. ${VENDORS}`],
+    ['Few sentences', 'The optional box on the form, “A few sentences about your situation”. They pass through n8n and Gmail only to reach Daniel’s inbox, and no bot or agent reads them.'],
     ['Conflict check', 'Making sure the firm acts for no one on the other side. Daniel or Ruth runs it by hand; no tool reads the conflict list.'],
-    ['Agent runs', 'The Google Sheets tab that logs each agent run: the time, the label, the tool calls and Ruth’s yes, never an email’s words.'],
+    ['Agent runs', 'The Google Sheets tab that logs each agent run: the time, whether an email or a booking started it, each tool call, and any label or yes, never an email’s words.'],
     ['Loop-back', 'A cable back to an earlier step: the agent tries again, or redoes a draft Ruth sent back.'],
-    ['Approval gate', 'A point where the run stops until Ruth says yes. Ruth approves any reply Claude drafts before it reaches anyone’s inbox; Daniel approves every monthly invoice before it goes out.'],
+    ['Approval gate', 'A point where the run stops until Ruth says yes. Ruth approves any reply Claude drafts before it reaches anyone’s inbox, Daniel approves every monthly invoice before it goes out.'],
     ['Claude', 'Anthropic’s AI model. It answers, sorts, plans and drafts in these builds, and keeps nothing between runs.'],
     ['n8n', 'The workflow tool that runs each build: it listens for triggers, makes the tool calls and saves no executions.'],
     ['Supabase', 'A hosted Postgres database, used here as the store of public passages the bot and both agents search.'],
