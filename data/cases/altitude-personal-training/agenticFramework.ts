@@ -45,7 +45,7 @@ const framework: AgenticFramework = {
     { mark: '01', icon: 'TerminalWindow', tool: 'claude-code', title: 'Claude Code', text: 'The builder. Altitude’s pages, the n8n workflow, the Make blueprints and a step list for each Zapier Zap, drafted from the build plan with a test for each branch.', note: 'Opus to plan, Sonnet to build' },
     { mark: '02', icon: 'FileCode', tool: 'vs-code', title: 'VS Code', text: 'The editor. Where I read every diff, and every prompt Claude will run inside a flow, and take over when precision beats speed.', note: 'Human in the loop' },
     { mark: '03', icon: 'Code', tool: 'codex', title: 'Codex', text: 'The second opinion. A fresh model reads each diff and each flow export for what the author missed.', note: 'Review pass, not a build pass' },
-    { mark: '04', icon: 'Sparkle', tool: 'claude', title: 'Claude', text: 'The model inside the flows. It summarises an application or a check-in for Elias, answers visitors from the site and drafts a block review. It never writes a check-in reply or sends an email on its own.', note: 'Sonnet inside every flow' },
+    { mark: '04', icon: 'Sparkle', tool: 'claude', title: 'Claude', text: 'The model inside the bot, the agents and two of the three flows. It summarises an application or a check-in for Elias, answers visitors from the site and drafts the four-week reviews and end-of-block reports. AL-02 does not use it, and it never writes a check-in reply or sends an email on its own.', note: 'Sonnet in the bot, agents, AL-01 and AL-03' },
   ],
   rules: [
     { mark: 'R1', icon: 'FileText', title: 'Write the spec first', text: 'If I cannot say in a paragraph what a flow promises a client, the agent will not find it in a thousand tokens. The build plan is that paragraph.', note: 'Spec before prompt' },
@@ -106,7 +106,7 @@ const framework: AgenticFramework = {
     ['Codex', 'OpenAI’s coding agent, used here to review work it did not write.'],
     ['Claude', 'Anthropic’s AI model, which works inside Altitude’s flows as well as building them.'],
     ['Opus', 'Claude’s most capable model, used for planning.'],
-    ['Sonnet', 'Claude’s faster model, used for most of the building and inside every flow.'],
+    ['Sonnet', 'Claude’s faster model, used for most of the building and inside the bot, the agents, AL-01 and AL-03.'],
     ['n8n', 'The automation tool AL-01 runs in. A workflow can be written as a file and imported.'],
     ['Make', 'The automation tool starting a plan runs in. A scenario can be imported as a blueprint.'],
     ['Blueprint', 'A Make scenario saved as a file, so it can be drafted, read and imported.'],

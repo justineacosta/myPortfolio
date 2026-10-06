@@ -61,7 +61,7 @@ const STEPS: Step[] = [
   step('f7', 'F', [3, 1], 'end', 'Tell Elias it lapsed', 'Link expired', 'Bell', 'The application is marked Link expired and Elias is told. He follows up, and sets it back to Starting to send a fresh link.', ['airtable', 'telegram']),
 
   step('g1', 'G', [0, 0], 'step', 'The assessment', '60 minutes', 'Barbell', 'A movement screen and baseline numbers, in the studio or over video, on days 4–5.'),
-  step('g2', 'G', [1, 0], 'step', 'Write the first block', 'In the app, by hand', 'NotePencil', 'Elias writes the first four-week block into the coaching app himself and enters the Block start in Airtable. No flow reads or writes the app.', ['airtable']),
+  step('g2', 'G', [1, 0], 'step', 'Write the first block', 'In the app, by hand', 'NotePencil', 'Elias writes the first block’s program into the coaching app himself and enters the Block start in Airtable. No flow reads or writes the app.', ['airtable']),
   step('g3', 'G', [2, 0], 'step', 'A coached week', 'Sessions in the app', 'CalendarBlank', 'From day 7 the client trains from the app, films a working set for form review, and checks in on Sunday.'),
 
   step('h1', 'H', [0, 0], 'trigger', 'Check-in, or Sunday', 'Two Zaps', 'ClipboardText', 'A check-in on the client’s Airtable form starts one Zap. 9 pm Mountain time on Sunday starts the other, for anyone with none.', ['zapier', 'airtable'], true),
@@ -76,12 +76,12 @@ const STEPS: Step[] = [
   step('i4', 'I', [3, 0], 'step', 'Prep to Elias', 'In Telegram, no yes', 'PaperPlaneTilt', 'The prep goes to Elias in Telegram beside the video link and is saved as a Form notes row. It reaches no client, so it needs no yes.', ['telegram', 'airtable']),
   step('i5', 'I', [4, 0], 'end', 'Elias reviews', 'Within 24 hours', 'Eye', 'Elias watches the set and writes the feedback himself in the app within 24 hours, then adds a line to the Form notes row.'),
 
-  step('j1', 'J', [0, 0], 'trigger', 'Every 4 weeks', 'From Block start', 'Clock', 'Each morning n8n finds the clients whose four weeks end that day, counted from their Block start. A schedule runs it, not anyone remembering.', ['n8n'], true),
-  step('j2', 'J', [1, 0], 'agent', 'Read the block', 'Check-ins and notes', 'ClipboardText', 'One tool call at a time: the client’s plan and goal, the four-week block’s check-ins and their summaries, and its form notes, all from Airtable.', ['airtable']),
-  step('j3', 'J', [2, 0], 'ai', 'Draft the review', 'Summary and outline', 'PencilSimple', 'Claude drafts the end-of-block summary and the next four-week block’s outline. Re-test numbers live in the app, so Elias types them in his Edit.', ['claude']),
-  step('j4', 'J', [3, 0], 'gate', 'Elias’s yes', 'Approve in Telegram', 'UserCheck', 'The review is for a client’s inbox, so it waits in Telegram with Approve and Edit. Elias adds the re-test numbers by Edit, and nothing is sent until he taps Approve.', ['telegram']),
+  step('j1', 'J', [0, 0], 'trigger', 'Every 4 weeks', 'From Block start', 'Clock', 'Each morning n8n finds the clients at a four-week mark that day, counted from their Block start: weeks 4 and 8 for a four-week review, week 12 for the end-of-block report. A schedule runs it, not anyone remembering.', ['n8n'], true),
+  step('j2', 'J', [1, 0], 'agent', 'Read four weeks', 'Check-ins and notes', 'ClipboardText', 'One tool call at a time: the client’s plan and goal, the last four weeks’ check-ins and their summaries, and their form notes, all from Airtable.', ['airtable']),
+  step('j3', 'J', [2, 0], 'ai', 'Draft the review', 'Or the block report', 'PencilSimple', 'Claude drafts the four-week review and the program changes, or at week 12 the short end-of-block report. Re-test numbers live in the app, so Elias types them into the report in his Edit.', ['claude']),
+  step('j4', 'J', [3, 0], 'gate', 'Elias’s yes', 'Approve in Telegram', 'UserCheck', 'The review is for a client’s inbox, so it waits in Telegram with Approve and Edit. Elias adds a report’s re-test numbers by Edit, and nothing is sent until he taps Approve.', ['telegram']),
   step('j5', 'J', [4, 0], 'step', 'Send the review', 'Once approved', 'PaperPlaneTilt', 'The approved review goes to the client from hello@altitude.coach, and the run is logged in the Agent runs tab.', ['gmail', 'google-sheets']),
-  step('j6', 'J', [5, 0], 'end', 'Write the next block', 'In the app, by hand', 'NotePencil', 'Elias writes the next four-week block into the coaching app himself, from the approved outline. The program is updated every 4 weeks.'),
+  step('j6', 'J', [5, 0], 'end', 'Update the program', 'In the app, by hand', 'NotePencil', 'Elias writes the program changes into the coaching app himself, from the approved review. The program is updated every 4 weeks.'),
 ]
 
 /** Lanes whose steps read in order, one per column, carry numbers; a branch’s side exit does not. */
@@ -154,7 +154,7 @@ const endToEnd: EndToEnd = {
       ['Airtable', 'Where Altitude keeps its applications, plans, clients, check-ins and form notes.'],
       ['Stripe', 'Where each client starts their monthly subscription, on Stripe’s own page.'],
       ['Cal.com', 'The booking tool that holds Elias’s calendar, the consult and the assessment.'],
-      ['Gmail', 'The mailbox the templates and approved block reviews are sent from.'],
+      ['Gmail', 'The mailbox the templates, approved reviews and end-of-block reports are sent from.'],
       ['Telegram', 'The chat app where Elias gets summaries and preps, forwards form videos and approves drafts.'],
       ['Supabase', 'The database that stores the passages the Program Q&A bot searches.'],
       ['Passage', 'A program, a plan or a question cut from a longer page, as the search returns it.'],
@@ -164,12 +164,14 @@ const endToEnd: EndToEnd = {
       ['Payment link', 'A Stripe Checkout page for the plan’s monthly subscription. It lasts 24 hours.'],
       ['Assessment', 'The 60-minute movement screen and baseline numbers, in the studio or over video.'],
       ['Coaching app', 'Where sessions, form videos and Elias’s replies live. No flow reads or writes it.'],
-      ['Block start', 'The day Elias loads a client’s first program in the app, entered in Airtable. Each four-week block counts from it.'],
+      ['Block start', 'The day Elias loads a client’s first program in the app, entered in Airtable. Blocks run 12 weeks, and each four-week review counts from it.'],
+      ['Four-week review', 'The deeper look at the numbers every four weeks, with the program changes that follow.'],
+      ['End-of-block report', 'The short report at the end of each 12-week block, with the re-test numbers Elias adds.'],
       ['Check-in', 'The Sunday form: sleep, steps, bodyweight trend and how training felt.'],
       ['Form notes', 'An Airtable table of each form review prep, with the line Elias adds after each review.'],
       ['Re-test', 'The numbers taken again each block. They live in the app, so Elias adds them himself.'],
       ['Agent runs', 'The Google Sheets tab where every agent run, tool call and yes is logged.'],
-      ['Approval gate', 'A hard stop. No subscription starts and no block review is sent until Elias says yes.'],
+      ['Approval gate', 'A hard stop. No subscription starts and no four-week review or end-of-block report is sent until Elias says yes.'],
       ['Agent', 'An AI with one job that picks its own tools, one call at a time, until the job is done.'],
     ],
   },
