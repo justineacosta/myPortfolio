@@ -77,7 +77,7 @@ const STEPS: Step[] = [
   step('g6', 'G', [4, 1], 'end', 'Expiry reminder', 'Three weeks to go', 'CalendarX', 'A fixed reminder three weeks before the four months are up, with the visits left and the link to book. It goes once.', ['gmail', 'airtable']),
 
   step('h1', 'H', [0, 0], 'trigger', 'A new email', 'Checked every minute', 'EnvelopeSimple', 'n8n checks hello@rangept.co every minute and saves no execution. An email with an attachment is labelled For Mara before Claude sees it.', ['n8n', 'gmail'], true),
-  step('h2', 'H', [1, 0], 'ai', 'Claude sorts it', 'One label, no notes', 'Sparkle', 'Claude reads the email once, only to choose For Mara or Admin, and returns the label alone. Range would need a signed business associate agreement with each vendor first.', ['claude']),
+  step('h2', 'H', [1, 0], 'ai', 'Claude sorts it', 'One label, no notes', 'Sparkle', 'Claude reads the email once, only to choose For Mara or Admin, and returns the label alone.', ['claude']),
   step('h3', 'H', [2, 0], 'decision', 'Which label?', 'One of two', 'ArrowsSplit', 'Anything clinical, or anything Claude is unsure of, is For Mara. Anything practical, like a superbill question or a visit to move, is Admin.'),
   step('h4', 'H', [3, 1], 'end', 'For Mara, untouched', 'A Gmail label only', 'Tag', 'The email gets the For Mara label and nothing else: no draft, summary, copy or log of its words. Mara gets a ping with no name in it, and reads it herself.', ['gmail', 'telegram']),
   step('h5', 'H', [3, 0], 'agent', 'Draft the reply', 'Site facts', 'PencilSimple', 'For an Admin email, Claude drafts a reply from the same public passages the bot searches, one tool call at a time. It states only what the site states.', ['supabase', 'claude']),
@@ -86,8 +86,8 @@ const STEPS: Step[] = [
 
   step('i1', 'I', [0, 0], 'trigger', 'A late cancellation', 'Under 24 hours', 'CalendarX', 'n8n hears a visit cancelled from its Cal.com link with less than 24 hours to go. A change further ahead is free, and needs no one.', ['n8n', 'cal-com'], true),
   step('i2', 'I', [1, 0], 'agent', 'Read the visit', 'Cal.com and Airtable', 'Wrench', 'One tool call at a time: the visit and Mara’s next openings in Cal.com, then the patient’s name and any plan in Airtable. Nothing clinical.', ['cal-com', 'airtable']),
-  step('i3', 'I', [2, 0], 'ai', 'Draft the reply', 'Next three openings', 'Sparkle', 'Claude drafts a short reply offering Mara’s next three openings, each a link to book. It asks no reason, charges nothing and moves no booking.', ['claude']),
-  step('i4', 'I', [3, 0], 'gate', 'Mara’s yes', 'Approve in Telegram', 'UserCheck', 'The reply is for a patient’s inbox, so it waits in Telegram with Approve and Edit. Whether a late change costs anything is Mara’s call, by hand.', ['telegram']),
+  step('i3', 'I', [2, 0], 'ai', 'Draft the reply', 'Next three openings', 'Sparkle', 'Claude drafts a short reply offering Mara’s next three openings, each a link to book, and quotes the site’s policy: “Cancellations with less notice are charged half the visit fee.” It asks no reason and moves no booking.', ['claude']),
+  step('i4', 'I', [3, 0], 'gate', 'Mara’s yes', 'Approve in Telegram', 'UserCheck', 'The reply is for a patient’s inbox, so it waits in Telegram with Approve and Edit. Charging or waiving the half-visit fee is Mara’s decision, made by hand in Stripe. No agent charges.', ['telegram']),
   step('i5', 'I', [4, 0], 'end', 'Send the reply', 'Once approved', 'PaperPlaneTilt', 'The approved reply goes from hello@rangept.co and the run is logged. The patient picks a time from the link, and the booking runs like any other.', ['gmail', 'google-sheets']),
 ]
 
@@ -186,7 +186,7 @@ const endToEnd: EndToEnd = {
       ['Free 15-minute call', 'A short call with Mara, booked on Cal.com, where anything clinical is talked through with her.'],
       ['For Mara', 'The Gmail label for anything clinical or unsure. The email is left untouched for Mara to read.'],
       ['Admin', 'The Gmail label for a practical email, like a visit to move, which gets a reply drafted from the site’s facts.'],
-      ['Business associate agreement', 'A signed contract a clinic needs with each vendor that handles patient information, before Claude reads any real email.'],
+      ['Business associate agreement', 'A signed contract with a vendor that handles patient information. Before any real patient’s details go into these tools, Range would need a signed business associate agreement with each vendor that handles them, and would replace any vendor that won’t sign one.'],
       ['Agent runs', 'The Google Sheets tab that logs each agent run: the time, the label and Mara’s yes, never an email’s words.'],
       ['Approval gate', 'A hard stop. No reply Claude drafts reaches a patient until Mara says yes.'],
       ['Agent', 'An AI with one job that picks its own tools, one call at a time, until the job is done.'],

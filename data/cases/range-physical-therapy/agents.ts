@@ -121,7 +121,7 @@ const agents: Agents = {
           what: 'Two things start a run: a new email to hello@rangept.co for Inbox triage, or a visit cancelled inside 24 hours for Reschedule. n8n listens for both, and saves no execution of either.',
           pins: [
             { id: 'email', name: 'New email', tool: 'gmail', what: 'Any email to hello@rangept.co, checked every minute. Attachments never reach Claude: an email with one is labelled For Mara unread.' },
-            { id: 'cancel', name: 'Late cancellation', tool: 'cal-com', what: 'A visit cancelled from its Cal.com link with less than 24 hours to go. A change further ahead is free, and Cal.com’s own links handle it.' },
+            { id: 'cancel', name: 'Late cancellation', tool: 'cal-com', what: 'A visit cancelled from its Cal.com link with less than 24 hours to go. Range’s policy charges half the visit fee for it; charging or waiving that is Mara’s decision, by hand in Stripe. A change further ahead is free, and Cal.com’s own links handle it.' },
           ],
         },
         { id: 'plan', at: [1, 0], kind: 'step', label: 'Claude plans', sub: 'Picks the next step', icon: 'Brain', tools: ['claude'], what: 'Claude reads the goal, an email to sort or a cancelled visit to fill, then picks the single next step and the tool it needs. It keeps nothing from one run to the next.' },
@@ -199,7 +199,7 @@ const agents: Agents = {
     {
       id: 'reschedule', kind: 'agent', name: 'Reschedule agent', business: BUSINESS,
       line: 'When a visit is cancelled inside 24 hours, it offers Mara’s next openings and drafts the reply for her yes.',
-      example: { ask: 'Cal.com: tomorrow’s 7:00 am follow-up is cancelled, 16 hours ahead.', answer: 'A reply offering Mara’s next three openings, each a link to book, waiting for her yes in Telegram. No booking moved, nothing charged.' },
+      example: { ask: 'Cal.com: tomorrow’s 7:00 am follow-up is cancelled, 16 hours ahead.', answer: 'A reply offering Mara’s next three openings, each a link to book, with the site’s policy line: “Cancellations with less notice are charged half the visit fee.” It waits for her yes in Telegram. No booking moved, and no agent charges: the fee is Mara’s call, in Stripe.' },
       tools: ['claude', 'n8n', 'cal-com', 'airtable', 'telegram', 'gmail', 'google-sheets'],
       routes: ['straight', 'notdone', 'changed'],
       pins: ['trigger:cancel', 'tool:openings', 'tool:patients', 'tool:notes', 'act:gmail', 'act:sheets'],
@@ -218,7 +218,7 @@ const agents: Agents = {
   guardrails: [
     { mark: 'G1', icon: 'Quotes', title: 'Answers only from Range’s public pages', text: 'The bot answers from the passages it found and names the page. It never gives a price, a date or a figure the pages do not hold. Its index holds the site’s public, non-clinical pages only. No source, no answer, except the 911 line, in the site footer’s own words.' },
     { mark: 'G2', icon: 'FirstAidKit', title: 'No clinical advice, ever', text: 'Any symptom, pain or question about treatment gets the free 15-minute call with Mara, and an emergency gets “call 911” first. No build gives advice of its own, and no reminder or reply says whether more visits would help.' },
-    { mark: 'G3', icon: 'LockKey', title: 'Nothing clinical is kept', text: 'Claude reads a clinical email once, only to sort it, and it is labelled For Mara and left untouched. Nothing clinical is stored, summarised or forwarded by Claude, Airtable or any flow, and n8n saves no runs of these builds. Before Claude reads any real patient email, Range would need a signed business associate agreement with each vendor that handles it.' },
+    { mark: 'G3', icon: 'LockKey', title: 'Nothing clinical is kept', text: 'Claude reads a clinical email once, only to sort it, and it is labelled For Mara and left untouched. Nothing clinical is stored, summarised or forwarded by Claude, Airtable or any flow, and n8n saves no runs of these builds. Before any real patient’s details go into these tools, Range would need a signed business associate agreement with each vendor that handles them, and would replace any vendor that won’t sign one.' },
     { mark: 'G4', icon: 'ShieldCheck', title: 'Mara says yes to Claude’s drafts for a patient’s inbox', text: 'Every reply Inbox triage or Reschedule drafts stops for Mara in Telegram before it goes out, and each run is logged with her yes. The bot never emails. No agent charges, refunds or moves a booking.' },
   ],
   glossary: [
@@ -234,7 +234,7 @@ const agents: Agents = {
     ['Tool call', 'One action an agent asks for, like putting a label on an email or reading Mara’s openings.'],
     ['For Mara', 'The Gmail label for anything clinical, or anything Claude is unsure of. The email is left untouched for Mara to read.'],
     ['Admin', 'The Gmail label for a practical email, like a question about a superbill or a visit to move, which gets a drafted reply.'],
-    ['Business associate agreement', 'A signed contract a clinic needs with each vendor that handles patient information, here Anthropic, Google and n8n’s host, before any real email is read.'],
+    ['Business associate agreement', 'A signed contract with a vendor that handles patient information. Before any real patient’s details go into these tools, Range would need a signed business associate agreement with each vendor that handles them, and would replace any vendor that won’t sign one.'],
     ['Notes system', 'Mara’s own clinic notes system, where everything clinical lives. No tool, flow or agent reads or writes it.'],
     ['Agent runs', 'The Google Sheets tab that logs each agent run: the time, the label, the tool calls and Mara’s yes, never an email’s words.'],
     ['Loop-back', 'A cable back to an earlier step: the agent tries again, or redoes a draft Mara sent back.'],
