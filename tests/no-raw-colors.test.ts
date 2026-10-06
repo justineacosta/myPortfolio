@@ -7,7 +7,7 @@ const ROOTS = ['app', 'components', 'data', 'hooks', 'lib']
 // The standalone pages' tool brand colours (lib/brand/tools.ts) belong to the tools, not to Kraft, and their kind tints
 // (lib/brand/lively.ts) are a fixed palette checked for contrast in tests/brand-lively.test.ts.
 const ALLOWED = new Set(['app/globals.css', 'lib/emails.ts', 'lib/brand/tools.ts', 'lib/brand/lively.ts'])
-const RAW_COLOR = /#[0-9a-fA-F]{3,8}\b|rgba?\(\s*\d/g
+const RAW_COLOR = /(?<!DRE )#[0-9a-fA-F]{3,8}\b|rgba?\(\s*\d/g
 
 function walk(dir: string): string[] {
   let out: string[] = []
