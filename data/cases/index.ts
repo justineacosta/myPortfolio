@@ -52,6 +52,8 @@ import westmerePlan from './westmere-los-angeles/buildPlan.ts'
 import westmereAgents from './westmere-los-angeles/agents.ts'
 import westmereEndToEnd from './westmere-los-angeles/endToEnd.ts'
 import westmereFramework from './westmere-los-angeles/agenticFramework.ts'
+import ironlineAutomation from './ironline-utility-infrastructure/automation.ts'
+import ironlinePlan from './ironline-utility-infrastructure/buildPlan.ts'
 
 /** The pages a site has; a site need not have all five. */
 export type CaseSet = { automation?: Automations; plan?: Plan; framework?: AgenticFramework; endToEnd?: EndToEnd; agents?: Agents }
@@ -113,6 +115,10 @@ export const CASES: Record<string, CaseSet> = {
     agents: withSite(westmereAgents, 'westmere-los-angeles', 'ai-agents'),
     endToEnd: withSite(westmereEndToEnd, 'westmere-los-angeles', 'end-to-end'),
     framework: withSite(westmereFramework, 'westmere-los-angeles', 'agentic-framework'),
+  },
+  'ironline-utility-infrastructure': {
+    automation: withSite(ironlineAutomation, 'ironline-utility-infrastructure', 'automation'),
+    plan: withSite(ironlinePlan, 'ironline-utility-infrastructure', 'build-plan'),
   },
 }
 
