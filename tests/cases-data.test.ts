@@ -333,6 +333,9 @@ describe('the checks can fail', () => {
     const advice = firm()
     advice.agents = JSON.parse(JSON.stringify(advice.automation).replace(/legal advice/gi, 'answers'))
     expect(() => checkSite(advice, riverdale, SITES)).toThrow(/legal advice/)
+    const advised = firm()
+    advised.agents = JSON.parse(JSON.stringify({ ...advised.automation, lede: `${advised.automation!.lede} The bot never gives legal advice.` }))
+    expect(() => checkSite(advised, riverdale, SITES)).not.toThrow()
 
     const lonely = real()
     lonely.automation!.flows[0].nodes[0].tools = ['hubspot']
