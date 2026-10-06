@@ -123,7 +123,7 @@ const agents: Agents = {
           what: 'Two things start a run: a booking OS-01 marks Cancelled in Bookings, for the Chair gap agent, or the 09:00 schedule each morning, for the Rebooking agent. n8n listens for both.',
           pins: [
             { id: 'freed', name: 'A freed chair', tool: 'airtable', what: 'A Bookings row OS-01 has just marked Cancelled, with its Freed on time: the barber, the day, the time and the service. Cal.com has already opened the hour again in that barber’s book.' },
-            { id: 'morning', name: 'Each morning', icon: 'Clock', what: 'Every day at 09:00, London time. n8n finds the cuts from three weeks before and starts one run for each.' },
+            { id: 'morning', name: 'Each morning', icon: 'Clock', what: 'Every day at 09:00, London time, an hour Tomas sets, as he sets the three weeks. n8n finds the cuts from three weeks before and starts one run for each.' },
           ],
         },
         { id: 'plan', at: [1, 0], kind: 'step', label: 'Claude plans', sub: 'Picks the next step', icon: 'Brain', tools: ['claude'], what: 'Claude reads the goal, a freed hour to offer or a past cut to follow up, then picks the single next step and the tool it needs.' },
@@ -132,14 +132,14 @@ const agents: Agents = {
           what: 'n8n makes one tool call for Claude: read Bookings or Members in Airtable, or read the barber’s free times in Cal.com. Nothing is booked, moved or paid.',
           pins: [
             { id: 'bookings', name: 'Bookings', tool: 'airtable', what: 'The freed hour, a client’s past cut, and whether that client has booked again since. Read only: OS-01 writes this table.' },
-            { id: 'members', name: 'Members', tool: 'airtable', what: 'A barber’s members marked Standing, the people on their Waiting list, and whether a client is a member at all. Read only.' },
+            { id: 'members', name: 'Members', tool: 'airtable', what: 'A barber’s members marked Standing or Awaiting slot, the people on their Waiting list, and whether a client is a member at all. Read only. A member who leaves is marked Ended by hand each Monday, so for up to a week they may still be offered an hour.' },
             { id: 'slots', name: 'Free times', tool: 'cal-com', what: 'The barber’s free times for the next week, read through Cal.com’s API. No booking is made, moved or held.' },
             { id: 'byhand', name: 'By hand only', icon: 'HandPalm', what: 'Not a tool call: no build reaches a review site, The Ostler Letter, gift cards, the shop’s till or a refund in Stripe. People in the shop do those by hand.' },
           ],
         },
         { id: 'check', at: [3, 0], kind: 'branch', label: 'Check the result', sub: 'Done yet?', icon: 'ListChecks', what: 'Claude looks at what came back. If the job is not done yet, it goes back to plan the next step.' },
         { id: 'needs', at: [4, 0], kind: 'branch', label: 'To a client’s inbox?', sub: 'Or a log only', icon: 'ShieldCheck', what: 'Is a note on its way to a client’s inbox? Then it waits for the client’s barber. With nobody to offer the hour, or a client who has already booked again, the run ends with a log line.' },
-        { id: 'gate', at: [5, 0], kind: 'gate', label: 'The barber’s yes', sub: 'Approve in Telegram', icon: 'UserCheck', tools: ['telegram'], what: 'The client’s barber gets the draft in their own Telegram chat with the shop’s bot, with Approve and Change it. A change goes back to Claude with their note, and nothing is sent until they tap Approve.' },
+        { id: 'gate', at: [5, 0], kind: 'gate', label: 'The barber’s yes', sub: 'Approve in Telegram', icon: 'UserCheck', tools: ['telegram'], what: 'The client’s barber gets the draft in their own Telegram chat with the shop’s bot, set up for these approvals, with Approve and Change it. A change goes back to Claude, and nothing is sent until they tap Approve.' },
         {
           id: 'act', at: [6, 0], kind: 'end', label: 'Send and log', sub: 'Approved notes only', icon: 'PaperPlaneTilt', pinType: 'OUTPUT',
           what: 'An approved note goes from the shop’s Gmail, one email to each client it names, and every run is logged in the Agent runs tab.',
@@ -189,7 +189,7 @@ const agents: Agents = {
     },
     {
       id: 'gap', kind: 'agent', name: 'Chair gap agent', business: BUSINESS,
-      line: 'When a cancellation frees an hour, it drafts an offer. On a Friday or Saturday evening, that barber’s members get it first, as their first refusal, and if the hour is still free two hours on, the barber’s waiting list; at any other hour, the waiting list alone. The barber approves every offer.',
+      line: 'When a cancellation frees an hour, it drafts an offer. On a Friday or Saturday evening, that barber’s members, Standing or Awaiting slot, get it first, as their first refusal; if the hour is still free two hours on, a second offer goes to the barber’s waiting list. At any other hour, the waiting list alone. The barber approves every offer, the second one too.',
       example: { ask: 'Bookings: Jonah’s Friday 18:00 Ostler cut is cancelled.', answer: 'An offer of Friday at 18:00 to Jonah’s members, with his booking link, waiting for Jonah’s yes in Telegram. At a Tuesday 11:20, it would go to his waiting list instead.' },
       tools: ['claude', 'n8n', 'airtable', 'cal-com', 'gmail', 'telegram', 'google-sheets'],
       routes: ['straight', 'notdone', 'changed', 'internal'],
@@ -198,7 +198,7 @@ const agents: Agents = {
     },
     {
       id: 'rebook', kind: 'agent', name: 'Rebooking agent', business: BUSINESS,
-      line: 'Three weeks after a non-member’s cut, it drafts a “your next cut” note with their barber’s free times in the week ahead, so the next cut falls three or four weeks on, for the barber’s yes. It skips every Member’s cut and Member’s tidy, and anyone already booked again.',
+      line: 'Three weeks after a non-member’s cut, it drafts a “your next cut” note with their barber’s free times in the week ahead, so the next cut falls three or four weeks on, for the barber’s yes. It skips every Member’s cut and Member’s tidy, anyone already booked again, and anyone in Members as Standing, Awaiting slot or Waiting list; a client marked Ended is no longer a member, and gets the note.',
       example: { ask: '09:00: a Taper & fade with Arun three weeks ago, and nothing booked since.', answer: 'A “your next cut” note with three of Arun’s free times next week and his booking link, waiting for Arun’s yes in Telegram.' },
       tools: ['claude', 'n8n', 'airtable', 'cal-com', 'gmail', 'telegram', 'google-sheets'],
       routes: ['straight', 'notdone', 'changed', 'internal'],
@@ -218,7 +218,7 @@ const agents: Agents = {
   guardrails: [
     { mark: 'G1', icon: 'Quotes', title: 'Answers only from Ostler’s own pages', text: 'The bot answers from the passages it found and names the page. It never gives a price, a time or a figure the pages do not hold, and it cannot see any barber’s book: for a free hour it opens Book a chair, or Book with the barber, where Cal.com shows it. It books nothing, takes no payment and never emails.' },
     { mark: 'G2', icon: 'Phone', title: 'Anything else goes to the shop’s phone', text: 'A question the pages do not settle, an order already paid, a refund, leaving the membership or a complaint gets the shop’s phone, 020 7946 0381, with the hours. Every payment is made on Stripe’s own pages, and any refund is made by a person, by hand, in Stripe.' },
-    { mark: 'G3', icon: 'ShieldCheck', title: 'The barber says yes to every note Claude drafts', text: `${YES} Every offer the Chair gap agent drafts and every note the Rebooking agent drafts stops in that barber’s Telegram, and each run is logged with their yes. Members are offered a freed hour first only on Friday and Saturday evenings, as the site says; at any other hour the offer goes to the barber’s waiting list. Templated confirmations, reminders and order emails send on their own, and the bot answers live, in the site chat only.` },
+    { mark: 'G3', icon: 'ShieldCheck', title: 'The barber says yes to every note Claude drafts', text: `${YES} Every offer the Chair gap agent drafts and every note the Rebooking agent drafts stops in that barber’s Telegram, and each run is logged with their yes. Members, Standing or Awaiting slot, are offered a freed hour first only on Friday and Saturday evenings, as the site says; at any other hour the offer goes to the barber’s waiting list. First refusal means told first, not held: the hour stays open on the barber’s Cal.com page, and the barber can hold it in their own book by hand. The two-hour wait before the waiting list’s offer, like the 17:00 line, is Tomas’s call; an hour freed less than two hours ahead gets the members’ offer only. Templated confirmations, reminders and order emails send on their own, and the bot answers live, in the site chat only.` },
     { mark: 'G4', icon: 'HandPalm', title: 'Reviews, the letter, gift cards and the till stay by hand', text: 'No build reaches a review site, The Ostler Letter’s mailing list, gift cards or the shop’s till, and none of them is claimed. People in the shop do those by hand. The agents read Airtable and the barbers’ free times in Cal.com, and book, move or hold nothing.' },
   ],
   glossary: [
@@ -233,7 +233,7 @@ const agents: Agents = {
     ['Trigger', 'The event that starts a run: a booking marked Cancelled, or the 09:00 schedule.'],
     ['Tool call', 'One action an agent asks for, like reading Members in Airtable or a barber’s free times in Cal.com.'],
     ['Free times', 'The open hours in a barber’s Cal.com book, read through Cal.com’s API and never changed by an agent.'],
-    ['First refusal', 'A member’s benefit on Friday and Saturday evenings, here an hour from 17:00, the line Tomas sets: their barber’s freed hour is offered to them first, before the waiting list.'],
+    ['First refusal', 'A member’s benefit on Friday and Saturday evenings, here an hour from 17:00, the line Tomas sets: their barber’s freed hour is offered to their members, Standing or Awaiting slot, before the waiting list. It means told first, not held: the hour stays open on the barber’s page, unless the barber holds it in their own book by hand.'],
     ['Waiting list', 'The members marked Waiting list in Members: they joined a barber who already had forty, and are waiting for a standing slot.'],
     ['Member’s cut', 'A member’s own visit, booked by their barber with no price, as membership covers it; a Member’s tidy is the beard shape or neck tidy between cuts. The Rebooking agent skips both.'],
     ['Agent runs', 'The Google Sheets tab that logs each agent run: the time, the barber, each tool call and who said yes.'],
