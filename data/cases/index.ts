@@ -34,6 +34,9 @@ import rangeEndToEnd from './range-physical-therapy/endToEnd.ts'
 import rangeFramework from './range-physical-therapy/agenticFramework.ts'
 import riverdaleAutomation from './riverdale-and-brooks/automation.ts'
 import riverdalePlan from './riverdale-and-brooks/buildPlan.ts'
+import riverdaleAgents from './riverdale-and-brooks/agents.ts'
+import riverdaleEndToEnd from './riverdale-and-brooks/endToEnd.ts'
+import riverdaleFramework from './riverdale-and-brooks/agenticFramework.ts'
 
 /** The pages a site has; a site need not have all five. */
 export type CaseSet = { automation?: Automations; plan?: Plan; framework?: AgenticFramework; endToEnd?: EndToEnd; agents?: Agents }
@@ -71,6 +74,9 @@ export const CASES: Record<string, CaseSet> = {
   'riverdale-and-brooks': {
     automation: withSite(riverdaleAutomation, 'riverdale-and-brooks', 'automation'),
     plan: withSite(riverdalePlan, 'riverdale-and-brooks', 'build-plan'),
+    agents: withSite(riverdaleAgents, 'riverdale-and-brooks', 'ai-agents'),
+    endToEnd: withSite(riverdaleEndToEnd, 'riverdale-and-brooks', 'end-to-end'),
+    framework: withSite(riverdaleFramework, 'riverdale-and-brooks', 'agentic-framework'),
   },
 }
 

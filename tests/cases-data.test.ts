@@ -330,11 +330,12 @@ describe('the checks can fail', () => {
     const notes = firm()
     notes.plan!.data.tables[1].fields.push('Case notes')
     expect(() => checkSite(notes, riverdale, SITES)).toThrow(/Case notes/)
+    const silent = () => JSON.parse(JSON.stringify(firm().agents).replace(/legal advice/gi, 'answers'))
     const advice = firm()
-    advice.agents = JSON.parse(JSON.stringify(advice.automation).replace(/legal advice/gi, 'answers'))
+    advice.agents = silent()
     expect(() => checkSite(advice, riverdale, SITES)).toThrow(/legal advice/)
     const advised = firm()
-    advised.agents = JSON.parse(JSON.stringify({ ...advised.automation, lede: `${advised.automation!.lede} The bot never gives legal advice.` }))
+    advised.agents = { ...silent(), lede: 'The bot never gives legal advice.' }
     expect(() => checkSite(advised, riverdale, SITES)).not.toThrow()
 
     const lonely = real()
