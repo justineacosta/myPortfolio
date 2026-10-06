@@ -250,7 +250,7 @@ export type CaseSetInfo = { automation?: Automations; plan?: Plan; framework?: A
 export const SENSITIVE: Record<string, { require: { page: keyof CaseSetInfo; text: RegExp; why: string }[]; bannedFields?: RegExp }> = {
   'range-physical-therapy': {
     require: [{ page: 'agents', text: /\b911\b/, why: 'the bot points an emergency to 911' }],
-    bannedFields: /symptom|diagnos|injur|condition|treatment/i,
+    bannedFields: /symptom|diagnos|injur|condition|treatment|reason|complaint|pain|referral|code|note/i,
   },
   'riverdale-and-brooks': {
     require: [{ page: 'agents', text: /legal advice/i, why: 'the bot never gives legal advice' }],
@@ -259,9 +259,30 @@ export const SENSITIVE: Record<string, { require: { page: keyof CaseSetInfo; tex
 
 /** The person’s-yes rule stated wider than the pages build it: a live chat bot answers without a yes (Lesson 9). */
 export const OVERBROAD_YES = [
-  /\b(?:anything|everything) (?:for|to|that reaches) (?:a|an|the) (?:client|guest|patient|buyer|owner)\b(?![’']s inbox)/i,
+  /\b(?:anything|everything) (?:for|to|that reaches) (?:a|an|the) (?:client|guest|patient|buyer|owner)s?\b(?![’']s (?:inbox|email))/i,
+  // “anything Claude drafts for a patient” without “’s inbox”: what Claude or an agent writes, not a money rule like “anything above waits for the owner”.
+  /\b(?:anything|everything) (?:that )?(?:Claude|an? agent|the bot|AI)(?: [\w’']+){0,2} (?:for|to) (?:a|an|the) (?:client|guest|patient|buyer|owner)s?\b(?![’']s (?:inbox|email))/i,
   /\b(?:anything|what) (?:a|an|the) (?:client|guest|patient|buyer|owner) reads\b/i,
 ]
+
+/**
+ * The other names a site goes by in copy, beyond its carousel name, so a page
+ * that borrows another site’s short name is caught too.
+ */
+export const SITE_ALIASES: Record<string, string[]> = {
+  'range-physical-therapy': ['Range PT', 'Range Physical'],
+  'riverdale-and-brooks': ['Riverdale', 'Riverdale and Brooks'],
+  'harbor-and-pine-moving': ['Harbor & Pine', 'Harbor and Pine'],
+  'ironline-utility-infrastructure': ['Ironline'],
+  'meridian-werks': ['Meridian Werks'],
+  'meridian-energy-infrastructure': ['Meridian Energy'],
+}
+
+/** Every name a site goes by, as whole-word patterns: a single word keeps its capital, so “a range of” is no leak; longer names ignore case. */
+function namesOf(site: SiteInfo): RegExp[] {
+  const esc = (t: string) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return [site.name, ...(SITE_ALIASES[keyOf(site)] ?? [])].map((n) => new RegExp(`\\b${esc(n)}(?!\\w)`, n.includes(' ') ? 'i' : ''))
+}
 
 /** Every tool id a page names: lists of ids, a step’s or card’s `tool`, and the hero’s tools. */
 function toolsOf(page: object): Set<string> {
@@ -288,7 +309,7 @@ export function checkSite(set: CaseSetInfo, site: SiteInfo, sites: SiteInfo[]) {
     const text = JSON.stringify(page)
     expect(text, `${key} ${name}: says the business is fictional`).toMatch(/fictional/i)
     expect(text, `${key} ${name}: marks its figures illustrative`).toMatch(/illustrative/i)
-    for (const other of sites) if (other.name !== site.name) expect(text, `${key} ${name}: names another site, ${other.name}`).not.toContain(other.name)
+    for (const other of sites) if (other.name !== site.name) for (const re of namesOf(other)) expect(text, `${key} ${name}: names another site, ${other.name}`).not.toMatch(re)
     for (const re of OVERBROAD_YES) expect(text, `${key} ${name}: states the person’s yes wider than built`).not.toMatch(re)
   }
 

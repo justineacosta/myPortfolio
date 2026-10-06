@@ -296,6 +296,15 @@ describe('the checks can fail', () => {
     const wide = real()
     wide.framework!.stance = 'Mara approves anything for a patient.'
     expect(() => checkSite(wide, range, SITES)).toThrow(/wider/)
+    const drafted = real()
+    drafted.framework!.stance = 'Mara approves anything Claude drafts for a patient.'
+    expect(() => checkSite(drafted, range, SITES)).toThrow(/wider/)
+    const scoped = real()
+    scoped.framework!.stance = 'Mara approves anything Claude drafts for a patient’s inbox.'
+    expect(() => checkSite(scoped, range, SITES)).not.toThrow()
+    const short = real()
+    short.agents!.lede += ' Riverdale’s office is across town.'
+    expect(() => checkSite(short, range, SITES)).toThrow(/Riverdale/)
     const reads = real()
     reads.endToEnd!.stance = 'Mara checks what a patient reads.'
     expect(() => checkSite(reads, range, SITES)).toThrow(/wider/)
@@ -307,6 +316,9 @@ describe('the checks can fail', () => {
     const stored = real()
     stored.plan!.data.tables[0].fields.push('Symptoms')
     expect(() => checkSite(stored, range, SITES)).toThrow(/Symptoms/)
+    const reason = real()
+    reason.plan!.data.tables[1].fields.push('Reason for visit')
+    expect(() => checkSite(reason, range, SITES)).toThrow(/Reason for visit/)
 
     const lonely = real()
     lonely.automation!.flows[0].nodes[0].tools = ['hubspot']

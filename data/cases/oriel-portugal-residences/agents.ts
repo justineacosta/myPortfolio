@@ -141,7 +141,7 @@ const agents: Agents = {
             { id: 'gmail', name: 'Gmail', tool: 'gmail', what: 'Sends the approved follow-up to the buyer.' },
             { id: 'telegram', name: 'Telegram', tool: 'telegram', what: 'Sends the brief to the architect walking the viewing.' },
             { id: 'hubspot', name: 'HubSpot', tool: 'hubspot', what: 'Logs the run on the buyer’s contact timeline.' },
-            { id: 'sheets', name: 'Google Sheets', tool: 'google-sheets', what: 'Logs the run in the Agent runs tab: what came in, each tool call, and who said yes.' },
+            { id: 'sheets', name: 'Google Sheets', tool: 'google-sheets', what: 'Logs the run in the Agent runs tab: what came in, each tool call, and any yes.' },
           ],
         },
       ],
