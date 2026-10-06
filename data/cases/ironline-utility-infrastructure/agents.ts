@@ -26,7 +26,7 @@ const PIN = { id: 'pin', label: 'Pin', what: 'A source, channel or tool this ste
 const BUSINESS = { name: 'Ironline Utility Infrastructure', trade: 'utility contractor' }
 
 /** The safety rule, as on Ironline’s other pages. */
-const SAFE = 'Ironline is a safety trade, so no bot or agent here gives a switching, clearance or energized-work instruction, or any other safety-critical step, and none overrides the job brief: those come from the job brief, the superintendent and system operations. Anything about a live line or an outage gets one answer: stop and call your superintendent. Emergencies go to the 24/7 line, (614) 555-0199, answered by people.'
+const SAFE = 'Ironline is a safety trade, so no bot or agent here gives a switching, clearance, outage or energized-work instruction, and none overrides the job brief: those come from the job brief, the superintendent and system operations. The bot quotes the issued SOP with its section and never writes a step of its own, and the job brief comes first. Anything about a live line or an outage gets one answer: stop and call your superintendent. Emergencies go to the 24/7 line, (614) 555-0199, answered by people, after 911 if anyone is hurt or there is fire.'
 
 /** The person’s-yes rule, as on Ironline’s other pages. */
 const YES = 'The safety director approves anything Claude drafts for company-wide distribution, within 48 hours of the report being filed.'
@@ -77,7 +77,7 @@ const agents: Agents = {
           ],
         },
         { id: 'guard', at: [1, 1], kind: 'branch', label: 'Live-work words?', sub: 'A fixed n8n If', icon: 'ShieldWarning', tools: ['n8n'], what: 'Before any search and before Claude, an n8n If checks the question against a fixed list of words the safety director keeps: live line, energized, outage, switching, clearance and the like. A match goes straight to a fixed stop-and-call reply, so Claude never sees it. The rule does not depend on the model. It is a word list, not a read for an emergency: emergencies always go to the 24/7 line.' },
-        { id: 'stop', at: [1, 2], kind: 'end', label: 'Stop, call the super', sub: 'Fixed reply', icon: 'HandPalm', what: 'A fixed reply, never Claude’s: “Stop. Live work comes only from your job brief and your superintendent. Call your superintendent. Emergency: (614) 555-0199.” It forwards nothing and alerts no one.' },
+        { id: 'stop', at: [1, 2], kind: 'end', label: 'Stop, call the super', sub: 'Fixed reply', icon: 'HandPalm', what: 'A fixed reply, never Claude’s: “Stop. Live work comes only from your job brief and your superintendent. Call your superintendent. If anyone is hurt or there is fire, call 911, then (614) 555-0199.” It forwards nothing and alerts no one.' },
         { id: 'qembed', at: [2, 1], kind: 'step', label: 'Embed the question', sub: 'Same model', icon: 'Binary', what: 'The question goes through the same embeddings model, so it can be compared with the stored passages.' },
         { id: 'search', at: [3, 1], kind: 'step', label: 'Search', sub: 'Top 5 passages', icon: 'MagnifyingGlass', tools: ['supabase'], what: 'A vector search in Supabase finds the five SOP sections or sheet rows closest in meaning to the question.' },
         { id: 'answer', at: [4, 1], kind: 'step', label: 'Claude answers', sub: 'From the passages', icon: 'Sparkle', tools: ['claude'], what: 'Claude gets the question and those five passages, with three rules: answer only from them, with the SOP and section or the sheet row; never invent a figure, date or price; and never give a switching, clearance or energized-work step, or anything that overrides the job brief.' },
@@ -85,11 +85,11 @@ const agents: Agents = {
         { id: 'reply', at: [6, 1], kind: 'end', label: 'Reply with source', sub: 'SOP section or row', icon: 'ArrowBendUpLeft', what: 'The answer goes straight back in Telegram with its source, like (Field SOP §3.1), so the crew member can open the SOP and check. It answers live, from the SOPs only, so it needs no one’s yes. The job brief still comes first.' },
         {
           id: 'handoff', at: [5, 2], kind: 'end', label: 'Stop and call', sub: 'Your superintendent', icon: 'UserSwitch', pinType: 'HANDOFF',
-          what: 'The bot says the answer isn’t in the SOPs, or that the question is about live work, and tells the crew member to stop and call their superintendent. The reply is fixed text, and every Stop-and-call reply ends with the 24/7 line, (614) 555-0199. It forwards nothing, calls no one and alerts no one.',
+          what: 'The bot says the answer isn’t in the SOPs, or that the question is about live work, and tells the crew member to stop and call their superintendent. The reply is fixed text, and every Stop-and-call reply ends: “If anyone is hurt or there is fire, call 911, then (614) 555-0199.” It forwards nothing, calls no one and alerts no one.',
           pins: [
             { id: 'super', name: 'The superintendent', icon: 'UserCircle', what: 'Anything about a live line, an outage, switching, clearance or energized work gets one answer: stop and call your superintendent. Those steps come from the job brief, the superintendent and system operations, never from the bot.' },
-            { id: 'emergency', name: 'The 24/7 line', icon: 'Phone', what: 'An emergency goes to (614) 555-0199, answered 24/7/365 by people. The bot gives the number and nothing else: it reads no message for an emergency, dispatches no one and promises no crew or time.' },
-            { id: 'office', name: 'Not in the SOPs', icon: 'Question', what: 'A question the SOPs and the sheet do not answer gets “That isn’t in the SOPs. Call your superintendent or the office. Emergency: (614) 555-0199.” The bot never guesses.' },
+            { id: 'emergency', name: 'The 24/7 line', icon: 'Phone', what: 'Every fixed reply ends: “If anyone is hurt or there is fire, call 911, then (614) 555-0199.” (614) 555-0199 is the 24/7 line, answered 24/7/365 by people. The bot gives the numbers and nothing else: it reads no message for an emergency, dispatches no one and promises no crew or time.' },
+            { id: 'office', name: 'Not in the SOPs', icon: 'Question', what: 'A question the SOPs and the sheet do not answer gets “That isn’t in the SOPs. Call your superintendent or the office. If anyone is hurt or there is fire, call 911, then (614) 555-0199.” The bot never guesses.' },
           ],
         },
       ],
