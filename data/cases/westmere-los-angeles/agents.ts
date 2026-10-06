@@ -150,7 +150,7 @@ const agents: Agents = {
           pins: [
             { id: 'gmail', name: 'Gmail', tool: 'gmail', what: 'Sends the approved follow-up from private@westmere.la, word for word as the hosting agent approved it, with +1 310 555 0148, DRE #02114471 and Equal Housing Opportunity. A reply reaches the sales team and a person.' },
             { id: 'telegram', name: 'Telegram', tool: 'telegram', what: 'Posts the viewing brief, or a note that nothing was drafted, in the hosting agent’s own chat. Never to a buyer.' },
-            { id: 'sheets', name: 'Google Sheets', tool: 'google-sheets', what: 'Logs the run in the Agent runs tab: the time, the viewing, each tool call by name, and who said yes. Never a buyer’s details beyond the viewing.' },
+            { id: 'sheets', name: 'Google Sheets', tool: 'google-sheets', what: 'Logs the run in the Agent runs tab: the time, the viewing, each tool call by name, and who said yes. Never a buyer’s details beyond the viewing. WM-H02 is both agents’ error workflow, so a failed run reaches the sales team too.' },
             { id: 'host', name: 'The host, by hand', icon: 'UserCircle', what: 'The hosting agent answers any reply, calls a buyer if they choose, and passes any offer to the sales team. Proof of funds stays the sales director’s call. No build does any of it.' },
           ],
         },
