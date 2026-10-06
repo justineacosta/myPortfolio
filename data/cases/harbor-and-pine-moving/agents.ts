@@ -145,15 +145,15 @@ const agents: Agents = {
           ],
         },
         { id: 'check', at: [3, 0], kind: 'branch', label: 'Check the result', sub: 'Done yet?', icon: 'ListChecks', what: 'Claude looks at what came back. If the job is not done yet, it goes back to plan the next step.' },
-        { id: 'needs', at: [4, 0], kind: 'branch', label: 'Customer’s inbox?', sub: 'Or the coordinator', icon: 'ShieldCheck', what: 'Is a draft on its way to a customer’s inbox? Then it waits for the move’s coordinator. A walkthrough brief, a paid invoice or one already followed up goes to the coordinator only, with no gate.' },
-        { id: 'gate', at: [5, 0], kind: 'gate', label: 'The coordinator’s yes', sub: 'Approve in Telegram', icon: 'UserCheck', tools: ['telegram'], what: 'The draft waits in the coordinators’ Telegram group, named for the move’s coordinator, with a button that opens an n8n form: Approve or Change it, and Coordinator, who is answering. Opening it records nothing; only the form’s submit does, and Agent runs logs that name.' },
+        { id: 'needs', at: [4, 0], kind: 'branch', label: 'Customer’s inbox?', sub: 'Or the coordinator', icon: 'ShieldCheck', what: 'Is a draft on its way to a customer’s inbox? Then it waits for the move’s coordinator, or another coordinator who names themselves on the form. A walkthrough brief, a paid invoice or one already followed up goes to the coordinator only, with no gate.' },
+        { id: 'gate', at: [5, 0], kind: 'gate', label: 'The coordinator’s yes', sub: 'Approve in Telegram', icon: 'UserCheck', tools: ['telegram'], what: 'The draft waits in the coordinators’ Telegram group, named for the move’s coordinator, with a button that opens an n8n form: Approve or Change it, and Coordinator, who is answering. The move’s coordinator answers, or another coordinator who names themselves on the form. Opening it records nothing; only the form’s submit does, and Agent runs logs that name.' },
         {
           id: 'act', at: [6, 0], kind: 'end', label: 'Send and log', sub: 'Approved or internal', icon: 'PaperPlaneTilt', pinType: 'OUTPUT',
           what: 'An approved reminder goes from hello@harborandpine.example in the coordinator’s name, a brief or a note goes to the coordinators’ group, and every run is logged in the Agent runs tab.',
           pins: [
             { id: 'gmail', name: 'Gmail', tool: 'gmail', what: 'Sends the approved reminder from hello@harborandpine.example, word for word as the coordinator approved it. A reply reaches the coordinators’ inbox and a person.' },
             { id: 'telegram', name: 'Telegram', tool: 'telegram', what: 'Posts the walkthrough brief, or a note that an invoice needs a call, in the coordinators’ group for the coordinator it names. Never to a customer.' },
-            { id: 'sheets', name: 'Google Sheets', tool: 'google-sheets', what: 'Logs the run in the Agent runs tab: the time, the invoice or the walkthrough, each tool call by name, and who said yes.' },
+            { id: 'sheets', name: 'Google Sheets', tool: 'google-sheets', what: 'Logs the run in the Agent runs tab: the time, the invoice or the walkthrough, each tool call by name, and who said yes. HP-H02 is both agents’ error workflow, so a failed run reaches the coordinators’ group too.' },
             { id: 'coordinator', name: 'The coordinator, by hand', icon: 'UserCircle', what: 'The coordinator answers any reply, calls a customer whose invoice is still open, and handles any refund or damage claim by hand. No build does.' },
           ],
         },
@@ -180,7 +180,7 @@ const agents: Agents = {
         { id: 'signal', label: 'Live signal', what: 'A ball is one invoice or one walkthrough going through right now.' },
         { id: 'loop', label: 'Loop-back', what: 'A dashed cable back to an earlier step.' },
         BRANCH,
-        { id: 'gate', label: 'Approval gate', what: 'The run stops here until the move’s coordinator says yes.' },
+        { id: 'gate', label: 'Approval gate', what: 'The run stops here until the move’s coordinator, or another coordinator who names themselves on the form, says yes.' },
         PIN,
       ],
     },
@@ -197,7 +197,7 @@ const agents: Agents = {
     },
     {
       id: 'billing', kind: 'agent', name: 'Billing follow-up agent', business: BUSINESS,
-      line: 'Spots Harbor & Pine Moving Co.’s overdue invoices in Stripe, drafts a polite reminder and logs it. The reminder waits for the move’s coordinator to say yes; an invoice paid since, or one already reminded, goes to the coordinator instead, with nothing drafted for the customer.',
+      line: 'Spots Harbor & Pine Moving Co.’s overdue invoices in Stripe, drafts a polite reminder and logs it. The reminder waits for a yes from the move’s coordinator, or another coordinator who names themselves on the form; an invoice paid since, or one already reminded, goes to the coordinator instead, with nothing drafted for the customer.',
       example: { ask: 'Stripe: office-move invoice HP-0142 is 14 days overdue.', answer: 'A friendly reminder with the invoice’s Stripe payment link, in the coordinator’s name, drafted and waiting for their yes in Telegram.' },
       tools: ['claude', 'n8n', 'stripe', 'airtable', 'gmail', 'google-sheets', 'telegram'],
       routes: ['straight', 'notdone', 'changed', 'internal'],
@@ -226,7 +226,7 @@ const agents: Agents = {
   guardrails: [
     { mark: 'G1', icon: 'Quotes', title: 'Answers only from the guide and FAQ', text: 'The bot answers from the passages it found and names them. It never gives a price or a range, never invents a date or a figure, and the coordinators’ rate card is never in its store. It cannot see a deal, a move or an invoice, books nothing, takes no payment and never emails.' },
     { mark: 'G2', icon: 'HandPalm', title: 'No price from a bot', text: `The site promises ${PROMISE} Asked what a move costs, the bot says how an estimate is set and opens the quote form, where a coordinator replies the same working day with a written range, or books a walkthrough. A damage claim, a booked move, an invoice or anything the guide does not settle goes to a person, by phone or email.` },
-    { mark: 'G3', icon: 'ShieldCheck', title: 'The coordinator says yes to every customer email', text: `${YES} Every reminder the Billing follow-up agent drafts stops in the coordinators’ Telegram group for the move’s coordinator, and each run is logged with their yes. It never changes an invoice, adds a fee or offers a discount. The walkthrough brief goes to the coordinator only and holds no range. The move-day message is a fixed template and sends on its own, and the bot answers live, in the site chat only.` },
+    { mark: 'G3', icon: 'ShieldCheck', title: 'The coordinator says yes to every customer email', text: `${YES} Every reminder the Billing follow-up agent drafts stops in the coordinators’ Telegram group for the move’s coordinator, or another coordinator who names themselves on the form, and each run is logged with their yes. It never changes an invoice, adds a fee or offers a discount. The walkthrough brief goes to the coordinator only and holds no range. The move-day message is a fixed template and sends on its own, and the bot answers live, in the site chat only.` },
     { mark: 'G4', icon: 'Truck', title: 'Ferries, reviews and claims stay by hand', text: 'No build reaches a ferry operator, a crane hire, the insurer, a building’s portal or a review site, and none is claimed. The coordinators book ferries, cranes and crating by hand, and a person handles every damage claim and refund.' },
   ],
   glossary: [

@@ -78,7 +78,7 @@ const STEPS: Step[] = [
   step('i2', 'I', [2, 0], 'agent', 'Read the invoice', 'Stripe, Moves, the log', 'ClipboardText', 'One tool call at a time: the amount due and payments in Stripe, the move it names and its coordinator in Moves, and any reminder already logged in Agent runs.', ['stripe', 'airtable']),
   step('i3', 'I', [3, 0], 'decision', 'Still owed?', 'And not yet reminded', 'Question', 'Is it still unpaid, with no reminder logged yet? Paid since, or already reminded once, and nothing is drafted for the customer.'),
   step('i4', 'I', [4, 0], 'ai', 'Draft the reminder', 'Claude, polite', 'PencilSimple', 'Claude drafts a short, polite reminder in the coordinator’s name: the invoice, the amount, the due date and its Stripe payment link. No fee and no discount.', ['claude']),
-  step('i5', 'I', [5, 0], 'gate', 'The coordinator’s yes', 'Approve in Telegram', 'UserCheck', 'An approval gate: the draft waits in the coordinators’ group for the move’s coordinator, with an n8n form: Approve or Change it, and Coordinator. Nothing is sent until they approve.', ['telegram']),
+  step('i5', 'I', [5, 0], 'gate', 'The coordinator’s yes', 'Approve in Telegram', 'UserCheck', 'An approval gate: the draft waits in the coordinators’ group for the move’s coordinator, or another coordinator who names themselves on the form: Approve or Change it, and Coordinator. Nothing is sent until one approves.', ['telegram']),
   step('i6', 'I', [6, 0], 'end', 'Send the reminder', 'Gmail, then logged', 'PaperPlaneTilt', 'Gmail sends it from hello@harborandpine.example, and the run is logged in Agent runs with the coordinator’s yes. A reply reaches a person.', ['gmail', 'google-sheets']),
   step('i7', 'I', [4, 1.5], 'end', 'Tell the coordinator', 'Telegram, a log only', 'Bell', 'The coordinators hear the invoice is paid, already reminded or names no move, and a person calls if they choose. The run is logged in Agent runs.', ['telegram', 'google-sheets']),
 
@@ -90,9 +90,9 @@ const STEPS: Step[] = [
   step('j6', 'J', [5, 0], 'end', 'Send to the building', 'Gmail, then Sent', 'EnvelopeSimple', 'A fixed template emails building management the checked certificate, copied to the coordinator, and the request is marked Sent.', ['gmail', 'airtable'], true),
   step('j7', 'J', [5, 1.5], 'end', 'Nothing sent', 'Rejected', 'XCircle', 'A rejected certificate never reaches the building. The coordinator asks the insurer again and logs the corrected one as a new request.'),
 
-  step('k1', 'K', [0, 0], 'trigger', 'A run fails', 'n8n, Make or Zapier', 'Warning', 'n8n’s Error Trigger hears a failed HP-01 run, and a webhook hears a failed Make or Zapier step in HP-02 or HP-03.', ['n8n'], true),
-  step('k2', 'K', [1, 0], 'step', 'Log the failed run', 'Google Sheets', 'Table', 'A row in the Failed runs tab: the platform, the flow, the step, the error and a link to the run, never a customer’s details.', ['google-sheets']),
-  step('k3', 'K', [2, 0], 'end', 'Alert the coordinators', 'Their Telegram group', 'Bell', 'The coordinators get an urgent Telegram message with a link to the run. Nothing retries on its own: they decide, or call Justine.', ['telegram']),
+  step('k1', 'K', [0, 0], 'trigger', 'A run fails', 'n8n, Make or Zapier', 'Warning', 'n8n’s Error Trigger hears a failed HP-01 or agent run, and a webhook hears a failed Make step in HP-02, or a failed or halted HP-03 run from Zapier Manager.', ['n8n'], true),
+  step('k2', 'K', [1, 0], 'step', 'Log the failed run', 'Google Sheets', 'Table', 'A row in the Failed runs tab with what each source gives: n8n’s step and run link, Make’s step and error, or Zapier’s zap and time. Never a customer’s details.', ['google-sheets']),
+  step('k3', 'K', [2, 0], 'end', 'Alert the coordinators', 'Their Telegram group', 'Bell', 'The coordinators hear on Telegram: a failure urgently, a halted run as an ordinary alert. Nothing retries on its own: they decide, or call Justine.', ['telegram']),
 ]
 
 /** Lanes whose steps read in order, one per column, carry numbers; a branch’s side exit does not. */
@@ -186,7 +186,7 @@ const endToEnd: EndToEnd = {
       ['Lead mover', 'The person who walks the house before anything is lifted and leads the crew on the day. The customer has their number.'],
       ['Human in the Loop', 'Zapier’s approval step: the coordinator gets an email link to a review page, and only their choice there counts.'],
       ['Agent runs', 'The Google Sheets tab that logs each agent run, with the coordinator’s yes.'],
-      ['Failed runs', 'The Google Sheets tab that logs each failed run from n8n, Make or Zapier, with no customer’s details.'],
+      ['Failed runs', 'The Google Sheets tab that logs each failed or halted run from n8n, Make or Zapier, with no customer’s details.'],
       ['Approval gate', `A hard stop. ${YES}`],
       ['Agent', 'An AI with one job that picks its own tools, one call at a time, until the job is done.'],
     ],
