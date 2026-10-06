@@ -17,6 +17,21 @@ import orielPlan from './oriel-portugal-residences/buildPlan.ts'
 import orielAgents from './oriel-portugal-residences/agents.ts'
 import orielEndToEnd from './oriel-portugal-residences/endToEnd.ts'
 import orielFramework from './oriel-portugal-residences/agenticFramework.ts'
+import tidewellAutomation from './tidewell-vacation-rentals/automation.ts'
+import tidewellPlan from './tidewell-vacation-rentals/buildPlan.ts'
+import tidewellAgents from './tidewell-vacation-rentals/agents.ts'
+import tidewellEndToEnd from './tidewell-vacation-rentals/endToEnd.ts'
+import tidewellFramework from './tidewell-vacation-rentals/agenticFramework.ts'
+import altitudeAutomation from './altitude-personal-training/automation.ts'
+import altitudePlan from './altitude-personal-training/buildPlan.ts'
+import altitudeAgents from './altitude-personal-training/agents.ts'
+import altitudeEndToEnd from './altitude-personal-training/endToEnd.ts'
+import altitudeFramework from './altitude-personal-training/agenticFramework.ts'
+import rangeAutomation from './range-physical-therapy/automation.ts'
+import rangePlan from './range-physical-therapy/buildPlan.ts'
+import rangeAgents from './range-physical-therapy/agents.ts'
+import rangeEndToEnd from './range-physical-therapy/endToEnd.ts'
+import rangeFramework from './range-physical-therapy/agenticFramework.ts'
 
 /** The pages a site has; a site need not have all five. */
 export type CaseSet = { automation?: Automations; plan?: Plan; framework?: AgenticFramework; endToEnd?: EndToEnd; agents?: Agents }
@@ -29,6 +44,27 @@ export const CASES: Record<string, CaseSet> = {
     agents: withSite(orielAgents, 'oriel-portugal-residences', 'ai-agents'),
     endToEnd: withSite(orielEndToEnd, 'oriel-portugal-residences', 'end-to-end'),
     framework: withSite(orielFramework, 'oriel-portugal-residences', 'agentic-framework'),
+  },
+  'tidewell-vacation-rentals': {
+    automation: withSite(tidewellAutomation, 'tidewell-vacation-rentals', 'automation'),
+    plan: withSite(tidewellPlan, 'tidewell-vacation-rentals', 'build-plan'),
+    agents: withSite(tidewellAgents, 'tidewell-vacation-rentals', 'ai-agents'),
+    endToEnd: withSite(tidewellEndToEnd, 'tidewell-vacation-rentals', 'end-to-end'),
+    framework: withSite(tidewellFramework, 'tidewell-vacation-rentals', 'agentic-framework'),
+  },
+  'altitude-personal-training': {
+    automation: withSite(altitudeAutomation, 'altitude-personal-training', 'automation'),
+    plan: withSite(altitudePlan, 'altitude-personal-training', 'build-plan'),
+    agents: withSite(altitudeAgents, 'altitude-personal-training', 'ai-agents'),
+    endToEnd: withSite(altitudeEndToEnd, 'altitude-personal-training', 'end-to-end'),
+    framework: withSite(altitudeFramework, 'altitude-personal-training', 'agentic-framework'),
+  },
+  'range-physical-therapy': {
+    automation: withSite(rangeAutomation, 'range-physical-therapy', 'automation'),
+    plan: withSite(rangePlan, 'range-physical-therapy', 'build-plan'),
+    agents: withSite(rangeAgents, 'range-physical-therapy', 'ai-agents'),
+    endToEnd: withSite(rangeEndToEnd, 'range-physical-therapy', 'end-to-end'),
+    framework: withSite(rangeFramework, 'range-physical-therapy', 'agentic-framework'),
   },
 }
 
