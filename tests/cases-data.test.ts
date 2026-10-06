@@ -9,7 +9,7 @@ import { CASE_PAGES, CASE_SITES, casePath, type CasePageId } from '@/data/cases/
 import { endToEnd } from '@/data/endToEnd'
 import { projects } from '@/data/projects'
 import { findPlaceholders } from '@/scripts/placeholders'
-import { checkAgents, checkAutomation, checkCopy, checkEndToEnd, checkFramework, checkPlan, checkSite, keyOf, prefixOf, SITE_PREFIX, type SiteInfo } from './helpers/caseChecks'
+import { checkAgents, checkAutomation, checkComplete, checkCopy, checkEndToEnd, checkFramework, checkPlan, checkSite, keyOf, prefixOf, SITE_PREFIX, type SiteInfo } from './helpers/caseChecks'
 
 const SITES: SiteInfo[] = projects.sitesView.sites
 const siteOf = (key: string) => SITES.find((s) => s.file === `${key}.html`)!
@@ -20,8 +20,9 @@ describe('the case registry', () => {
     expect([...CASE_SITES].sort()).toEqual(Object.keys(CASES).sort())
   })
 
+  // The trade rules rely on this test: checkSite checks a rule only once its page is registered, so a page that never lands is caught here.
   it('gives every case all five pages', () => {
-    for (const [key, set] of cases) for (const page of ['automation', 'plan', 'framework', 'endToEnd', 'agents'] as const) expect(set[page], `${key}: ${page}`).toBeDefined()
+    for (const [key, set] of cases) checkComplete(set, key)
   })
 
   it('keeps pages.ts free of runtime imports, so it stays light for the client bundle', () => {
@@ -337,6 +338,16 @@ describe('the checks can fail', () => {
     const advised = firm()
     advised.agents = { ...silent(), lede: 'The bot never gives legal advice.' }
     expect(() => checkSite(advised, riverdale, SITES)).not.toThrow()
+    for (const field of ['Notes', 'Matter description', 'Details', 'Summary', 'Opposing party', 'Parties']) {
+      const wider = firm()
+      wider.plan!.data.tables[1].fields.push(field)
+      expect(() => checkSite(wider, riverdale, SITES), field).toThrow(field)
+    }
+    // Ruling C2: with the agents page missing, checkSite skips its legal-advice rule, and the five-pages check fails instead.
+    const unregistered = firm()
+    delete unregistered.agents
+    expect(() => checkSite(unregistered, riverdale, SITES)).not.toThrow()
+    expect(() => checkComplete(unregistered, 'riverdale-and-brooks')).toThrow(/agents/)
 
     const lonely = real()
     lonely.automation!.flows[0].nodes[0].tools = ['hubspot']

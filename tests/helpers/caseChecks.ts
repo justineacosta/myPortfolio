@@ -243,6 +243,15 @@ export function checkCopy(page: { site?: { name: string; href: string; page: str
 export type CaseSetInfo = { automation?: Automations; plan?: Plan; framework?: AgenticFramework; endToEnd?: EndToEnd; agents?: Agents }
 
 /**
+ * Every case has all five pages. checkSite checks a trade rule only once its
+ * page is registered, so the trade rules rely on this check to catch a page
+ * that never lands.
+ */
+export function checkComplete(set: CaseSetInfo, key: string) {
+  for (const page of ['automation', 'plan', 'framework', 'endToEnd', 'agents'] as const) expect(set[page], `${key}: ${page}`).toBeDefined()
+}
+
+/**
  * What a site's trade needs on its pages (spec §6, sensitive trades). `require`
  * is text a page must carry; `bannedFields` is a pattern no Build plan table
  * field may match, so nothing it names is ever stored.
@@ -254,7 +263,7 @@ export const SENSITIVE: Record<string, { require: { page: keyof CaseSetInfo; tex
   },
   'riverdale-and-brooks': {
     require: [{ page: 'agents', text: /legal advice/i, why: 'the bot never gives legal advice' }],
-    bannedFields: /situation|confidential|privileged|case notes|facts/i,
+    bannedFields: /situation|confidential|privileged|case notes|facts|notes?\b|description|details|summary|part(y|ies)|opposing/i,
   },
 }
 
