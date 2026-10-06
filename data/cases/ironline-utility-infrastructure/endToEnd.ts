@@ -53,19 +53,20 @@ const STEPS: Step[] = [
   step('c6', 'C', [4, 0], 'end', 'Acknowledge it', 'A fixed template', 'EnvelopeSimple', 'A fixed template replies on the thread: a superintendent, not a salesperson, will respond within one business day, and for storm or emergency, call (614) 555-0199.', ['gmail'], true),
 
   step('d1', 'D', [3, 0], 'trigger', 'Superintendent set', 'Airtable Trigger', 'Lightning', 'A separate n8n workflow, not a step in IL-01, starts once when a new request gets its superintendent, by the rota or by the bid desk.', ['n8n', 'airtable'], true),
-  step('d2', 'D', [4, 0], 'agent', 'Read the request', 'One read at a time', 'ClipboardText', 'The agent reads the row, the email as written and the sender’s earlier requests. The drawings stay in bids@: it never opens them. An empty history reads as none on record.', ['airtable']),
-  step('d3', 'D', [5, 0], 'ai', 'Summarise the email', 'Claude, no reply', 'Sparkle', 'Claude writes what the email says: the scope, the place and the dates as written, and whether drawings are attached. No reply, no price, nothing on an outage or a clearance.', ['claude']),
+  step('d2', 'D', [4, 0], 'agent', 'Read the request', 'One read at a time', 'ClipboardText', 'The agent reads the row, the email as written and the sender’s earlier requests. The row holds no attachments: it never opens the drawings. An empty history reads as none on record.', ['airtable']),
+  step('d3', 'D', [5, 0], 'ai', 'Summarise the email', 'Claude, no reply', 'Sparkle', 'Claude writes what the email says: the scope, the place and the dates as written, and what it says about drawings. No reply, no price, nothing on an outage or a clearance.', ['claude']),
   step('d4', 'D', [6, 0], 'end', 'To the super only', 'Telegram', 'PaperPlaneTilt', 'The summary goes to the assigned superintendent’s own Telegram chat, with a link to the thread. Never to the sender, so it needs no one’s yes.', ['telegram']),
 
   step('e1', 'E', [1, 0], 'trigger', 'A crew asks', 'In Telegram', 'ChatCircleText', 'A crew member in the field asks Ironline’s Telegram bot a question about a field SOP or a unit of equipment.'),
   step('e2', 'E', [6, 0], 'end', 'Write the response', 'In one business day', 'PencilSimple', 'The superintendent reads the thread and the drawings in bids@, prices the bid and writes the response by hand, within one business day, then sets the row Responded.'),
 
-  step('f1', 'F', [0, 0], 'trigger', 'SOPs loaded', 'Live-work parts out', 'Database', 'Each field SOP the safety director issues, and each night the equipment sheet, is split by section, embedded and stored in Supabase, with the switching, clearance and energized-work sections left out.', ['n8n', 'supabase'], true),
-  step('f2', 'F', [1, 0], 'step', 'Search the SOPs', 'Top 5 passages', 'MagnifyingGlass', 'The question is embedded and searched in Supabase against the SOP sections and the equipment sheet’s rows, in Google Sheets.', ['supabase', 'google-sheets']),
-  step('f3', 'F', [2, 0], 'ai', 'Claude answers', 'Only from the page', 'Sparkle', 'Claude answers only from the five passages, with the SOP and section or the sheet row. No invented figure or date, and never a switching, clearance or energized-work step.', ['claude']),
-  step('f4', 'F', [3, 0], 'decision', 'On the page?', 'And not live work', 'Question', 'Did a passage hold the answer, and is the question clear of a live line, an outage, switching, clearance and energized work? Yes only if both.'),
-  step('f5', 'F', [4, 0], 'end', 'Reply with source', 'SOP section or row', 'ArrowBendUpLeft', 'The answer goes back in Telegram with its source, like (Field SOP §3.1). It answers live from the SOPs, so it needs no one’s yes, and the job brief still comes first.', ['telegram']),
-  step('f6', 'F', [4, 1.5], 'end', 'Stop and call', 'Your superintendent', 'UserSwitch', 'Anything about live work, or not in the SOPs: stop and call your superintendent. An emergency goes to (614) 555-0199. The bot forwards nothing.', ['telegram']),
+  step('f1', 'F', [1, 0], 'decision', 'Live-work words?', 'A fixed n8n If', 'ShieldWarning', 'A fixed n8n If checks the question for live-work words, like live line, energized, outage, switching or clearance, before any search or Claude. A match gets a fixed stop-and-call reply.', ['n8n'], true),
+  step('f7', 'F', [1, 1.5], 'end', 'Stop, call the super', 'Fixed reply', 'HandPalm', 'A fixed reply, never Claude’s: stop, live work comes only from your job brief and your superintendent; call them. It ends with (614) 555-0199.', ['telegram']),
+  step('f2', 'F', [2, 0], 'step', 'Search the SOPs', 'Top 5 passages', 'MagnifyingGlass', 'The question is searched in Supabase, which holds the SOPs and the equipment sheet’s rows from Google Sheets, with the switching, clearance and energized-work sections left out.', ['supabase', 'google-sheets']),
+  step('f3', 'F', [3, 0], 'ai', 'Claude answers', 'Only from the page', 'Sparkle', 'Claude answers only from the five passages, with the SOP and section or the sheet row. No invented figure or date, and never a switching, clearance or energized-work step.', ['claude']),
+  step('f4', 'F', [4, 0], 'decision', 'On the page?', 'And not live work', 'Question', 'Claude’s own check, behind the fixed one: did a passage hold the answer, and is the question clear of live work? Yes only if both.'),
+  step('f5', 'F', [5, 0], 'end', 'Reply with source', 'SOP section or row', 'ArrowBendUpLeft', 'The answer goes back in Telegram with its source, like (Field SOP §3.1). It answers live from the SOPs, so it needs no one’s yes, and the job brief still comes first.', ['telegram']),
+  step('f6', 'F', [5, 1.5], 'end', 'Stop and call', 'Your superintendent', 'UserSwitch', 'Live work, or not in the SOPs: stop and call your superintendent. The reply is fixed text and always ends with (614) 555-0199. The bot forwards nothing.', ['telegram']),
 
   step('g1', 'G', [0, 0], 'trigger', 'Near-miss filed', 'On the report form', 'Warning', 'A crew member files a near-miss on the Airtable form: what happened, what stopped it, the lesson. Never who was at fault. Make picks it up within 15 minutes.', ['airtable', 'make'], true),
   step('g2', 'G', [1, 0], 'ai', 'Draft the bulletin', 'Near-miss agent', 'Sparkle', 'The Near-miss bulletin agent: one Make call to Claude, roles never names, no fault. A report touching switching or clearance gets Touches procedure Yes and an empty lesson.', ['claude']),
@@ -89,7 +90,7 @@ const STEPS: Step[] = [
 
 /** Lanes whose steps read in order, one per column, carry numbers; a branch’s side exit does not. */
 const NUMBERED = new Set<LaneId>(['C', 'D', 'F', 'G', 'H', 'I'])
-const SIDE = new Set(['c3', 'f6', 'h7'])
+const SIDE = new Set(['c3', 'f6', 'f7', 'h7'])
 
 // Order matters for the layout: cables that share a gap take its slots in turn, and side-channel cables take tracks from the outside in.
 const CABLES: Cable[] = [
@@ -104,8 +105,9 @@ const CABLES: Cable[] = [
   flow('c4', 'd1', 'assigned'),
   ...chain('d1', 'd2', 'd3', 'd4'),
   flow('d4', 'e2'),
-  flow('e1', 'f2'),
-  flow('f1', 'f2'),
+  flow('e1', 'f1'),
+  flow('f1', 'f2', 'no'),
+  flow('f1', 'f7', 'live work'),
   ...chain('f2', 'f3', 'f4'),
   flow('f4', 'f5', 'yes'),
   flow('f4', 'f6', 'no'),

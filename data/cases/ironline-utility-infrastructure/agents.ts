@@ -15,7 +15,7 @@ import type { Agents, Cable } from '../../agents.ts'
 
 const flow = (from: string, to: string, label?: string): Cable => ({ from, to, kind: 'flow', ...(label ? { label } : {}) })
 const loop = (from: string, to: string, label: string): Cable => ({ from, to, kind: 'loop', label })
-const ASK = ['ask', 'qembed', 'search', 'answer', 'sure']
+const ASK = ['ask', 'guard', 'qembed', 'search', 'answer', 'sure']
 const RUN = ['trigger', 'plan', 'tool', 'check']
 
 const CABLE = { id: 'cable', label: 'Cable', what: 'Work moving from one step to the next.' } as const
@@ -42,7 +42,7 @@ const agents: Agents = {
   heroTools: ['claude', 'n8n', 'supabase'],
   sections: [
     { id: 'glance', chip: 'At a glance', kicker: 'AT A GLANCE', title: 'Two patterns, one safety rule', blurb: `Every build below is one of two patterns, and none gives a switching, clearance or energized-work step. ${YES}` },
-    { id: 'rag', chip: 'RAG chatbots', kicker: 'HOW THE TEAM KNOWLEDGE BOT WORKS', title: 'Search the SOPs first, then answer', blurb: 'The field SOPs and the equipment sheet are prepared once, with the switching, clearance and energized-work sections left out. Every question then searches them before Claude says a word. Click any step.' },
+    { id: 'rag', chip: 'RAG chatbots', kicker: 'HOW THE TEAM KNOWLEDGE BOT WORKS', title: 'Search the SOPs first, then answer', blurb: 'The field SOPs and the equipment sheet are prepared once, with the switching, clearance and energized-work sections left out. Every question then meets a fixed check for live-work words, and only then searches them before Claude says a word. Click any step.' },
     { id: 'agent', chip: 'Agents', kicker: 'HOW AN AGENT WORKS', title: 'Plan, use a tool, check, repeat', blurb: 'An assigned bid request or a filed near-miss starts it. Claude works from what the run hands it, one read at a time, until the job is done. Click any step.' },
     { id: 'builds', chip: 'The builds', kicker: 'THREE SAMPLE BUILDS', title: 'Three builds for Ironline', blurb: 'One bot for the crews, one agent for the superintendents and one for the safety director. Show any one’s route on its diagram.' },
     { id: 'guardrails', chip: 'Guardrails', kicker: 'GUARDRAILS', title: 'Four rules every build follows', blurb: 'They are what keep a utility contractor’s bot and agents out of the switching, clearance and energized-work steps that belong to people.' },
@@ -56,7 +56,7 @@ const agents: Agents = {
   diagrams: {
     rag: {
       id: 'rag',
-      caption: 'The Team knowledge bot · 3 ways through',
+      caption: 'The Team knowledge bot · 4 ways through',
       steps: [
         {
           id: 'docs', at: [0, 0], kind: 'start', label: 'SOPs and kit sheet', sub: 'Issued by the office', icon: 'Files', pinType: 'SOURCE',
@@ -76,18 +76,20 @@ const agents: Agents = {
             { id: 'telegram', name: 'Telegram', tool: 'telegram', what: 'A direct chat with Ironline’s bot, the same bot that posts the near-miss bulletins. n8n checks the person is a member of the Ironline crews channel before it answers, so only Ironline’s people get an answer. It remembers nothing between questions.' },
           ],
         },
-        { id: 'qembed', at: [1, 1], kind: 'step', label: 'Embed the question', sub: 'Same model', icon: 'Binary', what: 'The question goes through the same embeddings model, so it can be compared with the stored passages.' },
+        { id: 'guard', at: [1, 1], kind: 'branch', label: 'Live-work words?', sub: 'A fixed n8n If', icon: 'ShieldWarning', tools: ['n8n'], what: 'Before any search and before Claude, an n8n If checks the question against a fixed list of words the safety director keeps: live line, energized, outage, switching, clearance and the like. A match goes straight to a fixed stop-and-call reply, so Claude never sees it. The rule does not depend on the model.' },
+        { id: 'stop', at: [1, 2], kind: 'end', label: 'Stop, call the super', sub: 'Fixed reply', icon: 'HandPalm', what: 'A fixed reply, never Claude’s: “Stop. Live work comes only from your job brief and your superintendent. Call your superintendent. Emergency: (614) 555-0199.” It forwards nothing and alerts no one.' },
+        { id: 'qembed', at: [2, 1], kind: 'step', label: 'Embed the question', sub: 'Same model', icon: 'Binary', what: 'The question goes through the same embeddings model, so it can be compared with the stored passages.' },
         { id: 'search', at: [3, 1], kind: 'step', label: 'Search', sub: 'Top 5 passages', icon: 'MagnifyingGlass', tools: ['supabase'], what: 'A vector search in Supabase finds the five SOP sections or sheet rows closest in meaning to the question.' },
         { id: 'answer', at: [4, 1], kind: 'step', label: 'Claude answers', sub: 'From the passages', icon: 'Sparkle', tools: ['claude'], what: 'Claude gets the question and those five passages, with three rules: answer only from them, with the SOP and section or the sheet row; never invent a figure, date or price; and never give a switching, clearance or energized-work step, or anything that overrides the job brief.' },
-        { id: 'sure', at: [5, 1], kind: 'branch', label: 'On the page?', sub: 'And not live work', icon: 'Question', what: 'Did a passage hold the answer, and is the question clear of a live line, an outage, switching, clearance and energized work? Yes only if both. Anything the SOPs do not say, or anything about live work, counts as no.' },
+        { id: 'sure', at: [5, 1], kind: 'branch', label: 'On the page?', sub: 'And not live work', icon: 'Question', what: 'Claude’s own check, behind the fixed one: did a passage hold the answer, and is the question clear of a live line, an outage, switching, clearance and energized work? Yes only if both. Anything the SOPs do not say, or anything about live work, counts as no.' },
         { id: 'reply', at: [6, 1], kind: 'end', label: 'Reply with source', sub: 'SOP section or row', icon: 'ArrowBendUpLeft', what: 'The answer goes straight back in Telegram with its source, like (Field SOP §3.1), so the crew member can open the SOP and check. It answers live, from the SOPs only, so it needs no one’s yes. The job brief still comes first.' },
         {
           id: 'handoff', at: [5, 2], kind: 'end', label: 'Stop and call', sub: 'Your superintendent', icon: 'UserSwitch', pinType: 'HANDOFF',
-          what: 'The bot says the answer isn’t in the SOPs, or that the question is about live work, and tells the crew member to stop and call their superintendent. It forwards nothing, calls no one and alerts no one.',
+          what: 'The bot says the answer isn’t in the SOPs, or that the question is about live work, and tells the crew member to stop and call their superintendent. The reply is fixed text, and every Stop-and-call reply ends with the 24/7 line, (614) 555-0199. It forwards nothing, calls no one and alerts no one.',
           pins: [
             { id: 'super', name: 'The superintendent', icon: 'UserCircle', what: 'Anything about a live line, an outage, switching, clearance or energized work gets one answer: stop and call your superintendent. Those steps come from the job brief, the superintendent and system operations, never from the bot.' },
             { id: 'emergency', name: 'The 24/7 line', icon: 'Phone', what: 'An emergency goes to (614) 555-0199, answered 24/7/365 by people. The bot gives the number and nothing else: it reads no message for an emergency, dispatches no one and promises no crew or time.' },
-            { id: 'office', name: 'Not in the SOPs', icon: 'Question', what: 'A question the SOPs and the sheet do not answer gets “That isn’t in the SOPs. Call your superintendent or the office.” The bot never guesses.' },
+            { id: 'office', name: 'Not in the SOPs', icon: 'Question', what: 'A question the SOPs and the sheet do not answer gets “That isn’t in the SOPs. Call your superintendent or the office. Emergency: (614) 555-0199.” The bot never guesses.' },
           ],
         },
       ],
@@ -96,7 +98,9 @@ const agents: Agents = {
         flow('chunk', 'embed'),
         flow('embed', 'store'),
         { from: 'store', to: 'search', kind: 'index', label: 'the index it searches' },
-        flow('ask', 'qembed'),
+        flow('ask', 'guard'),
+        flow('guard', 'qembed', 'no'),
+        flow('guard', 'stop', 'live work'),
         flow('qembed', 'search'),
         flow('search', 'answer'),
         flow('answer', 'sure'),
@@ -107,6 +111,7 @@ const agents: Agents = {
         { id: 'prepare', nodes: ['docs', 'chunk', 'embed', 'store'] },
         { id: 'answered', nodes: [...ASK, 'reply'] },
         { id: 'handoff', nodes: [...ASK, 'handoff'] },
+        { id: 'stopped', nodes: ['ask', 'guard', 'stop'] },
       ],
       legend: [
         CABLE,
@@ -133,7 +138,7 @@ const agents: Agents = {
           id: 'tool', at: [2, 0], kind: 'step', label: 'Use a tool', sub: 'One read at a time', icon: 'Wrench', pinType: 'TOOL',
           what: 'Every call reads, and nothing is changed, priced or booked. An empty result reaches Claude as none found, never as an error. Neither agent searches the SOPs, opens a drawing or reaches a utility’s systems.',
           pins: [
-            { id: 'request', name: 'The request', tool: 'airtable', what: 'The Bid requests row: the subject, the sender, the email as written, any follow-ups, Received at, Respond by, the link to the thread in bids@, and the superintendent’s Telegram chat ID, from Team. The drawings stay in bids@: the agent never opens them, and never says what they show.' },
+            { id: 'request', name: 'The request', tool: 'airtable', what: 'The Bid requests row: the subject, the sender, the email as written, any follow-ups, Received at, Respond by, the link to the thread in bids@, and the superintendent’s Telegram chat ID, from Team. The row holds no attachments, and the drawings stay in bids@: the agent sees only what the email’s words say about them, never opens them, and never says what they show.' },
             { id: 'earlier', name: 'Earlier requests', tool: 'airtable', what: 'A search of Bid requests by the sender’s email for their earlier requests and each one’s Status. An empty result reaches Claude as none on record, and the summary says so.' },
             { id: 'report', name: 'The report', tool: 'airtable', what: 'What happened, What stopped it, The lesson, the discipline and the state, which Make maps into the one Anthropic call. Never Filed by or the job number: Claude never sees who filed the report.' },
             { id: 'byhand', name: 'Never a tool', icon: 'HandPalm', what: 'Not a tool call: no build reads a job brief, a switching order or a clearance, and none reaches a utility’s system operations, SCADA, outage requests or dispatch. The Near-miss bulletin agent has no SOP search at all. People do all of it, by hand.' },
@@ -179,17 +184,17 @@ const agents: Agents = {
   builds: [
     {
       id: 'team', kind: 'rag', name: 'Team knowledge bot', business: BUSINESS,
-      line: 'Ironline Utility Infrastructure’s crews ask in Telegram; it answers from the field SOPs and equipment sheet. Every answer carries its source, the SOP section or the sheet row, and it never invents a figure or a date. It never gives a switching, clearance or energized-work step and never overrides the job brief: on anything about a live line or an outage it says to stop and call the superintendent, and an emergency goes to (614) 555-0199.',
+      line: 'Ironline Utility Infrastructure’s crews ask in Telegram; it answers from the field SOPs and equipment sheet. Every answer carries its source, the SOP section or the sheet row, and it never invents a figure or a date. It never gives a switching, clearance or energized-work step and never overrides the job brief: a fixed n8n check sends any question with a live-work word to stop and call the superintendent before Claude sees it, and every such reply ends with (614) 555-0199.',
       example: { ask: 'A locate mark is missing at the dig site. What do I do?', answer: 'Stop, fill in form LM-2 and call the office before you dig. (Field SOP §3.1)' },
       tools: ['claude', 'supabase', 'n8n', 'telegram', 'google-sheets'],
-      routes: ['prepare', 'answered', 'handoff'],
+      routes: ['prepare', 'answered', 'handoff', 'stopped'],
       pins: ['docs:sops', 'docs:sheets', 'ask:telegram', 'handoff:super', 'handoff:emergency', 'handoff:office'],
       caption: 'Ironline crew in Telegram → search the field SOPs and kit sheet → Claude answers → reply with the source, or stop and call',
     },
     {
       id: 'triage', kind: 'agent', name: 'Bid triage agent', business: BUSINESS,
-      line: 'When a new bid request gets its superintendent, it reads the request as logged and writes that superintendent a short summary of what the email says: the scope, the place and the dates as the sender wrote them, whether drawings are attached, and any earlier requests from the sender, with a link to the thread in bids@. It is internal and separate from IL-01. It never opens the drawings, drafts a reply, prices a bid, or comments on an outage or a clearance.',
-      example: { ask: 'IL-01 assigns a new request: “138 kV rebuild, about 12 miles, bids due in three weeks,” with a drawings list attached.', answer: 'A summary in the superintendent’s own Telegram: a 138 kV rebuild of about 12 miles, bids due in three weeks, drawings on the thread, unread; no earlier requests. A link to the thread, and no reply drafted.' },
+      line: 'When a new bid request gets its superintendent, it reads the request as logged and writes that superintendent a short summary of what the email says: the scope, the place and the dates as the sender wrote them, what the email says about drawings, and any earlier requests from the sender, with a link to the thread in bids@. It is internal and separate from IL-01. It never opens the drawings, drafts a reply, prices a bid, or comments on an outage or a clearance. If a run fails, only the summary is lost: IL-01’s Notify superintendent has already sent the thread link, and IL-H02 does not cover this agent.',
+      example: { ask: 'IL-01 assigns a new request: “138 kV rebuild, about 12 miles, bids due in three weeks. Drawings attached.”', answer: 'A summary in the superintendent’s own Telegram: a 138 kV rebuild of about 12 miles, bids due in three weeks; the email says drawings are attached, so open the thread in bids@ for them; no earlier requests. A link to the thread, and no reply drafted.' },
       tools: ['claude', 'n8n', 'airtable', 'telegram'],
       routes: ['triage'],
       pins: ['trigger:assigned', 'tool:request', 'tool:earlier', 'tool:byhand', 'act:telegram', 'act:super'],
