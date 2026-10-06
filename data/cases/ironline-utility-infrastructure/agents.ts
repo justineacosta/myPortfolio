@@ -184,7 +184,7 @@ const agents: Agents = {
   builds: [
     {
       id: 'team', kind: 'rag', name: 'Team knowledge bot', business: BUSINESS,
-      line: 'Ironline Utility Infrastructure’s crews ask in Telegram; it answers from the field SOPs and equipment sheet. Every answer carries its source, the SOP section or the sheet row, and it never invents a figure or a date. It never gives a switching, clearance or energized-work step and never overrides the job brief: a fixed n8n check sends any question with a live-work word to stop and call the superintendent before Claude sees it, and every such reply ends with (614) 555-0199.',
+      line: 'Ironline Utility Infrastructure’s crews ask in Telegram; it answers from the field SOPs and equipment sheet. Every answer carries its source, the SOP section or the sheet row, and it never invents a figure or a date. It never gives a switching, clearance or energized-work step and never overrides the job brief: a fixed n8n check sends any question with a live-work word to stop and call the superintendent before Claude sees it, and every such reply ends with 911 for anyone hurt or a fire, then (614) 555-0199.',
       example: { ask: 'A locate mark is missing at the dig site. What do I do?', answer: 'Stop, fill in form LM-2 and call the office before you dig. (Field SOP §3.1)' },
       tools: ['claude', 'supabase', 'n8n', 'telegram', 'google-sheets'],
       routes: ['prepare', 'answered', 'handoff', 'stopped'],
