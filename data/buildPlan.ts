@@ -5,7 +5,9 @@
  * scripts/make-plan.ts renders it into public/build-plan.html. Only a type
  * import, so Node can run it directly.
  */
+import type { SiteLink } from '../lib/brand/render.ts'
 import type { ToolId } from '../lib/brand/tools.ts'
+import type { Platform } from './automations.ts'
 
 export type IconName =
   | 'ArrowsClockwise' | 'ArrowsSplit' | 'Calculator' | 'CalendarCheck' | 'ChatCircleText' | 'Clock' | 'Copy'
@@ -20,6 +22,8 @@ export type PlanEdge = { from: string; to: string; label?: string }
 export type Workflow = {
   code: string
   title: string
+  /** The tool this workflow is built on; unset on the general plan, which is all n8n. */
+  platform?: Platform
   outcome: string
   trigger: string
   exits: string[]
@@ -32,6 +36,8 @@ export type TestRow = { id: string; workflow: string; branch: string; input: str
 export type Phase = { name: string; tasks: string[] }
 type Head = { title: string; blurb: string; rail: Rail[] }
 export type Plan = {
+  /** Set on a per-site copy: where its site lives and its own path. */
+  site?: SiteLink
   title: string
   description: string
   kicker: string

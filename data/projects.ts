@@ -119,8 +119,13 @@ export const projects = {
       label: 'preview',
       newTab: 'Open in new tab',
       close: 'Close preview',
+      siteTab: 'Site',
+      tabsLabel: 'Pages for this site',
       upload: 'Upload',
       uploadTail: 'to public/samples/ and this page opens live.',
+      /** A missing case page names its own folder: public/cases/<site>/. */
+      uploadTo: 'to',
+      caseTail: 'and this page opens live.',
       uploadNote: 'STANDALONE HTML · SAME FOLDER',
     },
   },

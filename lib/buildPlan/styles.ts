@@ -168,3 +168,9 @@ a[href^="http"]::after{content:" (" attr(href) ")";font-size:.75em;color:var(--i
 }
 `
 }
+
+/** The platform chip (a workflow that names its tool). Kept apart from pageCss so a plan with none renders as before. */
+export const platformCss = `
+.platform{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;font-family:var(--mono);font-size:.6875rem;letter-spacing:.16em;color:var(--ink2);text-transform:uppercase}
+.canvas figcaption .platform{margin-left:12px;vertical-align:middle}
+`

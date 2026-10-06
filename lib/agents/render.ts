@@ -5,7 +5,7 @@ import { esc } from '../buildPlan/render.ts'
 import type { Themes } from '../buildPlan/styles.ts'
 import { iconSvg } from '../endToEnd/icons.ts'
 import { livelyCss } from '../brand/lively.ts'
-import { backdropHtml, contourJs, glossaryLogo, logo, logoBadges, logoSheet, revealJs, themeHeadJs, toolByName, toolStrip, toolTemplates, toolsUsed } from '../brand/render.ts'
+import { backdropHtml, contourJs, glossaryLogo, logo, logoBadges, logoSheet, revealJs, themeHeadJs, toolByName, toolStrip, toolTemplates, toolsUsed, siteBack } from '../brand/render.ts'
 import { TOOLS, type ToolId } from '../brand/tools.ts'
 import { readContrast, readTokens } from '../tokens.ts'
 import { layoutDiagram, type DiagramLayout } from './layout.ts'
@@ -50,7 +50,7 @@ const tiles = (list: Tile[]) =>
     .join('')}</ul>`
 
 function hero(g: Agents, used: ToolId[]) {
-  return `<header class="hero"><a class="home" href="/" target="_top">← ${esc(g.home)}</a><span class="kicker">${esc(g.kicker)}</span><h1>${esc(g.heading)}</h1><p class="lede">${esc(g.lede)}</p><p class="sample-note"><span aria-hidden="true">${iconSvg('Info', 16)}</span><span>${esc(g.sample)}</span></p>${toolStrip(used)}</header>`
+  return `<header class="hero"><a class="home" href="/" target="_top">← ${esc(g.home)}</a>${siteBack(g.site)}<span class="kicker">${esc(g.kicker)}</span><h1>${esc(g.heading)}</h1><p class="lede">${esc(g.lede)}</p><p class="sample-note"><span aria-hidden="true">${iconSvg('Info', 16)}</span><span>${esc(g.sample)}</span></p>${toolStrip(used)}</header>`
 }
 
 /** One live diagram: legend, then a frame with its caption bar, cables, labels, ball templates, steps and their pins. */
@@ -171,7 +171,7 @@ export function renderAgents(g: Agents = A, themes: Themes = { dark: readTokens(
 <meta property="og:description" content="${esc(g.description)}">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary">
-<link rel="canonical" href="${PAGE_PATH}">
+<link rel="canonical" href="${g.site?.page ?? PAGE_PATH}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500&amp;display=swap">

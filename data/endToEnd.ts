@@ -4,6 +4,7 @@
  * site already says (the End-to-End and Agentic Framework cards, the AI agents
  * list and Hermes). public/end-to-end.html is generated from it: npm run e2e-page
  */
+import type { SiteLink } from '../lib/brand/render.ts'
 import type { ToolId } from '../lib/brand/tools.ts'
 
 export type LaneId = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K'
@@ -14,6 +15,8 @@ export type Step = { id: string; lane: LaneId; at: [number, number]; kind: StepK
 export type Cable = { from: string; to: string; kind: 'flow' | 'loop'; label?: string }
 export type LegendKey = { id: 'cable' | 'signal' | 'loop' | 'gate' | 'auto'; label: string; what: string }
 export type EndToEnd = {
+  /** Set on a per-site copy: where its site lives and its own path. */
+  site?: SiteLink
   title: string
   description: string
   home: string
