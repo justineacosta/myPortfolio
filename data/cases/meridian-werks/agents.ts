@@ -49,7 +49,7 @@ const agents: Agents = {
   ],
   glance: [
     { mark: '1', icon: 'Books', title: 'RAG chatbots', text: 'The Workshop Q&A bot searches the services, the marques, the visiting details and how booking works, then answers in the site chat with the page it used. A symptom gets the booking form, never a diagnosis.' },
-    { mark: '2', icon: 'Robot', title: 'AI agents', text: 'Inbox triage sorts booking and reschedule emails and drafts replies for Ilse; urgent ones go straight to her. Weekly report writes the workshop’s owner a Monday summary from Stripe and the Jobs table.' },
+    { mark: '2', icon: 'Robot', title: 'AI agents', text: 'Inbox triage sorts booking and reschedule emails and drafts replies for Ilse; urgent ones go straight to her. Weekly report writes the founder a Monday summary from Stripe and the Jobs table.' },
     { mark: '3', icon: 'UserCheck', title: 'Ilse’s yes', text: `${YES} The Monday summary stays inside the workshop, and the bot answers live from the site, so neither needs a yes.` },
   ],
   diagrams: {
@@ -74,11 +74,11 @@ const agents: Agents = {
           id: 'ask', at: [0, 1], kind: 'start', label: 'A visitor asks', sub: 'In the site chat', icon: 'ChatCircleText', pinType: 'CHANNEL',
           what: 'Someone asks in the chat on Meridian Werks’ site, and n8n starts the run. It is chat only: it sends no email, books nothing and calls no one.',
           pins: [
-            { id: 'chat', name: 'Site chat', icon: 'ChatCircleDots', what: 'The chat window on every page of the site, started by n8n’s Chat Trigger. It remembers nothing between questions, and n8n saves no execution of it, so no chat is kept. It never asks for a registration, a name or a phone number, and if a visitor types a registration, it is not repeated or stored.' },
+            { id: 'chat', name: 'Site chat', icon: 'ChatCircleDots', what: 'The chat window on every page of the site, started by n8n’s Chat Trigger. It remembers nothing between questions, and the workflow’s Save failed production executions and Save successful production executions are both set to Do not save, so no chat is kept. It never asks for a registration, a name or a phone number, and if a visitor types a registration, it is not repeated or stored.' },
           ],
         },
         { id: 'guard', at: [1, 1], kind: 'branch', label: 'Symptom words?', sub: 'A fixed n8n If', icon: 'ShieldWarning', tools: ['n8n'], what: 'Before any search and before Claude, an n8n If checks the question against a fixed list of words Ilse keeps: noise, knock, leak, smoke, smell, warning light, won’t start, safe to drive, what’s wrong, how much and the like. A match goes straight to a fixed reply, so Claude never sees it. It is a word list, not a judgement about a car.' },
-        { id: 'stop', at: [1, 2], kind: 'end', label: 'Book it, or call', sub: 'Fixed reply', icon: 'HandPalm', what: 'A fixed reply, never Claude’s: “Describe the symptom rather than the repair. Diagnosis is our job.” Then the Book a service form, where the symptom goes in the details, or +31 10 244 1180, Mon–Fri 07:30–18:00, and that a fixed estimate comes after diagnostics. No cause, no price, and no word on whether a car is safe to drive.' },
+        { id: 'stop', at: [1, 2], kind: 'end', label: 'Book it, or call', sub: 'Fixed reply', icon: 'HandPalm', what: 'A fixed reply, never Claude’s. A price or a safe-to-drive question leads with +31 10 244 1180, Mon–Fri 07:30–18:00, and that a fixed estimate comes only after diagnostics. A symptom leads with the site’s own words: “Describe the symptom rather than the repair. Diagnosis is our job,” then the Book a service form, where the symptom goes in the details. No cause, no price, and no word on whether a car is safe to drive.' },
         { id: 'qembed', at: [2, 1], kind: 'step', label: 'Embed the question', sub: 'Same model', icon: 'Binary', what: 'The question goes through the same embeddings model, so it can be compared with the stored passages. It is never stored.' },
         { id: 'search', at: [3, 1], kind: 'step', label: 'Search', sub: 'Top 5 passages', icon: 'MagnifyingGlass', tools: ['supabase'], what: 'A vector search in Supabase finds the five passages closest in meaning to the question.' },
         { id: 'answer', at: [4, 1], kind: 'step', label: 'Claude answers', sub: 'From the passages', icon: 'Sparkle', tools: ['claude'], what: 'Claude gets the question and those five passages, with four rules: answer only from them, naming the page; never give a price, a date or a figure they do not hold; never diagnose a fault, guess a cause or say whether a car is safe to drive; and never ask for a registration.' },
@@ -87,7 +87,7 @@ const agents: Agents = {
         { id: 'book', at: [7, 1], kind: 'end', label: 'Open the booking', sub: 'Book a service', icon: 'CalendarCheck', what: 'When the visitor wants to book, the bot opens the site’s own Book a service form in the chat: the same four steps. The booking then runs MW-01 like any other, and Ilse confirms it by phone within one working day.' },
         {
           id: 'handoff', at: [5, 2], kind: 'end', label: 'To a person', sub: 'Phone, email or book', icon: 'UserSwitch', pinType: 'HANDOFF',
-          what: 'The bot says the answer isn’t in the workshop’s pages, or that a symptom or a price is for the workshop to judge, and hands the chat to a person: the phone in opening hours, or email, where a person replies. A symptom also gets the booking form. The bot forwards nothing and alerts no one.',
+          what: 'The bot says the answer isn’t in the workshop’s pages, or that a symptom or a price is for the workshop to judge, and points the visitor to a person: the phone, Mon–Fri 07:30–18:00, or email, where a person replies. A symptom also gets the booking form. The bot forwards nothing and alerts no one.',
           pins: [
             { id: 'phone', name: 'Phone', icon: 'Phone', what: '+31 10 244 1180, Mon–Fri 07:30–18:00, as the site says: “Book a service, or call and talk it through first. Either is fine.”' },
             { id: 'gmail', name: 'Email the workshop', tool: 'gmail', what: 'workshop@meridianwerks.nl, for anyone who would rather write. The visitor writes it themselves: the bot never emails. Inbox triage leaves a question like this For Ilse, with no draft, and a person replies.' },
@@ -131,7 +131,7 @@ const agents: Agents = {
       steps: [
         {
           id: 'trigger', at: [0, 0], kind: 'start', label: 'Email or Monday', sub: 'Gmail or a schedule', icon: 'Lightning', pinType: 'TRIGGER',
-          what: 'Two things start a run: a new email to workshop@meridianwerks.nl, for the Inbox triage agent, or Monday at 08:00, for the Weekly report agent. n8n runs both, apart from MW-01, MW-02 and MW-03.',
+          what: 'Two things start a run: a new email to workshop@meridianwerks.nl, for the Inbox triage agent, or Monday at 08:00, for the Weekly report agent. n8n runs both, separately from the three flows. Neither run is covered by MW-H02, which logs only the flows: a failure here shows as an email left unlabelled, or a missing Monday summary, and Ilse notices by its absence.',
           pins: [
             { id: 'email', name: 'New email', tool: 'gmail', what: 'n8n’s Gmail Trigger checks workshop@meridianwerks.nl every minute and hands on each new email, skipping the workshop’s own mail and the flows’ receipts and reports. Attachments never reach Claude.' },
             { id: 'monday', name: 'Monday, 8 am', icon: 'Clock', what: 'n8n’s Schedule Trigger, every Monday at 08:00, Rotterdam time, for the Weekly report agent.' },
@@ -145,21 +145,21 @@ const agents: Agents = {
             { id: 'label', name: 'Gmail label', tool: 'gmail', what: 'Puts one label on the email: Booking, Reschedule, Urgent or For Ilse. It writes nothing else, anywhere.' },
             { id: 'times', name: 'Open times', tool: 'cal-com', what: 'The sender’s booking, found by their email, and the next open times on the Workshop visit event type, read through Cal.com’s API: the same calendar MW-01 holds slots in. Read only: no booking is made, moved, held or cancelled.' },
             { id: 'stripe', name: 'Stripe', tool: 'stripe', what: 'Last week’s and the week before’s successful payments, which n8n sums into two totals in euros before Claude sees them. Read only, and never a customer’s name or card.' },
-            { id: 'jobs', name: 'Jobs table', tool: 'airtable', what: 'The jobs sheet: the Airtable Jobs table the flows keep. n8n counts the jobs at each Stage and lists those ticked Waiting on parts by job number, make and model. Read only, and never the registration or an owner’s details.' },
+            { id: 'jobs', name: 'Jobs table', tool: 'airtable', what: 'The jobs sheet: the Airtable Jobs table the flows keep. n8n’s Airtable Search sets Output Fields to only Stage, Make, Model, Job number and Waiting on parts, so what comes back never holds the registration or an owner’s details; it counts the jobs at each Stage and lists those ticked Waiting on parts by job number, make and model.' },
             { id: 'byhand', name: 'Never a tool', icon: 'HandPalm', what: 'Not a tool call: no build reads a finding, diagnoses a fault, writes a price, moves a booking or changes a job card. The technicians diagnose on the lift and the bench, and Ilse prices and reschedules by hand.' },
           ],
         },
         { id: 'check', at: [3, 0], kind: 'branch', label: 'Check the result', sub: 'Done yet?', icon: 'ListChecks', what: 'Claude looks at what came back. If the job is not done yet, it goes back to plan the next step. A draft it cannot write without a cause, a price or a registration becomes no draft, and the email goes For Ilse.' },
-        { id: 'needs', at: [4, 0], kind: 'branch', label: 'A customer’s inbox?', sub: 'Or kept in-house', icon: 'ShieldCheck', what: 'Is a draft on its way to a customer’s inbox? Then it waits for Ilse. An email sorted Urgent or For Ilse has no draft and goes to her at once, and the Monday summary goes to the workshop’s owner, inside Meridian Werks, with no gate.' },
+        { id: 'needs', at: [4, 0], kind: 'branch', label: 'A customer’s inbox?', sub: 'Or kept in-house', icon: 'ShieldCheck', what: 'Is a draft on its way to a customer’s inbox? Then it waits for Ilse. An email sorted Urgent or For Ilse has no draft and goes to her at once, and the Monday summary goes to the founder, inside Meridian Werks, with no gate.' },
         { id: 'gate', at: [5, 0], kind: 'gate', label: 'Ilse’s yes', sub: 'Approve in Telegram', icon: 'UserCheck', tools: ['telegram'], what: 'Ilse gets the draft in her own Telegram chat with a button that opens an n8n form: Approve, or Change it with a note. Opening it records nothing; only the form’s submit does. n8n keeps the run waiting at the gate, with its data, for up to a day; then it tells Ilse the email still needs her, and sends nothing. A Change it goes back to Claude.' },
         {
           id: 'act', at: [6, 0], kind: 'end', label: 'Send or tell', sub: 'Approved or internal', icon: 'PaperPlaneTilt', pinType: 'OUTPUT',
-          what: 'An approved reply goes in the email’s own thread, an urgent email or one For Ilse reaches her in Telegram, and the Monday summary goes to the workshop’s owner by email. n8n keeps each run’s execution, as it keeps every run’s data.',
+          what: 'An approved reply goes in the email’s own thread, an urgent email or one For Ilse reaches her in Telegram, and the Monday summary goes to the founder by email. n8n keeps each run’s execution, as it keeps every run’s data.',
           pins: [
             { id: 'gmail', name: 'Reply in the thread', tool: 'gmail', what: 'Sends the approved reply in the email’s own thread from workshop@meridianwerks.nl, word for word as Ilse approved it. An answer to it comes back to the inbox, and Inbox triage leaves it For Ilse, with no new draft.' },
             { id: 'ping', name: 'Tell Ilse', tool: 'telegram', what: 'Tells Ilse an email is waiting for her: with sound for Urgent, quietly for For Ilse. It holds a link to the thread, never the email’s words, so no registration reaches the chat.' },
-            { id: 'report', name: 'The Monday email', tool: 'gmail', what: 'Emails the summary to the workshop’s owner from workshop@meridianwerks.nl: revenue in euros against the week before, the jobs at each stage, and those waiting on parts. It is internal, so it needs no yes.' },
-            { id: 'ilse', name: 'Ilse, by hand', icon: 'UserCircle', what: 'Ilse calls back about every urgent email and answers everything For Ilse. When an owner picks a new time, she confirms it by phone within one working day and moves the booking in Cal.com herself. No build does.' },
+            { id: 'report', name: 'The Monday email', tool: 'gmail', what: 'Emails the summary to the founder from workshop@meridianwerks.nl: revenue in euros against the week before, the jobs at each stage, and those waiting on parts. It is internal, so it needs no yes.' },
+            { id: 'ilse', name: 'Ilse, by hand', icon: 'UserCircle', what: 'Ilse calls back about every urgent email and answers everything For Ilse. When an owner picks a new time, Ilse will call to confirm it, with her own approval message as the reminder, and moves the booking in Cal.com herself. No build does.' },
           ],
         },
       ],
@@ -194,7 +194,7 @@ const agents: Agents = {
   builds: [
     {
       id: 'qa', kind: 'rag', name: 'Workshop Q&A bot', business: BUSINESS,
-      line: 'Answers Meridian Werks’ visitors in the site chat on the eight services, the marques, the hours, the address and how booking works, from the workshop’s own pages and always with the source. It never diagnoses a fault, guesses a cause, says whether a car is safe to drive or quotes a price: a fixed n8n check sends any symptom to the site’s own words, “Describe the symptom rather than the repair. Diagnosis is our job.”, with the booking form or +31 10 244 1180 in opening hours, before Claude sees it. It never asks for a registration, and anything its pages do not hold goes to a person.',
+      line: 'Answers Meridian Werks’ visitors in the site chat on the eight services, the marques, the hours, the address and how booking works, from the workshop’s own pages and always with the source. It never diagnoses a fault, guesses a cause, says whether a car is safe to drive or quotes a price: a fixed n8n check sends any symptom to the site’s own words, “Describe the symptom rather than the repair. Diagnosis is our job.”, with the booking form or +31 10 244 1180, Mon–Fri 07:30–18:00, before Claude sees it. It never asks for a registration, and anything its pages do not hold goes to a person.',
       example: { ask: 'Do you work on a Porsche 911, and are you open on Saturdays?', answer: 'Yes. Porsche is part of the workshop’s German core specialism, and the 911 is listed under Performance. On Saturdays the workshop is open 09:00–14:00. (Vehicles; Visit)' },
       tools: ['claude', 'supabase', 'n8n', 'gmail'],
       routes: ['prepare', 'answered', 'handoff', 'stopped', 'booked'],
@@ -203,7 +203,7 @@ const agents: Agents = {
     },
     {
       id: 'inbox', kind: 'agent', name: 'Inbox triage agent', business: BUSINESS,
-      line: 'Sorts Meridian Werks’ booking and reschedule emails and drafts replies; urgent ones go to a person. Every draft waits for Ilse’s yes in Telegram before it is sent. A reschedule reply offers open Cal.com times but moves nothing: the booking stays as it is until Ilse calls and confirms the new time, within one working day, as she confirms every booking. A booking reply points to the site’s four steps. No reply diagnoses, guesses a cause or quotes a price. Urgent means a breakdown, a car stranded or a question whether a car is safe to drive: it goes to Ilse at once, with no draft. Anything else, an owner’s answer to a health report included, goes For Ilse untouched, as only the answer form or a call with Ilse records a yes.',
+      line: 'Sorts Meridian Werks’ booking and reschedule emails and drafts replies; urgent ones go to a person. Every draft waits for Ilse’s yes in Telegram before it is sent. A reschedule reply offers open Cal.com times but moves nothing: the booking stays as it is until Ilse calls to confirm the new time; her approval message in Telegram is her own reminder to make that call. A booking reply points to the site’s four steps. No reply diagnoses, guesses a cause or quotes a price. Urgent means a breakdown, a car stranded or a question whether a car is safe to drive: it goes to Ilse at once, with no draft. Anything else, an owner’s answer to a health report included, goes For Ilse untouched, as only the answer form or a call with Ilse records a yes.',
       example: { ask: 'New email: “Can I move Thursday’s brake service to next week?”', answer: 'A reply with three open Cal.com times, drafted and waiting for your yes: Ilse’s, in Telegram. It moves nothing: Thursday stays booked until Ilse calls to confirm the new time.' },
       tools: ['claude', 'n8n', 'gmail', 'cal-com', 'telegram'],
       routes: ['straight', 'notdone', 'changed', 'person'],
@@ -212,7 +212,7 @@ const agents: Agents = {
     },
     {
       id: 'report', kind: 'agent', name: 'Weekly report agent', business: BUSINESS,
-      line: 'Every Monday it turns Meridian Werks’ Stripe revenue and jobs sheet into a summary for the owner. The jobs sheet is the Airtable Jobs table the flows keep, and the owner here is the workshop’s own, not a car’s. n8n sums the payments in euros and counts the jobs before Claude sees them, and Claude writes only from those figures: no figure of its own, no customer’s name and no registration. It goes to the workshop’s owner alone, so it needs no yes.',
+      line: 'Every Monday it turns Meridian Werks’ Stripe revenue and jobs sheet into a summary for the owner. The jobs sheet is the Airtable Jobs table the flows keep, and the owner here is the workshop’s founder, Anton Vosloo. n8n sums the payments in euros and counts the jobs before Claude sees them, and Claude writes only from those figures: no figure of its own, no customer’s name and no registration. It goes to the founder alone, so it needs no yes.',
       example: { ask: 'Monday, 8 am.', answer: '“Revenue up 12% on last week; 3 jobs waiting on parts.” Emailed to the owner.' },
       tools: ['claude', 'n8n', 'stripe', 'airtable', 'gmail'],
       routes: ['internal'],
@@ -231,9 +231,9 @@ const agents: Agents = {
   },
   guardrails: [
     { mark: 'G1', icon: 'Wrench', title: 'Never a diagnosis, a cause or a price', text: `${RULE} The bot sends a question with a symptom word to the booking form or the phone before Claude sees it, and Inbox triage sends an email about a breakdown, or about whether a car is safe to drive, to Ilse with no draft. An estimate comes only after diagnostics: a fixed estimate in euros, priced by Ilse.` },
-    { mark: 'G2', icon: 'Quotes', title: 'Answers only from the workshop’s pages', text: 'The bot answers from the passages it found and names the page. It never gives a price, a date or a figure the pages do not hold, and the pages hold no price. It is chat only: it sends no email and books nothing, and a question its pages do not settle goes to a person, by phone in opening hours or by email.' },
-    { mark: 'G3', icon: 'UserCheck', title: 'Ilse says yes to every customer email', text: `${YES} Every reply Inbox triage drafts stops in her Telegram chat, and a reschedule reply moves no booking: she confirms the new time by phone. The Monday summary goes to the workshop’s owner, inside Meridian Werks, and the bot answers live from the site, so neither needs a yes. No agent sets a job Approved: only the car’s owner says yes to work, and to any variation, on the answer form or by phone to Ilse.` },
-    { mark: 'G4', icon: 'LockKey', title: 'A registration stays on the job card', text: 'A registration number is personal data. The bot never asks for one, no agent reads the Registration field, and no Telegram message, summary or reply carries one: Ilse’s messages link to the thread instead of quoting it. n8n keeps each agent run, as it keeps every run’s data, and saves no run of the bot. Amounts are in euros.' },
+    { mark: 'G2', icon: 'Quotes', title: 'Answers only from the workshop’s pages', text: 'The bot answers from the passages it found and names the page. It never gives a price, a date or a figure the pages do not hold, and the pages hold no price. It is chat only: it sends no email and books nothing, and a question its pages do not settle goes to a person, by phone, Mon–Fri 07:30–18:00, or by email.' },
+    { mark: 'G3', icon: 'UserCheck', title: 'Ilse says yes to every customer email', text: `${YES} Every reply Inbox triage drafts stops in her Telegram chat, and a reschedule reply moves no booking: Ilse will call to confirm the new time herself, with her approval message as the reminder. The Monday summary goes to the founder, inside Meridian Werks, and the bot answers live from the site, so neither needs a yes. No agent sets a job Approved: only the car’s owner says yes to work, and to any variation, on the answer form or by phone to Ilse.` },
+    { mark: 'G4', icon: 'LockKey', title: 'A registration stays on the job card', text: 'A registration number is personal data. The bot never asks for one, no agent reads the Registration field, and no Telegram message, summary or reply carries one: Ilse’s messages link to the thread instead of quoting it. n8n keeps each agent run, as it keeps every run’s data; the bot’s own workflow has Save failed production executions and Save successful production executions both set to Do not save. Amounts are in euros.' },
   ],
   glossary: [
     ['RAG', 'Retrieval-augmented generation: search the workshop’s own pages first, then answer from what was found.'],
@@ -242,7 +242,7 @@ const agents: Agents = {
     ['Vector search', 'Finding the stored passages whose embeddings sit closest to the question’s.'],
     ['pgvector', 'A Postgres add-on that stores embeddings and runs vector search, here inside Supabase.'],
     ['Symptom words', 'The fixed list Ilse keeps, like knock, leak or warning light. A question with one gets the booking form, never Claude.'],
-    ['Hand-off', 'Passing the visitor to a person, by the phone in opening hours or by email. The bot forwards nothing.'],
+    ['Hand-off', 'Pointing the visitor to a person, by phone, Mon–Fri 07:30–18:00, or by email. The bot forwards nothing.'],
     ['Agent', 'An AI that takes a goal, picks its own tools and works step by step until the job is done.'],
     ['Trigger', 'The event that starts a run: a new email to workshop@meridianwerks.nl, or Monday at 08:00.'],
     ['Tool call', 'One action an agent asks for, like reading the open times in Cal.com or putting a label on an email.'],
@@ -251,7 +251,7 @@ const agents: Agents = {
     ['Jobs table', 'The Airtable table of job cards the flows keep. The general page calls it the jobs sheet.'],
     ['Loop-back', 'A cable back to an earlier step: the agent reads again, or redoes a draft Ilse sent back.'],
     ['Approval gate', `A point where the run stops until Ilse says yes. ${YES}`],
-    ['Workshop’s owner', 'The owner of Meridian Werks, who gets the Monday summary. Not the owner of a car.'],
+    ['Founder', 'Anton Vosloo, the workshop’s founder, who gets the Monday summary and signs off every calibration and pre-purchase inspection. Not the owner of a car.'],
     ['Claude', 'Anthropic’s AI model. It answers in the bot, sorts and drafts in Inbox triage, and writes the Monday summary.'],
     ['n8n', 'The workflow tool that runs the bot and both agents: it listens for triggers and makes the tool calls.'],
     ['Supabase', 'A hosted Postgres database, used here as the store of passages from the workshop’s pages.'],
