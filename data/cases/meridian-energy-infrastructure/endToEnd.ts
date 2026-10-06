@@ -25,7 +25,7 @@ const chain = (...ids: string[]) => ids.slice(1).map((to, i) => flow(ids[i], to)
 const SAFE = 'No flow, bot or agent tells a client to touch, reset, switch or isolate any equipment, and none reads SCADA or dispatches a technician: the operations centre logs every fault by hand, and the duty lead dispatches by phone. Every fault notice, and the bot’s fixed reply, says to leave the equipment as it is, and if there is fire, smoke or damaged equipment, or anyone is hurt, to keep clear and call 911, then the utility.'
 
 /** The guarantee rule, as on Meridian Energy Infrastructure’s other pages. */
-const MONEY = 'If the asset underperforms the model, Meridian writes the cheque: whether a payment is due, and how much, is the asset manager’s decision, made by hand. No flow, bot or agent works out, proposes or promises a saving for a site, a production figure or a payment, and no client email or note names a payment or an amount.'
+const MONEY = 'If the asset underperforms the model, Meridian Energy Infrastructure writes the cheque: whether a payment is due, and how much, is the asset manager’s decision, made by hand. No flow, bot or agent works out, proposes or promises a saving for a site, a production figure or a payment, and no client email or note names a payment or an amount.'
 
 /** The person’s-yes rule, as on Meridian Energy Infrastructure’s other pages. */
 const YES = 'An energy advisor approves every first email Claude drafts for a prospect’s inbox, and the asset manager approves every report note before the report reaches a client.'
@@ -173,7 +173,7 @@ const endToEnd: EndToEnd = {
       ['n8n', 'The automation tool production faults, the bot, both agents and the failed-run log run in.'],
       ['Zapier', 'The automation tool monthly production reports run in.'],
       ['Claude', 'Anthropic’s AI model. It scores survey requests, answers in the bot, drafts the Lead research email and the report note.'],
-      ['Airtable', 'Where Meridian keeps its assets, faults, tickets, production months and reports.'],
+      ['Airtable', 'Where Meridian Energy Infrastructure keeps its assets, faults, tickets, production months and reports.'],
       ['Google Sheets', 'Where the pipeline sheet of survey requests, the bot’s published figures and the Failed runs tab are kept.'],
       ['Cal.com', 'Where a strong site books its drone survey window, for an energy advisor to confirm.'],
       ['Gmail', 'The mailbox that sends every booking email, guide, fault notice, report and approved first email.'],

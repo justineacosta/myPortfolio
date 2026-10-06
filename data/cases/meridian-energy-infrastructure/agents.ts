@@ -29,7 +29,7 @@ const BUSINESS = { name: 'Meridian Energy Infrastructure', trade: 'commercial so
 const SAFE = 'No bot or agent here tells anyone to touch, reset, switch or isolate any equipment, or gives an electrical step of any kind: the operations centre and the field technicians do that work, and the duty lead dispatches every technician by phone. Anything about a fault, a site’s equipment or an emergency gets one fixed answer: leave the equipment as it is, and if there is fire, smoke or damaged equipment, or anyone is hurt, keep clear and call 911, then your utility.'
 
 /** The guarantee rule, as on Meridian Energy Infrastructure’s other pages. */
-const MONEY = 'No bot or agent works out, proposes or promises a saving for a visitor’s own site, a production figure or a payment. The bot quotes only the ranges the site publishes, with the source. The Report note agent never states, works out or promises a shortfall payment or an amount: if the asset underperforms the model, Meridian writes the cheque, and whether a payment is due, and how much, is the asset manager’s decision, made by hand.'
+const MONEY = 'No bot or agent works out, proposes or promises a saving for a visitor’s own site, a production figure or a payment. The bot quotes only the ranges the site publishes, with the source. The Report note agent never states, works out or promises a shortfall payment or an amount: if the asset underperforms the model, Meridian Energy Infrastructure writes the cheque, and whether a payment is due, and how much, is the asset manager’s decision, made by hand.'
 
 /** The bot’s fixed reply to an equipment word, in ME-02’s notice order: the emergency line first. The same words on the End-to-end page. */
 const STOP = 'If you see fire, smoke or damaged equipment, or anyone is hurt, keep clear and call 911, then your utility. Don’t touch, reset or switch off any equipment. For anything else, call an energy advisor on (713) 555-0142.'
@@ -43,7 +43,7 @@ const agents: Agents = {
   home: 'Justine Acosta · Portfolio',
   kicker: 'AI AGENTS AND RAG CHATBOTS · MERIDIAN ENERGY',
   heading: 'A bot that quotes only the site’s own figures, and two agents that never write the cheque',
-  lede: `Facility and finance teams ask Meridian Energy Infrastructure the same things before they request a site assessment: what solar could save, how big a site has to be, how the 25 years are structured. This is the bot that answers them in the site chat from Meridian’s own published figures, the agent that researches each strong-fit request for an energy advisor, the agent that drafts the note on each monthly production report, and the two patterns underneath all three. ${SAFE} ${MONEY} ${YES} The bot answers live, without a yes, from the site’s pages only and always with the source. Neither agent is a step in ME-01, ME-02 or ME-03: the Lead research agent reads ME-01’s score and runs beside it, and the Report note agent writes to the report’s row beside ME-03, so in the three flows Claude still only scores survey requests.`,
+  lede: `Facility and finance teams ask Meridian Energy Infrastructure the same things before they request a site assessment: what solar could save, how big a site has to be, how the 25 years are structured. This is the bot that answers them in the site chat from the company’s own published figures, the agent that researches each strong-fit request for an energy advisor, the agent that drafts the note on each monthly production report, and the two patterns underneath all three. ${SAFE} ${MONEY} ${YES} The bot answers live, without a yes, from the site’s pages only and always with the source. Neither agent is a step in ME-01, ME-02 or ME-03: the Lead research agent reads ME-01’s score and runs beside it, and the Report note agent writes to the report’s row beside ME-03, so in the three flows Claude still only scores survey requests.`,
   sample: 'Sample builds for Meridian Energy Infrastructure, a fictional commercial solar and storage developer used across this portfolio, not a client project. Times and figures are illustrative.',
   heroTools: ['claude', 'n8n', 'supabase'],
   sections: [
@@ -198,7 +198,7 @@ const agents: Agents = {
     {
       id: 'sales', kind: 'rag', name: 'Website sales bot', business: BUSINESS,
       line: `Answers Meridian Energy Infrastructure visitors’ cost and fit questions, then offers a site assessment. It answers from the site’s own pages and the figures they publish, always with the source, and quotes a figure only as the site publishes it: it never works out a saving or a production figure for a visitor’s own site, and never promises a payment. A fixed n8n check sends any question about a fault, equipment or an emergency to a fixed reply before Claude sees it: “${STOP}” The assessment it offers is the site’s own wizard, the path ME-01 runs, and it never calls it free. Anything the site does not say goes to an energy advisor.`,
-      example: { ask: 'What would rooftop solar save on our distribution warehouse?', answer: 'Typically 18–27% below your blended retail rate (Solutions guide). Book a site assessment?' },
+      example: { ask: 'What would rooftop solar save on our distribution warehouse?', answer: 'Typically 18 – 27% below blended retail rate under a power purchase agreement (Solutions guide). Book a site assessment?' },
       tools: ['claude', 'supabase', 'n8n', 'cal-com'],
       routes: ['prepare', 'answered', 'handoff', 'stopped', 'booked'],
       pins: ['docs:docs', 'docs:sheets', 'ask:chat', 'handoff:advisor', 'handoff:gmail', 'handoff:site'],
@@ -258,14 +258,14 @@ const agents: Agents = {
     ['Fixed check', 'An n8n Code node that reads every draft for figures, money words and equipment words, behind Claude.'],
     ['Loop-back', 'A cable back to an earlier step: the agent reads again, or redrafts an email the advisor sent back.'],
     ['Approval gate', `A point where the run stops until a person says yes. ${YES}`],
-    ['Production guarantee', 'The site’s promise: if the asset underperforms the model, Meridian writes the cheque. The asset manager decides any payment.'],
+    ['Production guarantee', 'The site’s promise: if the asset underperforms the model, Meridian Energy Infrastructure writes the cheque. The asset manager decides any payment.'],
     ['Energy advisor', 'The person who answers survey requests, confirms survey windows and approves every first email.'],
     ['Asset manager', 'The person accountable for an operating asset, who approves its monthly report and decides any payment.'],
     ['Claude', 'Anthropic’s AI model. It answers in the bot, researches and drafts in Lead research, and drafts the report note.'],
     ['n8n', 'The workflow tool that runs the bot and both agents: it listens for triggers and makes the tool calls.'],
     ['Supabase', 'A hosted Postgres database: the bot’s store of passages, and the CRM the Lead research agent saves to.'],
     ['Cal.com', 'Where a strong site books its drone survey window through ME-01, for an energy advisor to confirm.'],
-    ['Airtable', 'Where Meridian keeps its assets, faults, tickets, production months and reports.'],
+    ['Airtable', 'Where Meridian Energy Infrastructure keeps its assets, faults, tickets, production months and reports.'],
     ['Telegram', 'The chat app where the energy advisors approve first emails.'],
   ],
   footer: { note: 'Sample builds, drawn the way I build them. Meridian Energy Infrastructure is fictional, and figures are illustrative.', by: 'Built by Justine Acosta' },
