@@ -13,5 +13,7 @@ export default defineConfig([
     '.superpowers/**',
     'test-results/**',
     'playwright-report/**',
+    // The sample sites' own scripts, unpacked by scripts/unbundle-samples.mjs: third-party and minified.
+    'public/samples/**',
   ]),
 ])

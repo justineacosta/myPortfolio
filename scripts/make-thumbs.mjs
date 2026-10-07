@@ -2,6 +2,7 @@
 // drum's textures and the spin ring's pages) and a tall one, the page up to
 // four screens down, that the Funnels and sites card scrolls through on hover.
 // Run after changing a sample page: npm run thumbs
+// (A freshly exported bundle should go through npm run unbundle first.)
 import { mkdirSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -18,8 +19,8 @@ const TALL_MAX = 1440 * 4
 const files = readdirSync(dir).filter((f) => f.endsWith('.html'))
 
 /**
- * Opens a page and waits until it is finished: a bundled export unpacks
- * itself with script, then its images and fonts load, and its scroll-in
+ * Opens a page and waits until it is finished: a bundled export (if one
+ * hasn't been unbundled yet) unpacks itself with script, then its images and fonts load, and its scroll-in
  * reveals only show once scrolled past, so it is scrolled through once.
  */
 async function open(p, f) {
