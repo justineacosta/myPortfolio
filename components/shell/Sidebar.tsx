@@ -37,7 +37,7 @@ export default function Sidebar() {
             alt={profile.portrait.alt}
             width={114}
             height={114}
-            priority
+            preload
             className="relative size-[114px] rounded-full border border-b2 object-cover"
             style={{ objectPosition: profile.portrait.position }}
           />

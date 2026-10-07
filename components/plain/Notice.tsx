@@ -42,6 +42,7 @@ export default function Notice({ kicker, title, body, primary, secondary, art }:
           width={art.width}
           height={art.height}
           sizes="(min-width: 768px) 320px, 200px"
+          preload
           className="h-auto w-[min(200px,55vw)] shrink-0 rounded-[22px] border border-b2 shadow-[0_28px_64px_-30px_var(--washB)] md:w-[clamp(220px,26vw,320px)]"
         />
       )}
