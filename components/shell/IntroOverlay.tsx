@@ -446,7 +446,8 @@ export default function IntroOverlay() {
         type="button"
         aria-label="Skip intro"
         onClick={() => skipRef.current()}
-        className="intro-skip pointer-events-auto fixed right-[clamp(18px,4vw,44px)] bottom-[clamp(18px,4vw,40px)] flex min-h-10 cursor-pointer items-center gap-2 rounded-[11px] border border-b1 bg-s2 px-4 py-2.5 text-[12.5px] text-ink3 hover:border-b2 hover:text-ink2"
+        // On desktop it sits in a row with the floating accessibility button (right-5 bottom-5, 40px), just to its left.
+        className="intro-skip pointer-events-auto fixed right-[clamp(18px,4vw,44px)] bottom-[clamp(18px,4vw,40px)] shell:right-[70px] shell:bottom-5 flex min-h-10 cursor-pointer items-center gap-2 rounded-[11px] border border-b1 bg-s2 px-4 py-2.5 text-[12.5px] text-ink3 hover:border-b2 hover:text-ink2"
       >
         {home.intro.skip} <ArrowRightIcon size={14} aria-hidden />
       </button>

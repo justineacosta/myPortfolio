@@ -163,11 +163,14 @@ html[data-a11y-motion=true] [data-reveal]{opacity:1 !important;transform:none !i
    opens out as Kraft's hover did (x1.9, y1.5, tilt x1.85), gives the tiles
    depth so its tilt (--tx --ty) shows parallax, and lifts the chosen tile;
    keyboard focus on the card opens it out too. */
-.arc{perspective:900px}
+/* --share is a tile's width as a share of the arc's (TILE_SHARE in components/home/ProjectsCard.tsx).
+   Below sm the arc is under 369px wide, so the tiles take a larger share to stay legible. */
+.arc{perspective:900px;--share:54%}
+@media (min-width:40rem){.arc{--share:40%}}
 .arc-stage{--sx:1;--sy:1;--sr:1;--depth:0;--lift:0px;--up:0px;--grow:1;position:absolute;inset:0;transform-style:preserve-3d;transform:rotateX(var(--tx,0deg)) rotateY(var(--ty,0deg));transition:transform .35s ease-out}
 .arc-stage[data-spread],a:focus-visible .arc-stage{--sx:1.9;--sy:1.5;--sr:1.85}
 .arc-stage[data-spread]{--depth:14;--lift:70px;--up:-14px;--grow:1.05}
-.arc-card{position:absolute;left:50%;bottom:26%;width:40%;margin-left:-20%;aspect-ratio:16/10;border-radius:13px;overflow:hidden;container-type:size;background:var(--s0);border:1px solid var(--b2);box-shadow:var(--arc-shadow);transform-origin:50% 50%;transform:translate3d(calc(var(--x) * var(--sx) * 1%),calc(var(--y) * var(--sy) * 1%),calc(var(--d) * var(--depth) * 1px)) rotate(calc(var(--r) * var(--sr) * 1deg));transition:transform .55s cubic-bezier(.2,.7,.2,1),opacity .5s ease,box-shadow .4s ease,border-color .4s ease}
+.arc-card{position:absolute;left:50%;bottom:26%;width:var(--share);margin-left:calc(var(--share) / -2);aspect-ratio:16/10;border-radius:13px;overflow:hidden;container-type:size;background:var(--s0);border:1px solid var(--b2);box-shadow:var(--arc-shadow);transform-origin:50% 50%;transform:translate3d(calc(var(--x) * var(--sx) * 1%),calc(var(--y) * var(--sy) * 1%),calc(var(--d) * var(--depth) * 1px)) rotate(calc(var(--r) * var(--sr) * 1deg));transition:transform .55s cubic-bezier(.2,.7,.2,1),opacity .5s ease,box-shadow .4s ease,border-color .4s ease}
 .arc-card[data-front]{transform:translate3d(calc(var(--x) * var(--sx) * 1%),calc(var(--y) * var(--sy) * 1%),var(--lift)) translateY(var(--up)) rotate(calc(var(--r) * .555deg)) scale(var(--grow))}
 .arc-stage[data-spread] .arc-card[data-front]{border-color:var(--washB);box-shadow:0 30px 64px -24px var(--glow)}
 .arc-card[data-off]{opacity:0}
