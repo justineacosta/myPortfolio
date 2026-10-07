@@ -2,6 +2,7 @@ import type { Icon } from '@phosphor-icons/react'
 import {
   ArrowsClockwiseIcon,
   BrowsersIcon,
+  ChartLineUpIcon,
   FlagPennantIcon,
   KanbanIcon,
   LightningIcon,
@@ -13,7 +14,7 @@ import {
 } from '@phosphor-icons/react/ssr'
 import type { Brand } from './stack'
 
-/** Kraft's offers, verbatim (KraftScreens.dc.html:585-592), less Mobile Apps & Extensions. */
+/** Kraft's offers, verbatim (KraftScreens.dc.html:585-592), less Mobile Apps & Extensions, plus SEO & Performance. */
 export type Service = {
   n: string
   name: string
@@ -50,6 +51,11 @@ export const SERVICES: Service[] = [
     n: '05', name: 'APIs & Integrations', icon: PlugsConnectedIcon, line: 'Systems that finally talk.', badge: 'TYPED',
     bullets: ['Versioned contracts', 'Idempotent by default', 'Monitoring from day one'], tags: ['REST', 'Webhooks', 'SDKs'],
     logos: [{ name: 'Postman', slug: 'postman' }, { name: 'GraphQL', slug: 'graphql' }, { name: 'Stripe', slug: 'stripe' }],
+  },
+  {
+    n: '06', name: 'SEO & Performance', icon: ChartLineUpIcon, line: 'Found on Google, fast on every phone.', badge: 'RANKS & LOADS',
+    bullets: ['Core Web Vitals in the green', 'Technical SEO, schema, sitemaps', 'Search Console tracking set up'], tags: ['Core Web Vitals', 'Schema', 'Lighthouse'],
+    logos: [{ name: 'Google Search Console', slug: 'googlesearchconsole' }, { name: 'Lighthouse', slug: 'lighthouse' }, { name: 'Google Analytics', slug: 'googleanalytics' }],
   },
 ]
 

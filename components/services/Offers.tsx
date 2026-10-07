@@ -4,9 +4,9 @@ import { SERVICES, servicesPage } from '@/data/services'
 import { brandIcon } from '@/data/stack'
 
 /**
- * "What I can do for you" (KraftScreens.dc.html:243-274): the five offers.
- * From the sidebar breakpoint they sit three over two, each row filling the
- * width; below it they wrap, two a row on tablets and one on phones.
+ * "What I can do for you" (KraftScreens.dc.html:243-274): the six offers.
+ * From the sidebar breakpoint they sit three over three; below it they wrap,
+ * two a row on tablets and one on phones.
  */
 export default function Offers() {
   const o = servicesPage.offers
@@ -19,11 +19,11 @@ export default function Offers() {
         </h2>
         <span className="text-[13px] text-ink3">{o.aside}</span>
       </div>
-      <div className="flex flex-wrap gap-[clamp(11px,1.3cqw,18px)] shell:grid shell:grid-cols-6">
+      <div className="flex flex-wrap gap-[clamp(11px,1.3cqw,18px)] shell:grid shell:grid-cols-3">
         {SERVICES.map((s) => (
           <article
             key={s.n}
-            className={`${CARD} flex min-w-[min(245px,100%)] flex-[1_1_300px] flex-col gap-3 p-5 shell:col-span-2 shell:nth-[n+4]:col-span-3 transition-[translate,border-color,box-shadow] duration-400 ease-[cubic-bezier(.2,.7,.2,1)] hover:-translate-y-[3px] hover:border-b2 hover:shadow-[0_24px_60px_-30px_var(--washB)]`}
+            className={`${CARD} flex min-w-[min(245px,100%)] flex-[1_1_300px] flex-col gap-3 p-5 transition-[translate,border-color,box-shadow] duration-400 ease-[cubic-bezier(.2,.7,.2,1)] hover:-translate-y-[3px] hover:border-b2 hover:shadow-[0_24px_60px_-30px_var(--washB)]`}
           >
             <div className="flex items-center gap-2.5">
               <div className="flex gap-[5px] rounded-[13px] border border-b1 bg-chip p-[5px]">

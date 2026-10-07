@@ -60,14 +60,14 @@ describe('Bento', () => {
     expect(within(stack).getByText('IN USE')).toBeInTheDocument()
   })
 
-  it('lists the five services with their numbers and logos, and says to scroll for all five', () => {
+  it('lists the six services with their numbers and logos, and says to scroll for all six', () => {
     renderBento()
     const services = screen.getByRole('link', { name: /^Services/ })
     expect(services).toHaveAttribute('href', '/services')
-    expect(within(services).getByText('01 / 05')).toBeInTheDocument()
+    expect(within(services).getByText('01 / 06')).toBeInTheDocument()
     expect(within(services).getByText('APIs & Integrations')).toBeInTheDocument()
     expect(within(services).queryByText('Mobile Apps & Extensions')).toBeNull()
-    expect(within(services).getByText('SCROLL FOR ALL FIVE')).toBeInTheDocument()
+    expect(within(services).getByText('SCROLL FOR ALL SIX')).toBeInTheDocument()
     expect(services.querySelector('img[src="/icons/brands/n8n.svg"]')).not.toBeNull()
   })
 

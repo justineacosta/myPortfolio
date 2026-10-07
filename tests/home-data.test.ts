@@ -29,7 +29,7 @@ describe('Home data', () => {
   })
 
   it('lists five services numbered 01-05, with no Mobile Apps & Extensions', () => {
-    expect(SERVICES.map((s) => s.n)).toEqual(['01', '02', '03', '04', '05'])
+    expect(SERVICES.map((s) => s.n)).toEqual(['01', '02', '03', '04', '05', '06'])
     expect(SERVICES.map((s) => s.name)).not.toContain('Mobile Apps & Extensions')
     expect(SERVICES[0].name).toBe('Full-Stack Web & SaaS')
     expect(SERVICES.every((s) => s.logos.length === 3)).toBe(true)
