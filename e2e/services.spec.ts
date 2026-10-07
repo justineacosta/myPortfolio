@@ -162,7 +162,7 @@ test.describe('reduced motion', () => {
   })
 })
 
-test('desktop: the five offers sit three over two, each row filling the width', async ({ page }) => {
+test('desktop: the six offers sit three over three, each row filling the width', async ({ page }) => {
   await page.goto('/services')
   await hydrated(page)
   const boxes = await page.locator('#offers article').evaluateAll((els) =>
@@ -171,13 +171,13 @@ test('desktop: the five offers sit three over two, each row filling the width', 
       return { top: Math.round(r.top), left: Math.round(r.left), right: Math.round(r.right) }
     }),
   )
-  expect(boxes).toHaveLength(5)
+  expect(boxes).toHaveLength(6)
   const [a, b] = [boxes.slice(0, 3), boxes.slice(3)]
   expect(new Set(a.map((x) => x.top)).size).toBe(1)
   expect(new Set(b.map((x) => x.top)).size).toBe(1)
   expect(b[0].top).toBeGreaterThan(a[0].top)
   expect(b[0].left).toBe(a[0].left)
-  expect(b[1].right).toBe(a[2].right)
+  expect(b[2].right).toBe(a[2].right)
 })
 
 test('desktop: every live automation sits centred in its panel', async ({ page }) => {

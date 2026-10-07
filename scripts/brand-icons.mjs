@@ -15,6 +15,7 @@ const BRANDS = {
   airtable: '18BFFF', notion: 'A3AAB2', postman: 'FF6C37', googlechrome: '4285F4', express: 'A3AAB2',
   github: 'A3AAB2', googlesheets: '34A853', hackerrank: '00EA64',
   gmail: 'EA4335', telegram: '26A5E4', caldotcom: 'A3AAB2',
+  googlesearchconsole: '458CF5', lighthouse: 'F44B21', googleanalytics: 'E37400',
   // Only on the Projects board's cream logo chips, so the brand's own black.
   cursor: '111111',
 }
