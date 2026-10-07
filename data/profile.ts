@@ -10,7 +10,7 @@ export const profile = {
   brand: 'KRAFT',
   /** The studio name as written in prose, titles and structured data. */
   studio: 'Kraft',
-  handleLines: ['@Kraft · FULL STACK DEV', 'AI AUTOMATION & WORKFLOWS'] as [string, string],
+  handleLines: ['@KRAFT · FULL STACK DEV', 'AI AUTOMATION & WORKFLOWS'] as [string, string],
   phoneHandle: '@KRAFT',
   verifiedLabel: 'Certified',
   jobTitle: 'Full-stack developer and AI automation engineer',

@@ -31,7 +31,8 @@ test('motion off from the floating menu sticks across pages and skips the intro'
 })
 
 test('stronger contrast brightens the muted text; underlined links underline', async ({ page }) => {
-  await page.goto('/about')
+  // About has no links in its main content; Contact has its LinkedIn link.
+  await page.goto('/contact')
   await hydrated(page)
   const ink3 = () => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--ink3').trim())
   const before = await ink3()
