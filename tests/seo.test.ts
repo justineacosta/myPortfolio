@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest'
 import robots from '@/app/robots'
 import sitemap from '@/app/sitemap'
 import { profile } from '@/data/profile'
-import { jsonLd, personJsonLd } from '@/lib/jsonld'
+import { FAQS } from '@/data/faqs'
+import { SERVICES } from '@/data/services'
+import { faqJsonLd, jsonLd, personJsonLd, servicesJsonLd } from '@/lib/jsonld'
 import { indexedPaths, ledeOr, pageMetadata, SITE_NAME, STATIC_PAGES } from '@/lib/seo'
 import { SITE_URL, siteUrl } from '@/lib/site'
 import { readTokens } from '@/lib/tokens'
@@ -61,6 +63,17 @@ describe('Person JSON-LD', () => {
     const p = personJsonLd('https://kraft.dev')
     expect(p).toMatchObject({ '@type': 'Person', name: 'Justine Acosta', url: 'https://kraft.dev', image: 'https://kraft.dev/assets/portrait.jpg', email: `mailto:${profile.email}` })
     expect(p.sameAs).toEqual(['https://github.com/justineacosta', 'https://www.linkedin.com/in/justinesam023'])
+  })
+  it('lists every FAQ, question and answer, for /contact', () => {
+    const f = faqJsonLd()
+    expect(f['@type']).toBe('FAQPage')
+    expect(f.mainEntity).toHaveLength(FAQS.length)
+    expect(f.mainEntity[0]).toEqual({ '@type': 'Question', name: FAQS[0].q, acceptedAnswer: { '@type': 'Answer', text: FAQS[0].a } })
+  })
+  it('lists every offer as a Service from Justine, for /services', () => {
+    const s = servicesJsonLd('https://kraft.dev')
+    expect(s.itemListElement.map((e) => e.item.name)).toEqual(SERVICES.map((o) => o.name))
+    expect(s.itemListElement[0]).toMatchObject({ position: 1, item: { '@type': 'Service', provider: { '@type': 'Person', name: 'Justine Acosta', url: 'https://kraft.dev' } } })
   })
   it('cannot break out of its script tag', () => {
     expect(jsonLd({ a: '</script><script>' })).not.toContain('</script>')

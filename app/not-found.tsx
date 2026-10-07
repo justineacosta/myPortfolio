@@ -1,8 +1,11 @@
+import type { Metadata } from 'next'
 import Notice from '@/components/plain/Notice'
 import PlainShell from '@/components/plain/PlainShell'
 import { legal } from '@/data/legal'
 import { isHidden } from '@/data/nav'
 import { profile } from '@/data/profile'
+
+export const metadata: Metadata = { title: legal.notFound.tabTitle }
 
 /** The styled 404 (spec §9), in the plain shell. Next.js marks it noindex and answers 404. */
 export default function NotFound() {
