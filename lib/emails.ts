@@ -125,5 +125,5 @@ export function confirmEmail(lead: Lead, site: string): Email {
     '',
     `— ${profile.name}`,
   ].join('\n')
-  return { subject: r.subject, text, html }
+  return { subject: r.subject(lead.firstName), text, html }
 }

@@ -45,7 +45,7 @@ describe('confirmEmail (the one the visitor gets)', () => {
   const mail = confirmEmail(lead, 'https://kraft.dev')
 
   it('greets them, lists what happens next, and links to recent work', () => {
-    expect(mail.subject).toBe(contact.reply.subject)
+    expect(mail.subject).toBe("Thanks, Ana. I'll reply within one business day")
     expect(mail.html).toContain('Hi Ana,')
     for (const step of contact.reply.steps) expect(mail.html).toContain(step)
     expect(mail.html).toContain('href="https://kraft.dev/projects"')

@@ -39,19 +39,25 @@ describe('POST /api/contact', () => {
     expect(mine).toMatchObject({
       url: 'https://api.resend.com/emails',
       auth: 'Bearer re_test',
-      from: 'Kraft <onboarding@resend.dev>',
+      from: 'Kraft Contact Form <onboarding@resend.dev>',
       to: ['me@kraft.dev'],
       reply_to: 'ana@example.com',
       subject: 'Project inquiry from Ana Reyes',
     })
     expect(mine.text).toContain('Our intake is manual.')
     expect(mine.html).toContain('Reply to Ana')
-    expect(theirs).toMatchObject({ to: ['ana@example.com'], reply_to: 'me@kraft.dev', subject: contact.reply.subject })
+    expect(theirs).toMatchObject({ from: 'Justine at Kraft <onboarding@resend.dev>', to: ['ana@example.com'], reply_to: 'me@kraft.dev', subject: "Thanks, Ana. I'll reply within one business day" })
     expect(theirs.text).toContain('Hi Ana,')
     expect(theirs.html).toContain('/projects"')
     expect(theirs.html).not.toContain('Our intake is manual.')
     // The confirmation never repeats what was typed, so the form cannot be used to mail someone else's words.
     expect(theirs.text).not.toContain('Our intake is manual.')
+  })
+
+  it('takes only the address from CONTACT_FROM, bare or named', async () => {
+    vi.stubEnv('CONTACT_FROM', ' hello@kraft.dev ')
+    await post(GOOD)
+    expect(sent(fetch).map((m) => m.from)).toEqual(['Kraft Contact Form <hello@kraft.dev>', 'Justine at Kraft <hello@kraft.dev>'])
   })
 
   it('still counts as sent when only the confirmation fails', async () => {
