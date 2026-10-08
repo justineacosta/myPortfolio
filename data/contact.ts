@@ -34,7 +34,9 @@ export const contact = {
   },
   /** The confirmation the visitor gets by email. It never quotes their message. */
   reply: {
-    subject: 'Got your message',
+    /** The sender name the visitor sees: a person, not a brand. */
+    sender: 'Justine at Kraft',
+    subject: (firstName: string) => `Thanks, ${firstName}. I'll reply within one business day`,
     kicker: 'MESSAGE RECEIVED',
     title: 'Got your message.',
     body: "Thanks for writing. Your message reached me, and I'll reply within one business day.",
@@ -49,6 +51,8 @@ export const contact = {
   },
   /** The email I get for each message (lib/emails.ts). */
   notify: {
+    /** The sender name in my inbox, so a lead stands out. */
+    sender: 'Kraft Contact Form',
     kicker: 'NEW INQUIRY',
     wrote: 'wrote in.',
     name: 'NAME',
