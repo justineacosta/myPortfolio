@@ -63,6 +63,8 @@ export const SERVICES: Service[] = [
 export const servicesPage = {
   title: ['Apps, agents and the', 'automation between them.'] as const,
   lede: 'What I build, how it works, and what you get at the end of it.',
+  /** The meta description: search results and link previews, not the page. */
+  description: 'Full-stack web apps, AI agents and RAG, n8n, Zapier and Make automation, CRMs, APIs and SEO. Built in Manila for teams in the US, EU and CA.',
   method: {
     id: 'method',
     label: 'The Kraft Method',

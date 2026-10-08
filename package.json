@@ -15,6 +15,7 @@
     "e2e": "playwright test --grep-invert @shots",
     "shots": "playwright test --grep @shots --project=desktop",
     "thumbs": "node scripts/make-thumbs.mjs",
+    "unbundle": "node scripts/unbundle-samples.mjs",
     "placeholders": "node scripts/placeholders.ts",
     "plan": "node scripts/make-plan.ts && node scripts/shoot-plan.mjs",
     "e2e-page": "node scripts/make-e2e.ts && node scripts/shoot-e2e.mjs",

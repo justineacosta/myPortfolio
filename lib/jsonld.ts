@@ -1,4 +1,6 @@
+import { FAQS } from '@/data/faqs'
 import { profile } from '@/data/profile'
+import { SERVICES } from '@/data/services'
 import { isPlaceholder } from '@/lib/placeholder'
 import { SITE_URL } from '@/lib/site'
 
@@ -16,6 +18,29 @@ export function personJsonLd(url = SITE_URL) {
     address: { '@type': 'PostalAddress', addressLocality: profile.address.locality, addressCountry: profile.address.country },
     ...(real(profile.email) ? { email: `mailto:${profile.email}` } : {}),
     sameAs: profile.socials.map((s) => s.href).filter(real),
+  }
+}
+
+/** The FAQs' FAQPage JSON-LD, for /contact: each question with its answer, as on the page. */
+export function faqJsonLd(faqs: { q: string; a: string }[] = FAQS) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+  }
+}
+
+/** The offers as a list of Services, for /services, each provided by the Person on Home. */
+export function servicesJsonLd(url = SITE_URL) {
+  const provider = { '@type': 'Person', name: profile.name, url }
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    itemListElement: SERVICES.map((s, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      item: { '@type': 'Service', name: s.name, serviceType: s.name, description: `${s.line} ${s.bullets.join('. ')}.`, provider },
+    })),
   }
 }
 

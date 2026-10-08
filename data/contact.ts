@@ -9,8 +9,8 @@ export const contact = {
   title: ["Tell me what you're", 'building.'] as const,
   lede: "Describe the bottleneck. If it can be automated or built, you get a plan back. If it can't, I'll say so.",
   fields: {
-    firstName: { label: 'FIRST NAME', placeholder: 'Justine' },
-    lastName: { label: 'LAST NAME', placeholder: 'Acosta' },
+    firstName: { label: 'FIRST NAME', placeholder: 'Alex' },
+    lastName: { label: 'LAST NAME', placeholder: 'Rivera' },
     email: { label: 'EMAIL', placeholder: 'you@yourbusiness.com' },
     message: { label: 'WHAT ARE YOU RUNNING INTO?', placeholder: 'Where does the work pile up? What are you running it on today?' },
   },

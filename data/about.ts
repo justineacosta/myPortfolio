@@ -15,13 +15,15 @@ export const ROLES: Role[] = [
 export const about = {
   title: ["Hi, I'm Justine."] as const,
   lede: 'I build the systems that keep working when nobody is watching them.',
+  /** The meta description: search results and link previews, not the page. */
+  description: "I'm Justine Acosta, a full-stack developer and AI automation engineer in Manila. I build software, AI agents and workflows that keep working after the demo.",
   intro: {
     heading: 'I care about the parts nobody demos.',
     aside: 'The retry. The log line. The empty state.',
     lead: 'Kraft is how I work',
     body: ' — full-stack development, AI automation and workflow engineering under one roof. I use AI heavily to move faster, and I keep the architecture, the decisions and the accountability firmly human.',
     story:
-      'I started by building software from the ground up, taking on projects where I had to own both the code and the outcome. I got tired of fragile systems, repetitive manual work, and polished demos that fell apart in production—so now I build reliable software, AI automations, and workflows designed for what happens after the demo.',
+      'I started by building software from the ground up, taking on projects where I had to own both the code and the outcome. I got tired of fragile systems, repetitive manual work, and polished demos that fell apart in production — so now I build reliable software, AI automations, and workflows designed for what happens after the demo.',
   },
   image: {
     src: '/assets/about-workstation.gif',

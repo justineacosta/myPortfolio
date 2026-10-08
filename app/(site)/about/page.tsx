@@ -9,7 +9,7 @@ import { about } from '@/data/about'
 import { notFoundIfHidden } from '@/lib/hidden'
 import { pageMetadata } from '@/lib/seo'
 
-export const metadata = pageMetadata('/about', about.lede)
+export const metadata = pageMetadata('/about', about.description)
 
 const COLUMN = 'flex flex-col gap-[clamp(11px,1.3cqw,16px)]'
 

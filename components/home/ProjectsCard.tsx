@@ -21,9 +21,11 @@ const ARC: Pose[] = [
 ]
 /** Just off each end of the arc, where a build leaves and waits to come in. */
 const OFF: Record<'left' | 'right', Pose> = { left: { r: -22, x: -30, y: 9 }, right: { r: 22, x: 30, y: 9 } }
-/** A tile's width as a share of the arc's (.arc-card), and how far the arc opens out on hover (Kraft's 1.9x). */
-const TILE_SHARE = 0.4
+/** A tile's width as a share of the arc's (--share on .arc): larger below sm. And how far the arc opens out on hover (Kraft's 1.9x). */
+const TILE_SHARE = { phone: 0.54, wide: 0.4 }
+const SM_MIN_QUERY = '(min-width: 40rem)'
 const SPREAD_X = 1.9
+const tileShare = () => (window.matchMedia(SM_MIN_QUERY).matches ? TILE_SHARE.wide : TILE_SHARE.phone)
 
 /**
  * Home's Projects card: a link to Projects whose fan holds one tile per build
@@ -37,11 +39,13 @@ export default function ProjectsCard() {
   const { go } = useShellNav()
   const { fan, stage, held, peek, front, named, frontItem, slotOf, handlers } = useFan({
     count: BUILDS.length,
-    pick: (dx, width) =>
-      nearestOf(
+    pick: (dx, width) => {
+      const share = tileShare()
+      return nearestOf(
         dx,
-        ARC.map((a) => (a.x / 100) * TILE_SHARE * width * SPREAD_X),
-      ),
+        ARC.map((a) => (a.x / 100) * share * width * SPREAD_X),
+      )
+    },
   })
   const tag = named === undefined ? undefined : BUILDS[named]
 
@@ -95,9 +99,9 @@ export default function ProjectsCard() {
                 className="arc-card"
               >
                 {build.tall ? (
-                  <Image src={build.tall} alt="" width={432} height={1540} sizes="(min-width: 640px) 210px, 150px" draggable={false} className="fan-page" />
+                  <Image src={build.tall} alt="" width={432} height={1540} sizes="(min-width: 640px) 210px, 200px" draggable={false} className="fan-page" />
                 ) : (
-                  <Shot src={build.shot} hint={build.name} sizes="(min-width: 640px) 210px, 150px" />
+                  <Shot src={build.shot} hint={build.name} sizes="(min-width: 640px) 210px, 200px" />
                 )}
               </div>
             )

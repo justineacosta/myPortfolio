@@ -13,7 +13,8 @@ import { about } from '@/data/about'
 export default function Workstation() {
   const img = about.image
   const still = useReducedMotion()
-  const common = { alt: img.alt, width: img.width, height: img.height, unoptimized: true }
+  // Above the fold on About, and its largest paint on a phone: load it straight away.
+  const common = { alt: img.alt, width: img.width, height: img.height, unoptimized: true, loading: 'eager' as const }
   const { props: gif } = getImageProps({ ...common, src: img.src })
   const { props: frame } = getImageProps({ ...common, src: img.still })
   return (
