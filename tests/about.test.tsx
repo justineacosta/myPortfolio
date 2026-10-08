@@ -23,9 +23,10 @@ describe('About', () => {
     }
   })
 
-  it('labels the medals row Badges', () => {
+  it('labels the medals row Courses', () => {
     render(<AboutPage />)
-    expect(screen.getByText('BADGES')).toBeInTheDocument()
+    expect(screen.getByText('COURSES')).toBeInTheDocument()
+    expect(screen.queryByText('BADGES')).not.toBeInTheDocument()
     expect(screen.queryByText('CERTIFIED')).not.toBeInTheDocument()
   })
 
