@@ -23,7 +23,8 @@
     "agents-page": "node scripts/make-agents.ts && node scripts/shoot-agents.mjs",
     "automations-page": "node scripts/make-automations.ts && node scripts/shoot-automations.mjs",
     "cases": "node scripts/make-cases.ts",
-    "site-facts": "node scripts/site-facts.mjs"
+    "site-facts": "node scripts/site-facts.mjs",
+    "chat-check": "node scripts/chat-check.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",
