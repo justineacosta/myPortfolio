@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CardProject } from '@/lib/chat/samples'
+import { play } from '@/lib/chat/sound'
 import { useChat } from './useChat'
 import ChatLauncher from './ChatLauncher'
 import ChatNudge from './ChatNudge'
@@ -23,6 +24,10 @@ export default function ChatRoot({ ai, paths, projects }: { ai: boolean; paths: 
   const launcher = useRef<HTMLButtonElement>(null)
   const convo = useChat()
   const known = useMemo(() => new Set(paths), [paths])
+  const openChat = () => {
+    play('open')
+    setOpen(true)
+  }
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -30,6 +35,7 @@ export default function ChatRoot({ ai, paths, projects }: { ai: boolean; paths: 
       // Another dialog (the palette, a project view) keeps the key.
       if (document.documentElement.hasAttribute('data-dialog') || document.querySelector('[role="dialog"][aria-modal="true"], dialog[open]')) return
       e.preventDefault()
+      play('open')
       setOpen(true)
     }
     document.addEventListener('keydown', onKey)
@@ -37,14 +43,15 @@ export default function ChatRoot({ ai, paths, projects }: { ai: boolean; paths: 
   }, [open])
 
   const close = (refocus: boolean) => {
+    play('close')
     setOpen(false)
     if (refocus) launcher.current?.focus()
   }
 
   return (
     <>
-      <ChatLauncher ref={launcher} open={open} onToggle={() => (open ? close(false) : setOpen(true))} />
-      <ChatNudge open={open} onOpen={() => setOpen(true)} />
+      <ChatLauncher ref={launcher} open={open} onToggle={() => (open ? close(false) : openChat())} />
+      <ChatNudge open={open} onOpen={openChat} />
       {open && <ChatPanel {...convo} known={known} projects={projects} ai={ai} onClose={close} />}
     </>
   )

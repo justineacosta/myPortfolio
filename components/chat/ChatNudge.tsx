@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { XIcon } from '@phosphor-icons/react/ssr'
 import { chat } from '@/data/chat'
+import { play } from '@/lib/chat/sound'
 import { CHAT_NUDGE_KEY } from '@/lib/storage-keys'
 
 /** How long a visit runs before the bubble shows, and how often it looks again while the intro still holds the page. */
@@ -43,6 +44,8 @@ export default function ChatNudge({ open, onOpen }: { open: boolean; onOpen: () 
       }
       remember()
       setShow(true)
+      // Most browsers skip this one unless the visitor has already clicked something.
+      play('nudge')
     }
     timer = window.setTimeout(tryShow, NUDGE.delayMs)
     return () => window.clearTimeout(timer)
