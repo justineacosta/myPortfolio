@@ -38,7 +38,7 @@ test('a chip asks the question; the reply shows its link and the contact form, n
   const panel = await openLumen(page)
   await firstChip(panel).click()
   await expect(panel.getByRole('link', { name: 'the services' })).toBeVisible()
-  await expect(panel.getByText(chat.lead.intro)).toBeVisible()
+  await expect(panel.getByText(chat.lead.title)).toBeVisible()
   await expect(panel.getByText('[[lead-form]]')).toHaveCount(0)
   await expect(panel.getByText(chat.mode.live.label)).toBeVisible()
 })

@@ -110,10 +110,10 @@ describe('Lumen', () => {
     const dialog = await open()
     const box = screen.getByRole('textbox', { name: chat.message })
     await userEvent.type(box, 'Can I hire him?{Enter}')
-    await within(dialog).findByText(chat.lead.intro)
+    await within(dialog).findByText(chat.lead.title)
     await userEvent.type(box, 'And now?{Enter}')
     await within(dialog).findByText('Still here.', SEEN)
-    expect(within(dialog).getAllByText(chat.lead.intro)).toHaveLength(1)
+    expect(within(dialog).getAllByText(chat.lead.title)).toHaveLength(1)
 
     fetchMock.mockResolvedValueOnce(Response.json({ ok: true }))
     await userEvent.type(within(dialog).getByLabelText(chat.lead.firstName), 'Ada')

@@ -43,14 +43,22 @@ export const chat = {
   card: { badge: 'SAMPLE SYSTEM', open: 'Open the case study' },
   /** The form a reply can carry on clear hiring intent. Fields and checks are the contact page's (lib/contact.ts). */
   lead: {
-    intro: 'Leave your details and Justine will get back to you directly.',
+    title: 'Send Justine a message',
+    note: 'It goes straight to his inbox.',
     firstName: 'First name',
     lastName: 'Last name',
     email: 'Email',
     message: 'What are you building?',
-    messagePlaceholder: 'A rough idea of the project, timeline, and what you need.',
     send: 'Send to Justine',
     sending: 'Sending…',
     sent: 'Sent. Justine has it and will reply by email.',
+    /** The contact page's checks, in Lumen's voice rather than Justine's. */
+    errors: {
+      firstName: 'Add your first name.',
+      lastName: 'Add your last name.',
+      email: 'Add an email Justine can reply to.',
+      emailFormat: 'That email doesn’t look right.',
+      message: 'Tell him what you’re building.',
+    },
   },
 }
