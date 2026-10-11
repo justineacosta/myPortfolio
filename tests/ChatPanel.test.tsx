@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ChatRoot from '@/components/chat/ChatRoot'
 import { chat } from '@/data/chat'
@@ -75,6 +75,19 @@ describe('chat launcher and panel', () => {
     expect(screen.getByRole('textbox')).toHaveValue('')
   })
 
+  it('keeps the draft and sends nothing while a reply is streaming', async () => {
+    state.turns = [{ role: 'user', content: 'q' }]
+    state.streaming = 'Hel'
+    renderChat()
+    await open()
+    const box = screen.getByRole('textbox')
+    await userEvent.type(box, 'Next one{Enter}')
+    expect(screen.getByRole('button', { name: chat.send })).toBeDisabled()
+    await userEvent.click(screen.getByRole('button', { name: chat.send }))
+    expect(send).not.toHaveBeenCalled()
+    expect(box).toHaveValue('Next one')
+  })
+
   it('renders a known path as a link that navigates through the shell', async () => {
     state.turns = [
       { role: 'user', content: 'what do you offer' },
@@ -86,6 +99,8 @@ describe('chat launcher and panel', () => {
     expect(link).toHaveAttribute('href', '/services')
     await userEvent.click(link)
     expect(go).toHaveBeenCalledWith('/services')
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(launcher()).not.toHaveFocus()
   })
 
   it('leaves an unknown path as plain text', async () => {
@@ -111,6 +126,8 @@ describe('chat launcher and panel', () => {
     link.addEventListener('click', (e) => e.preventDefault())
     await userEvent.click(link)
     expect(go).not.toHaveBeenCalled()
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(launcher()).not.toHaveFocus()
   })
 
   it('shows the in-flight reply while streaming', async () => {

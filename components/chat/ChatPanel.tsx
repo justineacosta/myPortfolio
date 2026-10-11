@@ -23,14 +23,20 @@ function inOtherOverlay(el: EventTarget | null, panel: HTMLElement | null): bool
 }
 
 /** A reply as text and links: a known site path goes through the shell router, a file stays a plain anchor. */
-function Reply({ text, known, go }: { text: string; known: ReadonlySet<string>; go: (href: string) => void }) {
+function Reply({ text, known, go, onFollow }: { text: string; known: ReadonlySet<string>; go: (href: string) => void; onFollow: () => void }) {
   return parseLinks(text, known).map((seg, i) => {
     if (!('href' in seg)) return seg.text
     const { href } = seg
     const onClick = (e: MouseEvent) => {
-      if (/\.html?$/.test(href) || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+      if (/\.html?$/.test(href)) {
+        // Let the browser follow the file first; unmounting the anchor inside its own click could cancel that.
+        setTimeout(onFollow, 0)
+        return
+      }
       e.preventDefault()
       go(href)
+      onFollow()
     }
     return (
       <a key={i} href={href} onClick={onClick} className="text-accent underline underline-offset-2">
@@ -94,8 +100,10 @@ export default function ChatPanel({
     go('/contact')
     onClose(false)
   }
+  // Following a reply link leaves the chat; focus stays with the page it opens.
+  const follow = () => onClose(false)
   const submit = () => {
-    if (!draft.trim()) return
+    if (streaming !== null || !draft.trim()) return
     void send(draft.trim())
     setDraft('')
   }
@@ -132,10 +140,10 @@ export default function ChatPanel({
         )}
         {turns.map((t, i) => (
           <p key={i} className={`${bubble} ${t.role === 'user' ? 'self-end border-wash-b bg-wash' : 'self-start border-b1 bg-s2'} text-ink`}>
-            {t.role === 'user' ? t.content : <Reply text={t.content} known={known} go={go} />}
+            {t.role === 'user' ? t.content : <Reply text={t.content} known={known} go={go} onFollow={follow} />}
           </p>
         ))}
-        {streaming !== null && <p className={`${bubble} self-start border-b1 bg-s2 text-ink`}>{streaming ? <Reply text={streaming} known={known} go={go} /> : '…'}</p>}
+        {streaming !== null && <p className={`${bubble} self-start border-b1 bg-s2 text-ink`}>{streaming ? <Reply text={streaming} known={known} go={go} onFollow={follow} /> : '…'}</p>}
         {error && (
           <p role="alert" className="text-[13px] text-ink2">
             {error}
@@ -159,7 +167,7 @@ export default function ChatPanel({
           className="flex items-center gap-2 border-t border-b1 px-4 py-3"
         >
           <input ref={input} id={INPUT_ID} type="text" maxLength={500} value={draft} onChange={(e) => setDraft(e.target.value)} aria-label={chat.placeholder} placeholder={chat.placeholder} autoComplete="off" className="h-10 min-w-0 flex-1 rounded-xl border border-b1 bg-s1 px-3 text-[13.5px] text-ink placeholder:text-ink3" />
-          <button type="submit" aria-label={chat.send} title={chat.send} className="grid size-10 cursor-pointer place-items-center rounded-xl border border-accent bg-accent text-on-accent">
+          <button type="submit" disabled={streaming !== null} aria-label={chat.send} title={chat.send} className="grid size-10 cursor-pointer place-items-center rounded-xl border border-accent bg-accent text-on-accent disabled:cursor-default disabled:opacity-50">
             <PaperPlaneRightIcon size={16} weight="fill" aria-hidden />
           </button>
         </form>
