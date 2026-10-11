@@ -3,33 +3,30 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { chat } from '@/data/chat'
 import { splitReply } from '@/lib/chat/reply'
-import type { ChatTurn } from '@/lib/chat/validate'
+import { MAX_LENGTH, MAX_USER_TURNS, type ChatTurn } from '@/lib/chat/validate'
 import { CHAT_KEY } from '@/lib/storage-keys'
 
-/** How many questions a visitor may ask in one chat. */
-const MAX_USER_TURNS = 10
-
-/** The longest turn the route accepts, by who wrote it; longer turns are cut when sent, not when shown. */
-const MAX_LENGTH = { user: 500, assistant: 2000 }
-
-/** The saved chat, or nothing when it is missing, unreadable or not a history the route would accept. */
-function restore(): ChatTurn[] {
+/** The saved chat, or nothing when it is missing, unreadable or not a history the route would accept. Longer turns are cut when sent, not when shown. */
+function restore(): { turns: ChatTurn[]; contact: boolean } {
   try {
-    const saved: unknown = JSON.parse(sessionStorage.getItem(CHAT_KEY) ?? 'null')
+    const raw: unknown = JSON.parse(sessionStorage.getItem(CHAT_KEY) ?? 'null')
+    // The first version stored the bare list of turns; it is still read.
+    const saved = Array.isArray(raw) ? raw : (raw as { turns?: unknown } | null)?.turns
     const ok =
       Array.isArray(saved) &&
       saved.length % 2 === 0 &&
       saved.every((t, i) => t && t.role === (i % 2 ? 'assistant' : 'user') && typeof t.content === 'string' && t.content.trim())
-    return ok ? (saved as ChatTurn[]) : []
+    if (!ok) return { turns: [], contact: false }
+    return { turns: saved as ChatTurn[], contact: !Array.isArray(raw) && (raw as { contact?: unknown }).contact === true }
   } catch {
-    return []
+    return { turns: [], contact: false }
   }
 }
 
 /** Keeps the chat for the tab; the chat works without it when storage is blocked. */
-function save(turns: ChatTurn[]) {
+function save(turns: ChatTurn[], contact: boolean) {
   try {
-    sessionStorage.setItem(CHAT_KEY, JSON.stringify(turns))
+    sessionStorage.setItem(CHAT_KEY, JSON.stringify({ turns, contact }))
   } catch {
     /* private mode or blocked site data: the chat lasts as long as the page */
   }
@@ -64,9 +61,10 @@ export function useChat() {
   // Read in an effect, not in render, so the server and first client render agree.
   useEffect(() => {
     const saved = restore()
-    turnsRef.current = saved
+    turnsRef.current = saved.turns
     // eslint-disable-next-line react-hooks/set-state-in-effect -- storage only exists after hydration
-    setTurns(saved)
+    setTurns(saved.turns)
+    setContact(saved.contact)
   }, [])
 
   const send = useCallback(async (text: string) => {
@@ -106,7 +104,7 @@ export function useChat() {
           turnsRef.current = next
           setTurns(next)
           setContact(reply.contact)
-          save(next)
+          save(next, reply.contact)
         } else {
           problem = chat.errors.failed
         }

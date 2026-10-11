@@ -8,7 +8,7 @@ import { checkChat } from '@/lib/chat/validate'
 /**
  * The site chat's backend: answers a visitor's question from the knowledge
  * block (lib/chat/knowledge.ts) with Claude Haiku, streamed back as plain text.
- * The order is: the per-visitor limit, the history check, the key, the call.
+ * The order is: the per-visitor limit, the size and history check, the key, the call.
  * The first event is awaited before the Response goes out, so a call that
  * fails up front is a 502 the panel can show. A failure after that errors
  * the stream, and the panel shows the error sentence and the hand-off.
@@ -16,6 +16,9 @@ import { checkChat } from '@/lib/chat/validate'
  */
 
 export const maxDuration = 30
+
+/** The largest request body read: far above 10 questions and 9 answers at their limits. */
+const MAX_BODY = 64 * 1024
 
 const refuse = (error: string, status: number) => Response.json({ error }, { status })
 
@@ -30,7 +33,9 @@ const textOf = (event: Anthropic.MessageStreamEvent) =>
 export async function POST(req: Request) {
   if (!chatAllowed(clientIp(req))) return refuse(chat.errors.rate, 429)
 
-  const messages = checkChat(await req.json().catch(() => null))
+  // No honest history is near this size, so a larger one is refused before it is read.
+  const declared = Number(req.headers.get('content-length'))
+  const messages = declared > MAX_BODY ? null : checkChat(await req.json().catch(() => null))
   if (!messages) return refuse(chat.errors.invalid, 400)
 
   if (!process.env.ANTHROPIC_API_KEY) {

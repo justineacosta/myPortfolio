@@ -2,7 +2,7 @@ import type Anthropic from '@anthropic-ai/sdk'
 import { KNOWLEDGE } from './knowledge'
 import { MARKER } from './reply'
 
-/** The fixed rules the model follows on every reply. They come before the knowledge and are not cached. */
+/** The fixed rules the model follows on every reply. They come before the knowledge, and the cache breakpoint on the knowledge block covers them too. */
 export const RULES = [
   "You are the assistant on Justine's portfolio site. You answer visitors' questions about Justine and his work. Speak in the first person as the site's assistant, and never as Justine.",
   'The knowledge below is everything you know. Answer only from it.',

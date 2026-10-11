@@ -69,6 +69,19 @@ describe('POST /api/chat', () => {
     expect(streamMock).not.toHaveBeenCalled()
   })
 
+  it('refuses a body declared over 64 KB before reading it, and does not call the model', async () => {
+    const res = await POST(
+      new Request('http://localhost/api/chat', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'content-length': '65537', 'x-forwarded-for': `10.1.1.${++ip}` },
+        body: JSON.stringify({ messages: MESSAGES }),
+      }),
+    )
+    expect(res.status).toBe(400)
+    expect(await res.json()).toEqual({ error: chat.errors.invalid })
+    expect(streamMock).not.toHaveBeenCalled()
+  })
+
   it('is unavailable without a key, and does not call the model', async () => {
     vi.stubEnv('ANTHROPIC_API_KEY', '')
     const res = await post({ messages: MESSAGES })

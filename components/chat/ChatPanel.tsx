@@ -6,7 +6,7 @@ import { useShellNav } from '@/components/shell/NavigationProvider'
 import { chat } from '@/data/chat'
 import { HANDOFF_EVENT, saveHandoff } from '@/lib/chat/handoff'
 import { parseLinks } from '@/lib/chat/reply'
-import type { ChatTurn } from '@/lib/chat/validate'
+import { MAX_LENGTH, type ChatTurn } from '@/lib/chat/validate'
 import { PANEL_DOM_ID } from './ChatLauncher'
 
 const TITLE_ID = `${PANEL_DOM_ID}-title`
@@ -176,7 +176,7 @@ export default function ChatPanel({
           }}
           className="flex items-center gap-2 border-t border-b1 px-4 py-3"
         >
-          <input ref={input} id={INPUT_ID} type="text" maxLength={500} value={draft} onChange={(e) => setDraft(e.target.value)} aria-label={chat.placeholder} placeholder={chat.placeholder} autoComplete="off" className="h-10 min-w-0 flex-1 rounded-xl border border-b1 bg-s1 px-3 text-[13.5px] text-ink placeholder:text-ink3" />
+          <input ref={input} id={INPUT_ID} type="text" maxLength={MAX_LENGTH.user} value={draft} onChange={(e) => setDraft(e.target.value)} aria-label={chat.placeholder} placeholder={chat.placeholder} autoComplete="off" className="h-10 min-w-0 flex-1 rounded-xl border border-b1 bg-s1 px-3 text-[13.5px] text-ink placeholder:text-ink3" />
           <button type="submit" disabled={streaming !== null} aria-label={chat.send} title={chat.send} className="grid size-10 cursor-pointer place-items-center rounded-xl border border-accent bg-accent text-on-accent disabled:cursor-default disabled:opacity-50">
             <PaperPlaneRightIcon size={16} weight="fill" aria-hidden />
           </button>

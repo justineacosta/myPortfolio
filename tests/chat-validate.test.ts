@@ -1,10 +1,18 @@
 import { describe, expect, it } from 'vitest'
-import { checkChat } from '@/lib/chat/validate'
+import { checkChat, MAX_LENGTH, MAX_TURNS, MAX_USER_TURNS } from '@/lib/chat/validate'
 
 const u = (content: string) => ({ role: 'user', content })
 const a = (content: string) => ({ role: 'assistant', content })
 /** `n` alternating turns starting on a visitor turn. */
 const turns = (n: number) => Array.from({ length: n }, (_, i) => (i % 2 === 0 ? u(`q${i}`) : a(`a${i}`)))
+
+describe('chat limits', () => {
+  it('are 10 visitor turns, 19 entries, 500 and 2,000 characters', () => {
+    expect(MAX_USER_TURNS).toBe(10)
+    expect(MAX_TURNS).toBe(19)
+    expect(MAX_LENGTH).toEqual({ user: 500, assistant: 2000 })
+  })
+})
 
 describe('checkChat', () => {
   it('refuses anything that is not a list of turns', () => {

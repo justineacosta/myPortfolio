@@ -1,10 +1,12 @@
 /** One turn of the conversation, as the browser sends it and the model receives it. */
 export type ChatTurn = { role: 'user' | 'assistant'; content: string }
 
-/** The most entries a history may hold: 10 visitor turns and the 9 answers between them. */
-const MAX_TURNS = 19
+/** How many questions a visitor may ask in one chat. */
+export const MAX_USER_TURNS = 10
+/** The most entries a history may hold: the visitor turns and the answers between them. */
+export const MAX_TURNS = 2 * MAX_USER_TURNS - 1
 /** The longest a turn may be, by who wrote it. */
-const MAX_LENGTH = { user: 500, assistant: 2000 }
+export const MAX_LENGTH = { user: 500, assistant: 2000 }
 
 /**
  * The turns of a chat request body, trimmed and stripped to role and content,

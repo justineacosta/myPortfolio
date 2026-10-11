@@ -88,7 +88,7 @@ describe('useChat', () => {
       { role: 'user', content: 'Hi' },
       { role: 'assistant', content: 'Sure' },
     ])
-    expect(JSON.parse(sessionStorage.getItem(CHAT_KEY)!)).toEqual(result.current.turns)
+    expect(JSON.parse(sessionStorage.getItem(CHAT_KEY)!)).toEqual({ turns: result.current.turns, contact: true })
   })
 
   it('restores the turns from the tab on a new mount', async () => {
@@ -99,6 +99,22 @@ describe('useChat', () => {
     sessionStorage.setItem(CHAT_KEY, JSON.stringify(turns))
     const { result } = renderHook(() => useChat())
     await waitFor(() => expect(result.current.turns).toEqual(turns))
+  })
+
+  it('restores the hand-off button with the turns, and still reads the older bare list', async () => {
+    const turns = [
+      { role: 'user', content: 'Can we work together?' },
+      { role: 'assistant', content: 'Yes.' },
+    ]
+    sessionStorage.setItem(CHAT_KEY, JSON.stringify({ turns, contact: true }))
+    const { result } = renderHook(() => useChat())
+    await waitFor(() => expect(result.current.turns).toEqual(turns))
+    expect(result.current.contact).toBe(true)
+
+    sessionStorage.setItem(CHAT_KEY, JSON.stringify(turns))
+    const older = renderHook(() => useChat())
+    await waitFor(() => expect(older.result.current.turns).toEqual(turns))
+    expect(older.result.current.contact).toBe(false)
   })
 
   it('ignores stored data that is not a valid history', async () => {
