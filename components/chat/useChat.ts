@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { chat } from '@/data/chat'
+import { play } from '@/lib/chat/sound'
 import { recent, type ChatTurn } from '@/lib/chat/validate'
 import { CHAT_KEY } from '@/lib/storage-keys'
 
@@ -87,12 +88,14 @@ export function useChat() {
       const replyId = newId()
       const history = recent([...messages, asked])
       setMessages((prev) => [...prev, asked, { id: replyId, role: 'assistant', content: '', pending: true }])
+      play('send')
       setSending(true)
       const write = (content: string, pending = false) => setMessages((prev) => prev.map((m) => (m.id === replyId ? { ...m, content, pending } : m)))
 
       const controller = new AbortController()
       abort.current = controller
       let soFar = ''
+      let chimed = false
       try {
         const res = await fetch('/api/chat', {
           method: 'POST',
@@ -111,6 +114,11 @@ export function useChat() {
             const { done, value } = await reader.read()
             if (done) break
             soFar += decoder.decode(value, { stream: true })
+            // The chime marks the answer starting, so it plays on its first words, once.
+            if (!chimed && soFar.trim()) {
+              chimed = true
+              play('reply')
+            }
             write(soFar)
           }
           soFar += decoder.decode()

@@ -1,12 +1,13 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowCounterClockwiseIcon, ArrowElbowDownLeftIcon, ArrowUpIcon, RobotIcon, StopIcon, XIcon } from '@phosphor-icons/react/ssr'
+import { ArrowCounterClockwiseIcon, ArrowElbowDownLeftIcon, ArrowUpIcon, RobotIcon, SpeakerHighIcon, SpeakerSlashIcon, StopIcon, XIcon } from '@phosphor-icons/react/ssr'
 import { useShellNav } from '@/components/shell/NavigationProvider'
 import { chat } from '@/data/chat'
 import { hasLeadForm, plainText } from '@/lib/chat/rich'
 import type { CardProject } from '@/lib/chat/samples'
 import { STARTER_SUGGESTIONS, suggestionsFor } from '@/lib/chat/suggestions'
+import { isMuted, play, setMuted } from '@/lib/chat/sound'
 import { MAX_LENGTH } from '@/lib/chat/validate'
 import { PANEL_DOM_ID } from './ChatLauncher'
 import RichText from './RichText'
@@ -75,6 +76,19 @@ export default function ChatPanel({
   const list = useRef<HTMLDivElement>(null)
 
   useEffect(() => input.current?.focus(), [])
+
+  // Whether the sounds are muted, read after mount: storage only exists in the browser.
+  const [muted, setMutedState] = useState(false)
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- storage only exists after hydration
+    setMutedState(isMuted())
+  }, [])
+  const toggleSound = () => {
+    setMuted(!muted)
+    setMutedState(!muted)
+    // Turning sound on answers with a tick, so the visitor hears it worked.
+    if (muted) play('open')
+  }
 
   // Esc closes the panel unless something else has already taken the key or holds focus.
   useEffect(() => {
@@ -150,6 +164,9 @@ export default function ChatPanel({
           </span>
           <span className="truncate text-[11.5px] text-ink3">{chat.subtitle}</span>
         </div>
+        <button type="button" onClick={toggleSound} aria-pressed={muted} aria-label={chat.sound.mute} title={muted ? chat.sound.unmute : chat.sound.mute} className={iconButton}>
+          {muted ? <SpeakerSlashIcon size={15} aria-hidden /> : <SpeakerHighIcon size={15} aria-hidden />}
+        </button>
         <button type="button" onClick={startOver} disabled={!messages.length} aria-label={chat.reset} title={chat.reset} className={iconButton}>
           <ArrowCounterClockwiseIcon size={15} aria-hidden />
         </button>

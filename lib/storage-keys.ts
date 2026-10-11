@@ -7,3 +7,5 @@ export const SCROLL_KEY = 'kraft-scroll'
 export const CHAT_KEY = 'kraft-chat'
 /** Set once Lumen's greeting bubble has shown this visit, so it shows only once. */
 export const CHAT_NUDGE_KEY = 'kraft-chat-nudge'
+/** "off" when the visitor has muted Lumen's sounds; kept for the browser, not just the tab. */
+export const CHAT_SOUND_KEY = 'kraft-chat-sound'
