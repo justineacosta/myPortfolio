@@ -38,7 +38,7 @@ const section = (title: string, path: string, lines: string[]) => ({ path, text:
 /** A section per page, then a digest of each case. */
 function sections() {
   return [
-    section('About Justine', '/about', textOf([profile, about, ROLES])),
+    section('About Justine', '/about', textOf([profile, home, about, ROLES])),
     section('Services', '/services', textOf([servicesPage, SERVICES])),
     section('How a project runs', '/services', textOf(PROCESS)),
     section('Projects', '/projects', textOf([projects, BUILDS])),

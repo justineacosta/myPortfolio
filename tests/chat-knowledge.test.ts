@@ -3,6 +3,7 @@ import { KNOWLEDGE, KNOWN_PATHS, buildKnowledge, textOf } from '@/lib/chat/knowl
 import { SERVICES } from '@/data/services'
 import { FAQS } from '@/data/faqs'
 import { profile } from '@/data/profile'
+import { home } from '@/data/home'
 import { CERTS } from '@/data/credentials'
 import { CASES } from '@/data/cases'
 import { casePath } from '@/data/cases/pages'
@@ -18,6 +19,7 @@ describe('the chat knowledge block', () => {
     expect(block).toContain(FAQS[0].a)
     expect(block).toContain(profile.name)
     expect(block).toContain(CERTS[0].name)
+    expect(block).toContain(home.lede)
   })
 
   it('has a digest of every case, by its first agents build', () => {
