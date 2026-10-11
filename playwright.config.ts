@@ -11,6 +11,9 @@ export default defineConfig({
     // Never reuse: a leftover server would serve a stale build and the suite would test old code.
     reuseExistingServer: false,
     timeout: 300_000,
+    // The chat only renders when the build sees a key, and every test mocks /api/chat, so this fake key never reaches Anthropic.
+    // Playwright merges env over process.env, so the rest of the environment still reaches the build.
+    env: { ANTHROPIC_API_KEY: 'e2e-not-a-key' },
   },
   projects: [
     {
