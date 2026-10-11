@@ -20,10 +20,9 @@ export const about = {
   intro: {
     heading: 'I care about the parts nobody demos.',
     aside: 'The retry. The log line. The empty state.',
-    lead: 'Kraft is how I work',
-    body: ' — full-stack development, AI automation and workflow engineering under one roof. I use AI heavily to move faster, and I keep the architecture, the decisions and the accountability firmly human.',
-    story:
-      'I started by building software from the ground up, taking on projects where I had to own both the code and the outcome. I got tired of fragile systems, repetitive manual work, and polished demos that fell apart in production — so now I build reliable software, AI automations, and workflows designed for what happens after the demo.',
+    lead: 'Kraft is just how I work',
+    body: ': I build the app, the AI and the automations around it, and I stay accountable for all of it. AI helps me move fast; the decisions stay mine.',
+    story: "I've shipped enough projects alone to know the hard part starts after launch. That's the part I build for.",
   },
   image: {
     src: '/assets/about-workstation.gif',
