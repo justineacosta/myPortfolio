@@ -38,8 +38,9 @@ function Typing() {
 /**
  * Lumen's panel (the old portfolio's ai-chat-widget.tsx, in Kraft's style):
  * a card above the launcher on desktop, a full-height sheet on phones. A
- * non-modal dialog, so the page behind stays usable. The header shows who
- * answered last and resets the chat; chips under the messages suggest what to
+ * non-modal dialog, so the page behind stays usable. The header carries the
+ * Claude badge and resets the chat; the privacy line follows who answered last
+ * (Claude or the offline rules); chips under the messages suggest what to
  * ask next; Enter sends, Shift+Enter adds a line, and the send button stops a
  * reply that is still arriving.
  */
@@ -143,11 +144,9 @@ export default function ChatPanel({
             <h2 id={TITLE_ID} className="text-[15px] font-semibold tracking-[-.01em]">
               {chat.name}
             </h2>
-            {mode !== 'unknown' && (
-              <span title={chat.mode[mode].title} className="rounded-md border border-wash-b bg-wash px-1.5 py-0.5 font-mono text-[8.5px] tracking-[.12em] text-accent uppercase">
-                {chat.mode[mode].label}
-              </span>
-            )}
+            <span title={chat.badge.title} className="rounded-md border border-wash-b bg-wash px-1.5 py-0.5 font-mono text-[8.5px] tracking-[.12em] text-accent uppercase">
+              {chat.badge.label}
+            </span>
           </span>
           <span className="truncate text-[11.5px] text-ink3">{chat.subtitle}</span>
         </div>

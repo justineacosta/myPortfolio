@@ -74,7 +74,7 @@ describe('Lumen', () => {
     await userEvent.click(within(dialog).getByRole('button', { name: STARTER_SUGGESTIONS[0] }))
     const link = await within(dialog).findByRole('link', { name: 'the services' })
     expect(sentBody()).toEqual({ messages: [{ role: 'user', content: STARTER_SUGGESTIONS[0] }] })
-    expect(within(dialog).getByText(chat.mode.live.label)).toBeInTheDocument()
+    expect(within(dialog).getByText(chat.badge.label)).toBeInTheDocument()
     await userEvent.click(link)
     expect(go).toHaveBeenCalledWith('/services')
     expect(screen.queryByRole('dialog')).toBeNull()
@@ -127,14 +127,17 @@ describe('Lumen', () => {
     expect(JSON.parse(init.body)).toMatchObject({ firstName: 'Ada', lastName: 'Lovelace', email: 'ada@example.com', message: 'An intake automation.', website: '' })
   })
 
-  it('marks offline answers Offline and says the site keeps nothing', async () => {
+  it('says Claude even with no key and an offline answer, and that the site keeps nothing', async () => {
     fetchMock.mockResolvedValue(answer('Offline answer.', 'local'))
     renderChat(false)
     const dialog = await open()
+    expect(within(dialog).getByText(chat.badge.label)).toBeInTheDocument()
     expect(within(dialog).getByText(chat.privacy.site)).toBeInTheDocument()
     await userEvent.type(screen.getByRole('textbox', { name: chat.message }), 'Hi{Enter}')
     await within(dialog).findByText('Offline answer.', SEEN)
-    expect(within(dialog).getByText(chat.mode.local.label)).toBeInTheDocument()
+    // The badge says Claude whoever answered; only the privacy line follows the offline answer.
+    expect(within(dialog).getByText(chat.badge.label)).toBeInTheDocument()
+    expect(within(dialog).getByText(chat.privacy.site)).toBeInTheDocument()
   })
 
   it('writes a refused request into the reply, so the next question still sends a valid history', async () => {
