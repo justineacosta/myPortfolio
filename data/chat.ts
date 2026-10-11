@@ -13,7 +13,11 @@ export const chat = {
   close: 'Close chat',
   handoff: 'Send Justine a message',
   capped: 'Justine can take it from here.',
-  privacy: "Messages go to Anthropic to write the answer. This site doesn't keep them.",
+  /** The footer: `ai` when Claude answers, `site` when the keyless fallback does. */
+  privacy: {
+    ai: "Messages go to Anthropic to write the answer. This site doesn't keep them.",
+    site: "This site doesn't keep your messages.",
+  },
   /** Each refusal gives the visitor a way forward; the panel shows the hand-off button beside it. */
   errors: {
     rate: "You've asked a lot in a short time. Give it a few minutes, or write to Justine directly.",

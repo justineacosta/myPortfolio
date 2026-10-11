@@ -56,6 +56,7 @@ export default function ChatPanel({
   capped,
   send,
   known,
+  ai,
   onClose,
 }: {
   turns: ChatTurn[]
@@ -66,6 +67,8 @@ export default function ChatPanel({
   capped: boolean
   send: (text: string) => Promise<void>
   known: ReadonlySet<string>
+  /** Whether Claude answers, which decides what the privacy note says. */
+  ai: boolean
   onClose: (refocus: boolean) => void
 }) {
   const { go } = useShellNav()
@@ -182,7 +185,7 @@ export default function ChatPanel({
           </button>
         </form>
       )}
-      <p className="border-t border-b1 px-4 py-2 text-[11.5px] text-ink3">{chat.privacy}</p>
+      <p className="border-t border-b1 px-4 py-2 text-[11.5px] text-ink3">{chat.privacy[ai ? 'ai' : 'site']}</p>
       <p aria-live="polite" className="sr-only">
         {announced}
       </p>

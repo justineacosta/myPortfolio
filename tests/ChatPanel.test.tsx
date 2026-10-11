@@ -16,8 +16,8 @@ vi.mock('@/lib/chat/handoff', async (orig) => ({ ...(await orig<typeof import('@
 
 const PATHS = ['/services', '/contact', '/files/x.html']
 
-function renderChat(enabled = true) {
-  return render(<ChatRoot enabled={enabled} paths={PATHS} />)
+function renderChat(ai = true) {
+  return render(<ChatRoot ai={ai} paths={PATHS} />)
 }
 const launcher = () => screen.getByRole('button', { name: chat.launcher })
 async function open() {
@@ -33,9 +33,9 @@ beforeEach(() => {
 })
 
 describe('chat launcher and panel', () => {
-  it('renders nothing when chat is not enabled', () => {
-    const { container } = renderChat(false)
-    expect(container).toBeEmptyDOMElement()
+  it('renders the launcher without a key', () => {
+    renderChat(false)
+    expect(launcher()).toBeInTheDocument()
   })
 
   it('opens a titled dialog from the launcher and puts focus in the input', async () => {
@@ -151,7 +151,7 @@ describe('chat launcher and panel', () => {
       { role: 'assistant', content: 'Done, see [Services](/services).' },
     ]
     state.streaming = null
-    rerender(<ChatRoot enabled paths={PATHS} />)
+    rerender(<ChatRoot ai paths={PATHS} />)
     expect(document.querySelector('[aria-live="polite"]')).toHaveTextContent('Done, see Services.')
   })
 
@@ -199,7 +199,7 @@ describe('chat launcher and panel', () => {
     await userEvent.type(screen.getByRole('textbox'), 'Something else')
     state.error = chat.errors.rate
     state.failed = 'What does it cost?'
-    rerender(<ChatRoot enabled paths={PATHS} />)
+    rerender(<ChatRoot ai paths={PATHS} />)
     expect(screen.getByRole('textbox')).toHaveValue('Something else')
   })
 
@@ -240,10 +240,18 @@ describe('chat launcher and panel', () => {
     expect(screen.getByRole('textbox')).toBeInTheDocument()
   })
 
-  it('shows the privacy note in the footer', async () => {
+  it('says in the footer that messages go to Anthropic when Claude answers', async () => {
     renderChat()
     await open()
-    expect(screen.getByText(chat.privacy)).toBeInTheDocument()
+    expect(screen.getByText(chat.privacy.ai)).toBeInTheDocument()
+    expect(screen.queryByText(chat.privacy.site)).toBeNull()
+  })
+
+  it('says only that the site keeps nothing when there is no key', async () => {
+    renderChat(false)
+    await open()
+    expect(screen.getByText(chat.privacy.site)).toBeInTheDocument()
+    expect(screen.queryByText(chat.privacy.ai)).toBeNull()
   })
 
   it('closes with the close button and gives focus back to the launcher', async () => {

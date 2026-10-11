@@ -46,7 +46,7 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
         </main>
       </div>
       <TabBar />
-      <ChatRoot enabled={Boolean(process.env.ANTHROPIC_API_KEY)} paths={[...KNOWN_PATHS]} />
+      <ChatRoot ai={Boolean(process.env.ANTHROPIC_API_KEY)} paths={[...KNOWN_PATHS]} />
       <FloatingAccess />
       </PaletteProvider>
     </NavigationProvider>
