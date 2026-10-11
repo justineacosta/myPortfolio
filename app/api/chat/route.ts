@@ -4,6 +4,7 @@ import { clientIp } from '@/lib/leadLimit'
 import { chatAllowed } from '@/lib/chat/limit'
 import { systemBlocks } from '@/lib/chat/prompt'
 import { fallbackReply } from '@/lib/chat/fallback'
+import { paced } from '@/lib/chat/pace'
 import { checkChat, type ChatTurn } from '@/lib/chat/validate'
 
 /**
@@ -26,8 +27,8 @@ const TEXT = { 'content-type': 'text/plain; charset=utf-8' }
 
 const refuse = (error: string, status: number) => Response.json({ error }, { status })
 
-/** The keyless fallback's answer to the visitor's latest question, sent like any other reply. */
-const fallback = (messages: ChatTurn[]) => new Response(fallbackReply(messages[messages.length - 1].content), { headers: TEXT })
+/** The keyless fallback's answer to the visitor's latest question, paced like a streamed reply (lib/chat/pace.ts). */
+const fallback = (messages: ChatTurn[]) => new Response(paced(fallbackReply(messages[messages.length - 1].content)), { headers: TEXT })
 
 let client: Anthropic | undefined
 /** The one SDK client, built on the first call so the key is read when it is needed. It never retries: a visitor is waiting. */

@@ -5,6 +5,11 @@ import { systemBlocks } from '@/lib/chat/prompt'
 
 const { streamMock } = vi.hoisted(() => ({ streamMock: vi.fn() }))
 vi.mock('@anthropic-ai/sdk', () => ({ default: class { messages = { stream: streamMock } } }))
+// The fallback's pause and typing run on an instant clock here, so the tests stay fast.
+vi.mock('@/lib/chat/pace', async (orig) => {
+  const pace = await orig<typeof import('@/lib/chat/pace')>()
+  return { ...pace, paced: (text: string) => pace.paced(text, async () => {}) }
+})
 
 import { POST } from '@/app/api/chat/route'
 
@@ -91,6 +96,15 @@ describe('POST /api/chat', () => {
     expect(await res.text()).toBe(fallbackReply('How much do you charge?'))
     expect(streamMock).not.toHaveBeenCalled()
     expect(console.error).not.toHaveBeenCalled()
+  })
+
+  it('sends a fallback reply word by word, not all at once', async () => {
+    vi.stubEnv('ANTHROPIC_API_KEY', '')
+    const res = await post({ messages: [{ role: 'user', content: 'How much do you charge?' }] })
+    const reader = res.body!.getReader()
+    let pieces = 0
+    while (!(await reader.read()).done) pieces++
+    expect(pieces).toBeGreaterThan(1)
   })
 
   it('answers the latest question, not an earlier one, from the fallback', async () => {
