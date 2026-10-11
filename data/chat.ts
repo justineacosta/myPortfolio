@@ -32,23 +32,30 @@ export const chat = {
   fallback: {
     triggers: {
       price: ['price', 'prices', 'pricing', 'cost', 'costs', 'charge', 'rate', 'rates', 'budget', 'quote', 'how much'],
-      start: ['how fast', 'how soon', 'start', 'when can you', 'availability', 'available', 'timeline'],
-      after: ['after i write', 'after i send', 'reply', 'respond', 'hear back', 'response time'],
-      maintain: ['maintain', 'maintenance', 'support', 'after launch', 'handover', 'hand over'],
-      cases: ['example', 'examples', 'client', 'clients', 'portfolio', 'case study', 'case studies', 'past work', 'like mine', 'similar', 'industry'],
+      start: ['how fast', 'how soon', 'how long', 'start', 'when can you', 'availability', 'available', 'timeline', 'turnaround', 'timezone', 'time zone'],
+      after: [
+        'after i write', 'after i send', 'hear back', 'response time', 'when will you reply', 'hire', 'hire you', 'work together', 'work with you',
+        'contact', 'contact you', 'email', 'get in touch', 'schedule a call', 'book a call',
+      ],
+      maintain: ['maintain', 'maintenance', 'ongoing support', 'support after', 'after launch', 'handover', 'hand over'],
+      cases: ['example', 'examples', 'client', 'clients', 'portfolio', 'case study', 'case studies', 'past work', 'your work', 'projects', 'like mine', 'similar', 'industry'],
       process: ['process', 'steps', 'how do you work', 'method', 'approach', 'kickoff'],
       services: [
-        'service', 'services', 'offer', 'what do you do', 'ai agent', 'ai agents', 'rag', 'chatbot', 'chatbots', 'automation', 'automations',
-        'workflow', 'workflows', 'crm', 'cms', 'api', 'apis', 'integration', 'integrations', 'seo', 'website', 'websites', 'web app', 'app', 'apps', 'saas',
+        'service', 'services', 'what do you offer', 'what do you do', 'ai agent', 'ai agents', 'rag', 'chatbot', 'chatbots', 'automate', 'automated', 'automating',
+        'automation', 'automations', 'workflow', 'workflows', 'crm', 'cms', 'api', 'apis', 'integration', 'integrations', 'seo', 'website', 'websites', 'web app',
+        'app', 'apps', 'saas',
       ],
       build: ['what do you build', 'build', 'make'],
-      stack: ['stack', 'tools', 'tech', 'technology', 'technologies', 'framework', 'frameworks', 'language', 'languages'],
+      stack: ['stack', 'tools', 'tech', 'technology', 'technologies', 'framework', 'frameworks', 'programming language', 'programming languages'],
       courses: ['course', 'courses', 'certificate', 'certificates', 'certification', 'certifications', 'training'],
-      about: ['who', 'about you', 'about justine', 'background', 'experience', 'where are you', 'based', 'manila', 'yourself'],
+      about: ['who are you', 'who is justine', 'who is he', 'who am i talking to', 'about you', 'about justine', 'background', 'experience', 'where are you based', 'yourself'],
       hello: ['hi', 'hello', 'hey', 'thanks', 'thank you'],
     },
     /** Any of these adds the hand-off button to the reply, whichever topic answers. */
-    buying: ['price', 'pricing', 'cost', 'budget', 'quote', 'how much', 'project', 'hire', 'hiring', 'can you build', 'work with', 'proposal', 'call'],
+    buying: [
+      'price', 'pricing', 'cost', 'budget', 'quote', 'how much', 'project', 'hire', 'hiring', 'can you build', 'work with', 'work together', 'proposal', 'call',
+      'contact', 'get in touch',
+    ],
     /** Everyday words for each case's trade, keyed by its folder, beside the words of its own name and trade. */
     caseWords: {
       'ostler-barbers': ['barber', 'barbers', 'haircut', 'salon'],
@@ -71,7 +78,9 @@ export const chat = {
       stack: 'These are the tools he builds with:',
       courses: 'Courses he has completed:',
       cases: 'He has built full sample systems for these businesses:',
-      case: 'Here is what he built for',
+      /** Followed by the business, its trade, and what the sample system runs. The businesses are samples, never clients. */
+      case: 'The closest example on the site is a sample system for',
+      about: "I'm the site's assistant. Here's how Justine describes himself:",
     },
     links: {
       contact: 'Get in touch',

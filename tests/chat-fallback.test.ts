@@ -9,6 +9,7 @@ import { CASES } from '@/data/cases'
 import { casePath } from '@/data/cases/pages'
 import { KNOWN_PATHS } from '@/lib/chat/knowledge'
 import { fallbackReply, normalise } from '@/lib/chat/fallback'
+import { MAX_LENGTH } from '@/lib/chat/validate'
 
 const ostler = CASES['ostler-barbers'].agents!.builds
 const businesses = Object.values(CASES).map((set) => set.agents!.builds[0].business)
@@ -137,6 +138,52 @@ describe('fallbackReply', () => {
   it('only ever links to pages the site has', () => {
     for (const q of asked) {
       for (const [, path] of fallbackReply(q).matchAll(/\]\(([^)]+)\)/g)) expect(KNOWN_PATHS.has(path), `${q} → ${path}`).toBe(true)
+    }
+  })
+})
+
+describe('fallbackReply, as a prospect reads it', () => {
+  const unknown = `${chat.fallback.unknown}\n[[contact]]`
+
+  it('calls a single case a sample system, in a sentence that reads right', () => {
+    const r = reply('I run a garage')
+    expect(r).toContain('sample')
+    expect(r).toContain(businessOf('meridian-werks').name)
+    expect(r).not.toMatch(/, a automotive/)
+    expect(reply('I run a barbershop')).not.toContain('built for')
+  })
+
+  it('answers the questions a prospect is most likely to ask', () => {
+    expect(reply('I need my lead intake automated.')).toBe(reply('Do you do SEO?'))
+    expect(reply('How long will it take?')).toContain(FAQS[1].a)
+    expect(reply('What timezone are you in?')).toContain(FAQS[1].a)
+    expect(reply('Where can I see your work?')).toContain('](/projects)')
+    for (const q of ['I want to hire you', "Let's work together", 'Can we schedule a call?', 'How can I contact you?']) {
+      const r = reply(q)
+      expect(r, q).toContain(FAQS[3].a)
+      expect(r.endsWith('\n[[contact]]'), q).toBe(true)
+    }
+  })
+
+  it('says it cannot answer an unrelated question instead of answering a different one', () => {
+    for (const q of ['Who won the election?', "What's the weather in Manila?", 'Do you offer refunds?', 'What languages do you speak?', 'Do you support Shopify?', 'Can it reply to emails?']) {
+      expect(reply(q), q).toBe(unknown)
+    }
+  })
+
+  it('speaks as the site assistant, not as Justine, when asked who it is', () => {
+    const r = reply('Who are you?')
+    expect(r.startsWith(chat.fallback.intro.about)).toBe(true)
+    expect(r).toContain(about.description)
+  })
+
+  it('keeps every reply short enough to send back as history', () => {
+    for (const key of Object.keys(CASES)) {
+      const r = reply(`I run a ${chat.fallback.caseWords[key][0]}`)
+      expect(r.length, key).toBeLessThanOrEqual(MAX_LENGTH.assistant)
+    }
+    for (const q of ['Show me some examples', 'What tech stack do you use?', 'Do you do SEO?', 'What is your process?', 'Who are you?']) {
+      expect(reply(q).length, q).toBeLessThanOrEqual(MAX_LENGTH.assistant)
     }
   })
 })

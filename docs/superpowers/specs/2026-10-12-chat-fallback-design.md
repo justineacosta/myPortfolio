@@ -58,7 +58,7 @@ Each reply is built from the named data, never retyped. The connecting words and
 | 8 | Build | what do you build, build, make | `FAQS[0].a` | `/services` |
 | 9 | Stack | stack, tools, tech, technology, framework, language, plus each `TOOLS` name, lowercased | the `TOOLS` names | `/about` |
 | 10 | Courses | course, certificate, certification, training, learn | the `CERTS` names | `/about` |
-| 11 | About | who, about you, about justine, background, experience, where are you, manila | `about.description`, then `about.location.title` | `/about` |
+| 11 | About | who are you, who is justine, about you, background, experience, where are you based | a line saying it is the site's assistant, then `about.description` and `about.location.title` | `/about` |
 | 12 | Greeting | hi, hello, hey, thanks, thank you | `chat.fallback.hello` (one fixed line) | none |
 
 Links use the same `[label](/path)` form as Claude's replies, so the panel's link rules apply unchanged. Every path is in `KNOWN_PATHS`.
@@ -70,7 +70,7 @@ For each entry in `CASES`, its trigger words are:
 - any synonyms listed for that case in `chat.fallback.caseWords`, for example `ostler-barbers: ['barber', 'haircut']`, `riverdale-and-brooks: ['lawyer', 'attorney', 'legal']` and `altitude-personal-training: ['gym', 'trainer', 'fitness']`.
 
 The answer depends on what matched:
-- **One case's words matched:** the reply names the business and its trade, then lists its agents' `name: line` and its automation flows' `title: outcome`, and links to `casePath(key, 'ai-agents.html')`.
+- **One case's words matched:** the reply says this is the closest sample system on the site (the businesses are samples, never clients), names the business and its trade, lists only its agents' names and its automation flows' titles so it stays under the 2,000-character history limit, and links to `casePath(key, 'ai-agents.html')`.
 - **Only the generic triggers matched** ("example", "clients"…): the reply lists every business as "name (trade)" and links to `/projects`.
 
 ### 4.4 Hand-off and no match

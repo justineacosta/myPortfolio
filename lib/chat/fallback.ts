@@ -50,12 +50,10 @@ type Case = (typeof CASE_WORDS)[number]
 const businesses = (cases: Case[]) =>
   withLink(list(F.intro.cases, cases.map(({ business }) => `${business.name} (${business.trade})`)), F.links.projects, '/projects')
 
+/** One case: the names of its agents and flows only, so the reply stays short; the case page has the detail. */
 function caseReply(c: Case) {
-  const items = [
-    ...(c.set.agents?.builds.map((b) => `${b.name}: ${b.line}`) ?? []),
-    ...(c.set.automation?.flows.map((f) => `${f.title}: ${f.outcome}`) ?? []),
-  ]
-  return withLink(list(`${F.intro.case} ${c.business.name}, a ${c.business.trade}:`, items), F.links.case, casePath(c.key, 'ai-agents.html'))
+  const items = [...(c.set.agents?.builds.map((b) => b.name) ?? []), ...(c.set.automation?.flows.map((f) => f.title) ?? [])]
+  return withLink(list(`${F.intro.case} ${c.business.name} (${c.business.trade}):`, items), F.links.case, casePath(c.key, 'ai-agents.html'))
 }
 
 /** The case studies topic: one case when exactly one fits best, else the businesses that tie, else all of them. */
@@ -90,7 +88,7 @@ const TOPICS: ((q: string) => { n: number; reply: string })[] = [
     reply: withLink(`${F.intro.stack}\n${TOOLS.map((t) => t.name).join(', ')}`, F.links.about, '/about'),
   }),
   (q) => ({ n: score(q, F.triggers.courses), reply: withLink(list(F.intro.courses, CERTS.map((c) => c.name)), F.links.about, '/about') }),
-  (q) => ({ n: score(q, F.triggers.about), reply: withLink(`${about.description}\n${about.location.title}.`, F.links.about, '/about') }),
+  (q) => ({ n: score(q, F.triggers.about), reply: withLink(`${F.intro.about}\n${about.description}\n${about.location.title}.`, F.links.about, '/about') }),
   (q) => ({ n: score(q, F.triggers.hello), reply: F.hello }),
 ]
 
