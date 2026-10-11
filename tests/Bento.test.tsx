@@ -82,12 +82,16 @@ describe('Bento', () => {
     expect(row.scrollTo).toHaveBeenCalledWith({ left: expect.closeTo(110, 6), behavior: 'smooth' })
   })
 
-  it('lists three placeholder clients on the Testimonials card', () => {
+  it('lists the real client, then samples, on the Testimonials card', () => {
     renderBento()
     const t = screen.getByRole('link', { name: /^Testimonials/ })
     expect(t).toHaveAttribute('href', '/testimonials')
-    expect(within(t).getByText('AWAITING REAL QUOTES')).toBeInTheDocument()
-    expect(within(t).getAllByText('PLACEHOLDER - client name')).toHaveLength(3)
+    expect(within(t).getByText("WHO I'VE BUILT FOR")).toBeInTheDocument()
+    expect(within(t).getByText('Dominic Dela Cruz')).toBeInTheDocument()
+    expect(within(t).getByText('Citizen portal')).toBeInTheDocument()
+    // Kraft drew three rows: the real client, then the first two samples.
+    expect(within(t).getAllByRole('listitem')).toHaveLength(3)
+    expect(within(t).getAllByText('SAMPLE SYSTEM')).toHaveLength(2)
   })
 
   it('shows both certifications as badge.svg medals, each with its logo', () => {

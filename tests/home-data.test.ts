@@ -52,9 +52,9 @@ describe('Home data', () => {
     expect(home.intro.steps.map((s) => s.label)).toEqual(['Brief comes in', 'Architect', 'Build & test', 'Shipped'])
   })
 
-  it('keeps testimonial gaps as PLACEHOLDERs, never invented quotes', () => {
-    expect(CLIENTS).toHaveLength(3)
-    expect(CLIENTS.every((c) => isPlaceholder(c.name) && isPlaceholder(c.quote))).toBe(true)
+  it('carries the one real client, from the old portfolio', () => {
+    expect(CLIENTS.map((c) => c.name)).toEqual(['Dominic Dela Cruz'])
+    expect(CLIENTS.some((c) => isPlaceholder(c.name) || isPlaceholder(c.card.line))).toBe(false)
   })
 
   it('has the phone handle Kraft shows in its phone header', () => {

@@ -17,7 +17,10 @@ async function fill(user: UserEvent) {
 }
 
 describe('ContactForm', () => {
-  afterEach(() => vi.unstubAllGlobals())
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    sessionStorage.clear()
+  })
 
   it('names each missing field and focuses the first one', async () => {
     const user = userEvent.setup()
@@ -96,5 +99,10 @@ describe('ContactForm', () => {
     await screen.findByRole('alert')
     expect(screen.getByText(contact.errors.direct, { exact: false })).toBeInTheDocument()
     expect(screen.getByText(profile.email)).toBeInTheDocument()
+  })
+
+  it('starts with an empty message', () => {
+    render(<ContactForm />)
+    expect(screen.getByLabelText(f.message.label)).toHaveValue('')
   })
 })

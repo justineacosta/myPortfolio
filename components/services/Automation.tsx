@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { CaretLeftIcon, CaretRightIcon } from '@phosphor-icons/react/ssr'
 import Frame from '@/components/ui/Frame'
+import { NAV_BUTTON } from '@/components/ui/styles'
 import { FLOWS, type Flow, type FlowEdge } from '@/data/flows'
 import { servicesPage } from '@/data/services'
 import { centreScroll, edgePath, FLOW_H, FLOW_W, LIFT, stepLift, wrap, type Lifts } from '@/lib/flow'
@@ -17,9 +18,6 @@ const KIND = {
 
 /** The canvas frame's side padding (px-[18px]), for centreScroll. */
 const CANVAS_PAD = 18
-
-const NAV =
-  'grid size-8 cursor-pointer place-items-center rounded-[10px] border border-b1 bg-s2 text-[15px] text-ink2 transition-colors duration-250 hover:border-accent hover:text-accent'
 
 /**
  * Kraft's live automation (KraftScreens.dc.html:276-323, 997-1033): one of
@@ -79,13 +77,13 @@ export default function Automation() {
               {a.live}
             </span>
             <div className="ml-auto flex items-center gap-[7px]">
-              <button type="button" onClick={() => setIndex((i) => wrap(i - 1, FLOWS.length))} aria-label={a.prev} className={NAV}>
+              <button type="button" onClick={() => setIndex((i) => wrap(i - 1, FLOWS.length))} aria-label={a.prev} className={NAV_BUTTON}>
                 <CaretLeftIcon aria-hidden />
               </button>
               <span className="min-w-[34px] text-center font-mono text-[10px] tracking-[.1em] text-ink3">
                 {index + 1} / {FLOWS.length}
               </span>
-              <button type="button" onClick={() => setIndex((i) => wrap(i + 1, FLOWS.length))} aria-label={a.next} className={NAV}>
+              <button type="button" onClick={() => setIndex((i) => wrap(i + 1, FLOWS.length))} aria-label={a.next} className={NAV_BUTTON}>
                 <CaretRightIcon aria-hidden />
               </button>
             </div>

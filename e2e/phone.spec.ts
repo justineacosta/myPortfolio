@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { chat } from '../data/chat'
 import { catchRun, headlineLanding, hydrated, INTRO_LOAD, loaderGeometry, settleIntro } from './helpers'
 import { shown } from './pages'
 
@@ -301,4 +302,24 @@ test('phone: the Agentic Framework page fits the screen, its loop pans, and a ta
   await expect(page.locator('figure.canvas')).toHaveAttribute('data-overflow', '')
   await page.getByRole('button', { name: 'Rule R1: Write the spec first' }).tap()
   await expect(page.getByRole('dialog', { name: 'Write the spec first' })).toBeVisible()
+})
+
+test('phone: the chat launcher clears the tab bar, and the open panel fills the screen', async ({ page }) => {
+  await page.route('**/api/chat', (route) => route.fulfill({ status: 200, contentType: 'text/plain; charset=utf-8', body: 'Hello.' }))
+  await page.goto('/about')
+  await settleIntro(page)
+  await hydrated(page)
+  const launcher = page.getByRole('button', { name: chat.launcher })
+  const l = (await launcher.boundingBox())!
+  const t = (await page.getByRole('navigation', { name: 'Sections' }).boundingBox())!
+  expect(l.y + l.height).toBeLessThan(t.y)
+  await launcher.tap()
+  const panel = page.getByRole('dialog', { name: chat.name })
+  await expect(panel).toBeVisible()
+  // The panel rises into place; wait for it to settle before reading where it ends.
+  await expect.poll(async () => (await panel.boundingBox())!.y).toBe(0)
+  const p = (await panel.boundingBox())!
+  expect(p.x).toBe(0)
+  expect(p.width).toBe(390)
+  expect(p.y + p.height).toBe(844)
 })

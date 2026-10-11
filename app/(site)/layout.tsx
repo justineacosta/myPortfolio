@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import ChatRoot from '@/components/chat/ChatRoot'
 import BackgroundGate from '@/components/shell/BackgroundGate'
 import { PaletteProvider } from '@/components/shell/CommandPalette'
 import FloatingAccess from '@/components/shell/FloatingAccess'
@@ -11,6 +12,8 @@ import TabBar from '@/components/shell/TabBar'
 import Sidebar from '@/components/shell/Sidebar'
 import SmoothScroll from '@/components/shell/SmoothScroll'
 import { shellCopy } from '@/data/nav'
+import { KNOWN_PATHS } from '@/lib/chat/prompt'
+import { CARD_PROJECTS } from '@/lib/chat/samples'
 import { PANEL_ID } from '@/lib/scroller'
 
 /**
@@ -44,6 +47,7 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
         </main>
       </div>
       <TabBar />
+      <ChatRoot ai={Boolean(process.env.ANTHROPIC_API_KEY)} paths={[...KNOWN_PATHS]} projects={CARD_PROJECTS} />
       <FloatingAccess />
       </PaletteProvider>
     </NavigationProvider>
