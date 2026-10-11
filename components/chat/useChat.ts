@@ -9,6 +9,9 @@ import { CHAT_KEY } from '@/lib/storage-keys'
 /** How many questions a visitor may ask in one chat. */
 const MAX_USER_TURNS = 10
 
+/** The longest turn the route accepts, by who wrote it; longer turns are cut when sent, not when shown. */
+const MAX_LENGTH = { user: 500, assistant: 2000 }
+
 /** The saved chat, or nothing when it is missing, unreadable or not a history the route would accept. */
 function restore(): ChatTurn[] {
   try {
@@ -16,7 +19,7 @@ function restore(): ChatTurn[] {
     const ok =
       Array.isArray(saved) &&
       saved.length % 2 === 0 &&
-      saved.every((t, i) => t && t.role === (i % 2 ? 'assistant' : 'user') && typeof t.content === 'string')
+      saved.every((t, i) => t && t.role === (i % 2 ? 'assistant' : 'user') && typeof t.content === 'string' && t.content.trim())
     return ok ? (saved as ChatTurn[]) : []
   } catch {
     return []
@@ -80,7 +83,7 @@ export function useChat() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ messages: asked }),
+        body: JSON.stringify({ messages: asked.map((t) => ({ role: t.role, content: t.content.slice(0, MAX_LENGTH[t.role]) })) }),
       })
       if (!res.ok || !res.body) {
         failed = res.ok ? chat.errors.failed : await failure(res)

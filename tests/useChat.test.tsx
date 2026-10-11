@@ -125,6 +125,45 @@ describe('useChat', () => {
     expect(result.current.contact).toBe(false)
   })
 
+  it('sends a long reply clamped to what the route accepts, and keeps it whole for display', async () => {
+    fetchMock.mockResolvedValueOnce(textReply('x'.repeat(2500))).mockResolvedValueOnce(textReply('Ok'))
+    const { result } = renderHook(() => useChat())
+    await act(() => result.current.send('A'))
+    await act(() => result.current.send('B'))
+    const sent = JSON.parse(fetchMock.mock.calls[1][1].body).messages
+    expect(sent[1].content).toHaveLength(2000)
+    expect(result.current.turns[1].content).toHaveLength(2500)
+  })
+
+  it('sends a long question clamped to 500 characters', async () => {
+    fetchMock.mockResolvedValueOnce(textReply('Ok'))
+    const { result } = renderHook(() => useChat())
+    await act(() => result.current.send('y'.repeat(600)))
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body).messages[0].content).toHaveLength(500)
+    expect(result.current.turns[0].content).toHaveLength(600)
+  })
+
+  it('leaves a dropped question out of the next request', async () => {
+    fetchMock.mockRejectedValueOnce(new TypeError('offline')).mockResolvedValueOnce(textReply('Ok'))
+    const { result } = renderHook(() => useChat())
+    await act(() => result.current.send('Lost'))
+    await act(() => result.current.send('Kept'))
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body).messages).toEqual([{ role: 'user', content: 'Kept' }])
+  })
+
+  it('ignores a stored history with a blank turn', async () => {
+    sessionStorage.setItem(
+      CHAT_KEY,
+      JSON.stringify([
+        { role: 'user', content: 'Hi' },
+        { role: 'assistant', content: '  ' },
+      ]),
+    )
+    const { result } = renderHook(() => useChat())
+    await act(async () => {})
+    expect(result.current.turns).toEqual([])
+  })
+
   it('shows the server sentence on a 429 and drops the unanswered turn', async () => {
     fetchMock.mockResolvedValueOnce(Response.json({ error: 'Slow down.' }, { status: 429 }))
     const { result } = renderHook(() => useChat())
