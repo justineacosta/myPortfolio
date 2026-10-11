@@ -1,10 +1,10 @@
 /**
  * Nothing on this page is fabricated (KraftScreens.dc.html:614-618). CLIENTS
  * are real: Dominic's details, scope and tags come from the old portfolio
- * (oldportfolio/src/data/testimonials.ts and its Barangay project). No client
+ * (the myPortfolioV3 repo, src/data/testimonials.ts and its Barangay project). No client
  * has a video yet, so `src` and `duration` stay PLACEHOLDERs. Dominic's poster
  * is his official portrait from the San Fernando portal
- * (sanfernandoweb/src/images/officials), standing in until a video exists.
+ * (the SanFernandoWeb repo, src/images/officials), standing in until a video exists.
  *
  * SAMPLES are the fictional businesses behind public/samples. Their cards say
  * SAMPLE SYSTEM where a client's says my role, and name no person and quote

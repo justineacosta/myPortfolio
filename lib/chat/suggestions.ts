@@ -3,7 +3,7 @@ import { profile } from '@/data/profile'
 
 /**
  * Lumen's suggestion chips, ported from the old portfolio
- * (oldportfolio/src/lib/assistant-suggestions.ts). Client-safe on purpose:
+ * (the myPortfolioV3 repo, src/lib/assistant-suggestions.ts). Client-safe on purpose:
  * it must never import lib/chat/prompt.ts, lib/chat/samples.ts or
  * data/cases, which would ship every case's content to every visitor.
  *

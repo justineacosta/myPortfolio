@@ -20,6 +20,3 @@ Thumbs.db
 # local agent workspace
 .superpowers/
 
-# other codebases kept locally for reference: the previous portfolio, the San Fernando portal
-oldportfolio/
-sanfernandoweb/

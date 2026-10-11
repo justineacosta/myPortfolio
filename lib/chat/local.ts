@@ -9,7 +9,7 @@ import { SAMPLE_PROJECTS, type SampleProject } from './samples'
 
 /**
  * Lumen's offline tier, ported from the old portfolio
- * (oldportfolio/src/lib/assistant-local.ts): hand-tuned keyword rules that
+ * (the myPortfolioV3 repo, src/lib/assistant-local.ts): hand-tuned keyword rules that
  * answer from this site's data when there is no API key, or when the Claude
  * call fails. RULES is ordered and the first match wins, so a broad rule can
  * shadow a narrower one further down; the comments say where order matters.

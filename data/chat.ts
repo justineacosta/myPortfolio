@@ -1,7 +1,7 @@
 /**
  * Lumen's copy: the launcher, the panel, the in-chat form and every sentence
  * the widget shows on its own. Lumen is the old portfolio's assistant
- * (oldportfolio/src/components/ai-chat-widget.tsx), restyled for Kraft. It
+ * (the myPortfolioV3 repo, src/components/ai-chat-widget.tsx), restyled for Kraft. It
  * speaks about Justine in the third person, he/him, and never shows his email.
  */
 export const chat = {

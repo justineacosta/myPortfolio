@@ -1,6 +1,6 @@
 /**
  * Lumen's reply format, ported from the old portfolio
- * (oldportfolio/src/components/rich-text.tsx) as plain functions so it can be
+ * (the myPortfolioV3 repo, src/components/rich-text.tsx) as plain functions so it can be
  * tested without a browser: paragraphs, `- ` bullets, **bold**, _italic_,
  * `code`, [links](url), and two directives alone on their line:
  * `[[project:<slug>]]` (a sample system's card) and `[[lead-form]]` (the

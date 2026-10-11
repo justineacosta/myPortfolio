@@ -12,7 +12,7 @@ import { SAMPLE_PROJECTS } from './samples'
 
 /**
  * Lumen's system prompt, ported from the old portfolio
- * (oldportfolio/src/lib/assistant-knowledge.ts) and rebuilt from this site's
+ * (the myPortfolioV3 repo, src/lib/assistant-knowledge.ts) and rebuilt from this site's
  * data. Built once at module load, with nothing per request in it, so the
  * prompt cache stays warm. Server-only: it pulls in every case.
  */

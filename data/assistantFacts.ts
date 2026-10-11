@@ -1,6 +1,6 @@
 /**
  * What Lumen knows about working with Justine that no page says, ported from
- * the old portfolio (oldportfolio/src/data/assistant-facts.ts). The old FAQ
+ * the old portfolio (the myPortfolioV3 repo, src/data/assistant-facts.ts). The old FAQ
  * entries that data/faqs.ts now answers (cost, maintenance, ownership) are
  * left out, so the two never disagree.
  *

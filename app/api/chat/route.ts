@@ -8,7 +8,7 @@ import { checkChat, type ChatTurn } from '@/lib/chat/validate'
 
 /**
  * Lumen's backend, ported from the old portfolio
- * (oldportfolio/src/app/api/assistant/route.ts). Two tiers:
+ * (the myPortfolioV3 repo, src/app/api/assistant/route.ts). Two tiers:
  * - live: Claude (ANTHROPIC_MODEL, else Opus 5.5) answers from the cached
  *   system prompt (lib/chat/prompt.ts), streamed back as plain text;
  * - local: without a key, or when the call fails before its first word, the
