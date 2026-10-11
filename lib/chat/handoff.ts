@@ -2,6 +2,9 @@ import type { ChatTurn } from '@/lib/chat/validate'
 import { MAX_MESSAGE } from '@/lib/contact'
 import { HANDOFF_KEY } from '@/lib/storage-keys'
 
+/** Fired on window after a hand-off is saved, for a contact form that is already open to take it. */
+export const HANDOFF_EVENT = 'kraft-chat-handoff'
+
 /** What the visitor asked the chat, as a starting message for the contact form. */
 export function handoffText(turns: ChatTurn[]): string {
   return turns

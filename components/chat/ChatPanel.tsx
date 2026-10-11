@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type MouseEvent } from 'react'
 import { PaperPlaneRightIcon, XIcon } from '@phosphor-icons/react/ssr'
 import { useShellNav } from '@/components/shell/NavigationProvider'
 import { chat } from '@/data/chat'
-import { saveHandoff } from '@/lib/chat/handoff'
+import { HANDOFF_EVENT, saveHandoff } from '@/lib/chat/handoff'
 import { parseLinks } from '@/lib/chat/reply'
 import type { ChatTurn } from '@/lib/chat/validate'
 import { PANEL_DOM_ID } from './ChatLauncher'
@@ -97,6 +97,8 @@ export default function ChatPanel({
 
   const handoff = () => {
     saveHandoff(turns)
+    // On /contact the form is already mounted and only scrolls into view, so it is told to take the text.
+    window.dispatchEvent(new Event(HANDOFF_EVENT))
     go('/contact')
     onClose(false)
   }

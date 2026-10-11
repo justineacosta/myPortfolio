@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ChatRoot from '@/components/chat/ChatRoot'
 import { chat } from '@/data/chat'
+import { HANDOFF_EVENT } from '@/lib/chat/handoff'
 
 const go = vi.fn()
 const send = vi.fn()
@@ -11,7 +12,7 @@ let state: { turns: { role: 'user' | 'assistant'; content: string }[]; streaming
 
 vi.mock('@/components/chat/useChat', () => ({ useChat: () => ({ ...state, send }) }))
 vi.mock('@/components/shell/NavigationProvider', () => ({ useShellNav: () => ({ go }) }))
-vi.mock('@/lib/chat/handoff', () => ({ saveHandoff: (t: unknown) => saveHandoff(t) }))
+vi.mock('@/lib/chat/handoff', async (orig) => ({ ...(await orig<typeof import('@/lib/chat/handoff')>()), saveHandoff: (t: unknown) => saveHandoff(t) }))
 
 const PATHS = ['/services', '/contact', '/files/x.html']
 
@@ -166,6 +167,22 @@ describe('chat launcher and panel', () => {
     expect(saveHandoff).toHaveBeenCalledWith(state.turns)
     expect(go).toHaveBeenCalledWith('/contact')
     expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it('tells a contact form that is already open when the hand-off is clicked', async () => {
+    state.contact = true
+    state.turns = [
+      { role: 'user', content: 'can we work together' },
+      { role: 'assistant', content: 'Yes.' },
+    ]
+    const heard = vi.fn()
+    window.addEventListener(HANDOFF_EVENT, heard)
+    renderChat()
+    await open()
+    await userEvent.click(screen.getByRole('button', { name: chat.handoff }))
+    window.removeEventListener(HANDOFF_EVENT, heard)
+    expect(heard).toHaveBeenCalledTimes(1)
+    expect(saveHandoff.mock.invocationCallOrder[0]).toBeLessThan(heard.mock.invocationCallOrder[0])
   })
 
   it('has no hand-off button when nothing asked for it', async () => {
