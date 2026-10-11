@@ -3,71 +3,95 @@ import { chat } from '@/data/chat'
 import { clientIp } from '@/lib/leadLimit'
 import { chatAllowed } from '@/lib/chat/limit'
 import { systemBlocks } from '@/lib/chat/prompt'
-import { fallbackReply } from '@/lib/chat/fallback'
-import { paced } from '@/lib/chat/pace'
+import { localAnswer } from '@/lib/chat/local'
 import { checkChat, type ChatTurn } from '@/lib/chat/validate'
 
 /**
- * The site chat's backend: answers a visitor's question from the knowledge
- * block (lib/chat/knowledge.ts) with Claude Haiku, streamed back as plain text.
- * The order is: the per-visitor limit, the size and history check, the key, the call.
- * Without a key, the keyless fallback (lib/chat/fallback.ts) answers instead.
- * The first event is awaited before the Response goes out, so a call that
- * fails up front is answered by the fallback too. A failure after that errors
- * the stream, and the panel shows the error sentence and the hand-off.
- * Every refusal is { error: sentence } for the panel to show.
+ * Lumen's backend, ported from the old portfolio
+ * (oldportfolio/src/app/api/assistant/route.ts). Two tiers:
+ * - live: Claude (ANTHROPIC_MODEL, else Opus 5.5) answers from the cached
+ *   system prompt (lib/chat/prompt.ts), streamed back as plain text;
+ * - local: without a key, or when the call fails before its first word, the
+ *   offline rules (lib/chat/local.ts) answer, streamed in small pieces so the
+ *   panel can't tell the difference.
+ * X-Assistant-Mode says which one answered. Only the live tier is rate
+ * limited. Every refusal is { error: sentence } for the panel to show.
  */
 
-export const maxDuration = 30
+export const maxDuration = 60
 
-/** The largest request body read: far above 10 questions and 9 answers at their limits. */
+/** The largest request body read: far above 11 turns at their limits. */
 const MAX_BODY = 64 * 1024
 
-const TEXT = { 'content-type': 'text/plain; charset=utf-8' }
+const MODEL = process.env.ANTHROPIC_MODEL || 'claude-opus-5-5'
+
+const headers = (mode: 'live' | 'local') => ({ 'content-type': 'text/plain; charset=utf-8', 'x-assistant-mode': mode, 'cache-control': 'no-store' })
 
 const refuse = (error: string, status: number) => Response.json({ error }, { status })
 
-/** The keyless fallback's answer to the visitor's latest question, paced like a streamed reply (lib/chat/pace.ts). */
-const fallback = (messages: ChatTurn[]) => new Response(paced(fallbackReply(messages[messages.length - 1].content)), { headers: TEXT })
+/** The offline answer to the visitor's latest question, sent four characters at a time like a stream. */
+function local(messages: ChatTurn[]): Response {
+  const reply = localAnswer(messages[messages.length - 1].content)
+  // [\s\S], not ., so line breaks survive the split.
+  const pieces = reply.match(/[\s\S]{1,4}/g) ?? [reply]
+  const encoder = new TextEncoder()
+  let next = 0
+  const body = new ReadableStream<Uint8Array>({
+    async pull(controller) {
+      if (next === pieces.length) return controller.close()
+      await new Promise((r) => setTimeout(r, 14))
+      controller.enqueue(encoder.encode(pieces[next++]))
+    },
+  })
+  return new Response(body, { headers: headers('local') })
+}
 
 let client: Anthropic | undefined
 /** The one SDK client, built on the first call so the key is read when it is needed. It never retries: a visitor is waiting. */
-const anthropic = () => (client ??= new Anthropic({ timeout: 20_000, maxRetries: 0 }))
+const anthropic = () => (client ??= new Anthropic({ timeout: 45_000, maxRetries: 0 }))
+
+type StreamEvent = Anthropic.Beta.Messages.BetaRawMessageStreamEvent
 
 /** The text of an event if it is a piece of the answer, else ''. */
-const textOf = (event: Anthropic.MessageStreamEvent) =>
-  event.type === 'content_block_delta' && event.delta.type === 'text_delta' ? event.delta.text : ''
+const textOf = (event: StreamEvent) => (event.type === 'content_block_delta' && event.delta.type === 'text_delta' ? event.delta.text : '')
 
 export async function POST(req: Request) {
-  if (!chatAllowed(clientIp(req))) return refuse(chat.errors.rate, 429)
-
   // No honest history is near this size, so a larger one is refused before it is read.
   const declared = Number(req.headers.get('content-length'))
   const messages = declared > MAX_BODY ? null : checkChat(await req.json().catch(() => null))
   if (!messages) return refuse(chat.errors.invalid, 400)
 
-  if (!process.env.ANTHROPIC_API_KEY) return fallback(messages)
+  // The offline tier costs nothing, so it answers before the limit is counted.
+  if (!process.env.ANTHROPIC_API_KEY) return local(messages)
+  if (!chatAllowed(clientIp(req))) return refuse(chat.errors.rate, 429)
 
-  let stream: ReturnType<Anthropic['messages']['stream']>
-  let events: AsyncIterator<Anthropic.MessageStreamEvent>
-  let first: IteratorResult<Anthropic.MessageStreamEvent>
+  let stream: ReturnType<Anthropic['beta']['messages']['stream']>
+  let events: AsyncIterator<StreamEvent>
+  let first: IteratorResult<StreamEvent>
   try {
-    stream = anthropic().messages.stream({
-      model: 'claude-haiku-5-5',
-      max_tokens: 1000,
+    stream = anthropic().beta.messages.stream({
+      model: MODEL,
+      // Caps thinking and the answer together; much lower and a question that makes it think can be cut mid-sentence.
+      max_tokens: 2000,
+      thinking: { type: 'adaptive' },
+      // Portfolio questions aren't hard, and the wait is what a visitor feels.
       output_config: { effort: 'low' },
+      // A declined answer is retried on the model Anthropic recommends for that kind of refusal.
+      betas: ['server-side-fallback-2026-07-01'],
+      fallbacks: 'default',
       system: systemBlocks(),
       messages,
     })
     events = stream[Symbol.asyncIterator]()
     first = await events.next()
   } catch (err) {
-    console.error('Site chat: the call failed before the first event; the fallback answers.', err)
-    return fallback(messages)
+    console.error('Lumen: the call failed before the first event; the offline rules answer.', err)
+    return local(messages)
   }
 
   const encoder = new TextEncoder()
-  let event: IteratorResult<Anthropic.MessageStreamEvent> | undefined = first
+  let event: IteratorResult<StreamEvent> | undefined = first
+  let wrote = false
   const body = new ReadableStream<Uint8Array>({
     // Each pull reads on until a piece of text is ready, since an event that is not text enqueues nothing.
     async pull(controller) {
@@ -78,21 +102,25 @@ export async function POST(req: Request) {
           event = undefined
           if (done) break
           const text = textOf(value)
-          if (text) return controller.enqueue(encoder.encode(text))
+          if (text) {
+            wrote = true
+            return controller.enqueue(encoder.encode(text))
+          }
         }
+        const final = await stream.finalMessage()
         if (process.env.NODE_ENV === 'development') {
-          const { usage } = await stream.finalMessage()
-          console.info(`Site chat: cache read ${usage.cache_read_input_tokens}, cache written ${usage.cache_creation_input_tokens}.`)
+          console.info(`Lumen: ${final.model}, stop ${final.stop_reason}, cache read ${final.usage.cache_read_input_tokens}, written ${final.usage.cache_creation_input_tokens}.`)
         }
+        // Nothing to show (a refusal the fallback couldn't rescue, or an empty answer): the offline rules answer instead.
+        if (!wrote) controller.enqueue(encoder.encode(localAnswer(messages[messages.length - 1].content)))
       } catch (err) {
-        console.error('Site chat: the call failed mid-answer.', err)
-        // The reader must see a failure, not a short answer that looks finished.
-        return controller.error(err)
+        console.error('Lumen: the call failed mid-answer.', err)
+        controller.enqueue(encoder.encode(wrote ? `\n\n${chat.replies.interrupted}` : localAnswer(messages[messages.length - 1].content)))
       }
       controller.close()
     },
-    // The visitor closed the panel or left: stop paying for the rest of the answer.
+    // The visitor stopped the answer, closed the panel or left: stop paying for the rest.
     cancel: () => stream.abort(),
   })
-  return new Response(body, { headers: TEXT })
+  return new Response(body, { headers: headers('live') })
 }

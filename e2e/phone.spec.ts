@@ -314,7 +314,7 @@ test('phone: the chat launcher clears the tab bar, and the open panel fills the 
   const t = (await page.getByRole('navigation', { name: 'Sections' }).boundingBox())!
   expect(l.y + l.height).toBeLessThan(t.y)
   await launcher.tap()
-  const panel = page.getByRole('dialog', { name: chat.title })
+  const panel = page.getByRole('dialog', { name: chat.name })
   await expect(panel).toBeVisible()
   // The panel rises into place; wait for it to settle before reading where it ends.
   await expect.poll(async () => (await panel.boundingBox())!.y).toBe(0)

@@ -1,11 +1,13 @@
-// Prints what the site chat really answers, so the answers can be read before
+// Prints what Lumen really answers, so the answers can be read before
 // shipping: 14 single questions, then one two-turn conversation. It talks to a
-// running dev server that has the real ANTHROPIC_API_KEY, and exits 1 on any
-// non-200, printing the status and body. Each request sends its own
-// x-forwarded-for, so the 20-per-hour limit stays out of the way.
+// running dev server and exits 1 on any non-200, printing the status and body.
+// With the real ANTHROPIC_API_KEY, Claude answers; without one, the offline
+// rules do (each answer is labelled live or local). Each request sends its own
+// x-forwarded-for, so the 30-per-hour limit stays out of the way.
 // Run: npm run dev, then npm run chat-check (CHAT_URL overrides the address).
 const URL = process.env.CHAT_URL ?? 'http://localhost:3000/api/chat'
-const MARKER = '[[contact]]'
+/** The lines a reply can end with to draw a card or the contact form. */
+const DIRECTIVE = /^\[\[[^\]\n]*\]\]$/gm
 
 const QUESTIONS = [
   'What do you build?',
@@ -25,6 +27,7 @@ const QUESTIONS = [
 ]
 
 let count = 0
+let mode = '?'
 
 /** Sends one conversation to the route; returns the reply text, or exits 1 on a non-200. */
 async function ask(messages) {
@@ -38,6 +41,7 @@ async function ask(messages) {
       body: JSON.stringify({ messages }),
     })
     body = await res.text()
+    mode = res.headers.get('x-assistant-mode') ?? '?'
   } catch (err) {
     console.error(`Could not reach ${URL}: ${err.message}. Is npm run dev running?`)
     process.exit(1)
@@ -49,23 +53,24 @@ async function ask(messages) {
   return body
 }
 
-/** Prints a reply, showing the hand-off marker as an arrow. */
+/** Prints a reply with who answered, and each card or form it asks for as an arrow. */
 function show(question, reply) {
-  const text = reply.split(MARKER).join('').trim()
-  console.log(`Q: ${question}\nA: ${text}${reply.includes(MARKER) ? '\n→ hand-off' : ''}\n`)
+  const extras = reply.match(DIRECTIVE) ?? []
+  const text = reply.replace(DIRECTIVE, '').trim()
+  console.log(`Q: ${question}\nA (${mode}): ${text}${extras.map((d) => `\n→ ${d}`).join('')}\n`)
 }
 
 for (const q of QUESTIONS) {
   show(q, await ask([{ role: 'user', content: q }]))
 }
 
-// Two turns: the first reply goes back as plain text with the marker removed.
+// Two turns: the first reply goes back as the widget sends it, directives and all.
 const first = 'I need my lead intake automated.'
 const second = 'What would that look like?'
 const reply = await ask([{ role: 'user', content: first }])
 show(first, reply)
 show(second, await ask([
   { role: 'user', content: first },
-  { role: 'assistant', content: reply.split(MARKER).join('').trim() },
+  { role: 'assistant', content: reply },
   { role: 'user', content: second },
 ]))

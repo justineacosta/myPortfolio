@@ -3,7 +3,5 @@ export const THEME_KEY = 'kraft-theme'
 export const PERF_KEY = 'kraft-perf'
 export const A11Y_KEY = 'kraft-a11y'
 export const SCROLL_KEY = 'kraft-scroll'
-/** The site chat's conversation, kept for the tab's lifetime. */
+/** Lumen's conversation, kept for the tab's lifetime. */
 export const CHAT_KEY = 'kraft-chat'
-/** The visitor's chat questions, handed to the contact form once. */
-export const HANDOFF_KEY = 'kraft-chat-handoff'

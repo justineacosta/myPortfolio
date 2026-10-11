@@ -2,14 +2,27 @@ import { expect, test, type Page } from '@playwright/test'
 import { chat } from '../data/chat'
 import { hydrated, settleIntro } from './helpers'
 
-const REPLY = 'I build apps and automations. See [Services](/services).\n[[contact]]'
+const REPLY = 'He builds apps and automations. See [the services](/services).\n[[lead-form]]'
 
 /** Opens a page past the intro, with the chat route stood in for so no test reaches Anthropic. */
 async function open(page: Page, path = '/about') {
-  await page.route('**/api/chat', (route) => route.fulfill({ status: 200, contentType: 'text/plain; charset=utf-8', body: REPLY }))
+  await page.route('**/api/chat', (route) =>
+    route.fulfill({ status: 200, contentType: 'text/plain; charset=utf-8', headers: { 'x-assistant-mode': 'live' }, body: REPLY }),
+  )
   await page.goto(path)
   await settleIntro(page)
   await hydrated(page)
+}
+
+/** The first suggestion chip, which asks the question it shows. */
+const firstChip = (panel: ReturnType<Page['getByRole']>) => panel.locator('[data-chips] button').first()
+
+/** Opens Lumen from the launcher. */
+async function openLumen(page: Page) {
+  await page.getByRole('button', { name: chat.launcher }).click()
+  const panel = page.getByRole('dialog', { name: chat.name })
+  await expect(panel).toBeVisible()
+  return panel
 }
 
 test('the launcher sits directly above the accessibility button', async ({ page }) => {
@@ -20,46 +33,45 @@ test('the launcher sits directly above the accessibility button', async ({ page 
   expect(launcher.x + launcher.width).toBeCloseTo(access.x + access.width, 0)
 })
 
-test('a suggestion asks the question and the reply shows without the hand-off marker', async ({ page }) => {
+test('a chip asks the question; the reply shows its link and the contact form, never the marker', async ({ page }) => {
   await open(page)
-  await page.getByRole('button', { name: chat.launcher }).click()
-  const panel = page.getByRole('dialog', { name: chat.title })
-  await expect(panel).toBeVisible()
-  await panel.getByRole('button', { name: chat.suggestions[0] }).click()
-  // The screen-reader copy of the reply is a second match, so look at the visible bubble only.
-  await expect(panel.locator('p:not(.sr-only)', { hasText: 'I build apps and automations.' })).toBeVisible()
-  await expect(panel.getByText('[[contact]]')).toHaveCount(0)
-  await expect(panel.getByRole('button', { name: chat.handoff })).toBeVisible()
-})
-
-test('the hand-off opens the contact form with the visitor’s question in it', async ({ page }) => {
-  await open(page)
-  await page.getByRole('button', { name: chat.launcher }).click()
-  const panel = page.getByRole('dialog', { name: chat.title })
-  await panel.getByRole('button', { name: chat.suggestions[0] }).click()
-  await panel.getByRole('button', { name: chat.handoff }).click()
-  await expect(page).toHaveURL(/\/contact$/)
-  await expect(page.locator('#contact-message')).toHaveValue(chat.suggestions[0])
-  await expect(panel).toHaveCount(0)
+  const panel = await openLumen(page)
+  await firstChip(panel).click()
+  await expect(panel.getByRole('link', { name: 'the services' })).toBeVisible()
+  await expect(panel.getByText(chat.lead.intro)).toBeVisible()
+  await expect(panel.getByText('[[lead-form]]')).toHaveCount(0)
+  await expect(panel.getByText(chat.mode.live.label)).toBeVisible()
 })
 
 test('a link in the reply opens that page and closes the panel', async ({ page }) => {
   await open(page)
-  await page.getByRole('button', { name: chat.launcher }).click()
-  const panel = page.getByRole('dialog', { name: chat.title })
-  await panel.getByRole('button', { name: chat.suggestions[0] }).click()
-  await panel.getByRole('link', { name: 'Services' }).click()
+  const panel = await openLumen(page)
+  await firstChip(panel).click()
+  await panel.getByRole('link', { name: 'the services' }).click()
   await expect(page).toHaveURL(/\/services$/)
   await expect(panel).toHaveCount(0)
 })
 
-test('Esc closes the panel and puts focus back on the launcher', async ({ page }) => {
+test('/ opens Lumen, and Esc closes it and puts focus back on the launcher', async ({ page }) => {
   await open(page)
-  const launcher = page.getByRole('button', { name: chat.launcher })
-  await launcher.click()
-  const panel = page.getByRole('dialog', { name: chat.title })
+  await page.keyboard.press('/')
+  const panel = page.getByRole('dialog', { name: chat.name })
   await expect(panel).toBeVisible()
   await page.keyboard.press('Escape')
   await expect(panel).toHaveCount(0)
-  await expect(launcher).toBeFocused()
+  await expect(page.getByRole('button', { name: chat.launcher })).toBeFocused()
+})
+
+test('the chat survives a reload, and reset clears it', async ({ page }) => {
+  await open(page)
+  let panel = await openLumen(page)
+  await firstChip(panel).click()
+  await expect(panel.getByRole('link', { name: 'the services' })).toBeVisible()
+  await page.reload()
+  await settleIntro(page)
+  await hydrated(page)
+  panel = await openLumen(page)
+  await expect(panel.getByRole('link', { name: 'the services' })).toBeVisible()
+  await panel.getByRole('button', { name: chat.reset }).click()
+  await expect(panel.getByRole('link', { name: 'the services' })).toHaveCount(0)
 })

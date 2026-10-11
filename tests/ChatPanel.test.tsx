@@ -1,294 +1,194 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ChatRoot from '@/components/chat/ChatRoot'
 import { chat } from '@/data/chat'
-import { HANDOFF_EVENT } from '@/lib/chat/handoff'
+import { STARTER_SUGGESTIONS } from '@/lib/chat/suggestions'
+import { CHAT_KEY } from '@/lib/storage-keys'
+import type { CardProject } from '@/lib/chat/samples'
 
 const go = vi.fn()
-const send = vi.fn()
-const saveHandoff = vi.fn()
-let state: { turns: { role: 'user' | 'assistant'; content: string }[]; streaming: string | null; contact: boolean; error: string | null; capped: boolean; failed: string | null }
-
-vi.mock('@/components/chat/useChat', () => ({ useChat: () => ({ ...state, send }) }))
 vi.mock('@/components/shell/NavigationProvider', () => ({ useShellNav: () => ({ go }) }))
-vi.mock('@/lib/chat/handoff', async (orig) => ({ ...(await orig<typeof import('@/lib/chat/handoff')>()), saveHandoff: (t: unknown) => saveHandoff(t) }))
 
-const PATHS = ['/services', '/contact', '/files/x.html']
+const PATHS = ['/services', '/contact', '/projects', '/cases/ostler-barbers/ai-agents.html']
+const PROJECTS: CardProject[] = [{ key: 'ostler-barbers', name: 'Ostler', trade: 'barbershop', thumb: '/samples/thumbs/ostler-barbers.jpeg', href: '/cases/ostler-barbers/ai-agents.html' }]
+
+/** A /api/chat answer: the reply as one chunk, marked with who wrote it. */
+const answer = (text: string, mode: 'live' | 'local' = 'live') =>
+  new Response(text, { status: 200, headers: { 'content-type': 'text/plain; charset=utf-8', 'x-assistant-mode': mode } })
+
+let fetchMock: ReturnType<typeof vi.fn>
 
 function renderChat(ai = true) {
-  return render(<ChatRoot ai={ai} paths={PATHS} />)
+  return render(<ChatRoot ai={ai} paths={PATHS} projects={PROJECTS} />)
 }
 const launcher = () => screen.getByRole('button', { name: chat.launcher })
 async function open() {
   await userEvent.click(launcher())
-  return screen.getByRole('dialog', { name: chat.title })
+  return screen.getByRole('dialog', { name: chat.name })
 }
+/** Text in a bubble, not its screen-reader copy. */
+const SEEN = { ignore: '.sr-only, script, style' }
+const sentBody = (call = 0) => JSON.parse(fetchMock.mock.calls[call][1].body as string)
 
 beforeEach(() => {
   go.mockReset()
-  send.mockReset()
-  saveHandoff.mockReset()
-  state = { turns: [], streaming: null, contact: false, error: null, capped: false, failed: null }
+  sessionStorage.clear()
+  fetchMock = vi.fn().mockResolvedValue(answer('Hello there.'))
+  vi.stubGlobal('fetch', fetchMock)
 })
+afterEach(() => vi.unstubAllGlobals())
 
-describe('chat launcher and panel', () => {
-  it('renders the launcher without a key', () => {
-    renderChat(false)
-    expect(launcher()).toBeInTheDocument()
-  })
-
-  it('opens a titled dialog from the launcher and puts focus in the input', async () => {
+describe('Lumen', () => {
+  it('opens a dialog named Lumen with the greeting, the four starter chips and focus in the box', async () => {
     renderChat()
     expect(launcher()).toHaveAttribute('aria-expanded', 'false')
-    expect(screen.queryByRole('dialog')).toBeNull()
     const dialog = await open()
-    expect(launcher()).toHaveAttribute('aria-expanded', 'true')
     expect(launcher()).toHaveAttribute('aria-controls', dialog.id)
-    expect(screen.getByRole('textbox')).toHaveFocus()
-    expect(screen.getByRole('textbox')).toHaveAttribute('maxlength', '500')
+    expect(within(dialog).getByText('Lumen', { selector: 'strong' })).toBeInTheDocument()
+    for (const s of STARTER_SUGGESTIONS) expect(within(dialog).getByRole('button', { name: s })).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: chat.message })).toHaveFocus()
   })
 
-  it('shows the greeting and suggestions on an empty chat, and a suggestion sends its text', async () => {
+  it('opens with / from anywhere except while typing', () => {
     renderChat()
-    await open()
-    expect(screen.getByText(chat.greeting)).toBeInTheDocument()
-    for (const s of chat.suggestions) expect(screen.getByRole('button', { name: s })).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: chat.suggestions[1] }))
-    expect(send).toHaveBeenCalledWith(chat.suggestions[1])
+    fireEvent.keyDown(document.body, { key: '/' })
+    expect(screen.getByRole('dialog', { name: chat.name })).toBeInTheDocument()
   })
 
-  it('hides the suggestions once the chat has turns', async () => {
-    state.turns = [
-      { role: 'user', content: 'hi' },
-      { role: 'assistant', content: 'hello' },
-    ]
-    renderChat()
-    await open()
-    expect(screen.queryByRole('button', { name: chat.suggestions[0] })).toBeNull()
+  it('leaves / alone in a text field', () => {
+    render(
+      <>
+        <input aria-label="search" />
+        <ChatRoot ai paths={PATHS} projects={PROJECTS} />
+      </>,
+    )
+    fireEvent.keyDown(screen.getByLabelText('search'), { key: '/' })
+    expect(screen.queryByRole('dialog')).toBeNull()
   })
 
-  it('sends what the visitor types, and clears the box', async () => {
+  it('sends a chip, shows the reply with its link, and marks it Claude', async () => {
+    fetchMock.mockResolvedValue(answer('He builds apps. See [the services](/services).'))
     renderChat()
-    await open()
-    await userEvent.type(screen.getByRole('textbox'), '  What does it cost?{Enter}')
-    expect(send).toHaveBeenCalledWith('What does it cost?')
-    expect(screen.getByRole('textbox')).toHaveValue('')
-  })
-
-  it('keeps the draft and sends nothing while a reply is streaming', async () => {
-    state.turns = [{ role: 'user', content: 'q' }]
-    state.streaming = 'Hel'
-    renderChat()
-    await open()
-    const box = screen.getByRole('textbox')
-    await userEvent.type(box, 'Next one{Enter}')
-    expect(screen.getByRole('button', { name: chat.send })).toBeDisabled()
-    await userEvent.click(screen.getByRole('button', { name: chat.send }))
-    expect(send).not.toHaveBeenCalled()
-    expect(box).toHaveValue('Next one')
-  })
-
-  it('renders a known path as a link that navigates through the shell', async () => {
-    state.turns = [
-      { role: 'user', content: 'what do you offer' },
-      { role: 'assistant', content: 'See [Services](/services) for the list.' },
-    ]
-    renderChat()
-    await open()
-    const link = screen.getByRole('link', { name: 'Services' })
-    expect(link).toHaveAttribute('href', '/services')
+    const dialog = await open()
+    await userEvent.click(within(dialog).getByRole('button', { name: STARTER_SUGGESTIONS[0] }))
+    const link = await within(dialog).findByRole('link', { name: 'the services' })
+    expect(sentBody()).toEqual({ messages: [{ role: 'user', content: STARTER_SUGGESTIONS[0] }] })
+    expect(within(dialog).getByText(chat.mode.live.label)).toBeInTheDocument()
     await userEvent.click(link)
     expect(go).toHaveBeenCalledWith('/services')
     expect(screen.queryByRole('dialog')).toBeNull()
-    expect(launcher()).not.toHaveFocus()
   })
 
-  it('leaves an unknown path as plain text', async () => {
-    state.turns = [
-      { role: 'user', content: 'q' },
-      { role: 'assistant', content: 'Try [Evil](https://evil.example) or [Nope](/nope).' },
-    ]
+  it('shows a link to a page the site does not have as plain text', async () => {
+    fetchMock.mockResolvedValue(answer('Read [the blog](/blog).'))
     renderChat()
-    await open()
-    expect(screen.queryByRole('link')).toBeNull()
-    expect(screen.getByText(/Try Evil or Nope\./, { ignore: '[aria-live]' })).toBeInTheDocument()
+    const dialog = await open()
+    await userEvent.type(screen.getByRole('textbox', { name: chat.message }), 'Blog?{Enter}')
+    await within(dialog).findByText('the blog', { ...SEEN, exact: false })
+    expect(within(dialog).queryByRole('link', { name: 'the blog' })).toBeNull()
   })
 
-  it('makes a link to a file a plain anchor that does not go through the shell', async () => {
-    state.turns = [
-      { role: 'user', content: 'q' },
-      { role: 'assistant', content: 'Open [the sample](/files/x.html).' },
-    ]
+  it('draws the project card a reply asks for, and nothing for an unknown slug', async () => {
+    fetchMock.mockResolvedValueOnce(answer('Ostler is a sample.\n[[project:ostler-barbers]]')).mockResolvedValueOnce(answer('Another.\n[[project:made-up]]'))
     renderChat()
-    await open()
-    const link = screen.getByRole('link', { name: 'the sample' })
-    // jsdom does not navigate on click; stop it so the test only checks the shell was not used.
-    link.addEventListener('click', (e) => e.preventDefault())
-    await userEvent.click(link)
-    expect(go).not.toHaveBeenCalled()
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-    expect(launcher()).not.toHaveFocus()
+    const dialog = await open()
+    const box = screen.getByRole('textbox', { name: chat.message })
+    await userEvent.type(box, 'Ostler?{Enter}')
+    const card = await within(dialog).findByRole('link', { name: /Ostler/ })
+    expect(card).toHaveAttribute('href', PROJECTS[0].href)
+    expect(within(dialog).getByText(chat.card.badge)).toBeInTheDocument()
+    await userEvent.type(box, 'More?{Enter}')
+    await within(dialog).findByText('Another.', SEEN)
+    expect(within(dialog).getAllByText(chat.card.badge)).toHaveLength(1)
+    expect(within(dialog).queryByText(/\[\[/, SEEN)).toBeNull()
   })
 
-  it('shows the in-flight reply while streaming', async () => {
-    state.turns = [{ role: 'user', content: 'q' }]
-    state.streaming = 'Partial answ'
+  it('draws the contact form once per chat, and sends it to the contact route', async () => {
+    fetchMock.mockResolvedValueOnce(answer('Happy to.\n[[lead-form]]')).mockResolvedValueOnce(answer('Still here.\n[[lead-form]]'))
     renderChat()
-    await open()
-    expect(screen.getByText('Partial answ')).toBeInTheDocument()
+    const dialog = await open()
+    const box = screen.getByRole('textbox', { name: chat.message })
+    await userEvent.type(box, 'Can I hire him?{Enter}')
+    await within(dialog).findByText(chat.lead.intro)
+    await userEvent.type(box, 'And now?{Enter}')
+    await within(dialog).findByText('Still here.', SEEN)
+    expect(within(dialog).getAllByText(chat.lead.intro)).toHaveLength(1)
+
+    fetchMock.mockResolvedValueOnce(Response.json({ ok: true }))
+    await userEvent.type(within(dialog).getByLabelText(chat.lead.firstName), 'Ada')
+    await userEvent.type(within(dialog).getByLabelText(chat.lead.lastName), 'Lovelace')
+    await userEvent.type(within(dialog).getByLabelText(chat.lead.email), 'ada@example.com')
+    await userEvent.type(within(dialog).getByLabelText(chat.lead.message), 'An intake automation.')
+    await userEvent.click(within(dialog).getByRole('button', { name: chat.lead.send }))
+    await within(dialog).findByText(chat.lead.sent)
+    const [url, init] = fetchMock.mock.calls.at(-1)!
+    expect(url).toBe('/api/contact')
+    expect(JSON.parse(init.body)).toMatchObject({ firstName: 'Ada', lastName: 'Lovelace', email: 'ada@example.com', message: 'An intake automation.', website: '' })
   })
 
-  it('announces a finished reply in a polite live region, and not the one in flight', async () => {
-    state.turns = [{ role: 'user', content: 'q' }]
-    state.streaming = 'Partial'
-    const { rerender } = renderChat()
-    await open()
-    const live = document.querySelector('[aria-live="polite"]')!
-    expect(live).toHaveTextContent('')
-    state.turns = [
-      { role: 'user', content: 'q' },
-      { role: 'assistant', content: 'Done, see [Services](/services).' },
-    ]
-    state.streaming = null
-    rerender(<ChatRoot ai paths={PATHS} />)
-    expect(document.querySelector('[aria-live="polite"]')).toHaveTextContent('Done, see Services.')
-  })
-
-  it('offers the hand-off after a reply asked for it, and the click saves, navigates and closes', async () => {
-    state.turns = [
-      { role: 'user', content: 'can we work together' },
-      { role: 'assistant', content: 'Yes.' },
-    ]
-    state.contact = true
-    renderChat()
-    await open()
-    await userEvent.click(screen.getByRole('button', { name: chat.handoff }))
-    expect(saveHandoff).toHaveBeenCalledWith(state.turns)
-    expect(go).toHaveBeenCalledWith('/contact')
-    expect(screen.queryByRole('dialog')).toBeNull()
-  })
-
-  it('tells a contact form that is already open when the hand-off is clicked', async () => {
-    state.contact = true
-    state.turns = [
-      { role: 'user', content: 'can we work together' },
-      { role: 'assistant', content: 'Yes.' },
-    ]
-    const heard = vi.fn()
-    window.addEventListener(HANDOFF_EVENT, heard)
-    renderChat()
-    await open()
-    await userEvent.click(screen.getByRole('button', { name: chat.handoff }))
-    window.removeEventListener(HANDOFF_EVENT, heard)
-    expect(heard).toHaveBeenCalledTimes(1)
-    expect(saveHandoff.mock.invocationCallOrder[0]).toBeLessThan(heard.mock.invocationCallOrder[0])
-  })
-
-  it('puts a question that failed back in the box, when the box is empty', async () => {
-    state.error = chat.errors.rate
-    state.failed = 'What does it cost?'
-    renderChat()
-    await open()
-    expect(screen.getByRole('textbox')).toHaveValue('What does it cost?')
-  })
-
-  it('does not overwrite what the visitor typed with a failed question', async () => {
-    const { rerender } = renderChat()
-    await open()
-    await userEvent.type(screen.getByRole('textbox'), 'Something else')
-    state.error = chat.errors.rate
-    state.failed = 'What does it cost?'
-    rerender(<ChatRoot ai paths={PATHS} />)
-    expect(screen.getByRole('textbox')).toHaveValue('Something else')
-  })
-
-  it('saves a failed question as the last turn of the hand-off', async () => {
-    state.turns = [
-      { role: 'user', content: 'Hi' },
-      { role: 'assistant', content: 'Hello' },
-    ]
-    state.error = chat.errors.rate
-    state.failed = 'What does it cost?'
-    renderChat()
-    await open()
-    await userEvent.click(screen.getByRole('button', { name: chat.handoff }))
-    expect(saveHandoff).toHaveBeenCalledWith([...state.turns, { role: 'user', content: 'What does it cost?' }])
-  })
-
-  it('has no hand-off button when nothing asked for it', async () => {
-    renderChat()
-    await open()
-    expect(screen.queryByRole('button', { name: chat.handoff })).toBeNull()
-  })
-
-  it('replaces the input with the capped line and the hand-off at the turn cap', async () => {
-    state.capped = true
-    renderChat()
-    await open()
-    expect(screen.queryByRole('textbox')).toBeNull()
-    expect(screen.getByText(chat.capped)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: chat.handoff })).toBeInTheDocument()
-  })
-
-  it('shows an error sentence with the hand-off, and keeps the input', async () => {
-    state.error = chat.errors.rate
-    renderChat()
-    await open()
-    expect(screen.getByText(chat.errors.rate)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: chat.handoff })).toBeInTheDocument()
-    expect(screen.getByRole('textbox')).toBeInTheDocument()
-  })
-
-  it('says in the footer that messages go to Anthropic when Claude answers', async () => {
-    renderChat()
-    await open()
-    expect(screen.getByText(chat.privacy.ai)).toBeInTheDocument()
-    expect(screen.queryByText(chat.privacy.site)).toBeNull()
-  })
-
-  it('says only that the site keeps nothing when there is no key', async () => {
+  it('marks offline answers Offline and says the site keeps nothing', async () => {
+    fetchMock.mockResolvedValue(answer('Offline answer.', 'local'))
     renderChat(false)
-    await open()
-    expect(screen.getByText(chat.privacy.site)).toBeInTheDocument()
-    expect(screen.queryByText(chat.privacy.ai)).toBeNull()
+    const dialog = await open()
+    expect(within(dialog).getByText(chat.privacy.site)).toBeInTheDocument()
+    await userEvent.type(screen.getByRole('textbox', { name: chat.message }), 'Hi{Enter}')
+    await within(dialog).findByText('Offline answer.', SEEN)
+    expect(within(dialog).getByText(chat.mode.local.label)).toBeInTheDocument()
   })
 
-  it('closes with the close button and gives focus back to the launcher', async () => {
+  it('writes a refused request into the reply, so the next question still sends a valid history', async () => {
+    fetchMock.mockResolvedValueOnce(Response.json({ error: chat.errors.rate }, { status: 429 })).mockResolvedValueOnce(answer('Back now.'))
+    renderChat()
+    const dialog = await open()
+    const box = screen.getByRole('textbox', { name: chat.message })
+    await userEvent.type(box, 'One{Enter}')
+    await within(dialog).findByText('Too many messages', { ...SEEN, exact: false })
+    await userEvent.type(box, 'Two{Enter}')
+    await within(dialog).findByText('Back now.', SEEN)
+    expect(sentBody(1).messages.map((m: { role: string }) => m.role)).toEqual(['user', 'assistant', 'user'])
+  })
+
+  it('stops a reply that is still arriving', async () => {
+    fetchMock.mockImplementation((_url: string, init: RequestInit) => new Promise((_, reject) => init.signal!.addEventListener('abort', () => reject(Object.assign(new Error('aborted'), { name: 'AbortError' })))))
+    renderChat()
+    const dialog = await open()
+    await userEvent.type(screen.getByRole('textbox', { name: chat.message }), 'Long one{Enter}')
+    await userEvent.click(await within(dialog).findByRole('button', { name: chat.stop }))
+    await within(dialog).findByText('Stopped.', SEEN)
+    expect(within(dialog).getByRole('button', { name: chat.send })).toBeInTheDocument()
+  })
+
+  it('keeps the chat for the tab, restores it, and resets it', async () => {
+    const first = renderChat()
+    let dialog = await open()
+    await userEvent.type(screen.getByRole('textbox', { name: chat.message }), 'Remember me{Enter}')
+    await within(dialog).findByText('Hello there.', SEEN)
+    await waitFor(() => expect(sessionStorage.getItem(CHAT_KEY)).toContain('Remember me'))
+    first.unmount()
+
+    renderChat()
+    dialog = await open()
+    expect(await within(dialog).findByText('Remember me')).toBeInTheDocument()
+    await userEvent.click(within(dialog).getByRole('button', { name: chat.reset }))
+    expect(within(dialog).queryByText('Remember me')).toBeNull()
+    expect(sessionStorage.getItem(CHAT_KEY)).toBeNull()
+  })
+
+  it('restores a reply saved mid-answer as interrupted', async () => {
+    sessionStorage.setItem(CHAT_KEY, JSON.stringify({ messages: [{ id: 'a', role: 'user', content: 'Q' }, { id: 'b', role: 'assistant', content: 'Par', pending: true }], mode: 'live' }))
+    renderChat()
+    const dialog = await open()
+    expect(await within(dialog).findByText('Interrupted. Ask again to continue.', SEEN)).toBeInTheDocument()
+  })
+
+  it('closes on Esc and puts focus back on the launcher', async () => {
     renderChat()
     await open()
-    await userEvent.click(screen.getByRole('button', { name: chat.close }))
+    act(() => {
+      fireEvent.keyDown(document.activeElement!, { key: 'Escape' })
+    })
     expect(screen.queryByRole('dialog')).toBeNull()
     expect(launcher()).toHaveFocus()
-  })
-
-  it('closes on Esc and returns focus to the launcher', async () => {
-    renderChat()
-    await open()
-    await userEvent.keyboard('{Escape}')
-    expect(screen.queryByRole('dialog')).toBeNull()
-    expect(launcher()).toHaveFocus()
-  })
-
-  it('leaves the panel open when Esc was already handled', async () => {
-    renderChat()
-    await open()
-    const esc = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true })
-    esc.preventDefault()
-    screen.getByRole('textbox').dispatchEvent(esc)
-    expect(screen.getByRole('dialog')).toBeInTheDocument()
-  })
-
-  it('leaves the panel open on Esc while another dialog has focus', async () => {
-    renderChat()
-    await open()
-    const other = document.createElement('div')
-    other.setAttribute('role', 'dialog')
-    other.innerHTML = '<button>inside</button>'
-    document.body.append(other)
-    other.querySelector('button')!.focus()
-    fireEvent.keyDown(other.querySelector('button')!, { key: 'Escape' })
-    other.remove()
-    expect(screen.getByRole('dialog', { name: chat.title })).toBeInTheDocument()
   })
 })

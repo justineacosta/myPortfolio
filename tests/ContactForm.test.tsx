@@ -1,11 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { act, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent, { type UserEvent } from '@testing-library/user-event'
 import ContactForm from '@/components/contact/ContactForm'
 import { contact } from '@/data/contact'
 import { profile } from '@/data/profile'
-import { HANDOFF_EVENT, saveHandoff } from '@/lib/chat/handoff'
-import { HANDOFF_KEY } from '@/lib/storage-keys'
 
 const GOOD = { first: 'Ana', last: 'Reyes', email: 'ana@example.com', message: 'Our intake is manual.' }
 const f = contact.fields
@@ -103,33 +101,7 @@ describe('ContactForm', () => {
     expect(screen.getByText(profile.email)).toBeInTheDocument()
   })
 
-  it('starts the message with what the visitor asked the chat, once', () => {
-    sessionStorage.setItem(HANDOFF_KEY, 'Do you build intake automations?')
-    render(<ContactForm />)
-    expect(screen.getByLabelText(f.message.label)).toHaveValue('Do you build intake automations?')
-    expect(sessionStorage.getItem(HANDOFF_KEY)).toBeNull()
-  })
-
-  it('fills a form that is already open when the chat hands over, and clears the key', () => {
-    render(<ContactForm />)
-    expect(screen.getByLabelText(f.message.label)).toHaveValue('')
-    saveHandoff([{ role: 'user', content: 'Can you start in March?' }])
-    act(() => {
-      window.dispatchEvent(new Event(HANDOFF_EVENT))
-    })
-    expect(screen.getByLabelText(f.message.label)).toHaveValue('Can you start in March?')
-    expect(sessionStorage.getItem(HANDOFF_KEY)).toBeNull()
-  })
-
-  it('stops listening for the hand-off once unmounted', () => {
-    const { unmount } = render(<ContactForm />)
-    unmount()
-    saveHandoff([{ role: 'user', content: 'Later' }])
-    window.dispatchEvent(new Event(HANDOFF_EVENT))
-    expect(sessionStorage.getItem(HANDOFF_KEY)).toBe('Later')
-  })
-
-  it('leaves the message empty when nothing was handed over', () => {
+  it('starts with an empty message', () => {
     render(<ContactForm />)
     expect(screen.getByLabelText(f.message.label)).toHaveValue('')
   })

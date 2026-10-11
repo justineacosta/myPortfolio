@@ -1,95 +1,56 @@
 /**
- * The site chat's copy: the launcher, the panel and every sentence the route
- * can send back. The assistant speaks as the site's assistant about Justine,
- * not as Justine.
+ * Lumen's copy: the launcher, the panel, the in-chat form and every sentence
+ * the widget shows on its own. Lumen is the old portfolio's assistant
+ * (oldportfolio/src/components/ai-chat-widget.tsx), restyled for Kraft. It
+ * speaks about Justine in the third person, he/him, and never shows his email.
  */
 export const chat = {
-  launcher: 'Ask about Justine’s work',
-  title: 'Ask about the work',
-  greeting: "Hi, I'm the assistant on this site. Ask me about what Justine builds, how a project starts, or what it costs to get going.",
-  suggestions: ['What do you build?', 'Have you built this for a business like mine?', 'How does a project start?'] as [string, string, string],
-  placeholder: 'Ask a question',
+  launcher: 'Ask Lumen about Justine’s work',
+  name: 'Lumen',
+  subtitle: 'Justine’s portfolio assistant',
+  greeting: "Hi, I'm **Lumen**, Justine's assistant. Ask me about his work, his stack, or how to start a conversation.",
+  placeholder: 'Ask anything…',
+  message: 'Message',
   send: 'Send',
+  stop: 'Stop',
   close: 'Close chat',
-  handoff: 'Send Justine a message',
-  capped: 'Justine can take it from here.',
-  /** The footer: `ai` when Claude answers, `site` when the keyless fallback does. */
+  reset: 'Reset conversation',
+  thinking: 'Lumen is thinking',
+  /** The header badge: who wrote the last answer. */
+  mode: {
+    live: { label: 'Claude', title: 'Powered by Claude' },
+    local: { label: 'Offline', title: 'Hand-tuned offline replies (no API key set)' },
+  },
+  hint: { send: 'send', newline: 'newline', open: 'press / anywhere' },
+  /** The footer: `ai` when Claude answers, `site` when the offline rules do. */
   privacy: {
     ai: "Messages go to Anthropic to write the answer. This site doesn't keep them.",
     site: "This site doesn't keep your messages.",
   },
-  /** Each refusal gives the visitor a way forward; the panel shows the hand-off button beside it. */
-  errors: {
-    rate: "You've asked a lot in a short time. Give it a few minutes, or write to Justine directly.",
-    failed: "That didn't come through. Ask again, or write to Justine.",
-    invalid: "I couldn't read that one. Try a shorter question, or write to Justine.",
+  /** Written into the reply bubble itself when something goes wrong. */
+  replies: {
+    empty: 'Hmm, nothing came back. Try [the contact page](/contact) and Justine will reply directly.',
+    failed: 'Something went wrong on my end. You can reach Justine on [the contact page](/contact).',
+    stopped: '_Stopped._',
+    interrupted: '_Interrupted. Ask again to continue._',
   },
-  /**
-   * The keyless fallback (lib/chat/fallback.ts): the words that pick each
-   * topic, in tie-break order, and the few lines it adds around the site's
-   * own text. Triggers are matched as whole words or phrases.
-   */
-  fallback: {
-    triggers: {
-      price: ['price', 'prices', 'pricing', 'cost', 'costs', 'charge', 'rate', 'rates', 'budget', 'quote', 'how much'],
-      start: ['how fast', 'how soon', 'how long', 'start', 'when can you', 'availability', 'available', 'timeline', 'turnaround', 'timezone', 'time zone'],
-      after: [
-        'after i write', 'after i send', 'hear back', 'response time', 'when will you reply', 'hire', 'hire you', 'work together', 'work with you',
-        'contact', 'contact you', 'email', 'get in touch', 'schedule a call', 'book a call',
-      ],
-      maintain: ['maintain', 'maintenance', 'ongoing support', 'support after', 'after launch', 'handover', 'hand over'],
-      cases: ['example', 'examples', 'client', 'clients', 'portfolio', 'case study', 'case studies', 'past work', 'your work', 'projects', 'like mine', 'similar', 'industry'],
-      process: ['process', 'steps', 'how do you work', 'method', 'approach', 'kickoff'],
-      services: [
-        'service', 'services', 'what do you offer', 'what do you do', 'ai agent', 'ai agents', 'rag', 'chatbot', 'chatbots', 'automate', 'automated', 'automating',
-        'automation', 'automations', 'workflow', 'workflows', 'crm', 'cms', 'api', 'apis', 'integration', 'integrations', 'seo', 'website', 'websites', 'web app',
-        'app', 'apps', 'saas',
-      ],
-      build: ['what do you build', 'build', 'make'],
-      stack: ['stack', 'tools', 'tech', 'technology', 'technologies', 'framework', 'frameworks', 'programming language', 'programming languages'],
-      courses: ['course', 'courses', 'certificate', 'certificates', 'certification', 'certifications', 'training'],
-      about: ['who are you', 'who is justine', 'who is he', 'who am i talking to', 'about you', 'about justine', 'background', 'experience', 'where are you based', 'yourself'],
-      hello: ['hi', 'hello', 'hey', 'thanks', 'thank you'],
-    },
-    /** Any of these adds the hand-off button to the reply, whichever topic answers. */
-    buying: [
-      'price', 'pricing', 'cost', 'budget', 'quote', 'how much', 'project', 'hire', 'hiring', 'can you build', 'work with', 'work together', 'proposal', 'call',
-      'contact', 'get in touch',
-    ],
-    /** Everyday words for each case's trade, keyed by its folder, beside the words of its own name and trade. */
-    caseWords: {
-      'ostler-barbers': ['barber', 'barbers', 'haircut', 'salon'],
-      'riverdale-and-brooks': ['lawyer', 'lawyers', 'attorney', 'legal', 'law firm'],
-      'altitude-personal-training': ['gym', 'trainer', 'fitness', 'coach'],
-      'range-physical-therapy': ['physio', 'physiotherapy', 'therapist', 'clinic'],
-      'harbor-and-pine-moving': ['movers', 'removals', 'relocation'],
-      'tidewell-vacation-rentals': ['airbnb', 'holiday let', 'short term rental'],
-      'meridian-energy-infrastructure': ['solar', 'energy', 'renewable'],
-      'ironline-utility-infrastructure': ['utilities', 'linework'],
-      'meridian-werks': ['mechanic', 'garage', 'car', 'auto'],
-      'oriel-portugal-residences': ['portugal', 'real estate', 'property'],
-      'westmere-los-angeles': ['los angeles', 'real estate', 'property'],
-    } as Record<string, string[]>,
-    /** Words in a case's name or trade too general to point at that case. */
-    caseStop: ['company', 'practice', 'infrastructure', 'studio', 'manager', 'cash', 'small', 'commercial', 'developer', 'range', 'personal', 'training', 'physical'],
-    intro: {
-      services: 'Justine works across six areas:',
-      process: 'Every project runs through the same five steps:',
-      stack: 'These are the tools he builds with:',
-      courses: 'Courses he has completed:',
-      cases: 'He has built full sample systems for these businesses:',
-      /** Followed by the business, its trade, and what the sample system runs. The businesses are samples, never clients. */
-      case: 'The closest example on the site is a sample system for',
-      about: "I'm the site's assistant. Here's how Justine describes himself:",
-    },
-    links: {
-      contact: 'Get in touch',
-      services: 'See the services',
-      about: 'More about Justine',
-      projects: 'See the projects',
-      case: 'See the case study',
-    },
-    hello: 'Hi. Ask me what Justine builds, how a project starts, or what it costs.',
-    unknown: "I can't answer that one here, but Justine can.",
+  /** Refusals the route sends as { error }, shown in the reply bubble. */
+  errors: {
+    rate: 'Too many messages. Try again in a bit, or write to Justine on [the contact page](/contact).',
+    invalid: "I couldn't read that one. Try a shorter question.",
+  },
+  /** The project card a reply can carry. */
+  card: { badge: 'SAMPLE SYSTEM', open: 'Open the case study' },
+  /** The form a reply can carry on clear hiring intent. Fields and checks are the contact page's (lib/contact.ts). */
+  lead: {
+    intro: 'Leave your details and Justine will get back to you directly.',
+    firstName: 'First name',
+    lastName: 'Last name',
+    email: 'Email',
+    message: 'What are you building?',
+    messagePlaceholder: 'A rough idea of the project, timeline, and what you need.',
+    send: 'Send to Justine',
+    sending: 'Sending…',
+    sent: 'Sent. Justine has it and will reply by email.',
   },
 }

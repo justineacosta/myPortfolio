@@ -1,17 +1,23 @@
 /** One turn of the conversation, as the browser sends it and the model receives it. */
 export type ChatTurn = { role: 'user' | 'assistant'; content: string }
 
-/** How many questions a visitor may ask in one chat. */
-export const MAX_USER_TURNS = 10
-/** The most entries a history may hold: the visitor turns and the answers between them. */
-export const MAX_TURNS = 2 * MAX_USER_TURNS - 1
-/** The longest a turn may be, by who wrote it. */
-export const MAX_LENGTH = { user: 500, assistant: 2000 }
+/**
+ * The most turns a request carries: the latest question and the ten turns
+ * before it. Odd, so the history the widget sends always starts on the visitor.
+ */
+export const MAX_TURNS = 11
+/** The longest a sent turn may be. The widget cuts longer ones before sending. */
+export const MAX_LENGTH = { user: 1500, assistant: 8000 }
+
+/** The last `MAX_TURNS` turns of a conversation that ends on the visitor, each cut to its length. */
+export function recent(turns: ChatTurn[]): ChatTurn[] {
+  return turns.slice(-MAX_TURNS).map((t) => ({ role: t.role, content: t.content.slice(0, MAX_LENGTH[t.role]) }))
+}
 
 /**
  * The turns of a chat request body, trimmed and stripped to role and content,
  * or null when the history is not one the widget could have produced:
- * 1 to 19 entries, alternating, starting and ending on the visitor, each
+ * 1 to 11 entries, alternating, starting and ending on the visitor, each
  * non-blank and within its length. A hand-made POST gets no more than that.
  */
 export function checkChat(body: unknown): ChatTurn[] | null {

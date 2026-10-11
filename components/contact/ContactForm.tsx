@@ -9,7 +9,6 @@ import {
   checkLead, FIELDS, MAX_EMAIL, MAX_MESSAGE, MAX_NAME, SubmitError, submitLead,
   type Errors, type Field,
 } from '@/lib/contact'
-import { HANDOFF_EVENT, takeHandoff } from '@/lib/chat/handoff'
 
 type Status = { kind: 'idle' } | { kind: 'sending' } | { kind: 'error'; note: string } | { kind: 'sent' }
 
@@ -32,18 +31,6 @@ export default function ContactForm() {
   const form = useRef<HTMLFormElement>(null)
   const checked = useRef(false)
   const again = useRef(false)
-
-  // The chat's hand-off lands on mount, or through the event when the form is already open (a visit to /contact only scrolls).
-  useEffect(() => {
-    const take = () => {
-      const text = takeHandoff()
-      const field = form.current?.querySelector<HTMLTextAreaElement>('textarea[name="message"]')
-      if (text && field) field.value = text
-    }
-    take()
-    window.addEventListener(HANDOFF_EVENT, take)
-    return () => window.removeEventListener(HANDOFF_EVENT, take)
-  }, [])
 
   useEffect(() => {
     if (status.kind !== 'idle' || !again.current) return

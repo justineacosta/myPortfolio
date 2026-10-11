@@ -1,19 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { chat } from '@/data/chat'
-import { fallbackReply } from '@/lib/chat/fallback'
 import { systemBlocks } from '@/lib/chat/prompt'
+import { localAnswer } from '@/lib/chat/local'
 
 const { streamMock } = vi.hoisted(() => ({ streamMock: vi.fn() }))
-vi.mock('@anthropic-ai/sdk', () => ({ default: class { messages = { stream: streamMock } } }))
-// The fallback's pause and typing run on an instant clock here, so the tests stay fast.
-vi.mock('@/lib/chat/pace', async (orig) => {
-  const pace = await orig<typeof import('@/lib/chat/pace')>()
-  return { ...pace, paced: (text: string) => pace.paced(text, async () => {}) }
-})
+vi.mock('@anthropic-ai/sdk', () => ({ default: class { beta = { messages: { stream: streamMock } } } }))
 
 import { POST } from '@/app/api/chat/route'
 
-const MESSAGES = [{ role: 'user', content: 'What does Justine build?' }]
+const QUESTION = 'What does Justine build?'
+const MESSAGES = [{ role: 'user', content: QUESTION }]
 let ip = 0
 /** Each request comes from its own address unless one is given, so the rate limit stays out of the way. */
 const post = (body: unknown, from = `10.1.0.${++ip}`) =>
@@ -25,142 +21,115 @@ const post = (body: unknown, from = `10.1.0.${++ip}`) =>
     }),
   )
 const delta = (text: string) => ({ type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text } })
-/** What `messages.stream` returns: an async iterable of events, with the final message after them. */
+const thinking = { type: 'content_block_delta', index: 0, delta: { type: 'thinking_delta', thinking: '' } }
+/** What `beta.messages.stream` returns: an async iterable of events, with the final message after them. */
 const replying = (events: unknown[], failAfter?: Error) => ({
   async *[Symbol.asyncIterator]() {
     yield* events
     if (failAfter) throw failAfter
   },
-  finalMessage: async () => ({ usage: { cache_read_input_tokens: 120, cache_creation_input_tokens: 0 } }),
+  finalMessage: async () => ({ model: 'claude-opus-5-5', stop_reason: 'end_turn', usage: { cache_read_input_tokens: 0, cache_creation_input_tokens: 0 } }),
+  abort: vi.fn(),
 })
+
+/** Reads a response to the end, letting the offline tier's 14 ms pieces through on a fake clock. */
+async function read(res: Response): Promise<string> {
+  const reader = res.body!.getReader()
+  const decoder = new TextDecoder()
+  let out = ''
+  for (;;) {
+    const next = reader.read()
+    await vi.advanceTimersByTimeAsync(20)
+    const { done, value } = await next
+    if (done) return out + decoder.decode()
+    out += decoder.decode(value, { stream: true })
+  }
+}
 
 describe('POST /api/chat', () => {
   beforeEach(() => {
+    vi.useFakeTimers()
     vi.stubEnv('ANTHROPIC_API_KEY', 'sk-test')
+    vi.stubEnv('ANTHROPIC_MODEL', '')
     streamMock.mockReset()
-    streamMock.mockReturnValue(replying([delta('Hel'), delta('lo')]))
+    streamMock.mockReturnValue(replying([thinking, delta('Hel'), delta('lo')]))
     vi.spyOn(console, 'error').mockImplementation(() => {})
     vi.spyOn(console, 'info').mockImplementation(() => {})
   })
   afterEach(() => {
+    vi.useRealTimers()
     vi.unstubAllEnvs()
     vi.restoreAllMocks()
   })
 
-  it('streams the answer as plain text', async () => {
+  it('streams the live answer as plain text, marked live and not cached', async () => {
     const res = await post({ messages: MESSAGES })
     expect(res.status).toBe(200)
     expect(res.headers.get('content-type')).toBe('text/plain; charset=utf-8')
-    expect(await res.text()).toBe('Hello')
+    expect(res.headers.get('x-assistant-mode')).toBe('live')
+    expect(res.headers.get('cache-control')).toBe('no-store')
+    expect(await read(res)).toBe('Hello')
   })
 
-  it('asks Haiku with low effort, the cached system blocks and the validated messages', async () => {
-    await (await post({ messages: [{ role: 'user', content: '  What does Justine build? ', extra: 1 }] })).text()
+  it('asks Opus 5.5 with adaptive thinking at low effort, the default fallback, the cached prompt and the validated messages', async () => {
+    await read(await post({ messages: [{ role: 'user', content: `  ${QUESTION} `, extra: 1 }] }))
     expect(streamMock).toHaveBeenCalledTimes(1)
     expect(streamMock.mock.calls[0][0]).toEqual({
-      model: 'claude-haiku-5-5',
-      max_tokens: 1000,
+      model: 'claude-opus-5-5',
+      max_tokens: 2000,
+      thinking: { type: 'adaptive' },
       output_config: { effort: 'low' },
+      betas: ['server-side-fallback-2026-07-01'],
+      fallbacks: 'default',
       system: systemBlocks(),
       messages: MESSAGES,
     })
   })
 
-  it('refuses a body it cannot read, and a history that does not validate', async () => {
+  it('answers from the offline rules without a key, marked local, and never calls the model', async () => {
+    vi.stubEnv('ANTHROPIC_API_KEY', '')
+    const res = await post({ messages: MESSAGES })
+    expect(res.headers.get('x-assistant-mode')).toBe('local')
+    expect(await read(res)).toBe(localAnswer(QUESTION))
+    expect(streamMock).not.toHaveBeenCalled()
+  })
+
+  it('answers from the offline rules when the call fails before its first event', async () => {
+    streamMock.mockReturnValue(replying([], new Error('overloaded')))
+    const res = await post({ messages: MESSAGES })
+    expect(res.headers.get('x-assistant-mode')).toBe('local')
+    expect(await read(res)).toBe(localAnswer(QUESTION))
+  })
+
+  it('ends a reply cut off mid-answer with the interrupted note, not a fake finish', async () => {
+    streamMock.mockReturnValue(replying([delta('Half an ans')], new Error('dropped')))
+    expect(await read(await post({ messages: MESSAGES }))).toBe(`Half an ans\n\n${chat.replies.interrupted}`)
+  })
+
+  it('answers from the offline rules when Claude sends no words at all (a refusal the fallback could not rescue)', async () => {
+    streamMock.mockReturnValue(replying([thinking]))
+    expect(await read(await post({ messages: MESSAGES }))).toBe(localAnswer(QUESTION))
+  })
+
+  it('refuses a body it cannot read, a history that does not validate, and one declared over 64 KB', async () => {
     for (const body of [{ messages: [] }, '{not json', { messages: [{ role: 'assistant', content: 'Hi' }] }]) {
       const res = await post(body)
       expect(res.status).toBe(400)
       expect(await res.json()).toEqual({ error: chat.errors.invalid })
     }
-    expect(streamMock).not.toHaveBeenCalled()
-  })
-
-  it('refuses a body declared over 64 KB before reading it, and does not call the model', async () => {
-    const res = await POST(
-      new Request('http://localhost/api/chat', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', 'content-length': '65537', 'x-forwarded-for': `10.1.1.${++ip}` },
-        body: JSON.stringify({ messages: MESSAGES }),
-      }),
+    const big = await POST(
+      new Request('http://localhost/api/chat', { method: 'POST', headers: { 'content-length': String(65 * 1024) }, body: JSON.stringify({ messages: MESSAGES }) }),
     )
-    expect(res.status).toBe(400)
-    expect(await res.json()).toEqual({ error: chat.errors.invalid })
+    expect(big.status).toBe(400)
     expect(streamMock).not.toHaveBeenCalled()
   })
 
-  it('answers from the fallback without a key, and does not call the model', async () => {
+  it('limits Claude to 30 questions an hour per visitor, and never limits the offline rules', async () => {
+    for (let i = 0; i < 30; i++) expect((await post({ messages: MESSAGES }, '10.7.7.7')).status).toBe(200)
+    const over = await post({ messages: MESSAGES }, '10.7.7.7')
+    expect(over.status).toBe(429)
+    expect(await over.json()).toEqual({ error: chat.errors.rate })
     vi.stubEnv('ANTHROPIC_API_KEY', '')
-    const res = await post({ messages: [{ role: 'user', content: 'How much do you charge?' }] })
-    expect(res.status).toBe(200)
-    expect(res.headers.get('content-type')).toBe('text/plain; charset=utf-8')
-    expect(await res.text()).toBe(fallbackReply('How much do you charge?'))
-    expect(streamMock).not.toHaveBeenCalled()
-    expect(console.error).not.toHaveBeenCalled()
-  })
-
-  it('sends a fallback reply word by word, not all at once', async () => {
-    vi.stubEnv('ANTHROPIC_API_KEY', '')
-    const res = await post({ messages: [{ role: 'user', content: 'How much do you charge?' }] })
-    const reader = res.body!.getReader()
-    let pieces = 0
-    while (!(await reader.read()).done) pieces++
-    expect(pieces).toBeGreaterThan(1)
-  })
-
-  it('answers the latest question, not an earlier one, from the fallback', async () => {
-    vi.stubEnv('ANTHROPIC_API_KEY', '')
-    const history = [
-      { role: 'user', content: 'How much do you charge?' },
-      { role: 'assistant', content: 'It depends on the build.' },
-      { role: 'user', content: 'What is your process?' },
-    ]
-    expect(await (await post({ messages: history })).text()).toBe(fallbackReply('What is your process?'))
-  })
-
-  it('refuses the 21st request from one address within the hour', async () => {
-    for (let i = 0; i < 20; i++) expect(await (await post({ messages: MESSAGES }, '10.2.0.1')).text()).toBe('Hello')
-    streamMock.mockClear()
-    const res = await post({ messages: MESSAGES }, '10.2.0.1')
-    expect(res.status).toBe(429)
-    expect(await res.json()).toEqual({ error: chat.errors.rate })
-    expect(streamMock).not.toHaveBeenCalled()
-  })
-
-  it('answers from the fallback when the call fails before the first event, and logs why', async () => {
-    streamMock.mockReturnValue(replying([], new Error('401 invalid x-api-key')))
-    const res = await post({ messages: MESSAGES })
-    expect(res.status).toBe(200)
-    expect(await res.text()).toBe(fallbackReply(MESSAGES[0].content))
-    expect(console.error).toHaveBeenCalledTimes(1)
-  })
-
-  it('answers from the fallback when starting the call throws', async () => {
-    streamMock.mockImplementation(() => {
-      throw new Error('bad request')
-    })
-    const res = await post({ messages: MESSAGES })
-    expect(res.status).toBe(200)
-    expect(await res.text()).toBe(fallbackReply(MESSAGES[0].content))
-  })
-
-  it('errors the stream, so the reader sees a failure and not a short answer, when the call fails midway', async () => {
-    streamMock.mockReturnValue(replying([delta('Hel')], new Error('dropped')))
-    const res = await post({ messages: MESSAGES })
-    expect(res.status).toBe(200)
-    await expect(res.text()).rejects.toThrow('dropped')
-    expect(console.error).toHaveBeenCalledWith(expect.stringContaining('mid-answer'), expect.any(Error))
-  })
-
-  it('logs the cache usage in development only', async () => {
-    await (await post({ messages: MESSAGES })).text()
-    expect(console.info).not.toHaveBeenCalled()
-    vi.stubEnv('NODE_ENV', 'development')
-    await (await post({ messages: MESSAGES })).text()
-    expect(console.info).toHaveBeenCalledWith(expect.stringContaining('cache read 120, cache written 0'))
-  })
-
-  it('skips events that are not text', async () => {
-    streamMock.mockReturnValue(replying([{ type: 'message_start' }, delta('Hi'), { type: 'content_block_stop', index: 0 }]))
-    expect(await (await post({ messages: MESSAGES })).text()).toBe('Hi')
+    expect((await post({ messages: MESSAGES }, '10.7.7.7')).status).toBe(200)
   })
 })
