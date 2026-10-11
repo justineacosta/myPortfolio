@@ -3,14 +3,16 @@ import { chat } from '@/data/chat'
 import { clientIp } from '@/lib/leadLimit'
 import { chatAllowed } from '@/lib/chat/limit'
 import { systemBlocks } from '@/lib/chat/prompt'
-import { checkChat } from '@/lib/chat/validate'
+import { fallbackReply } from '@/lib/chat/fallback'
+import { checkChat, type ChatTurn } from '@/lib/chat/validate'
 
 /**
  * The site chat's backend: answers a visitor's question from the knowledge
  * block (lib/chat/knowledge.ts) with Claude Haiku, streamed back as plain text.
  * The order is: the per-visitor limit, the size and history check, the key, the call.
+ * Without a key, the keyless fallback (lib/chat/fallback.ts) answers instead.
  * The first event is awaited before the Response goes out, so a call that
- * fails up front is a 502 the panel can show. A failure after that errors
+ * fails up front is answered by the fallback too. A failure after that errors
  * the stream, and the panel shows the error sentence and the hand-off.
  * Every refusal is { error: sentence } for the panel to show.
  */
@@ -20,7 +22,12 @@ export const maxDuration = 30
 /** The largest request body read: far above 10 questions and 9 answers at their limits. */
 const MAX_BODY = 64 * 1024
 
+const TEXT = { 'content-type': 'text/plain; charset=utf-8' }
+
 const refuse = (error: string, status: number) => Response.json({ error }, { status })
+
+/** The keyless fallback's answer to the visitor's latest question, sent like any other reply. */
+const fallback = (messages: ChatTurn[]) => new Response(fallbackReply(messages[messages.length - 1].content), { headers: TEXT })
 
 let client: Anthropic | undefined
 /** The one SDK client, built on the first call so the key is read when it is needed. It never retries: a visitor is waiting. */
@@ -38,10 +45,7 @@ export async function POST(req: Request) {
   const messages = declared > MAX_BODY ? null : checkChat(await req.json().catch(() => null))
   if (!messages) return refuse(chat.errors.invalid, 400)
 
-  if (!process.env.ANTHROPIC_API_KEY) {
-    console.error('Site chat: ANTHROPIC_API_KEY is not set.')
-    return refuse(chat.errors.unavailable, 503)
-  }
+  if (!process.env.ANTHROPIC_API_KEY) return fallback(messages)
 
   let stream: ReturnType<Anthropic['messages']['stream']>
   let events: AsyncIterator<Anthropic.MessageStreamEvent>
@@ -57,8 +61,8 @@ export async function POST(req: Request) {
     events = stream[Symbol.asyncIterator]()
     first = await events.next()
   } catch (err) {
-    console.error('Site chat: the call failed before the first event.', err)
-    return refuse(chat.errors.failed, 502)
+    console.error('Site chat: the call failed before the first event; the fallback answers.', err)
+    return fallback(messages)
   }
 
   const encoder = new TextEncoder()
@@ -89,5 +93,5 @@ export async function POST(req: Request) {
     // The visitor closed the panel or left: stop paying for the rest of the answer.
     cancel: () => stream.abort(),
   })
-  return new Response(body, { headers: { 'content-type': 'text/plain; charset=utf-8' } })
+  return new Response(body, { headers: TEXT })
 }

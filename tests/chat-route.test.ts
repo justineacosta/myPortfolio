@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { chat } from '@/data/chat'
+import { fallbackReply } from '@/lib/chat/fallback'
 import { systemBlocks } from '@/lib/chat/prompt'
 
 const { streamMock } = vi.hoisted(() => ({ streamMock: vi.fn() }))
@@ -82,12 +83,24 @@ describe('POST /api/chat', () => {
     expect(streamMock).not.toHaveBeenCalled()
   })
 
-  it('is unavailable without a key, and does not call the model', async () => {
+  it('answers from the fallback without a key, and does not call the model', async () => {
     vi.stubEnv('ANTHROPIC_API_KEY', '')
-    const res = await post({ messages: MESSAGES })
-    expect(res.status).toBe(503)
-    expect(await res.json()).toEqual({ error: chat.errors.unavailable })
+    const res = await post({ messages: [{ role: 'user', content: 'How much do you charge?' }] })
+    expect(res.status).toBe(200)
+    expect(res.headers.get('content-type')).toBe('text/plain; charset=utf-8')
+    expect(await res.text()).toBe(fallbackReply('How much do you charge?'))
     expect(streamMock).not.toHaveBeenCalled()
+    expect(console.error).not.toHaveBeenCalled()
+  })
+
+  it('answers the latest question, not an earlier one, from the fallback', async () => {
+    vi.stubEnv('ANTHROPIC_API_KEY', '')
+    const history = [
+      { role: 'user', content: 'How much do you charge?' },
+      { role: 'assistant', content: 'It depends on the build.' },
+      { role: 'user', content: 'What is your process?' },
+    ]
+    expect(await (await post({ messages: history })).text()).toBe(fallbackReply('What is your process?'))
   })
 
   it('refuses the 21st request from one address within the hour', async () => {
@@ -99,18 +112,21 @@ describe('POST /api/chat', () => {
     expect(streamMock).not.toHaveBeenCalled()
   })
 
-  it('answers 502 when the call fails before the first event', async () => {
-    streamMock.mockReturnValue(replying([], new Error('overloaded')))
+  it('answers from the fallback when the call fails before the first event, and logs why', async () => {
+    streamMock.mockReturnValue(replying([], new Error('401 invalid x-api-key')))
     const res = await post({ messages: MESSAGES })
-    expect(res.status).toBe(502)
-    expect(await res.json()).toEqual({ error: chat.errors.failed })
+    expect(res.status).toBe(200)
+    expect(await res.text()).toBe(fallbackReply(MESSAGES[0].content))
+    expect(console.error).toHaveBeenCalledTimes(1)
   })
 
-  it('answers 502 when starting the call throws', async () => {
+  it('answers from the fallback when starting the call throws', async () => {
     streamMock.mockImplementation(() => {
       throw new Error('bad request')
     })
-    expect((await post({ messages: MESSAGES })).status).toBe(502)
+    const res = await post({ messages: MESSAGES })
+    expect(res.status).toBe(200)
+    expect(await res.text()).toBe(fallbackReply(MESSAGES[0].content))
   })
 
   it('errors the stream, so the reader sees a failure and not a short answer, when the call fails midway', async () => {

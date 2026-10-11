@@ -17,7 +17,6 @@ export const chat = {
   /** Each refusal gives the visitor a way forward; the panel shows the hand-off button beside it. */
   errors: {
     rate: "You've asked a lot in a short time. Give it a few minutes, or write to Justine directly.",
-    unavailable: "I can't answer right now. You can write to Justine and he'll reply himself.",
     failed: "That didn't come through. Ask again, or write to Justine.",
     invalid: "I couldn't read that one. Try a shorter question, or write to Justine.",
   },
