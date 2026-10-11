@@ -8,7 +8,7 @@ import { HANDOFF_EVENT } from '@/lib/chat/handoff'
 const go = vi.fn()
 const send = vi.fn()
 const saveHandoff = vi.fn()
-let state: { turns: { role: 'user' | 'assistant'; content: string }[]; streaming: string | null; contact: boolean; error: string | null; capped: boolean }
+let state: { turns: { role: 'user' | 'assistant'; content: string }[]; streaming: string | null; contact: boolean; error: string | null; capped: boolean; failed: string | null }
 
 vi.mock('@/components/chat/useChat', () => ({ useChat: () => ({ ...state, send }) }))
 vi.mock('@/components/shell/NavigationProvider', () => ({ useShellNav: () => ({ go }) }))
@@ -29,7 +29,7 @@ beforeEach(() => {
   go.mockReset()
   send.mockReset()
   saveHandoff.mockReset()
-  state = { turns: [], streaming: null, contact: false, error: null, capped: false }
+  state = { turns: [], streaming: null, contact: false, error: null, capped: false, failed: null }
 })
 
 describe('chat launcher and panel', () => {
@@ -183,6 +183,37 @@ describe('chat launcher and panel', () => {
     window.removeEventListener(HANDOFF_EVENT, heard)
     expect(heard).toHaveBeenCalledTimes(1)
     expect(saveHandoff.mock.invocationCallOrder[0]).toBeLessThan(heard.mock.invocationCallOrder[0])
+  })
+
+  it('puts a question that failed back in the box, when the box is empty', async () => {
+    state.error = chat.errors.rate
+    state.failed = 'What does it cost?'
+    renderChat()
+    await open()
+    expect(screen.getByRole('textbox')).toHaveValue('What does it cost?')
+  })
+
+  it('does not overwrite what the visitor typed with a failed question', async () => {
+    const { rerender } = renderChat()
+    await open()
+    await userEvent.type(screen.getByRole('textbox'), 'Something else')
+    state.error = chat.errors.rate
+    state.failed = 'What does it cost?'
+    rerender(<ChatRoot enabled paths={PATHS} />)
+    expect(screen.getByRole('textbox')).toHaveValue('Something else')
+  })
+
+  it('saves a failed question as the last turn of the hand-off', async () => {
+    state.turns = [
+      { role: 'user', content: 'Hi' },
+      { role: 'assistant', content: 'Hello' },
+    ]
+    state.error = chat.errors.rate
+    state.failed = 'What does it cost?'
+    renderChat()
+    await open()
+    await userEvent.click(screen.getByRole('button', { name: chat.handoff }))
+    expect(saveHandoff).toHaveBeenCalledWith([...state.turns, { role: 'user', content: 'What does it cost?' }])
   })
 
   it('has no hand-off button when nothing asked for it', async () => {

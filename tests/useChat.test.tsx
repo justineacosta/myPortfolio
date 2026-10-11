@@ -173,6 +173,26 @@ describe('useChat', () => {
     expect(result.current.streaming).toBeNull()
   })
 
+  it('keeps the question that failed, and the next send clears it', async () => {
+    fetchMock.mockResolvedValueOnce(Response.json({ error: 'Slow down.' }, { status: 429 })).mockResolvedValueOnce(textReply('Ok'))
+    const { result } = renderHook(() => useChat())
+    expect(result.current.failed).toBeNull()
+    await act(() => result.current.send('  What does it cost?  '))
+    expect(result.current.failed).toBe('What does it cost?')
+    await act(() => result.current.send('Try again'))
+    expect(result.current.failed).toBeNull()
+    expect(result.current.turns).toHaveLength(2)
+  })
+
+  it('keeps the question when the stream breaks, and not after an answer', async () => {
+    fetchMock.mockRejectedValueOnce(new TypeError('offline')).mockResolvedValueOnce(textReply('Fine'))
+    const { result } = renderHook(() => useChat())
+    await act(() => result.current.send('Lost'))
+    expect(result.current.failed).toBe('Lost')
+    await act(() => result.current.send('Kept'))
+    expect(result.current.failed).toBeNull()
+  })
+
   it('falls back to the failed sentence when the error body is not usable', async () => {
     fetchMock.mockResolvedValueOnce(new Response('<html>', { status: 502 }))
     const { result } = renderHook(() => useChat())

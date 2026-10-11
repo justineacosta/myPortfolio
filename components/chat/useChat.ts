@@ -49,13 +49,15 @@ async function failure(res: Response): Promise<string> {
 /**
  * The conversation with the site assistant: the turns so far, the reply being
  * streamed, whether it asked for the hand-off, and the last error. A request
- * that fails for any reason leaves the history as it was before the question.
+ * that fails for any reason leaves the history as it was before the question;
+ * `failed` is that dropped question, until the next send starts.
  */
 export function useChat() {
   const [turns, setTurns] = useState<ChatTurn[]>([])
   const [streaming, setStreaming] = useState<string | null>(null)
   const [contact, setContact] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [failed, setFailed] = useState<string | null>(null)
   const turnsRef = useRef(turns)
   const busy = useRef(false)
 
@@ -76,9 +78,10 @@ export function useChat() {
     turnsRef.current = asked
     setTurns(asked)
     setError(null)
+    setFailed(null)
     setContact(false)
     setStreaming('')
-    let failed: string | null = null
+    let problem: string | null = null
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
@@ -86,7 +89,7 @@ export function useChat() {
         body: JSON.stringify({ messages: asked.map((t) => ({ role: t.role, content: t.content.slice(0, MAX_LENGTH[t.role]) })) }),
       })
       if (!res.ok || !res.body) {
-        failed = res.ok ? chat.errors.failed : await failure(res)
+        problem = res.ok ? chat.errors.failed : await failure(res)
       } else {
         const reader = res.body.getReader()
         const decoder = new TextDecoder()
@@ -105,22 +108,23 @@ export function useChat() {
           setContact(reply.contact)
           save(next)
         } else {
-          failed = chat.errors.failed
+          problem = chat.errors.failed
         }
       }
     } catch {
-      failed = chat.errors.failed
+      problem = chat.errors.failed
     }
-    if (failed) {
+    if (problem) {
       // Drop the unanswered question, so the history stays one the route accepts.
       turnsRef.current = before
       setTurns(before)
-      setError(failed)
+      setError(problem)
+      setFailed(question)
     }
     setStreaming(null)
     busy.current = false
   }, [])
 
   const capped = turns.filter((t) => t.role === 'user').length >= MAX_USER_TURNS
-  return { turns, streaming, contact, error, capped, send }
+  return { turns, streaming, contact, error, failed, capped, send }
 }

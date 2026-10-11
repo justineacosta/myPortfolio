@@ -52,6 +52,7 @@ export default function ChatPanel({
   streaming,
   contact,
   error,
+  failed,
   capped,
   send,
   known,
@@ -61,6 +62,7 @@ export default function ChatPanel({
   streaming: string | null
   contact: boolean
   error: string | null
+  failed: string | null
   capped: boolean
   send: (text: string) => Promise<void>
   known: ReadonlySet<string>
@@ -68,6 +70,12 @@ export default function ChatPanel({
 }) {
   const { go } = useShellNav()
   const [draft, setDraft] = useState('')
+  // A question that failed comes back into the box, unless the visitor has already typed something else.
+  const [restored, setRestored] = useState<string | null>(null)
+  if (failed !== restored) {
+    setRestored(failed)
+    if (failed && !draft) setDraft(failed)
+  }
   const panel = useRef<HTMLDivElement>(null)
   const input = useRef<HTMLInputElement>(null)
   const list = useRef<HTMLDivElement>(null)
@@ -96,7 +104,7 @@ export default function ChatPanel({
   const announced = streaming === null && last?.role === 'assistant' ? parseLinks(last.content, known).map((s) => s.text).join('') : ''
 
   const handoff = () => {
-    saveHandoff(turns)
+    saveHandoff(failed ? [...turns, { role: 'user', content: failed }] : turns)
     // On /contact the form is already mounted and only scrolls into view, so it is told to take the text.
     window.dispatchEvent(new Event(HANDOFF_EVENT))
     go('/contact')
