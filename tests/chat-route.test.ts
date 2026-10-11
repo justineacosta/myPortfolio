@@ -100,11 +100,12 @@ describe('POST /api/chat', () => {
     expect((await post({ messages: MESSAGES })).status).toBe(502)
   })
 
-  it('closes the stream, keeping what was sent, when the call fails midway', async () => {
+  it('errors the stream, so the reader sees a failure and not a short answer, when the call fails midway', async () => {
     streamMock.mockReturnValue(replying([delta('Hel')], new Error('dropped')))
     const res = await post({ messages: MESSAGES })
     expect(res.status).toBe(200)
-    expect(await res.text()).toBe('Hel')
+    await expect(res.text()).rejects.toThrow('dropped')
+    expect(console.error).toHaveBeenCalledWith(expect.stringContaining('mid-answer'), expect.any(Error))
   })
 
   it('logs the cache usage in development only', async () => {

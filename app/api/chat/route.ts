@@ -10,8 +10,8 @@ import { checkChat } from '@/lib/chat/validate'
  * block (lib/chat/knowledge.ts) with Claude Haiku, streamed back as plain text.
  * The order is: the per-visitor limit, the history check, the key, the call.
  * The first event is awaited before the Response goes out, so a call that
- * fails up front is a 502 the panel can show. A failure after that closes
- * the stream, and the panel keeps what arrived.
+ * fails up front is a 502 the panel can show. A failure after that errors
+ * the stream, and the panel shows the error sentence and the hand-off.
  * Every refusal is { error: sentence } for the panel to show.
  */
 
@@ -76,6 +76,8 @@ export async function POST(req: Request) {
         }
       } catch (err) {
         console.error('Site chat: the call failed mid-answer.', err)
+        // The reader must see a failure, not a short answer that looks finished.
+        return controller.error(err)
       }
       controller.close()
     },
