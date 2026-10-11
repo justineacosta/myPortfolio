@@ -17,5 +17,7 @@ export default defineConfig([
     'public/samples/**',
     // The previous portfolio, kept locally for reference: its own repo and lint setup.
     'oldportfolio/**',
+    // The San Fernando portal's codebase, kept locally as a source of project assets.
+    'sanfernandoweb/**',
   ]),
 ])

@@ -44,7 +44,7 @@ export const home = {
       experimental: 'EXPERIMENTAL',
     },
     services: { title: 'Services', hint: 'SCROLL FOR ALL SIX', href: '/services' },
-    testimonials: { title: 'Testimonials', meta: 'IN THEIR OWN WORDS', href: '/testimonials' },
+    testimonials: { title: 'Testimonials', meta: "WHO I'VE BUILT FOR", href: '/testimonials' },
     credentials: { title: 'Courses', body: 'AWS Cloud Practitioner Essentials. HackerRank Software Engineer.' },
   },
   intro: {

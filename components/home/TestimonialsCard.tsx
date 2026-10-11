@@ -1,6 +1,6 @@
 import { QuotesIcon } from '@phosphor-icons/react/ssr'
 import { home } from '@/data/home'
-import { CLIENTS } from '@/data/testimonials'
+import { HOME_ROWS } from '@/data/testimonials'
 import HomeCard from './HomeCard'
 
 export default function TestimonialsCard() {
@@ -8,7 +8,7 @@ export default function TestimonialsCard() {
   return (
     <HomeCard title={c.title} icon={QuotesIcon} meta={c.meta} href={c.href} className="min-w-[min(250px,100%)] flex-[2_1_380px] gap-[13px] p-5">
       <ul className="flex flex-col gap-[9px]">
-        {CLIENTS.map((cl) => (
+        {HOME_ROWS.map((cl) => (
           <li key={cl.n} className="flex items-center gap-3 rounded-[13px] border border-b1 bg-s0 px-3.5 py-3">
             <span aria-hidden className="grid size-7 shrink-0 place-items-center rounded-[9px] border border-b1 bg-s3 font-mono text-[9.5px] text-ink3">
               {cl.n}
