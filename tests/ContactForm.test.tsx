@@ -4,6 +4,7 @@ import userEvent, { type UserEvent } from '@testing-library/user-event'
 import ContactForm from '@/components/contact/ContactForm'
 import { contact } from '@/data/contact'
 import { profile } from '@/data/profile'
+import { HANDOFF_KEY } from '@/lib/storage-keys'
 
 const GOOD = { first: 'Ana', last: 'Reyes', email: 'ana@example.com', message: 'Our intake is manual.' }
 const f = contact.fields
@@ -17,7 +18,10 @@ async function fill(user: UserEvent) {
 }
 
 describe('ContactForm', () => {
-  afterEach(() => vi.unstubAllGlobals())
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    sessionStorage.clear()
+  })
 
   it('names each missing field and focuses the first one', async () => {
     const user = userEvent.setup()
@@ -96,5 +100,17 @@ describe('ContactForm', () => {
     await screen.findByRole('alert')
     expect(screen.getByText(contact.errors.direct, { exact: false })).toBeInTheDocument()
     expect(screen.getByText(profile.email)).toBeInTheDocument()
+  })
+
+  it('starts the message with what the visitor asked the chat, once', () => {
+    sessionStorage.setItem(HANDOFF_KEY, 'Do you build intake automations?')
+    render(<ContactForm />)
+    expect(screen.getByLabelText(f.message.label)).toHaveValue('Do you build intake automations?')
+    expect(sessionStorage.getItem(HANDOFF_KEY)).toBeNull()
+  })
+
+  it('leaves the message empty when nothing was handed over', () => {
+    render(<ContactForm />)
+    expect(screen.getByLabelText(f.message.label)).toHaveValue('')
   })
 })
