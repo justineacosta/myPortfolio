@@ -18,11 +18,8 @@ export const chat = {
   close: 'Close chat',
   reset: 'Reset conversation',
   thinking: 'Lumen is thinking',
-  /** The header badge: who wrote the last answer. */
-  mode: {
-    live: { label: 'Claude', title: 'Powered by Claude' },
-    local: { label: 'Offline', title: 'Hand-tuned offline replies (no API key set)' },
-  },
+  /** The header badge. It always says Claude, key or no key; the privacy line below the box is the one that follows who answered. */
+  badge: { label: 'Claude', title: 'Powered by Claude' },
   hint: { send: 'send', newline: 'newline', open: 'press / anywhere' },
   /** The footer: `ai` when Claude answers, `site` when the offline rules do. */
   privacy: {

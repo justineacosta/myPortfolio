@@ -40,7 +40,7 @@ test('a chip asks the question; the reply shows its link and the contact form, n
   await expect(panel.getByRole('link', { name: 'the services' })).toBeVisible()
   await expect(panel.getByText(chat.lead.title)).toBeVisible()
   await expect(panel.getByText('[[lead-form]]')).toHaveCount(0)
-  await expect(panel.getByText(chat.mode.live.label)).toBeVisible()
+  await expect(panel.getByText(chat.badge.label)).toBeVisible()
 })
 
 test('a link in the reply opens that page and closes the panel', async ({ page }) => {
