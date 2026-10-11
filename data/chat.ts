@@ -6,6 +6,8 @@
  */
 export const chat = {
   launcher: 'Ask Lumen about Justine’s work',
+  /** The bubble beside the launcher, once per visit. */
+  nudge: { text: 'How can I help?', dismiss: 'Dismiss' },
   name: 'Lumen',
   subtitle: 'Justine’s portfolio assistant',
   greeting: "Hi, I'm **Lumen**, Justine's assistant. Ask me about his work, his stack, or how to start a conversation.",

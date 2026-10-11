@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CardProject } from '@/lib/chat/samples'
 import { useChat } from './useChat'
 import ChatLauncher from './ChatLauncher'
+import ChatNudge from './ChatNudge'
 import ChatPanel from './ChatPanel'
 
 /** Whether a key press happened while typing somewhere, so `/` is a character there, not a shortcut. */
@@ -12,7 +13,8 @@ const typing = (el: EventTarget | null) => el instanceof HTMLElement && (el.tagN
 /**
  * Lumen on every page: the launcher and, once opened, the panel. The
  * conversation lives here, so closing the panel never drops a reply that is
- * still arriving. `/` opens it from anywhere you aren't typing. `ai` is
+ * still arriving. `/` opens it from anywhere you aren't typing, and a
+ * "How can I help?" bubble offers it once per visit. `ai` is
  * whether the server has a key; `paths` are the site paths a reply may link
  * to; `projects` are the sample systems a reply may show as cards.
  */
@@ -42,6 +44,7 @@ export default function ChatRoot({ ai, paths, projects }: { ai: boolean; paths: 
   return (
     <>
       <ChatLauncher ref={launcher} open={open} onToggle={() => (open ? close(false) : setOpen(true))} />
+      <ChatNudge open={open} onOpen={() => setOpen(true)} />
       {open && <ChatPanel {...convo} known={known} projects={projects} ai={ai} onClose={close} />}
     </>
   )
