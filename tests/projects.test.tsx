@@ -153,9 +153,22 @@ describe('Board', () => {
   it('links every card to its sub-view by hash, in board order', () => {
     render(<Board />)
     expect(screen.getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual([
-      '#automations', '#build-plan', '#agentic-framework', '#end-to-end', '#sites', '#ai-agents',
+      '#san-fernando', '#automations', '#build-plan', '#agentic-framework', '#end-to-end', '#sites', '#ai-agents',
     ])
     expect(screen.getByText('CLICK A CARD TO OPEN IT')).toBeInTheDocument()
+  })
+
+  it('leads the board with the San Fernando banner, a link to its view with three logos and its cue', () => {
+    render(<Board />)
+    const s = projects.caseStudy
+    const card = screen.getByRole('link', { name: new RegExp(`^${s.kicker}`) })
+    expect(card).toHaveAttribute('href', '#san-fernando')
+    expect(card).toHaveAttribute('data-case', s.cue)
+    expect(card).toHaveTextContent(s.cardTitle)
+    expect(card).toHaveTextContent(s.body)
+    expect(card.querySelectorAll('[data-logo-stack] img')).toHaveLength(3)
+    // First on the board, ahead of every other card.
+    expect(screen.getAllByRole('link')[0]).toBe(card)
   })
 
   it('shows the build plan card as an n8n plan, each step with its tool’s logo', () => {
@@ -169,7 +182,8 @@ describe('Board', () => {
   it('tops every card with an overlapping stack of its brand logos, decoration only, and no green icon', () => {
     render(<Board />)
     const stacks = screen.getAllByRole('link').map((a) => a.querySelector('[data-logo-stack]')!)
-    expect(stacks.map((s) => srcs(s).map(slugOf))).toEqual(CARD_LOGOS)
+    // The San Fernando banner leads, with the first three of its stack.
+    expect(stacks.map((s) => srcs(s).map(slugOf))).toEqual([['nextdotjs', 'react', 'typescript'], ...CARD_LOGOS])
     for (const s of stacks) {
       expect(s).toHaveAttribute('aria-hidden', 'true')
       expect(s.querySelector('svg')).toBeNull()
