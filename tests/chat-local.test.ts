@@ -10,6 +10,27 @@ import { EXPERIMENTAL } from '@/data/stack'
 import { pageFor } from '@/lib/chat/pages'
 
 describe("Lumen's offline rules", () => {
+  it('confirms the San Fernando portal as his real work, never as someone else’s product', () => {
+    for (const q of ['Did he build the Barangay San Fernando portal?', 'Tell me about the San Fernando project']) {
+      const reply = localAnswer(q)
+      expect(reply, q).toContain('(/projects#san-fernando)')
+      expect(reply, q).not.toContain('Nothing on this site mentions')
+    }
+  })
+
+  it('names the real client work when asked what he has shipped, then the samples', () => {
+    const reply = localAnswer('What has he shipped?')
+    expect(reply).toContain('Barangay San Fernando')
+    expect(reply).toContain('(/projects#san-fernando)')
+    expect(reply).toMatch(/fictional/)
+  })
+
+  it('declines a product the site never shows, and still names the real work beside the samples', () => {
+    const reply = localAnswer("Did you build Airbnb's booking system?")
+    expect(reply).toContain('Nothing on this site mentions that one')
+    expect(reply).toContain('Barangay San Fernando')
+  })
+
   it('answers every suggestion chip with a real rule, never the fallback', () => {
     for (const chip of ALL_SUGGESTIONS) expect(localAnswer(chip), chip).not.toBe(FALLBACK)
   })

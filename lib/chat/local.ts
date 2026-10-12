@@ -107,9 +107,15 @@ function tradeReply(question: string): string {
   return `Good question! There isn't a sample for that exact kind of business yet. The samples cover ${trades.slice(0, -1).join(', ')} and ${trades.at(-1)}, among others, and the building blocks (enquiry and booking flows, follow-ups, a Q&A bot over your own documents) carry over to most businesses. Browse [the projects](/projects), or tell ${first} about yours on [the contact page](/contact) and he'll say what would fit.`
 }
 
+const study = projects.caseStudy
+const studyLink = `[**${study.cardTitle}**](/projects#${study.view})`
+/** The real work, named beside the samples wherever a reply sums up the projects. */
+const realWork = `${first}'s real, shipped work is the citizen portal for ${studyLink}, a local barangay government.`
+const herePlusSamples = `What you'll find here is his work for ${studyLink} and sample systems for fictional businesses, on [the projects page](/projects).`
+
 /** Words a "did he build X?" question may hold without naming someone else's product. */
 const OWN_WORDS = new Set(
-  [first, 'He', 'His', 'Him', 'I', 'You', 'Your', 'AI', 'API', 'APIs', 'CRM', 'CMS', 'SEO', 'RAG', 'LLM', 'SaaS', 'Lumen', 'Kraft', ...SAMPLE_PROJECTS.flatMap((p) => p.name.split(/\s+/))].map((w) => w.toLowerCase()),
+  [first, 'He', 'His', 'Him', 'I', 'You', 'Your', 'AI', 'API', 'APIs', 'CRM', 'CMS', 'SEO', 'RAG', 'LLM', 'SaaS', 'Lumen', 'Kraft', ...SAMPLE_PROJECTS.flatMap((p) => p.name.split(/\s+/)), ...study.title.split(/\s+/)].map((w) => w.toLowerCase()),
 )
 /** "Did you build Airbnb's booking system?": a claim about a named product or company the site never mentions. */
 function claimsOther(question: string): boolean {
@@ -213,10 +219,14 @@ const RULES: Rule[] = [
     reply: () => `Ha, I'd love to help, but that one's outside what I know. I'm all about ${first} and his work. You could ask "What has he built?" or "How does a project start?"`,
   },
   {
+    // The real client: ahead of claimsOther, whose capitals ("Barangay San Fernando") would read as someone else's product.
+    match: /\b(san\s*fernando|barangay)\b/i,
+    reply: () => `Yes! ${realWork} ${study.solution} The case study is on [the projects page](/projects#${study.view}).`,
+  },
+  {
     // Ahead of everything a product name could trip ("booking", "built"): never confirm work the site doesn't show.
     match: claimsOther,
-    reply: () =>
-      `Nothing on this site mentions that one, so I'd rather not claim it. What you'll find here are sample systems for fictional businesses, on [the projects page](/projects). For anything beyond those, just ask him on [the contact page](/contact).`,
+    reply: () => `Nothing on this site mentions that one, so I'd rather not claim it. ${herePlusSamples} For anything beyond those, just ask him on [the contact page](/contact).`,
   },
   {
     // Ahead of the projects rule, whose "built" would answer "I run a clinic, built anything like that?" with any three samples.
@@ -295,7 +305,7 @@ const RULES: Rule[] = [
     match: /\b(projects?|case|portfolio|samples?|examples?|recent\s*work|built|shipped|made)\b/i,
     reply: () => {
       const list = SAMPLE_PROJECTS.slice(0, 3).map((p) => `- [**${p.name}**](${p.href}): a fictional ${p.trade}`)
-      return `${first} builds full sample systems (a site, AI agents and automations) for fictional businesses. Here are a few:\n${list.join('\n')}\n\nYou'll find the whole set on [the projects page](/projects).`
+      return `${realWork} He also builds full sample systems (a site, AI agents and automations) for fictional businesses. Here are a few:\n${list.join('\n')}\n\nYou'll find the whole set on [the projects page](/projects).`
     },
   },
   {

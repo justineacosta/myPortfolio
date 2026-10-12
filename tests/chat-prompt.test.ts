@@ -10,6 +10,11 @@ import { FAQS } from '@/data/faqs'
 import { SERVICES } from '@/data/services'
 
 describe("Lumen's system prompt", () => {
+  it('no longer says everything here is a sample, and routes "case study" to San Fernando too', () => {
+    expect(SYSTEM_PROMPT).not.toContain("What you'll find here are sample systems for fictional businesses")
+    expect(SYSTEM_PROMPT).toMatch(/"case study":.*\/projects#san-fernando/)
+  })
+
   it('names San Fernando as real client work, links its case study, and still calls the samples fictional', () => {
     expect(SYSTEM_PROMPT).toContain('# Real client work')
     expect(SYSTEM_PROMPT).toContain(projects.caseStudy.title)
