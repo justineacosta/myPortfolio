@@ -480,3 +480,34 @@ test('the AI agents card’s preview plays only on screen, and holds still under
     await ctx.close()
   }
 })
+
+test('the San Fernando banner opens its case study; Escape closes it and focus returns', async ({ page }) => {
+  const errors: string[] = []
+  page.on('console', (m) => {
+    if (m.type() === 'error') errors.push(m.text())
+  })
+  await page.goto('/projects')
+  await hydrated(page)
+  const card = page.getByRole('link', { name: /^REAL CLIENT/ })
+  const box = (await card.boundingBox())!
+  expect(box.width).toBeLessThanOrEqual(page.viewportSize()!.width)
+  await card.click()
+  await expect(page).toHaveURL(/\/projects#san-fernando$/)
+  const view = page.getByRole('dialog', { name: 'Barangay San Fernando - Government Citizen Portal' })
+  await expect(view.getByRole('heading', { name: 'The problem' })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(view).toBeHidden()
+  await expect(card).toBeFocused()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+  expect(errors).toEqual([])
+})
+
+test('a shared San Fernando link opens the case study; Close stays on Projects', async ({ page }) => {
+  await page.goto('/projects#san-fernando')
+  await hydrated(page)
+  const view = page.getByRole('dialog', { name: 'Barangay San Fernando - Government Citizen Portal' })
+  await expect(view).toBeVisible()
+  await view.getByRole('button', { name: 'Close' }).click()
+  await expect(view).toBeHidden()
+  await expect(page).toHaveURL(/\/projects$/)
+})

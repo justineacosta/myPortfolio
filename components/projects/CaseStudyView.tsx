@@ -8,6 +8,7 @@ import { BODY, CTA, TITLE } from './styles'
 import Window from './Window'
 
 const HEADING = 'text-[15px] font-semibold tracking-[-.02em]'
+const PROSE = 'text-[14px] leading-[1.55] text-ink2'
 
 /**
  * The Barangay San Fernando case study (spec 2026-10-13-san-fernando-case-study):
@@ -39,17 +40,17 @@ export default function CaseStudyView({ open, onClose }: { open: boolean; onClos
 
       <section className="flex max-w-[68ch] flex-col gap-2">
         <h3 className={HEADING}>{s.problemLabel}</h3>
-        <p className={`${BODY} text-[14px] text-ink2`}>{s.problem}</p>
+        <p className={PROSE}>{s.problem}</p>
       </section>
 
       <section className="flex max-w-[68ch] flex-col gap-2">
         <h3 className={HEADING}>{s.solutionLabel}</h3>
-        <p className={`${BODY} text-[14px] text-ink2`}>{s.solution}</p>
+        <p className={PROSE}>{s.solution}</p>
       </section>
 
       <section className="flex max-w-[68ch] flex-col gap-2">
         <h3 className={HEADING}>{s.featuresLabel}</h3>
-        <ul className="flex list-disc flex-col gap-1.5 pl-5 text-[14px] leading-[1.55] text-ink2 marker:text-accent">
+        <ul className={`${PROSE} flex list-disc flex-col gap-1.5 pl-5 marker:text-accent`}>
           {s.features.map((f) => (
             <li key={f}>{f}</li>
           ))}
