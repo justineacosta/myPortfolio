@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import Image from 'next/image'
 import {
   ArrowClockwiseIcon,
   ArrowCounterClockwiseIcon,
@@ -18,6 +19,7 @@ import {
   XIcon,
 } from '@phosphor-icons/react/ssr'
 import { chat } from '@/data/chat'
+import { brandIcon } from '@/data/stack'
 import { prefersReducedMotion } from '@/lib/motion'
 import { copyText, hasLeadForm, leadDraft, optionsOf, plainText } from '@/lib/chat/rich'
 import type { CardProject } from '@/lib/chat/samples'
@@ -59,7 +61,7 @@ function Typing() {
  * Lumen's panel (the old portfolio's ai-chat-widget.tsx, in Kraft's style):
  * a card above the launcher on desktop, a full-height sheet on phones. A
  * non-modal dialog, so the page behind stays usable. The header carries the
- * Claude badge and resets the chat; the privacy line follows who answered last
+ * Claude badge (Claude's spark and name) and resets the chat; the privacy line follows who answered last
  * (Claude or the offline rules); chips under the messages suggest what to
  * ask next, starting from ones for the page the visitor is on; Enter sends,
  * Shift+Enter adds a line, and the send button stops a reply that is still
@@ -258,7 +260,9 @@ export default function ChatPanel({
             <h2 id={TITLE_ID} className="text-[15px] font-semibold tracking-[-.01em]">
               {chat.name}
             </h2>
-            <span title={chat.badge.title} className="rounded-md border border-wash-b bg-wash px-1.5 py-0.5 font-mono text-[8.5px] tracking-[.12em] text-accent uppercase">
+            <span title={chat.badge.title} className="inline-flex items-center gap-1 rounded-md border border-wash-b bg-wash px-1.5 py-0.5 font-mono text-[8.5px] tracking-[.12em] text-accent uppercase">
+              {/* Claude's own mark, as a "powered by" sign; Lumen keeps its own face. */}
+              <Image src={brandIcon('claude')} alt="" width={10} height={10} className="block shrink-0" />
               {chat.badge.label}
             </span>
           </span>
