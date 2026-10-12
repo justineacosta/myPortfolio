@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { components, useMDXComponents } from '@/mdx-components'
 import { NavigationProvider } from '@/components/shell/NavigationProvider'
+import { NAV } from '@/data/nav'
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
@@ -30,6 +31,25 @@ describe('MDX components', () => {
     const outside = screen.getByRole('link', { name: 'n8n' })
     expect(outside).toHaveAttribute('target', '_blank')
     expect(outside).toHaveAttribute('rel', expect.stringContaining('noopener'))
+  })
+
+  it('turns a link to a switched-off page into plain text, like every other link to it', () => {
+    const A = components.a as El
+    const item = NAV.find((n) => n.href === '/contact')!
+    item.hidden = true
+    try {
+      render(
+        <NavigationProvider>
+          <A href="/contact">tell me</A>
+          <A href="/projects#san-fernando">case</A>
+        </NavigationProvider>,
+      )
+      expect(screen.queryByRole('link', { name: 'tell me' })).toBeNull()
+      expect(screen.getByText('tell me')).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'case' })).toBeInTheDocument()
+    } finally {
+      item.hidden = false
+    }
   })
 
   it("styles headings and paragraphs with Kraft's type", () => {

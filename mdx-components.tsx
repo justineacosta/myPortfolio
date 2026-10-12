@@ -1,18 +1,22 @@
 import type { ComponentProps } from 'react'
 import type { MDXComponents } from 'mdx/types'
 import { ShellLink } from '@/components/shell/NavigationProvider'
+import { isHidden } from '@/data/nav'
 
 /**
  * How the guides in content/notes render (spec 2026-10-13-notes): Markdown's
  * plain elements in Kraft's type and colour, the scale of the case study
  * view, so no typography plugin is needed. A link inside the site runs
- * through the shell's crossfade; one to another site opens in a new tab.
+ * through the shell's crossfade (or is plain text while its page is switched
+ * off); one to another site opens in a new tab.
  */
 const PROSE = 'text-[15px] leading-[1.65] text-ink2'
 const LINK = 'text-ink underline decoration-b2 underline-offset-[3px] transition-colors hover:decoration-accent'
 
 function A({ href = '', children, ...rest }: ComponentProps<'a'>) {
   if (href.startsWith('/') || href.startsWith('#')) {
+    // A page switched off in data/nav.ts loses every link to it: the words stay, the link goes.
+    if (isHidden(href)) return <>{children}</>
     return (
       <ShellLink href={href} className={LINK}>
         {children}
