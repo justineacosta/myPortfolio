@@ -31,6 +31,7 @@ const BASE: Record<string, string> = {
 
 /** The Projects page's sub-views, each a card opened over the page (/projects#build-plan). */
 const VIEWS: Record<ProjectView, { title: string; body: string }> = {
+  'san-fernando': { title: projects.caseStudy.title, body: projects.caseStudy.body },
   automations: { title: projects.cards.automations.title, body: projects.cards.automations.body },
   'build-plan': { title: projects.cards.plan.title, body: projects.cards.plan.body },
   sites: { title: projects.cards.sites.title, body: projects.cards.sites.body },

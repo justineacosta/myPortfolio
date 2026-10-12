@@ -9,7 +9,7 @@ import type { Brand } from './stack'
  */
 
 /** Every sub-view the board opens. Each id is also its URL hash (/projects#build-plan). */
-export const PROJECT_VIEWS = ['automations', 'build-plan', 'agentic-framework', 'end-to-end', 'sites', 'ai-agents'] as const
+export const PROJECT_VIEWS = ['san-fernando', 'automations', 'build-plan', 'agentic-framework', 'end-to-end', 'sites', 'ai-agents'] as const
 export type ProjectView = (typeof PROJECT_VIEWS)[number]
 
 /** A chip with a tool's logo: its text, and the logo's slug in public/icons/brands/. */

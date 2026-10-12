@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import Board from '@/components/projects/Board'
 import ProjectViews from '@/components/projects/ProjectViews'
+import { NAV } from '@/data/nav'
 import { BUILDS, PROJECT_VIEWS, projects } from '@/data/projects'
 import { installMatchMedia } from '@/test/matchMedia'
 
@@ -231,6 +232,33 @@ describe('ProjectViews', () => {
     fireEvent.click(within(view).getByRole('button', { name: 'Close' }))
     expect(window.location.hash).toBe('')
     expect(view).not.toHaveAttribute('open')
+  })
+
+  it('opens the San Fernando case study from its hash, with every ported line and a way to start a project', () => {
+    window.history.replaceState(null, '', '/projects#san-fernando')
+    render(<ProjectViews />)
+    const s = projects.caseStudy
+    const view = screen.getByRole('dialog', { name: s.title })
+    expect(view).toHaveAttribute('open')
+    for (const text of [s.kicker, s.tagline, s.problem, s.solution, ...s.features, ...s.stack.map((b) => b.name)]) {
+      expect(view).toHaveTextContent(text)
+    }
+    expect(within(view).getByRole('heading', { name: s.problemLabel })).toBeInTheDocument()
+    expect(within(view).getByRole('img', { name: s.seal.alt })).toBeInTheDocument()
+    expect(within(view).getByRole('link', { name: s.contact.label })).toHaveAttribute('href', '/contact')
+  })
+
+  it('drops the case study’s contact link while Contact is switched off', () => {
+    const item = NAV.find((n) => n.href === '/contact')!
+    item.hidden = true
+    try {
+      window.history.replaceState(null, '', '/projects#san-fernando')
+      render(<ProjectViews />)
+      expect(screen.getByRole('dialog', { name: projects.caseStudy.title })).toBeInTheDocument()
+      expect(screen.queryByRole('link', { name: projects.caseStudy.contact.label })).toBeNull()
+    } finally {
+      item.hidden = false
+    }
   })
 
   it('has no iframe while the build plan is closed, so /projects never fetches it up front', () => {

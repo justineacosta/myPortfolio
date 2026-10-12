@@ -5,6 +5,7 @@ import { PROJECT_VIEWS } from '@/data/projects'
 import AgenticFrameworkView from './AgenticFrameworkView'
 import AgentsView from './AgentsView'
 import AutomationsView from './AutomationsView'
+import CaseStudyView from './CaseStudyView'
 import EndToEndView from './EndToEndView'
 import PlanView from './PlanView'
 import SitesView from './SitesView'
@@ -17,6 +18,7 @@ export default function ProjectViews() {
   const { view, close } = useHashView(PROJECT_VIEWS)
   return (
     <>
+      <CaseStudyView open={view === 'san-fernando'} onClose={close} />
       <AgenticFrameworkView open={view === 'agentic-framework'} onClose={close} />
       <EndToEndView open={view === 'end-to-end'} onClose={close} />
       <PlanView open={view === 'build-plan'} onClose={close} />
