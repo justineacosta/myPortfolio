@@ -37,6 +37,19 @@ describe('the guides', () => {
     expect(notesPage).toMatchObject({ startLabel: 'Start a project', allLabel: 'All guides', eyebrow: 'NOTES / GUIDE' })
   })
 
+  it('claims nothing about a sample its source does not show, and invents no history', () => {
+    const chatbot = body('a-chatbot-that-reads-your-documents')
+    // Harbor & Pine's help desk takes chat and email only, reads docs, and has no booking route (data/agents.ts, helpdesk).
+    const howItWorks = chatbot.slice(chatbot.indexOf('## How it works'))
+    expect(howItWorks.split('\n').find((l) => l.startsWith('## How it works'))).toMatch(/in general|generally/i)
+    expect(chatbot).not.toMatch(/The bot can also offer|the bot can also offer/)
+    expect(chatbot).toMatch(/can also be set up to offer/i)
+    const intake = body('what-an-intake-automation-does')
+    expect(intake).not.toMatch(/used to take/i)
+    expect(intake).not.toContain('## What changed')
+    expect(body('taking-the-counter-online')).not.toMatch(/most of the work went/i)
+  })
+
   it('keeps every post honest: samples named as samples, no figures, no em dashes', () => {
     for (const slug of ['what-an-intake-automation-does', 'a-chatbot-that-reads-your-documents']) {
       expect(body(slug), slug).toMatch(/sample/i)
