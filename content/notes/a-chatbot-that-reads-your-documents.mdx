@@ -1,0 +1,58 @@
+Most website chatbots fall into one of two traps. Either they only know a handful of canned answers, or they are a general AI that will answer anything, confidently, whether or not it is true about your business. Neither is something you'd want talking to your customers.
+
+There is a third kind: a chatbot that answers **only from your own documents**, shows where each answer came from, and hands the conversation to a person when your documents don't cover it. The technical name is RAG, short for retrieval-augmented generation. This guide explains what that means without the jargon.
+
+## The example: a moving company's help desk
+
+The example is a sample build I made for **Harbor & Pine Moving Co., a fictional moving company**. Its help-desk bot answers customers from two documents, the pricing guide and the FAQ, in the website chat or by email. Damage claims always go to a person.
+
+A customer asks: *"Do you move pianos, and what does it add?"*
+
+The bot answers: *"Yes: uprights and baby grands, crated in-house if needed. A coordinator prices it."* And it names its source: **FAQ, Specialty items**.
+
+That last part matters most. Anyone can check the answer against the document it came from.
+
+## How it works, in two halves
+
+### Getting your documents ready
+
+This half runs once, and again whenever a document changes.
+
+1. **Your documents** go in: help articles, service pages, PDFs, and price lists in Google Sheets. This is the only material the bot is allowed to answer from. Nothing outside it counts.
+2. Long documents are **split into passages** of a few paragraphs each, so a search can return just the part that matters.
+3. Each passage is turned into a kind of fingerprint of its meaning, so passages about similar things sit close together. These are stored in a database (Supabase), ready to search.
+
+### Answering a question
+
+This half runs every time someone asks something.
+
+1. The question comes in from the website chat, Telegram or email.
+2. The question gets the same kind of fingerprint, and the database finds the **five passages** closest in meaning.
+3. Claude, the AI model, gets the question and those five passages, with one rule: **answer only from what is in them.**
+4. Then a check: did the passages actually hold the answer?
+   - **Yes:** the answer goes back where the question came from, with the passage it came from.
+   - **No:** the bot doesn't guess. It **hands the conversation to a person**, with the whole chat so far, so the customer never has to repeat themselves.
+
+When a visitor is ready to buy, the bot can also offer them open times for a call, instead of sending them to a form.
+
+## Why this beats a general chatbot
+
+- **It can't make up your prices.** If the price isn't in your price sheet, the bot says so and passes it on.
+- **Every answer is checkable.** The source travels with the answer.
+- **It knows when to stop.** Some questions, like damage claims for this mover, should always reach a person. You decide which.
+- **It stays current.** Update a document and the bot answers from the new version.
+
+## What you'd need
+
+To build one for your business, I'd need:
+
+1. **The documents** customers' questions are really about: your FAQ, price list, policies, service pages. Most businesses already have these, scattered across a few places.
+2. **Where questions arrive:** your website chat, email, Telegram, or more than one.
+3. **What always goes to a person:** refunds, complaints, anything you'd rather handle yourself.
+4. **Who takes over** when the bot hands off, and how they'd like to be told.
+
+A good first version answers the questions your team is tired of answering, and passes everything else on cleanly.
+
+You can see this bot, and the other sample bots and agents, step by step on [the AI agents page](/projects#ai-agents).
+
+If your team answers the same questions every day, [tell me which ones](/contact) and I'll say what a bot built on your own documents would cover.

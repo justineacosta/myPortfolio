@@ -1,0 +1,64 @@
+Most small businesses already have a form on their website. Someone fills it in, an email lands in an inbox, and then a person takes over: reads it, works out a price, types a reply, copies the details into the CRM. If the inbox is busy, or it's the weekend, the enquiry waits. By the time the reply goes out, the customer has often heard from someone else.
+
+An intake automation takes over the copying and the waiting, and leaves the decisions to a person. This guide walks through one, step by step, so you can see what it actually does.
+
+## The example: a moving estimate
+
+The example is a sample build I made for **Harbor & Pine Moving Co., a fictional moving company**. Its website ends on an estimate form, and the flow behind that form runs on n8n. Here is what happens when someone sends it.
+
+## Step 1: Catch the form
+
+The moment someone presses send, the flow receives everything they filled in: where they're moving from and to, the target date, the size of the home or office, the service they want, and their name, email and phone.
+
+Nothing gets retyped from here on. Every later step reads these same fields.
+
+## Step 2: Draft a price
+
+Claude, an AI model, drafts a price from the size of the home, the distance and the service, using the company's own **rate card**. It doesn't invent a number. It works from the prices the business already charges.
+
+This is the step that used to take the most time. Now the coordinator checks a number instead of building one.
+
+## Step 3: A person says yes
+
+Before anything reaches the customer, the flow sends the coordinator a message in Telegram with the request and the drafted price, and two buttons: **Approve** and **Edit**.
+
+- **Approve** sends it on as it is.
+- **Edit** lets the coordinator reply in the same chat with the corrected price, and the flow carries on with that number.
+
+This is the part I insist on. **No price reaches a customer without a person agreeing to it.** The automation does the legwork. The decision stays with someone who knows the business.
+
+## Step 4: Send the estimate
+
+Once approved, the customer gets an email from the company's Gmail with their estimate, what it covers and how to book. They hear back the same day, while they are still comparing movers.
+
+## Step 5: Record the deal
+
+Finally, the flow creates a deal in HubSpot, the company's CRM, with the price, the moving date and the contact details. Every estimate ends up on the sales board, so none is forgotten and follow-ups have something to work from.
+
+## What changed
+
+Put together: every estimate request gets a priced reply the same day, and nothing goes out until a coordinator says yes. Nobody copies fields between the form, the email and the CRM, and nobody has to remember to.
+
+The flow doesn't replace the coordinator. It removes the parts of their day that were just moving information from one place to another.
+
+## n8n, Make or Zapier?
+
+The same idea works on any of the three, and I build on all of them. In short:
+
+- **Zapier** is the quickest to start and connects to the most apps. It suits simple, step-after-step flows.
+- **Make** is visual, and handles branching and more complex logic well.
+- **n8n** gives the most control, and can run on your own server, which helps when the data is sensitive or the volume is high.
+
+The right one depends on the tools you already use and how much the flow needs to do. That is usually the first thing we settle.
+
+## What you'd need
+
+To build something like this for your business, I'd need three things from you:
+
+1. **The form** you already have, or what you want it to ask.
+2. **How you price**, as a rate card or a set of rules, so the draft is grounded in your numbers.
+3. **Who approves**, and where they'd like to do it: Telegram, Slack or email.
+
+You can open this exact flow, and the others behind my sample sites, in [the Automations flows](/projects#automations). Each step shows what it reads and why it is there.
+
+If your enquiries still arrive in an inbox and wait for someone to get to them, [tell me about your intake](/contact) and I'll sketch what the flow would look like for you.

@@ -1,0 +1,55 @@
+At Barangay San Fernando, in San Nicolas, Ilocos Norte, every routine transaction used to start the same way: a trip to the counter during office hours. Requesting a document, checking a service, finding out which official to talk to. And once a request was filed, there was no way to see where it stood except to come back and ask.
+
+I built the barangay's citizen portal to move that work online. This guide walks through what it does, for residents and for staff, and what it takes to run something like it safely. If you run an office where people queue to ask "is it ready yet?", most of this will sound familiar.
+
+## Four kinds of request, filed from home
+
+Residents can file four kinds of request online: **applications** (the documents people come in for), **appointments**, **complaints** and **assistance requests**. Each one is a short form that asks only for what that request needs. An application asks for a middle name and date of birth, for example, because the documents need them. The other three keep to the basic identity details.
+
+The point is not the form itself. It is what happens after someone presses send.
+
+## A reference number instead of a return trip
+
+Every request gets a reference number. With that number and their surname, a resident can open the tracking page at any time and see a **timeline** of everything that has happened to it: received, under review, approved, and so on. The timeline is built from a log of real events, so it shows what actually happened, in order, not a guess based on dates.
+
+Staff can also write notes that only staff see. Those never reach the tracking page.
+
+When staff need something more, they mark the request as **awaiting info**. The resident sees that on the tracking page and can reply right there, with up to three attachments. The reply moves the request back into review and flags it in the staff queue, so nothing sits waiting for someone to notice.
+
+## Emails at the moments that matter
+
+People shouldn't have to check a page to find out something changed. The portal sends an email receipt when a request is submitted, and an email when it is approved, rejected, confirmed, dismissed or resolved. Messages sent through the contact form get an acknowledgment too.
+
+## The rest of the public site
+
+Around the requests, the portal is also the barangay's public face:
+
+- News, announcements and notices, plus a calendar of community events.
+- An **officials directory** with names, portraits and roles, so people know who to talk to.
+- A **transparency section** that publishes legislative documents, disclosure documents and monitored projects as real PDFs anyone can open.
+- An anonymous feedback widget, for people who want to say something without being contacted back.
+
+## The staff side
+
+Everything above needs people to run it, so most of the work went into the side residents never see.
+
+Staff work from **five queues**: applications, appointments, complaints, assistance, and inquiries and feedback. Each request opens in a review panel with its timeline, where staff can post a public update the resident will see, write an internal note, or ask for more information, and move the request along.
+
+Every kind of content (news, announcements, events, officials, documents) goes through the same path: **draft, in review, published, archived**. Nothing goes live by accident, and nothing is deleted outright: it is archived first. A search box finds anything across the content and the queues, and staff can edit the home and about pages themselves, without waiting for a developer.
+
+## Running it safely
+
+A government portal holds personal details and scans of IDs, so safety is part of the build, not an extra:
+
+- **Role-based access.** Each staff account gets only the permissions its job needs, such as processing applications or managing news. There is no public sign-up: accounts are created by an administrator, and each person sets their own password from an emailed invite.
+- **An audit log** records every change and every sign-out, so there is always an answer to "who did this?".
+- **Bot and abuse protection** on every public form, plus limits on how often a form can be sent, so the queues stay full of real requests.
+- **Private storage** for anything sensitive, like the ID scans residents attach, and idle staff sessions sign out on their own.
+
+## What it took
+
+The portal is built with Next.js, React and TypeScript, with Supabase for the database, sign-in and file storage, Resend for the emails, and Cloudflare for bot protection. None of those choices matter much to a resident. What matters is that a request can now be filed from home, followed without a phone call, and answered without anyone losing track of it.
+
+You can read the short version in [the San Fernando case study](/projects#san-fernando).
+
+If your office still runs on a counter and a logbook, the same pieces apply: online requests, a reference number, a timeline, emails at each step, and a staff queue behind it. [Tell me how your office works](/contact) and I'll say which of these would help first.
