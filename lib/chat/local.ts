@@ -79,7 +79,7 @@ function findSample(question: string): SampleProject | undefined {
 function sampleReply(p: SampleProject): string {
   const agents = p.builds.length ? ` AI agents: ${p.builds.join(', ')}.` : ''
   const flows = p.flows.length ? ` Flows: ${p.flows.join(', ')}.` : ''
-  return `**${p.name}** is a sample system for a fictional ${p.trade}: a full [site](${p.site}), plus the agents and automations behind it.${agents}${flows} Full write-up in [the case study](${p.href}).\n\n[[project:${p.key}]]`
+  return `**${p.name}** is one of ${first}'s sample systems, built for a fictional ${p.trade}: a full [site](${p.site}), plus the agents and automations behind it.${agents}${flows} [The case study](${p.href}) walks through all of it.\n\n[[project:${p.key}]]`
 }
 
 /** The samples' trades, each once, for "is there one like my business?". */
@@ -97,10 +97,10 @@ function tradeReply(question: string): string {
   if (p) {
     const agents = p.builds.slice(0, 2).join(' and ')
     const flows = p.flows.slice(0, 2).join(' and ')
-    return `There's no sample for that exact business, but the closest is **${p.name}**, a fictional ${p.trade}: agents like the ${agents}, and flows like ${flows}. Most of it carries over. See [the case study](${p.href}).\n\n[[project:${p.key}]]`
+    return `Good question! There isn't a sample for that exact kind of business yet, but the closest is **${p.name}**, a fictional ${p.trade}. It has agents like the ${agents}, and flows like ${flows}, and most of that would carry over to yours. Have a look at [the case study](${p.href}).\n\n[[project:${p.key}]]`
   }
   const trades = TRADES.slice(0, 6).map((t) => `a ${t}`)
-  return `There's no sample for that exact business yet. The samples cover ${trades.slice(0, -1).join(', ')} and ${trades.at(-1)}, among others, and the pieces (enquiry and booking flows, follow-ups, a Q&A bot over your own documents) carry over to most trades. See [the projects](/projects), or describe yours on [the contact page](/contact).`
+  return `Good question! There isn't a sample for that exact kind of business yet. The samples cover ${trades.slice(0, -1).join(', ')} and ${trades.at(-1)}, among others, and the building blocks (enquiry and booking flows, follow-ups, a Q&A bot over your own documents) carry over to most businesses. Browse [the projects](/projects), or tell ${first} about yours on [the contact page](/contact) and he'll say what would fit.`
 }
 
 /** Words a "did he build X?" question may hold without naming someone else's product. */
@@ -116,9 +116,11 @@ function claimsOther(question: string): boolean {
   return names.some((n) => !OWN_WORDS.has(n.toLowerCase()) && !findTool(n))
 }
 
-const availabilityReply = `${facts.availability} ${facts.start} Drop a note via [contact](/contact) with the shape of the work.`
+/** "Taking on new work…" as an answer: "Yes, he's taking on new work…". */
+const available = /^Taking\b/.test(facts.availability) ? `Yes, he's ${facts.availability.replace(/^Taking/, 'taking')}` : `Yes! ${facts.availability}`
+const availabilityReply = `${available} ${facts.start} Tell him a little about what you're building:`
 
-const processReply =`Every project runs through the same five steps:\n${PROCESS.map((s) => `- **${s.name}**: ${s.line}`).join('\n')}\n\nMore on [the services page](/services).`
+const processReply = `Happy to walk you through it. Every project goes through the same five steps:\n${PROCESS.map((s) => `- **${s.name}**: ${s.line}`).join('\n')}\n\nIt all starts with a message on [the contact page](/contact). ${facts.reply}`
 
 /** Requests that have nothing to do with Justine's work. */
 const OFF_TOPIC = /\b(poems?|haiku|jokes?|songs?|lyrics|recipes?|weather|forecast|horoscope|stock\s*(price|market)s?|bitcoin|homework|essays?|capital\s+of|translate|(tell|write)\s+(me\s+)?a\s+story|meaning\s+of\s+life)\b/i
@@ -129,19 +131,19 @@ const FOLLOW_UP = /^examples?\??$|\b(look\s*like|(an?|any|for|some)\s+examples?|
 /** Where to see the kind of work the last question was about. */
 function exampleReply(previous: string): string | null {
   if (/\b(prompts?|llms?|rag|retrieval|agents?|chatbots?|bots?|\bai\b)\b/i.test(previous)) {
-    return `For AI agents, see [the AI agents page](/ai-agents.html): Q&A bots that answer from a business's own documents, and agents that triage an inbox or follow up with buyers, each with how it works.`
+    return `Sure! [The AI agents page](/ai-agents.html) shows them at work: Q&A bots that answer from a business's own documents, and agents that triage an inbox or follow up with buyers, each with a look at how it works.`
   }
   const sample = findSample(previous)
   if (sample) return sampleReply(sample)
   const service = findService(previous)
   if (!service) return null
   if (service.name === 'Automation & Workflows') {
-    return `It looks like the flows on [the automations page](/automations.html): a form or an email starts the flow, the steps run on n8n, Make or Zapier with retries and alerts, and a person approves where it matters. [The build plan](/build-plan.html) shows one planned end to end before it's built.`
+    return `Sure! The flows on [the automations page](/automations.html) show it well: a form or an email kicks things off, the steps run on n8n, Make or Zapier with retries and alerts, and a person approves where it matters. To see one planned out before it's built, there's [the build plan](/build-plan.html).`
   }
   if (service.name === 'Full-Stack Web & SaaS') {
-    return `Every sample system has a full site: open one from [the projects page](/projects) and spin the sites carousel.`
+    return `Sure! Every sample system comes with a full site. Open one from [the projects page](/projects) and give the sites carousel a spin.`
   }
-  return `**${service.name}** work runs through the same five steps: ${PROCESS.map((s) => s.name).join(', ')}. To see it for your setup, describe it on [the contact page](/contact).`
+  return `Sure! **${service.name}** work follows the same five steps as everything else: ${PROCESS.map((s) => s.name).join(', ')}. The best way to see it for your setup is to describe it on [the contact page](/contact).`
 }
 
 const using = TOOLS.map((t) => t.name).filter((n) => !EXPERIMENTAL.includes(n))
@@ -168,10 +170,10 @@ const ASKS_ABOUT_TOOL = /\b(use[sd]?|using|know[sn]?|work(s|ed)?\s*with|familiar
 
 function toolReply(question: string): string {
   const name = findTool(question)!
-  if (EXPERIMENTAL.includes(name)) return `**${name}** is one ${first} is still testing, not in everyday use yet. The full stack is on [the about page](/about).`
-  if (using.includes(name)) return `Yes, **${name}** is part of ${first}'s everyday stack. The full list is on [the about page](/about).`
+  if (EXPERIMENTAL.includes(name)) return `**${name}** is one ${first} is still testing, so it isn't part of his everyday work yet. You'll find his full stack on [the about page](/about).`
+  if (using.includes(name)) return `Yes, **${name}** is part of ${first}'s everyday stack. You'll find the full list on [the about page](/about).`
   const service = SERVICES.find((s) => s.logos.some((l) => l.name === name))!
-  return `**${name}** is one of the tools behind his **${service.name}** work. More on [the services page](/services).`
+  return `Yes, **${name}** is one of the tools behind his **${service.name}** work. There's more on [the services page](/services).`
 }
 
 /** The services a visitor names by what they need. AI agents are left to their own rule, which shows the sample builds. */
@@ -190,7 +192,7 @@ const findService = (question: string) => {
 /** "What's on this page?", "tell me about this one", "what am I looking at". */
 const THIS_PAGE = /\b(this|current)\s+(page|one|section|view|card|screen)\b|\bwhat\s*am\s*i\s*(looking\s*at|seeing)\b|\bwhat('?s|\s+is)\s+(on\s+)?(this|here)\b|\bwhere\s*am\s*i\b/i
 
-const bio = () => `**${profile.name}** is a ${role}, ${based}. ${facts.summary} More on [the about page](/about).`
+const bio = () => `**${profile.name}** is a ${role}, ${based}. ${facts.summary} There's more about him on [the about page](/about).`
 
 const RULES: Rule[] = [
   {
@@ -199,18 +201,18 @@ const RULES: Rule[] = [
     reply: (_, page) =>
       page
         ? `You're on **${page.name}**. ${page.about}`
-        : `Which page do you mean? The site has [projects](/projects), [services](/services), [about](/about) and [contact](/contact); ask me about any of them.`,
+        : `Happy to help. Which page do you mean? The site has [projects](/projects), [services](/services), [about](/about) and [contact](/contact), and you can ask me about any of them.`,
   },
   {
     // Ahead of the greeting, so "hi, tell me a joke" gets this and not just a hello.
     match: OFF_TOPIC,
-    reply: () => `That one's outside my lane: I only know ${first} and his work. Try "What has he built?" or "How does a project start?"`,
+    reply: () => `Ha, I'd love to help, but that one's outside what I know. I'm all about ${first} and his work. You could ask "What has he built?" or "How does a project start?"`,
   },
   {
     // Ahead of everything a product name could trip ("booking", "built"): never confirm work the site doesn't show.
     match: claimsOther,
     reply: () =>
-      `Nothing on this site says ${first} built that, so I won't claim it. What's here are sample systems for fictional businesses, on [the projects page](/projects). For his wider history, ask him on [the contact page](/contact).`,
+      `Nothing on this site mentions that one, so I'd rather not claim it. What you'll find here are sample systems for fictional businesses, on [the projects page](/projects). For anything beyond those, just ask him on [the contact page](/contact).`,
   },
   {
     // Ahead of the projects rule, whose "built" would answer "I run a clinic, built anything like that?" with any three samples.
@@ -219,11 +221,11 @@ const RULES: Rule[] = [
   },
   {
     match: /^(hi|hey|hello|sup|yo|howdy|gm|good\s*(morning|afternoon|evening))\b/i,
-    reply: () => `Hi, happy to help. Ask me about ${first}'s [projects](/projects), [services](/services), or how to [get in touch](/contact).`,
+    reply: () => `Hi there! Happy to help. You can ask me about ${first}'s [projects](/projects), [services](/services), or how to [get in touch](/contact).`,
   },
   {
     match: /\b(thanks|thank\s*you|thx|ty)\b/i,
-    reply: () => `Anytime. Anything else you want to know about ${first}?`,
+    reply: () => `You're welcome! Anything else you'd like to know about ${first}?`,
   },
   {
     match: /\b(who\s+is\s+(justine|he)|about\s+(justine|him)|^about$|background|^bio$|^story$)\b/i,
@@ -243,21 +245,21 @@ const RULES: Rule[] = [
   {
     // Before the stack rule, whose "languages?" would otherwise take "what languages does he speak".
     match: /\b(speak|fluent|filipino|tagalog|english)\b/i,
-    reply: () => `${facts.personal.languages.join(' and ')}.`,
+    reply: () => `He speaks ${facts.personal.languages.join(' and ')}.`,
   },
   {
     // Before the stack rule: "Strongest part of the stack?" is a chip.
     match: /\b(strongest|best.*at|specialty|specialise|specialize|expertise|core)\b/i,
-    reply: () => `${FAQS[0].a} See [the services](/services).`,
+    reply: () => `Great question. ${FAQS[0].a} You can see each one on [the services page](/services).`,
   },
   {
     // Stems are pluralised on purpose: a bare `tool` inside \b(...)\b never matches "tools".
     match: /\b(stacks?|tech|tools?|languages?|frameworks?|primary)\b/i,
-    reply: () => `In use: ${using.join(', ')}.\n\nStill testing: ${EXPERIMENTAL.join(', ')}. The full stack is on [the about page](/about).`,
+    reply: () => `Here's what ${first} works with day to day: ${using.join(', ')}.\n\nAnd a few he's still testing: ${EXPERIMENTAL.join(', ')}. The full stack is on [the about page](/about).`,
   },
   {
     match: /\b(infra|infrastructure|devops|deploy(s|ed|ment)?|hosting|cloud|aws|vercel|cloudflare|docker|ci\/?cd|pipelines?)\b/i,
-    reply: () => `Yes: ${INFRA.join(', ')}, and ${CERTS[0]?.name ?? 'cloud courses'}. More on [the about page](/about).`,
+    reply: () => `Yes, he's comfortable there: ${INFRA.join(', ')}, plus ${CERTS[0]?.name ?? 'cloud courses'}. More on [the about page](/about).`,
   },
   {
     // Before the projects rule: "Any AI agent builds?" is a chip.
@@ -265,7 +267,7 @@ const RULES: Rule[] = [
     reply: () => {
       const ai = SERVICES.find((s) => /ai/i.test(s.name))
       const builds = SAMPLE_PROJECTS.flatMap((p) => p.builds.slice(0, 1).map((b) => `- **${b}** for ${p.name}, a fictional ${p.trade}`)).slice(0, 3)
-      return `${ai ? `**${ai.name}**: ${ai.line} ${ai.bullets.join('. ')}.` : ''} Sample builds:\n${builds.join('\n')}\n\nAll of them on [the AI agents page](/ai-agents.html).`
+      return `Yes, that's one of his main areas!${ai ? ` **${ai.name}**: ${ai.line} ${ai.bullets.join('. ')}.` : ''} A few sample builds:\n${builds.join('\n')}\n\nYou can see all of them on [the AI agents page](/ai-agents.html).`
     },
   },
   {
@@ -283,23 +285,23 @@ const RULES: Rule[] = [
     // Before the projects rule, whose "case" would take "any case studies from clients?".
     match: /\b(testimonials?|reviews?|references?|clients?|customers?|track\s*record)\b/i,
     reply: () =>
-      `The projects on this site are sample systems for fictional businesses, built to show the whole stack end to end. For references, ask ${first} on [the contact page](/contact).`,
+      `Fair question! The projects on this site are sample systems for fictional businesses, built to show the whole stack end to end. For references, you can ask ${first} directly on [the contact page](/contact).`,
   },
   {
     match: /\b(projects?|case|portfolio|samples?|examples?|recent\s*work|built|shipped|made)\b/i,
     reply: () => {
       const list = SAMPLE_PROJECTS.slice(0, 3).map((p) => `- [**${p.name}**](${p.href}): a fictional ${p.trade}`)
-      return `${first} builds full sample systems (a site, AI agents and automations) for fictional businesses. A few:\n${list.join('\n')}\n\nThe full set is on [the projects page](/projects).`
+      return `${first} builds full sample systems (a site, AI agents and automations) for fictional businesses. Here are a few:\n${list.join('\n')}\n\nYou'll find the whole set on [the projects page](/projects).`
     },
   },
   {
     match: /\b(experience|career|history|previous|past\s*job|milestones?|graduat\w*|degrees?|university|college|school|stud(y|ied|ies)|educat\w*|majors?|courses?|certificat\w*)\b/i,
-    reply: () => `**Education:** ${facts.personal.education}. **Courses:** ${CERTS.map((c) => c.name).join(', ')}. ${facts.personal.origin} More on [the about page](/about).`,
+    reply: () => `Here's his background. **Education:** ${facts.personal.education}. **Courses:** ${CERTS.map((c) => c.name).join(', ')}. ${facts.personal.origin} More on [the about page](/about).`,
   },
   {
     // Before the process rule: "How does he communicate?" is a chip.
     match: /\b(communicat(e|es|ion|ing)|check[-\s]?ins?|status\s*updates?|stay\s*in\s*touch)\b/i,
-    reply: () => `${facts.communication} Start a thread on [the contact page](/contact).`,
+    reply: () => `${facts.communication} Whenever you're ready, [the contact page](/contact) is the place to start.`,
   },
   {
     match: /\b(process|how\s*(do|does)\s*(you|he)\s*work|workflow|what.*expect|steps?|onboard|kickoff)\b/i,
@@ -307,38 +309,38 @@ const RULES: Rule[] = [
   },
   {
     match: /\b(own(s|ership)?\s*the\s*code|who\s*owns|license|licensing|ip\b|intellectual\s*property)\b/i,
-    reply: () => `${facts.ownership} Ask the specifics on [the contact page](/contact).`,
+    reply: () => `Good thing to sort out early. ${facts.ownership} You can ask about the specifics on [the contact page](/contact).`,
   },
   {
     match: /\b(teams?|collaborat\w*|agency|solo|alone|in-house)\b/i,
-    reply: () => `${facts.faq[0].answer} [Get in touch](/contact) with what your setup looks like.`,
+    reply: () => `${facts.faq[0].answer} Tell him a bit about your setup on [the contact page](/contact).`,
   },
   {
     match: /\b(maintain\w*|maintenance|support|after\s*launch|ongoing)\b/i,
-    reply: () => `${FAQS[4].a} Raise it on [the contact page](/contact).`,
+    reply: () => `${FAQS[4].a} Just mention it on [the contact page](/contact).`,
   },
   {
     match: /\b(designs?|ui|ux|figma|mockups?|brand)\b/i,
-    reply: () => `${facts.faq[1].answer} See [the services](/services) for the shapes that takes.`,
+    reply: () => `${facts.faq[1].answer} [The services page](/services) shows what that looks like.`,
   },
   {
     match: /\b(hobby|hobbies|outside\s*work|free\s*time|fun|interests?|sports?|esports?|games?)\b/i,
-    reply: () => `${facts.personal.interests} ${facts.personal.origin}`,
+    reply: () => `Outside work, he's into ${facts.personal.interests[0].toLowerCase()}${facts.personal.interests.slice(1)} ${facts.personal.origin}`,
   },
   {
     // Before the contact rule, whose "reach" would take "how fast will he reach back?".
     match: /\b(repl(y|ies)|respond|response\s*time|hear\s*back|get\s*back|reach\s*back)\b/i,
-    reply: () => `${facts.reply} Write to him on [the contact page](/contact).`,
+    reply: () => `Pretty quickly! ${facts.reply} You can reach him on [the contact page](/contact).`,
   },
   {
     // Before the availability rule, whose "start" would take "how long before it starts?".
     // "how long does it take", never "how long has he been coding".
     match: /\b(how\s*long\s*(does|do|will|would|to|for)\b|timelines?|turnaround|deadlines?|duration|how\s*many\s*(weeks|months|days))\b/i,
-    reply: () => `There's no fixed timeline; it depends on the build. ${facts.start} Describe the project on [the contact page](/contact) and he'll scope it.`,
+    reply: () => `It depends on the build, so there's no fixed timeline. ${facts.start} If you describe the project on [the contact page](/contact), he'll scope it for you.`,
   },
   {
     match: /\b(contact|hire|email|reach|engage|book|work\s*together|get\s*in.*touch)\b/i,
-    reply: () => `Easiest way: [the contact page](/contact). ${facts.reply}`,
+    reply: () => `The easiest way is [the contact page](/contact). ${facts.reply} Or send him a note right here:`,
     leadForm: true,
   },
   {
@@ -351,42 +353,42 @@ const RULES: Rule[] = [
   {
     // Before the service lookup, so "how much is a website?" gets how billing works, not the web service.
     match: /\b(prices?|rates?|costs?|how\s*much|budget|fees?|quotes?|charges?|pricing)\b/i,
-    reply: () => `There's no set rate published; it depends on scope. ${facts.billing} Send the shape of the project via [the contact page](/contact) and ${first} will come back with a number.`,
+    reply: () => `There's no set rate published, since it depends on scope. ${facts.billing} If you share the shape of the project on [the contact page](/contact), ${first} will come back with a number.`,
   },
   {
     // After the price rule, so "a guaranteed price?" is a price question.
     match: /\b(guarantee[sd]?|promise[sd]?|warrant(y|ies))\b|\b(sales|revenue|leads|traffic|bookings|conversions?|profits?)\s+(will\s+)?(double|triple|grow|increase|go\s+up)\b/i,
     reply: () =>
-      `He won't promise business results like that; nobody honest can. What he does commit to is the build: a written proposal with scope and price, and a handover with documentation and full access. Talk through your goals on [the contact page](/contact).`,
+      `Totally fair thing to want! Honestly, no one can promise results like that, and ${first} won't pretend to. What he can promise is a clear written proposal with scope and price, and a handover with full documentation and access. If you share your goals on [the contact page](/contact), he'll tell you what's realistic.`,
   },
   {
     // After hiring intent, so "can I hire him for SEO?" still gets the form; before the services rule, which lists all six.
     match: (q) => Boolean(findService(q)),
     reply: (q) => {
       const s = findService(q)!
-      return `Yes: **${s.name}**. ${s.line} ${s.bullets.join('. ')}. More on [the services page](/services).`
+      return `He can help with that! **${s.name}**: ${s.line} ${s.bullets.join('. ')}. More on [the services page](/services).`
     },
   },
   {
     // "build" lands "What does he build?" (a chip) here; the projects rule owns "built".
     match: /\b(services?|offers?|build(s|ing)?|automat\w*|kind.*work|what.*do.*you.*do)\b/i,
-    reply: () => `${first} works across six areas:\n${SERVICES.map((s) => `- **${s.name}**: ${s.line}`).join('\n')}\n\nMore on [the services page](/services).`,
+    reply: () => `${first} works across six areas:\n${SERVICES.map((s) => `- **${s.name}**: ${s.line}`).join('\n')}\n\nYou'll find more on [the services page](/services).`,
   },
   {
     match: /\b(location|where|based|timezone|remote|onsite|country|city)\b/i,
-    reply: () => `${first} is ${based}, and works remotely with teams worldwide, overlapping US, EU and CA hours.`,
+    reply: () => `${first} is ${based}, and he works remotely with teams all over, overlapping US, EU and CA hours.`,
   },
   {
     match: /\b(github|repos?|repositor(y|ies)|code|source|open\s*source)\b/i,
-    reply: () => (github ? `Public work lives on [GitHub](${github.href}).` : `Ask about the code on [the contact page](/contact).`),
+    reply: () => (github ? `You'll find his public work on [GitHub](${github.href}).` : `You can ask about the code on [the contact page](/contact).`),
   },
   {
     match: /\b(linkedin|social|follow)\b/i,
-    reply: () => `Find ${first} on ${profile.socials.map((s) => `[${s.label}](${s.href})`).join(' and ')}.`,
+    reply: () => `You can find ${first} on ${profile.socials.map((s) => `[${s.label}](${s.href})`).join(' and ')}.`,
   },
   {
     match: /\b(who\s+are\s+you|what\s+are\s+you|are\s+you\s+(a\s+)?(ai|bot|chatbot|human|real|robot)|what\s+model|powered\s+by|who\s+built\s+you|are\s+you\s+claude|what's\s+lumen)\b/i,
-    reply: () => `I'm **Lumen**, a small assistant ${first} built, powered by Claude when the API is live, or a hand-tuned rule set otherwise.`,
+    reply: () => `I'm **Lumen**, a small assistant ${first} built to answer questions about his work. I run on Claude when it's live, and on a set of hand-written answers otherwise.`,
   },
   {
     // Deliberately last of the topical rules: "what's/does ... he/Justine" matches almost every
@@ -396,12 +398,12 @@ const RULES: Rule[] = [
   },
   {
     match: /\b(help|what\s*can\s*you|how\s*do\s*i\s*use)\b/i,
-    reply: () => `Ask me about ${first}'s [projects](/projects), [services](/services), [background](/about), or how to [get in touch](/contact). Specific questions work best.`,
+    reply: () => `Happy to help! Ask me about ${first}'s [projects](/projects), [services](/services), [background](/about), or how to [get in touch](/contact). Specific questions work best.`,
   },
 ]
 
 /** The reply when no rule matches. */
-export const FALLBACK = `I don't have that detail. The fastest way to get an answer is [the contact page](/contact). In the meantime, you might want to see [projects](/projects), [services](/services), or [about](/about).`
+export const FALLBACK = `Hmm, I don't have that detail, sorry. ${first} can answer it himself on [the contact page](/contact). In the meantime, you might like [projects](/projects), [services](/services), or [about](/about).`
 
 /**
  * Lumen's offline answer to a question: a follow-up first, then a named

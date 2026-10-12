@@ -42,7 +42,7 @@ describe("Lumen's offline rules", () => {
   })
 
   it('keeps the narrow rules ahead of the broad ones that would shadow them', () => {
-    expect(localAnswer('What languages does he speak?')).toBe(`${assistantFacts.personal.languages.join(' and ')}.`)
+    expect(localAnswer('What languages does he speak?')).toBe(`He speaks ${assistantFacts.personal.languages.join(' and ')}.`)
     expect(localAnswer('Strongest part of the stack?')).toContain(FAQS[0].a)
     expect(localAnswer('How does he communicate?')).toContain(assistantFacts.communication)
     expect(localAnswer('What does Justine do?')).toContain(`**${profile.name}**`)
@@ -56,7 +56,7 @@ describe("Lumen's offline rules", () => {
     const services = pageFor('/services')!
     expect(localAnswer("What's on this page?", services)).toContain(`**${services.name}**`)
     expect(localAnswer('Tell me about this one', pageFor('/projects#build-plan'))).toContain('build plan')
-    expect(localAnswer("What's on this page?")).toMatch(/^Which page/)
+    expect(localAnswer("What's on this page?")).toMatch(/Which page do you mean?/)
   })
 
   it('answers whether he uses a tool by name, still-testing tools included, and never takes "make" for Make', () => {
@@ -89,40 +89,40 @@ describe("Lumen's offline rules", () => {
   })
 
   it('answers "how does a project start?" with the process, not the samples', () => {
-    expect(localAnswer('How does a project start?')).toMatch(/^Every project runs through the same five steps/)
+    expect(localAnswer('How does a project start?')).toMatch(/Every project goes through the same five steps/)
   })
 
   it('never confirms work on a product the site does not show, and offers no form for it', () => {
     const reply = localAnswer("Did you build Airbnb's booking system?")
-    expect(reply).toMatch(/^Nothing on this site says/)
+    expect(reply).toMatch(/Nothing on this site mentions that one/)
     expect(reply).not.toContain('[[lead-form]]')
     // A bare "booking" is a system, not hiring intent.
     expect(localAnswer('did you build airbnb booking')).not.toContain('[[lead-form]]')
     // Its own samples, tools and the start of a sentence are not someone else's product.
-    expect(localAnswer('Did he build Ostler?')).not.toMatch(/^Nothing on this site says/)
-    expect(localAnswer('Did he work on any AI agents?')).not.toMatch(/^Nothing on this site says/)
-    expect(localAnswer('I run a clinic. Have you built anything like that?')).not.toMatch(/^Nothing on this site says/)
+    expect(localAnswer('Did he build Ostler?')).not.toMatch(/Nothing on this site mentions that one/)
+    expect(localAnswer('Did he work on any AI agents?')).not.toMatch(/Nothing on this site mentions that one/)
+    expect(localAnswer('I run a clinic. Have you built anything like that?')).not.toMatch(/Nothing on this site mentions that one/)
   })
 
   it('promises no business results, but still answers a price question as one', () => {
-    expect(localAnswer('Can you guarantee my sales double?')).toMatch(/^He won't promise business results/)
+    expect(localAnswer('Can you guarantee my sales double?')).toMatch(/no one can promise results like that/)
     expect(localAnswer('Can I get a guaranteed price?')).toContain(assistantFacts.billing)
   })
 
   it("matches a visitor's business to its sample, the closest one, or says there is none", () => {
-    expect(localAnswer('Did he build anything for a barbershop?')).toMatch(/^\*\*Ostler\*\* is a sample system/)
+    expect(localAnswer('Did he build anything for a barbershop?')).toMatch(/^\*\*Ostler\*\* is one of \w+'s sample systems/)
     const dental = localAnswer('I run a dental clinic. Have you built anything like that?')
-    expect(dental).toMatch(/^There's no sample for that exact business, but the closest is \*\*Range Physical Therapy\*\*/)
+    expect(dental).toMatch(/There isn't a sample for that exact kind of business yet, but the closest is \*\*Range Physical Therapy\*\*/)
     expect(dental.trim().endsWith('[[project:range-physical-therapy]]')).toBe(true)
     expect(localAnswer('We own a gym. Any examples?')).toContain('**Altitude**')
     // "company" alone is too general to make a software company the moving company.
     const software = localAnswer('I run a software company, built anything similar?')
-    expect(software).toMatch(/^There's no sample for that exact business yet/)
+    expect(software).toMatch(/There isn't a sample for that exact kind of business yet./)
     expect(software).not.toContain('[[project:')
   })
 
   it('turns down off-topic requests in its own words, and keeps "I don\'t have that detail" for unknown facts', () => {
-    for (const q of ['Write me a poem about the sea.', "What's the weather in Manila?", 'Tell me a joke']) expect(localAnswer(q), q).toMatch(/^That one's outside my lane/)
+    for (const q of ['Write me a poem about the sea.', "What's the weather in Manila?", 'Tell me a joke']) expect(localAnswer(q), q).toMatch(/that one's outside what I know/)
     expect(localAnswer("What's his story?")).toContain(`**${profile.name}**`)
   })
 

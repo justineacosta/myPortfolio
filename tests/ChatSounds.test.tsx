@@ -41,7 +41,7 @@ describe('when Lumen makes a sound', () => {
     await userEvent.click(launcher())
     const dialog = screen.getByRole('dialog', { name: chat.name })
     await userEvent.type(within(dialog).getByRole('textbox', { name: chat.message }), 'Hi{Enter}')
-    await within(dialog).findByText('Too many messages', { exact: false, ignore: '.sr-only, script, style' })
+    await within(dialog).findByText('quite a few messages', { exact: false, ignore: '.sr-only, script, style' })
     expect(played()).toEqual(['open', 'send'])
   })
 

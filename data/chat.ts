@@ -10,7 +10,7 @@ export const chat = {
   nudge: { text: 'How can I help?', dismiss: 'Dismiss' },
   name: 'Lumen',
   subtitle: 'Justine’s portfolio assistant',
-  greeting: "Hi, I'm **Lumen**, Justine's assistant. Ask me about his work, his stack, or how to start a conversation.",
+  greeting: "Hi there! I'm **Lumen**, Justine's assistant. Ask me anything about his work, his stack, or how to get started.",
   placeholder: 'Ask anything…',
   message: 'Message',
   send: 'Send',
@@ -36,15 +36,15 @@ export const chat = {
   },
   /** Written into the reply bubble itself when something goes wrong. */
   replies: {
-    empty: 'Hmm, nothing came back. Try [the contact page](/contact) and Justine will reply directly.',
-    failed: 'Something went wrong on my end. You can reach Justine on [the contact page](/contact).',
+    empty: 'Hmm, nothing came back that time. Try asking again, or reach Justine directly on [the contact page](/contact).',
+    failed: 'Sorry, something went wrong on my end. Try again in a moment, or reach Justine on [the contact page](/contact).',
     stopped: '_Stopped._',
     interrupted: '_Interrupted. Ask again to continue._',
   },
   /** Refusals the route sends as { error }, shown in the reply bubble. */
   errors: {
-    rate: 'Too many messages. Try again in a bit, or write to Justine on [the contact page](/contact).',
-    invalid: "I couldn't read that one. Try a shorter question.",
+    rate: "You've sent quite a few messages, so let's take a short breather. Try again in a bit, or write to Justine on [the contact page](/contact).",
+    invalid: "Sorry, I couldn't read that one. Could you try a shorter question?",
   },
   /** The project card a reply can carry. */
   card: { badge: 'SAMPLE SYSTEM', open: 'Open the case study' },
@@ -62,7 +62,7 @@ export const chat = {
     message: 'What are you building?',
     send: 'Send to Justine',
     sending: 'Sending…',
-    sent: 'Sent. Justine has it and will reply by email.',
+    sent: 'Sent! Justine has your message and will reply by email.',
     /** The contact page's checks, in Lumen's voice rather than Justine's. */
     errors: {
       firstName: 'Add your first name.',
