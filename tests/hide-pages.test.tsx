@@ -64,8 +64,8 @@ describe('hiding a page (hidden: true in data/nav.ts)', () => {
     expect(readFileSync('data/nav.ts', 'utf8')).toMatch(/\{ href: '\/', [^\n]*hidden: false \}/)
   })
 
-  it('ships Notes switched off, after Services', () => {
-    expect(readFileSync('data/nav.ts', 'utf8')).toMatch(/\{ href: '\/notes', [^\n]*hidden: true \}/)
+  // Switching Notes on is how a guide goes live, so its flag isn't pinned here; e2e/hidden.spec.ts follows it.
+  it('puts Notes right after Services', () => {
     expect(NAV.map((n) => n.href).indexOf('/notes')).toBe(NAV.map((n) => n.href).indexOf('/services') + 1)
   })
 

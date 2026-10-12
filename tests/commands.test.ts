@@ -6,6 +6,16 @@ import { COMMANDS, commands, filterCommands, SECTIONS } from '@/lib/commands'
 import { splitHref } from '@/lib/hash'
 
 describe('filterCommands', () => {
+  it('still returns every entry for an empty query once a guide is published', () => {
+    const was = NOTES[0].draft
+    NOTES[0].draft = false
+    try {
+      expect(filterCommands('')).toEqual(commands())
+      expect(commands().map((c) => c.href)).toContain(`/notes/${NOTES[0].slug}`)
+    } finally {
+      NOTES[0].draft = was
+    }
+  })
   it('lists each visible guide in ⌘K while Notes is on, and none while it is off', () => {
     vi.stubEnv('NODE_ENV', 'development')
     try {
@@ -30,8 +40,8 @@ describe('filterCommands', () => {
     expect(filterCommands('san fernando').map((c) => c.href)).toContain('/projects#san-fernando')
   })
   it('returns everything for an empty or blank query', () => {
-    expect(filterCommands('')).toEqual(COMMANDS)
-    expect(filterCommands('   ')).toEqual(COMMANDS)
+    expect(filterCommands('')).toEqual(commands())
+    expect(filterCommands('   ')).toEqual(commands())
   })
   it('matches labels case-insensitively', () => {
     expect(filterCommands('SERV').map((c) => c.href)).toEqual(['/services'])

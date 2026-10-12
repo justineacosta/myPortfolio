@@ -20,8 +20,6 @@ describe("Lumen's system prompt", () => {
     expect(section).toContain(n.title)
     expect(section).toContain(n.summary)
     expect(section).toContain(`(/notes/${n.slug})`)
-    // NODE_ENV is 'test' here, so the drafts stay out of the built prompt.
-    expect(SYSTEM_PROMPT).not.toContain('# Guides (/notes)')
   })
 
   it('lets a reply link each visible guide, built fresh with drafts showing', async () => {
@@ -90,11 +88,29 @@ describe("Lumen's system prompt", () => {
   })
 })
 
+/** A reply may link a nav page, or a guide on /notes. */
+const isLinkable = (path: string, nav: { href: string }[], notes: { slug: string }[]) =>
+  nav.some((n) => n.href === path) || notes.some((n) => `/notes/${n.slug}` === path)
+
 describe('the paths a reply may link to', () => {
+  it('keeps its rule once Notes ships switched on with a published guide', async () => {
+    vi.resetModules()
+    try {
+      const nav = await import('@/data/nav')
+      nav.NAV.find((n) => n.href === '/notes')!.hidden = false
+      const notes = await import('@/data/notes')
+      notes.NOTES[0].draft = false
+      const fresh = await import('@/lib/chat/prompt')
+      expect(fresh.KNOWN_PATHS.has(`/notes/${notes.NOTES[0].slug}`)).toBe(true)
+      for (const path of fresh.KNOWN_PATHS) if (!path.endsWith('.html')) expect(isLinkable(path, nav.NAV, notes.NOTES), path).toBe(true)
+    } finally {
+      vi.resetModules()
+    }
+  })
   // Built once at load, from the pages data/nav.ts ships switched on (the test setup switches them all on afterwards).
   it('are nav pages, the standalone pages, and each sample’s case study and site', () => {
     for (const path of ['/', '/projects', '/services', '/about', '/contact']) expect(KNOWN_PATHS.has(path), path).toBe(true)
-    for (const path of KNOWN_PATHS) if (!path.endsWith('.html')) expect(NAV.some((n) => n.href === path), path).toBe(true)
+    for (const path of KNOWN_PATHS) if (!path.endsWith('.html')) expect(isLinkable(path, NAV, NOTES), path).toBe(true)
     for (const p of SAMPLE_PROJECTS) {
       expect(KNOWN_PATHS.has(p.href)).toBe(true)
       expect(KNOWN_PATHS.has(p.site)).toBe(true)

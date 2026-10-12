@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { NAV } from '@/data/nav'
-import { NOTES } from '@/data/notes'
+import { NOTES, notePath, visibleNotes } from '@/data/notes'
 import robots from '@/app/robots'
 import sitemap from '@/app/sitemap'
 import { profile } from '@/data/profile'
@@ -44,6 +44,16 @@ describe('pageMetadata', () => {
 })
 
 describe('sitemap and robots', () => {
+  it('lists every public page and every published guide once a guide is published', () => {
+    const was = NOTES[0].draft
+    NOTES[0].draft = false
+    try {
+      const urls = sitemap().map((e) => e.url)
+      expect(urls).toEqual([...indexedPaths(), ...STATIC_PAGES, `/notes/${NOTES[0].slug}`].map((p) => `${SITE_URL}${p === '/' ? '' : p}`))
+    } finally {
+      NOTES[0].draft = was
+    }
+  })
   it('lists each visible guide while Notes is on, and none while it is off', () => {
     vi.stubEnv('NODE_ENV', 'development')
     try {
@@ -62,8 +72,8 @@ describe('sitemap and robots', () => {
   })
   it('lists every public page once, the build plan too, and leaves the thank-you page out', () => {
     const urls = sitemap().map((e) => e.url)
-    // In tests NODE_ENV is 'test', so the draft guides are not listed.
-    expect(urls).toEqual([...indexedPaths(), ...STATIC_PAGES].map((p) => `${SITE_URL}${p === '/' ? '' : p}`))
+    // The published guides follow the pages; drafts never show.
+    expect(urls).toEqual([...indexedPaths(), ...STATIC_PAGES, ...visibleNotes().map((n) => notePath(n.slug))].map((p) => `${SITE_URL}${p === '/' ? '' : p}`))
     expect(urls).toContain(`${SITE_URL}/build-plan.html`)
     expect(urls).toContain(`${SITE_URL}/agentic-framework.html`)
     expect(urls).toContain(`${SITE_URL}/ai-agents.html`)
