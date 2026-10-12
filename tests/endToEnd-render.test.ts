@@ -7,6 +7,7 @@ import { renderEndToEnd } from '@/lib/endToEnd/render'
 import { TOOLS } from '@/lib/brand/tools'
 import { themeHeadJs } from '@/lib/brand/render'
 import { readContrast, readTokens } from '@/lib/tokens'
+import { withLumen } from '@/lib/chat/embed'
 
 const html = renderEndToEnd()
 const doc = new DOMParser().parseFromString(html, 'text/html')
@@ -128,7 +129,7 @@ describe('renderEndToEnd', () => {
 
 describe('public/end-to-end.html', () => {
   it('is up to date with its data (run npm run e2e-page after any change)', () => {
-    expect(readFileSync('public/end-to-end.html', 'utf8').replace(/\r\n/g, '\n')).toBe(renderEndToEnd())
+    expect(readFileSync('public/end-to-end.html', 'utf8').replace(/\r\n/g, '\n')).toBe(withLumen(renderEndToEnd()))
   })
 })
 

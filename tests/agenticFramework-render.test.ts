@@ -6,6 +6,7 @@ import { renderAgenticFramework } from '@/lib/agenticFramework/render'
 import { iconSvg } from '@/lib/endToEnd/icons'
 import { themeHeadJs } from '@/lib/brand/render'
 import { readContrast, readTokens } from '@/lib/tokens'
+import { withLumen } from '@/lib/chat/embed'
 
 const html = renderAgenticFramework()
 const doc = new DOMParser().parseFromString(html, 'text/html')
@@ -158,7 +159,7 @@ describe('renderAgenticFramework', () => {
 
 describe('public/agentic-framework.html', () => {
   it('is up to date with its data (run npm run af-page after any change)', () => {
-    expect(readFileSync('public/agentic-framework.html', 'utf8').replace(/\r\n/g, '\n')).toBe(renderAgenticFramework())
+    expect(readFileSync('public/agentic-framework.html', 'utf8').replace(/\r\n/g, '\n')).toBe(withLumen(renderAgenticFramework()))
   })
 })
 

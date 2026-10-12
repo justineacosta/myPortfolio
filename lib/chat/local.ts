@@ -203,7 +203,7 @@ const RULES: Rule[] = [
     match: THIS_PAGE,
     reply: (_, { page }) =>
       page
-        ? `You're on **${page.name}**. ${page.about}`
+        ? page.say ?? `You're on **${page.name}**. ${page.about}`
         : `Happy to help. Which page do you mean? The site has [projects](/projects), [services](/services), [about](/about) and [contact](/contact), and you can ask me about any of them.\n\n[[options:${CLARIFY_OPTIONS.join('|')}]]`,
   },
   {

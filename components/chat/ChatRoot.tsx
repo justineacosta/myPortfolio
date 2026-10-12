@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { usePathname } from 'next/navigation'
+import { useShellNav } from '@/components/shell/NavigationProvider'
 import type { CardProject } from '@/lib/chat/samples'
 import { play } from '@/lib/chat/sound'
 import { useChat } from './useChat'
@@ -33,6 +34,7 @@ export default function ChatRoot({ ai, paths, projects }: { ai: boolean; paths: 
   const hash = useSyncExternalStore(onHash, () => window.location.hash, () => '')
   const page = `${usePathname() ?? '/'}${hash}`
   const convo = useChat(page)
+  const { go } = useShellNav()
   const known = useMemo(() => new Set(paths), [paths])
   const openChat = () => {
     play('open')
@@ -62,7 +64,7 @@ export default function ChatRoot({ ai, paths, projects }: { ai: boolean; paths: 
     <>
       <ChatLauncher ref={launcher} open={open} onToggle={() => (open ? close(false) : openChat())} />
       <ChatNudge open={open} onOpen={openChat} />
-      {open && <ChatPanel {...convo} page={page} known={known} projects={projects} ai={ai} onClose={close} />}
+      {open && <ChatPanel {...convo} page={page} known={known} projects={projects} ai={ai} go={go} onClose={close} />}
     </>
   )
 }

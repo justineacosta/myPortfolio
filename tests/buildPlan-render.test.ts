@@ -7,6 +7,7 @@ import { renderPlan } from '@/lib/buildPlan/render'
 import { TOOLS } from '@/lib/brand/tools'
 import { themeHeadJs } from '@/lib/brand/render'
 import { readContrast, readTokens } from '@/lib/tokens'
+import { withLumen } from '@/lib/chat/embed'
 
 const html = renderPlan()
 const doc = new DOMParser().parseFromString(html, 'text/html')
@@ -176,7 +177,7 @@ describe('renderPlan', () => {
 
 describe('public/build-plan.html', () => {
   it('is up to date with its data (run npm run plan after any change)', () => {
-    expect(readFileSync('public/build-plan.html', 'utf8').replace(/\r\n/g, '\n')).toBe(renderPlan())
+    expect(readFileSync('public/build-plan.html', 'utf8').replace(/\r\n/g, '\n')).toBe(withLumen(renderPlan()))
   })
 })
 
