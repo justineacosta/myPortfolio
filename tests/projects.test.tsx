@@ -12,6 +12,35 @@ describe('Projects data', () => {
     expect(projects.writeups.every((w) => w.page && w.frameTitle && w.shot)).toBe(true)
   })
 
+  it('carries the San Fernando case study: V3’s problem and solution, the real site’s six features, every logo on disk', () => {
+    const s = projects.caseStudy
+    expect(s).toMatchObject({
+      view: 'san-fernando',
+      kicker: 'REAL CLIENT · CITIZEN PORTAL',
+      title: 'Barangay San Fernando - Government Citizen Portal',
+      cardTitle: 'Barangay San Fernando',
+      tagline: 'A progressive community, a better tomorrow.',
+      seal: { src: '/assets/testimonial-san-fernando-seal.png', alt: 'Barangay San Fernando seal' },
+      body: 'A citizen-facing portal for a local barangay government, built to move routine transactions off the counter and online.',
+      problemLabel: 'The problem', solutionLabel: 'What I built', featuresLabel: 'Features',
+      cue: 'READ THE CASE STUDY',
+      contact: { label: 'Start a project', href: '/contact' },
+    })
+    expect(s.problem).toMatch(/^Every routine barangay transaction/)
+    expect(s.solution).toMatch(/^A citizen-facing portal that moves those transactions online\./)
+    expect(s.features).toEqual([
+      'Four request flows residents file online: applications, appointments, complaints and assistance.',
+      'Tracking by reference number and surname, with a timeline of every step, and a way to reply when staff need more information.',
+      'Email receipts and outcome notices at every step, from submission to resolution.',
+      'News, notices, an events calendar, the officials directory, and a transparency section with legislative and disclosure documents.',
+      'A staff portal with five ticket queues, and a draft-to-published workflow for every kind of content.',
+      'Role-based staff access, an audit log of every change, and bot and rate-limit protection on every public form.',
+    ])
+    expect(s.stack.map((b) => b.name)).toEqual(['Next.js', 'React', 'TypeScript', 'Tailwind CSS', 'Supabase', 'PostgreSQL', 'Resend', 'Cloudflare'])
+    for (const b of s.stack) expect(existsSync(`public/icons/brands/${b.slug}.svg`), b.slug).toBe(true)
+    expect(existsSync(`public${s.seal.src}`)).toBe(true)
+  })
+
   it('keeps the sites, and the Automations card opens its flows page, with a real 16:10 screenshot on Home', () => {
     expect(projects.sitesView.sites.map((s) => s.name)).toEqual([
       'Oriel', 'Tidewell', 'Altitude', 'Range Physical Therapy', 'Riverdale & Brooks', 'Ostler',
