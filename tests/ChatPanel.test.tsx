@@ -155,7 +155,7 @@ describe('Lumen', () => {
     const dialog = await open()
     const box = screen.getByRole('textbox', { name: chat.message })
     await userEvent.type(box, 'One{Enter}')
-    await within(dialog).findByText('Too many messages', { ...SEEN, exact: false })
+    await within(dialog).findByText('quite a few messages', { ...SEEN, exact: false })
     await userEvent.type(box, 'Two{Enter}')
     await within(dialog).findByText('Back now.', SEEN)
     expect(sentBody(1).messages.map((m: { role: string }) => m.role)).toEqual(['user', 'assistant', 'user'])
