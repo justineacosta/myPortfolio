@@ -16,9 +16,10 @@ const INPUT =
  * screen readers, with its error tied to it), and a full-width send button.
  * It sends the same Lead as the contact page, through lib/contact.ts and
  * /api/contact, so the same checks and the same limit apply. A refused send
- * keeps what was typed and shows the server's reason.
+ * keeps what was typed and shows the server's reason. `draft` starts the
+ * message with what the visitor asked Lumen, for them to edit.
  */
-export default function LeadForm() {
+export default function LeadForm({ draft = '' }: { draft?: string }) {
   const id = useId()
   const t = chat.lead
   const [errors, setErrors] = useState<Errors>({})
@@ -87,7 +88,7 @@ export default function LeadForm() {
           <span id={`${id}-title`} className="text-[13px] font-semibold text-ink">
             {t.title}
           </span>
-          <span className="text-[11.5px] text-ink3">{t.note}</span>
+          <span className="text-[11.5px] text-ink3">{draft ? t.noteDraft : t.note}</span>
         </span>
       </div>
       <div className="flex gap-2">
@@ -95,7 +96,7 @@ export default function LeadForm() {
         {field('lastName', t.lastName, (p) => <input {...p} maxLength={MAX_NAME} autoComplete="family-name" className={`${INPUT} h-9`} />)}
       </div>
       {field('email', t.email, (p) => <input {...p} type="email" maxLength={MAX_EMAIL} autoComplete="email" className={`${INPUT} h-9`} />)}
-      {field('message', t.message, (p) => <textarea {...p} rows={2} maxLength={MAX_MESSAGE} className={`${INPUT} resize-none py-2 leading-snug`} />)}
+      {field('message', t.message, (p) => <textarea {...p} rows={draft ? 4 : 2} defaultValue={draft} maxLength={MAX_MESSAGE} className={`${INPUT} resize-none py-2 leading-snug`} />)}
       {/* Honeypot: hidden from people, filled by bots, dropped by the route. */}
       <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden className="hidden" />
       {problem && (

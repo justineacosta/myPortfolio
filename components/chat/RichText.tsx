@@ -15,6 +15,8 @@ type Props = {
   projects: CardProject[]
   /** False on every reply after the first that asks for the form, so a chat never holds two. */
   allowLeadForm: boolean
+  /** What the form's message starts with. */
+  leadDraft?: string
   /** Goes to a site page through the shell's router. */
   go: (href: string) => void
   /** Called when a link leaves the chat. */
@@ -51,7 +53,7 @@ function Line({ text, known, go, onFollow }: { text: string } & Pick<Props, 'kno
 }
 
 /** One of Lumen's replies: paragraphs, bullets, and the project card or contact form a reply asks for. */
-export default function RichText({ text, known, projects, allowLeadForm, go, onFollow }: Props) {
+export default function RichText({ text, known, projects, allowLeadForm, leadDraft, go, onFollow }: Props) {
   const blocks = useMemo(() => parseBlocks(text), [text])
   return (
     <div className="flex flex-col gap-2">
@@ -70,7 +72,7 @@ export default function RichText({ text, known, projects, allowLeadForm, go, onF
           )
         }
         if (block.kind === 'project') return <ProjectCard key={i} project={projects.find((p) => p.key === block.slug)} onFollow={onFollow} />
-        return allowLeadForm ? <LeadForm key={i} /> : null
+        return allowLeadForm ? <LeadForm key={i} draft={leadDraft} /> : null
       })}
     </div>
   )

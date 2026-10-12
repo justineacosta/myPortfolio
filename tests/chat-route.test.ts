@@ -111,6 +111,20 @@ describe('POST /api/chat', () => {
     expect(await read(await post({ messages: MESSAGES }))).toBe(localAnswer(QUESTION))
   })
 
+  it('tells Claude the page the visitor is on, after the cached prompt, and ignores a page the site does not show', async () => {
+    streamMock.mockReturnValue(replying([delta('Hi.')]))
+    await read(await post({ messages: MESSAGES, page: '/projects#build-plan' }))
+    const system = streamMock.mock.calls.at(-1)![0].system
+    expect(system).toHaveLength(2)
+    expect(system[0].cache_control).toEqual({ type: 'ephemeral' })
+    expect(system[1].text).toContain('/projects#build-plan')
+    expect(system[1].cache_control).toBeUndefined()
+    for (const page of ['/admin', '/showcase', 42, 'x'.repeat(300)]) {
+      await read(await post({ messages: MESSAGES, page }))
+      expect(streamMock.mock.calls.at(-1)![0].system, String(page)).toEqual(systemBlocks())
+    }
+  })
+
   it('refuses a body it cannot read, a history that does not validate, and one declared over 64 KB', async () => {
     for (const body of [{ messages: [] }, '{not json', { messages: [{ role: 'assistant', content: 'Hi' }] }]) {
       const res = await post(body)
