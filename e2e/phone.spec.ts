@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { expect, test } from '@playwright/test'
 import { chat } from '../data/chat'
 import { catchRun, headlineLanding, hydrated, INTRO_LOAD, loaderGeometry, settleIntro } from './helpers'
@@ -338,4 +339,14 @@ test('phone: the San Fernando banner stacks, opens its case study, and nothing s
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
   await page.keyboard.press('Escape')
   await expect(view).toBeHidden()
+
+test('phone: a published guide reads in one column, and never scrolls sideways', async ({ page }) => {
+  const notes = [...readFileSync('data/notes.ts', 'utf8').matchAll(/slug: '([^']+)',[\s\S]*?draft: (true|false),/g)].filter(([, , draft]) => draft === 'false')
+  test.skip(isHidden('/notes') || notes.length === 0, 'no guide is published yet')
+  for (const [, slug] of notes) {
+    await page.goto(`/notes/${slug}`)
+    await hydrated(page)
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), slug).toBe(true)
+  }
 })
