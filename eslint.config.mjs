@@ -15,5 +15,7 @@ export default defineConfig([
     'playwright-report/**',
     // The sample sites' own scripts, unpacked by scripts/unbundle-samples.mjs: third-party and minified.
     'public/samples/**',
+    // The San Fernando site, kept locally for reference: its own repo and lint setup.
+    'sanfernandoweb/**',
   ]),
 ])

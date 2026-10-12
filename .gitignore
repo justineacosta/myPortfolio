@@ -20,3 +20,6 @@ Thumbs.db
 # local agent workspace
 .superpowers/
 
+
+# the San Fernando site, kept locally for reference (its own repo, with its own .env files)
+sanfernandoweb/
