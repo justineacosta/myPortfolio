@@ -62,6 +62,21 @@ describe('hiding a page (hidden: true in data/nav.ts)', () => {
     expect(readFileSync('data/nav.ts', 'utf8')).toMatch(/\{ href: '\/', [^\n]*hidden: false \}/)
   })
 
+  it('ships Notes switched off, after Services', () => {
+    expect(readFileSync('data/nav.ts', 'utf8')).toMatch(/\{ href: '\/notes', [^\n]*hidden: true \}/)
+    expect(NAV.map((n) => n.href).indexOf('/notes')).toBe(NAV.map((n) => n.href).indexOf('/services') + 1)
+  })
+
+  it('links Services to the guides only while Notes is on', () => {
+    render(<NavigationProvider>{ServicesPage()}</NavigationProvider>)
+    expect(screen.getByRole('link', { name: /Read the guides/ })).toHaveAttribute('href', '/notes')
+    cleanup()
+    withHidden('/notes', () => {
+      render(<NavigationProvider>{ServicesPage()}</NavigationProvider>)
+      expect(screen.queryByRole('link', { name: /Read the guides/ })).toBeNull()
+    })
+  })
+
   it('reads a section link as its page: /services#method is Services', () => {
     withHidden('/services', () => {
       expect(isHidden('/services')).toBe(true)
@@ -112,7 +127,7 @@ describe('hiding a page (hidden: true in data/nav.ts)', () => {
           const numbers = within(links)
             .getAllByRole('link')
             .map((l) => l.textContent!.slice(-2))
-          expect(numbers).toEqual(['01', '02', '03', '04', '05', '06'])
+          expect(numbers).toEqual(Array.from({ length: NAV.length - 1 }, (_, i) => String(i + 1).padStart(2, '0')))
         })
       })
     })
