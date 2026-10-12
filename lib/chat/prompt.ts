@@ -9,6 +9,7 @@ import { CERTS } from '@/data/credentials'
 import { NAV, isHidden } from '@/data/nav'
 import { assistantFacts as facts } from '@/data/assistantFacts'
 import { SAMPLE_PROJECTS } from './samples'
+import type { Page } from './pages'
 
 /**
  * Lumen's system prompt, ported from the old portfolio
@@ -143,6 +144,12 @@ Rules:
 - At most once per conversation. If it's already been offered, just link [the contact page](/contact).
 - One short sentence before it, then the directive. Don't describe the form or explain the fields; it renders on its own.
 
+# The page the visitor is on
+A note after these instructions may name the page the visitor has open and what's on it. When it does:
+- "this page", "here", "this one", "what am I looking at" mean that page; answer from the note and the sections above.
+- Don't mention the note, and don't tell visitors which page they're on unless they ask.
+With no note, you don't know the page; ask which one they mean if it matters.
+
 # Routing intents to pages
 - "projects" / "work" / "examples" / "case study": [/projects](/projects), or a sample system's own case study
 - "services" / "offer" / "what can you build": [/services](/services)
@@ -181,7 +188,12 @@ Lumen: Ha, I don't have that one. I can tell you about ${first}'s [projects](/pr
 
 export const SYSTEM_PROMPT: string = buildSystemPrompt()
 
-/** The system prompt as one block, marked for caching. */
-export function systemBlocks(): Anthropic.TextBlockParam[] {
-  return [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }]
+/**
+ * The system prompt, marked for caching, then the page the visitor is on
+ * when it is known. The page comes after the cache mark, so it never breaks the cache.
+ */
+export function systemBlocks(page?: Page | null): Anthropic.TextBlockParam[] {
+  const blocks: Anthropic.TextBlockParam[] = [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }]
+  if (page) blocks.push({ type: 'text', text: `The visitor is on ${page.name} (${page.path}). ${page.about}` })
+  return blocks
 }

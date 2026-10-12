@@ -19,14 +19,20 @@ export const chat = {
   reset: 'Reset conversation',
   /** The header's speaker button. */
   sound: { mute: 'Mute sounds', unmute: 'Turn sounds on' },
+  /** The header's size button, desktop only. */
+  size: { expand: 'Expand chat', shrink: 'Shrink chat' },
+  /** The buttons under a finished reply. */
+  actions: { copy: 'Copy reply', copied: 'Copied', retry: 'Try again' },
+  /** The pill that shows when the visitor has scrolled up and more has arrived. */
+  latest: 'Jump to latest',
   thinking: 'Lumen is thinking',
   /** The header badge. It always says Claude, key or no key; the privacy line below the box is the one that follows who answered. */
   badge: { label: 'Claude', title: 'Powered by Claude' },
   hint: { send: 'send', newline: 'newline', open: 'press / anywhere' },
   /** The footer: `ai` when Claude answers, `site` when the offline rules do. */
   privacy: {
-    ai: "Messages go to Anthropic to write the answer. This site doesn't keep them.",
-    site: "This site doesn't keep your messages.",
+    ai: "Messages go to Anthropic to write the answer. Only your browser keeps this chat, for 3 days.",
+    site: 'Only your browser keeps this chat, for 3 days.',
   },
   /** Written into the reply bubble itself when something goes wrong. */
   replies: {
@@ -46,6 +52,10 @@ export const chat = {
   lead: {
     title: 'Send Justine a message',
     note: 'It goes straight to his inbox.',
+    /** The note when the message starts with the visitor's questions to Lumen. */
+    noteDraft: 'Your questions to me are filled in; edit them before you send.',
+    /** The line above those questions in the message. */
+    draftIntro: 'What I asked Lumen:',
     firstName: 'First name',
     lastName: 'Last name',
     email: 'Email',

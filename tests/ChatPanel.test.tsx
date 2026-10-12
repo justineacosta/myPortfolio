@@ -4,11 +4,14 @@ import userEvent from '@testing-library/user-event'
 import ChatRoot from '@/components/chat/ChatRoot'
 import { chat } from '@/data/chat'
 import { STARTER_SUGGESTIONS } from '@/lib/chat/suggestions'
-import { CHAT_KEY } from '@/lib/storage-keys'
+import { CHAT_KEY, CHAT_WIDE_KEY } from '@/lib/storage-keys'
+import { CHAT_TTL_MS } from '@/components/chat/useChat'
 import type { CardProject } from '@/lib/chat/samples'
 
 const go = vi.fn()
 vi.mock('@/components/shell/NavigationProvider', () => ({ useShellNav: () => ({ go }) }))
+const nav = vi.hoisted(() => ({ path: '/' }))
+vi.mock('next/navigation', () => ({ usePathname: () => nav.path }))
 
 const PATHS = ['/services', '/contact', '/projects', '/cases/ostler-barbers/ai-agents.html']
 const PROJECTS: CardProject[] = [{ key: 'ostler-barbers', name: 'Ostler', trade: 'barbershop', thumb: '/samples/thumbs/ostler-barbers.jpeg', href: '/cases/ostler-barbers/ai-agents.html' }]
@@ -33,7 +36,7 @@ const sentBody = (call = 0) => JSON.parse(fetchMock.mock.calls[call][1].body as 
 
 beforeEach(() => {
   go.mockReset()
-  sessionStorage.clear()
+  nav.path = '/'
   fetchMock = vi.fn().mockResolvedValue(answer('Hello there.'))
   vi.stubGlobal('fetch', fetchMock)
 })
@@ -73,7 +76,7 @@ describe('Lumen', () => {
     const dialog = await open()
     await userEvent.click(within(dialog).getByRole('button', { name: STARTER_SUGGESTIONS[0] }))
     const link = await within(dialog).findByRole('link', { name: 'the services' })
-    expect(sentBody()).toEqual({ messages: [{ role: 'user', content: STARTER_SUGGESTIONS[0] }] })
+    expect(sentBody()).toEqual({ messages: [{ role: 'user', content: STARTER_SUGGESTIONS[0] }], page: '/' })
     expect(within(dialog).getByText(chat.badge.label)).toBeInTheDocument()
     await userEvent.click(link)
     expect(go).toHaveBeenCalledWith('/services')
@@ -119,12 +122,18 @@ describe('Lumen', () => {
     await userEvent.type(within(dialog).getByLabelText(chat.lead.firstName), 'Ada')
     await userEvent.type(within(dialog).getByLabelText(chat.lead.lastName), 'Lovelace')
     await userEvent.type(within(dialog).getByLabelText(chat.lead.email), 'ada@example.com')
-    await userEvent.type(within(dialog).getByLabelText(chat.lead.message), 'An intake automation.')
+    // The message starts with what was asked before the form appeared, and nothing after.
+    const message = within(dialog).getByLabelText(chat.lead.message)
+    expect(message).toHaveValue(`${chat.lead.draftIntro}\n- Can I hire him?\n\n`)
+    expect(within(dialog).getByText(chat.lead.noteDraft)).toBeInTheDocument()
+    await userEvent.type(message, 'An intake automation.')
     await userEvent.click(within(dialog).getByRole('button', { name: chat.lead.send }))
     await within(dialog).findByText(chat.lead.sent)
     const [url, init] = fetchMock.mock.calls.at(-1)!
     expect(url).toBe('/api/contact')
-    expect(JSON.parse(init.body)).toMatchObject({ firstName: 'Ada', lastName: 'Lovelace', email: 'ada@example.com', message: 'An intake automation.', website: '' })
+    expect(JSON.parse(init.body)).toMatchObject({ firstName: 'Ada', lastName: 'Lovelace', email: 'ada@example.com', website: '' })
+    expect(JSON.parse(init.body).message).toContain('- Can I hire him?')
+    expect(JSON.parse(init.body).message).toContain('An intake automation.')
   })
 
   it('says Claude even with no key and an offline answer, and that the site keeps nothing', async () => {
@@ -162,12 +171,12 @@ describe('Lumen', () => {
     expect(within(dialog).getByRole('button', { name: chat.send })).toBeInTheDocument()
   })
 
-  it('keeps the chat for the tab, restores it, and resets it', async () => {
+  it('keeps the chat in the browser, restores it, and resets it', async () => {
     const first = renderChat()
     let dialog = await open()
     await userEvent.type(screen.getByRole('textbox', { name: chat.message }), 'Remember me{Enter}')
     await within(dialog).findByText('Hello there.', SEEN)
-    await waitFor(() => expect(sessionStorage.getItem(CHAT_KEY)).toContain('Remember me'))
+    await waitFor(() => expect(localStorage.getItem(CHAT_KEY)).toContain('Remember me'))
     first.unmount()
 
     renderChat()
@@ -175,14 +184,99 @@ describe('Lumen', () => {
     expect(await within(dialog).findByText('Remember me')).toBeInTheDocument()
     await userEvent.click(within(dialog).getByRole('button', { name: chat.reset }))
     expect(within(dialog).queryByText('Remember me')).toBeNull()
-    expect(sessionStorage.getItem(CHAT_KEY)).toBeNull()
+    expect(localStorage.getItem(CHAT_KEY)).toBeNull()
+  })
+
+  it('forgets a chat older than three days', async () => {
+    const at = Date.now() - CHAT_TTL_MS - 1000
+    localStorage.setItem(CHAT_KEY, JSON.stringify({ messages: [{ id: 'a', role: 'user', content: 'Old question' }, { id: 'b', role: 'assistant', content: 'Old answer' }], mode: 'live', at }))
+    renderChat()
+    const dialog = await open()
+    for (const s of STARTER_SUGGESTIONS) expect(within(dialog).getByRole('button', { name: s })).toBeInTheDocument()
+    expect(within(dialog).queryByText('Old question')).toBeNull()
+    expect(localStorage.getItem(CHAT_KEY)).toBeNull()
   })
 
   it('restores a reply saved mid-answer as interrupted', async () => {
-    sessionStorage.setItem(CHAT_KEY, JSON.stringify({ messages: [{ id: 'a', role: 'user', content: 'Q' }, { id: 'b', role: 'assistant', content: 'Par', pending: true }], mode: 'live' }))
+    localStorage.setItem(CHAT_KEY, JSON.stringify({ messages: [{ id: 'a', role: 'user', content: 'Q' }, { id: 'b', role: 'assistant', content: 'Par', pending: true }], mode: 'live', at: Date.now() }))
     renderChat()
     const dialog = await open()
     expect(await within(dialog).findByText('Interrupted. Ask again to continue.', SEEN)).toBeInTheDocument()
+    // An interrupted reply can be asked again, in its place.
+    fetchMock.mockResolvedValueOnce(answer('The full answer.'))
+    await userEvent.click(within(dialog).getByRole('button', { name: chat.actions.retry }))
+    await within(dialog).findByText('The full answer.', SEEN)
+    expect(sentBody().messages).toEqual([{ role: 'user', content: 'Q' }])
+    expect(within(dialog).queryByText('Interrupted. Ask again to continue.', SEEN)).toBeNull()
+    expect(within(dialog).queryByRole('button', { name: chat.actions.retry })).toBeNull()
+  })
+
+  it('offers Try again on a failed reply only, and asks the same question again', async () => {
+    fetchMock.mockRejectedValueOnce(new TypeError('offline')).mockResolvedValueOnce(answer('Second try worked.'))
+    renderChat()
+    const dialog = await open()
+    await userEvent.type(screen.getByRole('textbox', { name: chat.message }), 'Flaky?{Enter}')
+    await within(dialog).findByText('Something went wrong', { ...SEEN, exact: false })
+    await userEvent.click(within(dialog).getByRole('button', { name: chat.actions.retry }))
+    await within(dialog).findByText('Second try worked.', SEEN)
+    expect(sentBody(1).messages).toEqual([{ role: 'user', content: 'Flaky?' }])
+    expect(within(dialog).queryByRole('button', { name: chat.actions.retry })).toBeNull()
+    expect(within(dialog).getAllByText('Flaky?', SEEN)).toHaveLength(1)
+  })
+
+  it('copies a reply as text, with its links made absolute', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
+    fetchMock.mockResolvedValue(answer('He builds **apps**.\n\n- One\n- See [services](/services)'))
+    renderChat()
+    const dialog = await open()
+    await userEvent.type(screen.getByRole('textbox', { name: chat.message }), 'What?{Enter}')
+    await within(dialog).findByText('apps', SEEN)
+    await userEvent.click(within(dialog).getByRole('button', { name: chat.actions.copy }))
+    expect(writeText).toHaveBeenCalledWith(`He builds apps.\n\n- One\n- See services (${window.location.origin}/services)`)
+    expect(await within(dialog).findByRole('button', { name: chat.actions.copied })).toBeInTheDocument()
+  })
+
+  it('starts with the chips for the page the visitor is on, and sends that page', async () => {
+    nav.path = '/services'
+    renderChat()
+    const dialog = await open()
+    const chip = within(dialog).getByRole('button', { name: "What's on this page?" })
+    expect(within(dialog).queryByRole('button', { name: STARTER_SUGGESTIONS[0] })).toBeNull()
+    await userEvent.click(chip)
+    await within(dialog).findByText('Hello there.', SEEN)
+    expect(sentBody().page).toBe('/services')
+  })
+
+  it('widens the panel on desktop and remembers it', async () => {
+    renderChat()
+    const dialog = await open()
+    const size = within(dialog).getByRole('button', { name: chat.size.expand })
+    expect(size).toHaveAttribute('aria-pressed', 'false')
+    await userEvent.click(size)
+    expect(size).toHaveAttribute('aria-pressed', 'true')
+    expect(dialog.className).toContain('shell:w-[min(720px,calc(100vw-40px))]')
+    expect(localStorage.getItem(CHAT_WIDE_KEY)).toBe('wide')
+    await userEvent.click(size)
+    expect(dialog.className).toContain('shell:w-100')
+    expect(localStorage.getItem(CHAT_WIDE_KEY)).toBeNull()
+  })
+
+  it('stays where the visitor scrolled while a reply arrives, and offers the way back', async () => {
+    fetchMock.mockResolvedValue(answer('A reply.'))
+    renderChat()
+    const dialog = await open()
+    const log = within(dialog).getByRole('log')
+    // jsdom has no layout: make the log tall, and the visitor far up it.
+    Object.defineProperty(log, 'scrollHeight', { value: 2000, configurable: true })
+    Object.defineProperty(log, 'clientHeight', { value: 400, configurable: true })
+    log.scrollTop = 100
+    fireEvent.scroll(log)
+    const pill = await within(dialog).findByRole('button', { name: chat.latest })
+    log.scrollTo = vi.fn()
+    await userEvent.click(pill)
+    expect(log.scrollTo).toHaveBeenCalledWith(expect.objectContaining({ top: 2000 }))
+    expect(within(dialog).queryByRole('button', { name: chat.latest })).toBeNull()
   })
 
   it('closes on Esc and puts focus back on the launcher', async () => {

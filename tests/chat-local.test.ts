@@ -5,6 +5,8 @@ import { SAMPLE_PROJECTS } from '@/lib/chat/samples'
 import { profile } from '@/data/profile'
 import { assistantFacts } from '@/data/assistantFacts'
 import { FAQS } from '@/data/faqs'
+import { EXPERIMENTAL } from '@/data/stack'
+import { pageFor } from '@/lib/chat/pages'
 
 describe("Lumen's offline rules", () => {
   it('answers every suggestion chip with a real rule, never the fallback', () => {
@@ -48,6 +50,37 @@ describe("Lumen's offline rules", () => {
 
   it('never shows an email address', () => {
     for (const q of [...ALL_SUGGESTIONS, 'What is his email?', 'How can I contact Justine?']) expect(localAnswer(q), q).not.toContain('@')
+  })
+
+  it('answers "this page" from the page the visitor has open, and asks which one without it', () => {
+    const services = pageFor('/services')!
+    expect(localAnswer("What's on this page?", services)).toContain(`**${services.name}**`)
+    expect(localAnswer('Tell me about this one', pageFor('/projects#build-plan'))).toContain('build plan')
+    expect(localAnswer("What's on this page?")).toMatch(/^Which page/)
+  })
+
+  it('answers whether he uses a tool by name, still-testing tools included, and never takes "make" for Make', () => {
+    expect(localAnswer('Does he use Supabase?')).toMatch(/^Yes, \*\*Supabase\*\*/)
+    expect(localAnswer('Any experience with postgres?')).toContain('**PostgreSQL**')
+    expect(localAnswer('Is he familiar with GitHub Actions?')).toContain('**GitHub Actions**')
+    for (const name of EXPERIMENTAL) expect(localAnswer(`Does he use ${name}?`), name).toContain('still testing')
+    expect(localAnswer('Can he make a website for me?')).not.toContain('**Make**')
+  })
+
+  it('names the one service a question asks for, but leaves price and hiring to their own rules', () => {
+    expect(localAnswer('Do you do SEO?')).toContain('**SEO & Performance**')
+    expect(localAnswer('Can he build a CRM?')).toContain('**CRM, CMS & Internal Tools**')
+    expect(localAnswer('API integrations?')).toContain('**APIs & Integrations**')
+    expect(localAnswer('How much is a website?')).toContain(assistantFacts.billing)
+    expect(localAnswer('Can I hire him for SEO?').trim().endsWith('[[lead-form]]')).toBe(true)
+  })
+
+  it('answers reply speed, timelines, references and why him', () => {
+    expect(localAnswer('How fast does he reply?')).toContain(assistantFacts.reply)
+    expect(localAnswer('How long does a build take?')).toContain(assistantFacts.start)
+    expect(localAnswer('How long has he been coding?')).not.toContain(assistantFacts.start)
+    expect(localAnswer('Do you have client references?')).toMatch(/sample systems for fictional businesses/)
+    expect(localAnswer('Why work with Justine?')).toContain(assistantFacts.summary)
   })
 
   it('falls back when nothing matches, and on an empty question', () => {

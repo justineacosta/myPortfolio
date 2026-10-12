@@ -4,7 +4,8 @@ import { clientIp } from '@/lib/leadLimit'
 import { chatAllowed } from '@/lib/chat/limit'
 import { systemBlocks } from '@/lib/chat/prompt'
 import { localAnswer } from '@/lib/chat/local'
-import { checkChat, type ChatTurn } from '@/lib/chat/validate'
+import { pageFor } from '@/lib/chat/pages'
+import { checkChat } from '@/lib/chat/validate'
 
 /**
  * Lumen's backend, ported from the old portfolio
@@ -14,7 +15,8 @@ import { checkChat, type ChatTurn } from '@/lib/chat/validate'
  * - local: without a key, or when the call fails before its first word, the
  *   offline rules (lib/chat/local.ts) answer, streamed in small pieces so the
  *   panel can't tell the difference.
- * X-Assistant-Mode says which one answered. Only the live tier is rate
+ * Both are told the page the visitor has open (lib/chat/pages.ts), when the
+ * body names one the site shows. X-Assistant-Mode says which one answered. Only the live tier is rate
  * limited. Every refusal is { error: sentence } for the panel to show.
  */
 
@@ -29,9 +31,8 @@ const headers = (mode: 'live' | 'local') => ({ 'content-type': 'text/plain; char
 
 const refuse = (error: string, status: number) => Response.json({ error }, { status })
 
-/** The offline answer to the visitor's latest question, sent four characters at a time like a stream. */
-function local(messages: ChatTurn[]): Response {
-  const reply = localAnswer(messages[messages.length - 1].content)
+/** An offline answer, sent four characters at a time like a stream. */
+function local(reply: string): Response {
   // [\s\S], not ., so line breaks survive the split.
   const pieces = reply.match(/[\s\S]{1,4}/g) ?? [reply]
   const encoder = new TextEncoder()
@@ -58,11 +59,15 @@ const textOf = (event: StreamEvent) => (event.type === 'content_block_delta' && 
 export async function POST(req: Request) {
   // No honest history is near this size, so a larger one is refused before it is read.
   const declared = Number(req.headers.get('content-length'))
-  const messages = declared > MAX_BODY ? null : checkChat(await req.json().catch(() => null))
+  const sent: unknown = declared > MAX_BODY ? null : await req.json().catch(() => null)
+  const messages = checkChat(sent)
   if (!messages) return refuse(chat.errors.invalid, 400)
+  // Only a page the site shows is believed; anything else is no page at all.
+  const page = pageFor((sent as { page?: unknown }).page)
+  const offline = () => localAnswer(messages[messages.length - 1].content, page)
 
   // The offline tier costs nothing, so it answers before the limit is counted.
-  if (!process.env.ANTHROPIC_API_KEY) return local(messages)
+  if (!process.env.ANTHROPIC_API_KEY) return local(offline())
   if (!chatAllowed(clientIp(req))) return refuse(chat.errors.rate, 429)
 
   let stream: ReturnType<Anthropic['beta']['messages']['stream']>
@@ -79,14 +84,14 @@ export async function POST(req: Request) {
       // A declined answer is retried on the model Anthropic recommends for that kind of refusal.
       betas: ['server-side-fallback-2026-07-01'],
       fallbacks: 'default',
-      system: systemBlocks(),
+      system: systemBlocks(page),
       messages,
     })
     events = stream[Symbol.asyncIterator]()
     first = await events.next()
   } catch (err) {
     console.error('Lumen: the call failed before the first event; the offline rules answer.', err)
-    return local(messages)
+    return local(offline())
   }
 
   const encoder = new TextEncoder()
@@ -112,10 +117,10 @@ export async function POST(req: Request) {
           console.info(`Lumen: ${final.model}, stop ${final.stop_reason}, cache read ${final.usage.cache_read_input_tokens}, written ${final.usage.cache_creation_input_tokens}.`)
         }
         // Nothing to show (a refusal the fallback couldn't rescue, or an empty answer): the offline rules answer instead.
-        if (!wrote) controller.enqueue(encoder.encode(localAnswer(messages[messages.length - 1].content)))
+        if (!wrote) controller.enqueue(encoder.encode(offline()))
       } catch (err) {
         console.error('Lumen: the call failed mid-answer.', err)
-        controller.enqueue(encoder.encode(wrote ? `\n\n${chat.replies.interrupted}` : localAnswer(messages[messages.length - 1].content)))
+        controller.enqueue(encoder.encode(wrote ? `\n\n${chat.replies.interrupted}` : offline()))
       }
       controller.close()
     },

@@ -69,11 +69,34 @@ const SUGGESTION_RULES: SuggestionRule[] = [
 
 const DEFAULT_SUGGESTIONS = [`What does ${first} do?`, PROJECT_CHIPS[0] ?? 'Show me the projects', 'How do I get in touch?']
 
-/** The chips under the greeting, before anything is asked. */
+/** The chips under the greeting, before anything is asked, on Home and any page without its own. */
 export const STARTER_SUGGESTIONS = [`What does ${first} do?`, "What's the tech stack?", 'Is he taking new work?', PROJECT_CHIPS[0] ?? 'Show me the projects']
 
+const THIS_PAGE = "What's on this page?"
+const THIS_ONE = 'Tell me about this one'
+/** The chips that only make sense beside the page they were asked on, so the contact form's draft leaves them out. */
+export const PAGE_CHIPS: ReadonlySet<string> = new Set([THIS_PAGE, THIS_ONE])
+
+/** The starter chips a page has instead, for the questions people ask there. */
+const PAGE_STARTERS: Record<string, string[]> = {
+  '/projects': [THIS_PAGE, PROJECT_CHIPS[0] ?? 'Show me the projects', 'Any AI agent builds?', 'Is he taking new work?'],
+  '/services': [THIS_PAGE, 'What does it cost?', 'How long does a build take?', 'How does he work?'],
+  '/about': [THIS_PAGE, `Why work with ${first}?`, 'What did he study?', 'Where is he based?'],
+  '/contact': ['How fast does he reply?', 'What does it cost?', 'How fast can he start?', 'Who owns the code?'],
+}
+
+/** The starter chips for a page, as the widget names it (a pathname, and a hash when a Projects card is open). */
+export function startersFor(page: string): string[] {
+  const [path, view] = page.split('#')
+  const chips = PAGE_STARTERS[path] ?? STARTER_SUGGESTIONS
+  // An open Projects card is "this one", not the whole page.
+  return view && path === '/projects' ? [THIS_ONE, ...chips.slice(1)] : chips
+}
+
 /** Every chip the widget can show, for the test that each one gets a real answer. */
-export const ALL_SUGGESTIONS = [...new Set([...STARTER_SUGGESTIONS, ...DEFAULT_SUGGESTIONS, ...SUGGESTION_RULES.flatMap((r) => r.suggestions)])]
+export const ALL_SUGGESTIONS = [
+  ...new Set([...STARTER_SUGGESTIONS, ...Object.values(PAGE_STARTERS).flat(), THIS_ONE, ...DEFAULT_SUGGESTIONS, ...SUGGESTION_RULES.flatMap((r) => r.suggestions)]),
+]
 
 /**
  * Three chips for after a reply. The visitor's latest question is the

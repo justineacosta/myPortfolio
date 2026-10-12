@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { usePathname } from 'next/navigation'
 import type { CardProject } from '@/lib/chat/samples'
 import { play } from '@/lib/chat/sound'
 import { useChat } from './useChat'
@@ -11,18 +12,27 @@ import ChatPanel from './ChatPanel'
 /** Whether a key press happened while typing somewhere, so `/` is a character there, not a shortcut. */
 const typing = (el: EventTarget | null) => el instanceof HTMLElement && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable)
 
+const onHash = (change: () => void) => {
+  window.addEventListener('hashchange', change)
+  return () => window.removeEventListener('hashchange', change)
+}
+
 /**
  * Lumen on every page: the launcher and, once opened, the panel. The
  * conversation lives here, so closing the panel never drops a reply that is
  * still arriving. `/` opens it from anywhere you aren't typing, and a
  * "How can I help?" bubble offers it once per visit. `ai` is
  * whether the server has a key; `paths` are the site paths a reply may link
- * to; `projects` are the sample systems a reply may show as cards.
+ * to; `projects` are the sample systems a reply may show as cards. The page
+ * the visitor has open (its path, and its hash when a card is open over it)
+ * goes with every question and picks the starter chips.
  */
 export default function ChatRoot({ ai, paths, projects }: { ai: boolean; paths: string[]; projects: CardProject[] }) {
   const [open, setOpen] = useState(false)
   const launcher = useRef<HTMLButtonElement>(null)
-  const convo = useChat()
+  const hash = useSyncExternalStore(onHash, () => window.location.hash, () => '')
+  const page = `${usePathname() ?? '/'}${hash}`
+  const convo = useChat(page)
   const known = useMemo(() => new Set(paths), [paths])
   const openChat = () => {
     play('open')
@@ -52,7 +62,7 @@ export default function ChatRoot({ ai, paths, projects }: { ai: boolean; paths: 
     <>
       <ChatLauncher ref={launcher} open={open} onToggle={() => (open ? close(false) : openChat())} />
       <ChatNudge open={open} onOpen={openChat} />
-      {open && <ChatPanel {...convo} known={known} projects={projects} ai={ai} onClose={close} />}
+      {open && <ChatPanel {...convo} page={page} known={known} projects={projects} ai={ai} onClose={close} />}
     </>
   )
 }

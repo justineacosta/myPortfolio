@@ -129,3 +129,28 @@ export function plainText(text: string): string {
     .map((line) => parseInline(line).map((r) => r.text).join(''))
     .join(' ')
 }
+
+/**
+ * A reply as text to paste elsewhere: paragraphs and `- ` bullets, each link
+ * as its label and its address, made absolute against `origin`, since a site
+ * path means nothing once it leaves the site. Cards and the form are left out.
+ */
+export function copyText(text: string, origin: string): string {
+  const line = (s: string) =>
+    parseInline(s)
+      .map((r) => (r.kind === 'link' ? `${r.text} (${r.href.startsWith('/') || r.href.startsWith('#') ? new URL(r.href, origin).href : r.href})` : r.text))
+      .join('')
+  return parseBlocks(text)
+    .flatMap((b) => (b.kind === 'p' ? [line(b.text)] : b.kind === 'ul' ? [b.items.map((i) => `- ${line(i)}`).join('\n')] : []))
+    .join('\n\n')
+}
+
+/**
+ * What the in-chat form's message starts with: the visitor's own questions
+ * (the last five, each cut short), so Justine sees what they wanted to know.
+ */
+export function leadDraft(questions: string[], intro: string): string {
+  if (!questions.length) return ''
+  const cut = (q: string) => (q.length > 200 ? `${q.slice(0, 199).trimEnd()}…` : q)
+  return `${intro}\n${questions.slice(-5).map((q) => `- ${cut(q.replace(/\s+/g, ' '))}`).join('\n')}\n\n`
+}
