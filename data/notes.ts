@@ -7,6 +7,8 @@
  * `draft: true` keeps a post to `next dev` (localhost:3000/notes). To publish
  * one, set it to false, and switch /notes on in data/nav.ts.
  */
+import { isHidden } from './nav'
+
 export type Note = { slug: string; title: string; summary: string; date: string; tags: string[]; draft: boolean }
 
 export const NOTES: Note[] = [
@@ -39,6 +41,9 @@ export const NOTES: Note[] = [
 /** The posts a visitor can see: every post under `next dev`, only the finished ones in production. */
 export const publishedNotes = (env: string | undefined = process.env.NODE_ENV): Note[] =>
   env === 'development' ? NOTES : NOTES.filter((n) => !n.draft)
+
+/** The posts the site lists and serves: none while /notes is switched off. The routes, sitemap, ⌘K and Lumen all read this. */
+export const visibleNotes = (env: string | undefined = process.env.NODE_ENV): Note[] => (isHidden('/notes') ? [] : publishedNotes(env))
 
 export const notePath = (slug: string) => `/notes/${slug}`
 

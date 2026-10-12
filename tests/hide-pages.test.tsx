@@ -5,6 +5,7 @@ import AboutPage from '@/app/(site)/about/page'
 import ContactPage from '@/app/(site)/contact/page'
 import ProjectsPage from '@/app/(site)/projects/page'
 import ServicesPage from '@/app/(site)/services/page'
+import NotesPage from '@/app/(site)/notes/page'
 import ShowcasePage from '@/app/(site)/showcase/page'
 import TestimonialsPage from '@/app/(site)/testimonials/page'
 import ThankYou from '@/app/(plain)/thank-you/page'
@@ -33,6 +34,7 @@ const PAGES: Record<string, () => unknown> = {
   '/projects': ProjectsPage,
   '/showcase': ShowcasePage,
   '/services': ServicesPage,
+  '/notes': NotesPage,
   '/testimonials': TestimonialsPage,
   '/about': AboutPage,
   '/contact': ContactPage,
