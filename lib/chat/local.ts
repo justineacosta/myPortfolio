@@ -5,6 +5,7 @@ import { FAQS } from '@/data/faqs'
 import { TOOLS, EXPERIMENTAL } from '@/data/stack'
 import { CERTS } from '@/data/credentials'
 import { assistantFacts as facts } from '@/data/assistantFacts'
+import { projects } from '@/data/projects'
 import { SAMPLE_PROJECTS, type SampleProject } from './samples'
 import type { Page } from './pages'
 
@@ -288,7 +289,7 @@ const RULES: Rule[] = [
     // Before the projects rule, whose "case" would take "any case studies from clients?".
     match: /\b(testimonials?|reviews?|references?|clients?|customers?|track\s*record)\b/i,
     reply: () =>
-      `Fair question! The projects on this site are sample systems for fictional businesses, built to show the whole stack end to end. For references, you can ask ${first} directly on [the contact page](/contact).`,
+      `Fair question! ${first}'s real client work is [**${projects.caseStudy.cardTitle}**](/projects#${projects.caseStudy.view}), a citizen portal for a local barangay government. The other projects on this site are sample systems for fictional businesses, built to show the whole stack end to end. For references, you can ask ${first} directly on [the contact page](/contact).`,
   },
   {
     match: /\b(projects?|case|portfolio|samples?|examples?|recent\s*work|built|shipped|made)\b/i,

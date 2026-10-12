@@ -81,6 +81,11 @@ ${lines(PROCESS.map((s) => `**${s.name}**: ${s.line}`))}
 # Common questions
 ${lines([...FAQS.map((f) => `**${f.q}** ${f.a}`), ...facts.faq.map((f) => `**${f.question}** ${f.answer}`)])}
 
+# Real client work
+${first}'s real, shipped client work, as opposed to the fictional samples below:
+- **${projects.caseStudy.title}** ([case study](/projects#${projects.caseStudy.view})): ${projects.caseStudy.body} ${projects.caseStudy.solution}
+Built with ${projects.caseStudy.stack.map((b) => b.name).join(', ')}.
+
 # What's on the Projects page (/projects)
 - **${projects.cards.automations.title}** (${projects.cards.automations.page}): ${projects.cards.automations.body}
 - **${projects.cards.plan.title}** (${projects.cards.plan.page}): ${projects.cards.plan.body}
