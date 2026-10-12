@@ -2,7 +2,8 @@
 
 **Date:** 2026-10-13
 **Status:** Design approved 2026-10-13 in chat; spec awaiting review
-**Source:** the old portfolio (the myPortfolioV3 repo, `src/data/projects.ts`, slug `barangay-san-fernando-citizen-portal`). Content only: the Kraft UI stays as it is (see the port-content-not-design rule).
+**Source:** the old portfolio (the myPortfolioV3 repo, `src/data/projects.ts`, slug `barangay-san-fernando-citizen-portal`) for the problem and solution text. The features come from the real site's README (the SanFernandoWeb repo, copied locally to `sanfernandoweb/`, §Features), because V3's five bullets undersell what was built. Content only: the Kraft UI stays as it is (see the port-content-not-design rule).
+**Revised:** 2026-10-13, features sourced from the real site (Justine's choice, after the spec was approved).
 
 ## 1. Goal
 
@@ -13,7 +14,7 @@ The Projects board shows one real client build next to the samples. Today every 
 | Topic | Decision |
 | --- | --- |
 | Where it lives | A card on the Projects board that opens a view in place, `/projects#san-fernando` |
-| What it shows | Problem, what I built, features and the stack, ported verbatim from myPortfolioV3 |
+| What it shows | Problem and what I built (verbatim from myPortfolioV3), six features written from the real site's README, and the stack |
 | How it is built | A React view in Kraft's document `Window`, from a data file. No generator script, no iframe. |
 | The card | A full-width banner, its own row above the board's two rows, marked REAL CLIENT |
 | Lumen | Learns the case study, so it can say real client work has shipped and link to it |
@@ -21,6 +22,7 @@ The Projects board shows one real client build next to the samples. Today every 
 ## 3. Out of scope
 
 - No screenshots and no link to the live site.
+- The local `sanfernandoweb/` copy is reference only: ignored by git, `tsc` and `eslint`, like `oldportfolio/` was (`ce67e1b`). Its `.env.local.backup` must never be committed.
 - No engineering deep-dive (RBAC, Turnstile, rate limits, tests, commit count).
 - No quote or photo of Dominic Dela Cruz. Testimonials stays hidden and unchanged.
 - Nothing from SanFernandoWeb's `proposal/` folder (quotations, agreement, valuation).
@@ -42,10 +44,19 @@ Verbatim from myPortfolioV3 unless marked new. `PLACEHOLDER` strings are not all
 | `body` (card) | V3's `description` first sentence: `A citizen-facing portal for a local barangay government, built to move routine transactions off the counter and online.` |
 | `problemLabel` / `problem` | `The problem` / V3's `problem` |
 | `solutionLabel` / `solution` | `What I built` / V3's `solution` |
-| `featuresLabel` / `features` | `Features` / V3's five `features` |
+| `featuresLabel` / `features` | `Features` / the six below (new, from SanFernandoWeb's README) |
 | `stack` | `logos(...)` of V3's `tech`: Next.js, React, TypeScript, Tailwind CSS, Supabase, PostgreSQL, Resend, Cloudflare |
 | `cue` / `cta` (new) | `READ THE CASE STUDY` (the board's pointer label and the card's call to action) |
 | `contact` (new) | `Start a project` → `/contact`. Left out when Contact is hidden (`isHidden`). |
+
+The six features, in order:
+
+1. `Four request flows residents file online: applications, appointments, complaints and assistance.`
+2. `Tracking by reference number and surname, with a timeline of every step, and a way to reply when staff need more information.`
+3. `Email receipts and outcome notices at every step, from submission to resolution.`
+4. `News, notices, an events calendar, the officials directory, and a transparency section with legislative and disclosure documents.`
+5. `A staff portal with five ticket queues, and a draft-to-published workflow for every kind of content.`
+6. `Role-based staff access, an audit log of every change, and bot and rate-limit protection on every public form.`
 
 Resend's logo is missing from `public/icons/brands/`. It is added the way the others were: a `resend` line in `scripts/brand-icons.mjs`'s `BRANDS` (with the same neutral grey `nextdotjs` and `vercel` use, since Resend's mark is black), then `node scripts/brand-icons.mjs`.
 
