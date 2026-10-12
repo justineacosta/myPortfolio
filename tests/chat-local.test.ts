@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { FALLBACK, localAnswer } from '@/lib/chat/local'
+import { CLARIFY, FALLBACK, localAnswer } from '@/lib/chat/local'
+import { optionsOf } from '@/lib/chat/rich'
 import { ALL_SUGGESTIONS, STARTER_SUGGESTIONS, suggestionsFor } from '@/lib/chat/suggestions'
 import { SAMPLE_PROJECTS } from '@/lib/chat/samples'
 import { profile } from '@/data/profile'
@@ -83,9 +84,20 @@ describe("Lumen's offline rules", () => {
     expect(localAnswer('Why work with Justine?')).toContain(assistantFacts.summary)
   })
 
-  it('falls back when nothing matches, and on an empty question', () => {
-    expect(localAnswer('Recommend me a good pizza topping')).toBe(FALLBACK)
+  it('says it lacks a fact about him it cannot answer, and asks back when it cannot tell what was meant', () => {
+    expect(localAnswer('Does he have a dog?')).toBe(FALLBACK)
     expect(localAnswer('   ')).toBe(FALLBACK)
+    expect(localAnswer('Recommend me a good pizza topping')).toBe(CLARIFY)
+    expect(localAnswer('can he do that?')).toBe(CLARIFY)
+  })
+
+  it('offers clarifying answers to tap, and every one gets a real answer', () => {
+    const options = optionsOf(CLARIFY)
+    expect(options).toHaveLength(3)
+    for (const o of [...options, ...optionsOf(localAnswer("What's on this page?"))]) {
+      expect(localAnswer(o), o).not.toBe(FALLBACK)
+      expect(localAnswer(o), o).not.toBe(CLARIFY)
+    }
   })
 
   it('answers "how does a project start?" with the process, not the samples', () => {
@@ -127,11 +139,26 @@ describe("Lumen's offline rules", () => {
   })
 
   it('answers a follow-up from the question before it, and never shadows a chip with one', () => {
-    expect(localAnswer('What would that look like?', null, 'I need my lead intake automated.')).toContain('(/automations.html)')
-    expect(localAnswer('Tell me more', null, 'Can you build a RAG chatbot for my docs?')).toContain('(/ai-agents.html)')
-    expect(localAnswer('Any examples?', null, 'Tell me about Ostler')).toContain('[[project:ostler-barbers]]')
-    expect(localAnswer('What would that look like?', null, 'hey')).toBe(FALLBACK)
-    for (const chip of ALL_SUGGESTIONS) expect(localAnswer(chip, null, 'Can you build a RAG chatbot?'), chip).toBe(localAnswer(chip))
+    expect(localAnswer('What would that look like?', null, ['I need my lead intake automated.'])).toContain('(/automations.html)')
+    expect(localAnswer('Tell me more', null, ['Can you build a RAG chatbot for my docs?'])).toContain('(/ai-agents.html)')
+    expect(localAnswer('Any examples?', null, ['Tell me about Ostler'])).toContain('[[project:ostler-barbers]]')
+    expect(localAnswer('What would that look like?', null, ['hey'])).toBe(CLARIFY)
+    for (const chip of ALL_SUGGESTIONS) expect(localAnswer(chip, null, ['Can you build a RAG chatbot?']), chip).toBe(localAnswer(chip))
+  })
+
+  it('finds the topic further back, past small talk, and answers "can he do that?" for it', () => {
+    const earlier = ['I need my lead intake automated.', 'thanks']
+    expect(localAnswer('What would that look like?', null, earlier)).toContain('(/automations.html)')
+    expect(localAnswer('can he do that?', null, earlier)).toContain('(/automations.html)')
+    // "The other one" could be anything said before, so it asks rather than repeat the last topic.
+    expect(localAnswer('and the other one?', null, earlier)).toBe(CLARIFY)
+  })
+
+  it('remembers the business the visitor named, for price and timeline answers', () => {
+    const earlier = ['I run a dental clinic. Have you built anything like that?']
+    expect(localAnswer('How much would it cost?', null, earlier)).toContain('what your dental clinic needs')
+    expect(localAnswer('How long does a build take?', null, earlier)).toContain('what your dental clinic needs')
+    expect(localAnswer('How much would it cost?')).toContain('depends on scope')
   })
 
   it('takes "is he taking on new clients?" as hiring intent, not a projects question', () => {

@@ -64,8 +64,9 @@ export async function POST(req: Request) {
   if (!messages) return refuse(chat.errors.invalid, 400)
   // Only a page the site shows is believed; anything else is no page at all.
   const page = pageFor((sent as { page?: unknown }).page)
-  // The visitor's question before this one, so the offline rules can follow "what would that look like?".
-  const offline = () => localAnswer(messages[messages.length - 1].content, page, messages.at(-3)?.content ?? null)
+  // The visitor's earlier questions, so the offline rules can follow "what would that look like?" and remember their business.
+  const earlier = messages.slice(0, -1).filter((m) => m.role === 'user').map((m) => m.content)
+  const offline = () => localAnswer(messages[messages.length - 1].content, page, earlier)
 
   // The offline tier costs nothing, so it answers before the limit is counted.
   if (!process.env.ANTHROPIC_API_KEY) return local(offline())

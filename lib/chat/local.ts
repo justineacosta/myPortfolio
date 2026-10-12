@@ -17,11 +17,14 @@ import type { Page } from './pages'
  * Server-only: SAMPLE_PROJECTS pulls in every case.
  */
 
+/** What the offline rules know beyond the question: the page the visitor has open, and the business they said they run. */
+type Context = { page: Page | null; business: string | null }
+
 type Rule = {
   /** A pattern, or a test for the rules that need more than one. */
   match: RegExp | ((question: string) => boolean)
-  /** Receives the question so a rule can search, and the visitor's page when it is known; most rules ignore both. */
-  reply: (question: string, page: Page | null) => string
+  /** Receives the question so a rule can search, and what is known of the conversation; most rules ignore both. */
+  reply: (question: string, context: Context) => string
   /** Clear hiring intent only: the reply ends with the in-chat form. */
   leadForm?: boolean
 }
@@ -198,10 +201,10 @@ const RULES: Rule[] = [
   {
     // First: "tell me about this one" would otherwise reach the bio or the projects rule.
     match: THIS_PAGE,
-    reply: (_, page) =>
+    reply: (_, { page }) =>
       page
         ? `You're on **${page.name}**. ${page.about}`
-        : `Happy to help. Which page do you mean? The site has [projects](/projects), [services](/services), [about](/about) and [contact](/contact), and you can ask me about any of them.`,
+        : `Happy to help. Which page do you mean? The site has [projects](/projects), [services](/services), [about](/about) and [contact](/contact), and you can ask me about any of them.\n\n[[options:${CLARIFY_OPTIONS.join('|')}]]`,
   },
   {
     // Ahead of the greeting, so "hi, tell me a joke" gets this and not just a hello.
@@ -336,7 +339,7 @@ const RULES: Rule[] = [
     // Before the availability rule, whose "start" would take "how long before it starts?".
     // "how long does it take", never "how long has he been coding".
     match: /\b(how\s*long\s*(does|do|will|would|to|for)\b|timelines?|turnaround|deadlines?|duration|how\s*many\s*(weeks|months|days))\b/i,
-    reply: () => `It depends on the build, so there's no fixed timeline. ${facts.start} If you describe the project on [the contact page](/contact), he'll scope it for you.`,
+    reply: (_, { business }) => `It depends on ${business ? `what your ${business} needs` : 'the build'}, so there's no fixed timeline. ${facts.start} If you describe the project on [the contact page](/contact), he'll scope it for you.`,
   },
   {
     match: /\b(contact|hire|email|reach|engage|book|work\s*together|get\s*in.*touch)\b/i,
@@ -353,7 +356,7 @@ const RULES: Rule[] = [
   {
     // Before the service lookup, so "how much is a website?" gets how billing works, not the web service.
     match: /\b(prices?|rates?|costs?|how\s*much|budget|fees?|quotes?|charges?|pricing)\b/i,
-    reply: () => `There's no set rate published, since it depends on scope. ${facts.billing} If you share the shape of the project on [the contact page](/contact), ${first} will come back with a number.`,
+    reply: (_, { business }) => `There's no set rate published, since it depends on ${business ? `what your ${business} needs` : 'scope'}. ${facts.billing} If you share the shape of the project on [the contact page](/contact), ${first} will come back with a number.`,
   },
   {
     // After the price rule, so "a guaranteed price?" is a price question.
@@ -403,19 +406,40 @@ const RULES: Rule[] = [
 ]
 
 /** The reply when no rule matches. */
+/** The chips a clarifying question offers: questions the rules answer well, one per kind of visitor. */
+const CLARIFY_OPTIONS = ['Show me the projects', 'What does he build?', 'How does he work?']
+
+/** The reply to a question too unclear to answer: a short question back, with answers to tap. */
+export const CLARIFY = `Hmm, I'm not quite sure what you mean. Were you asking about ${first}'s projects, what he can build, or how he works? If it's something else, he can answer it himself on [the contact page](/contact).\n\n[[options:${CLARIFY_OPTIONS.join('|')}]]`
+
+/** "Can he do that?": a short question that leans on a topic said before. ("And the other one?" names no topic, so it gets a question back.) */
+const VAGUE = /\b(that|it|this|those|these|them)\b/i
+/** A question about Justine himself, which the rules would answer if they could: a missing fact, not an unclear question. */
+const ABOUT_HIM = /\b(he|his|him|justine|you|your)\b/i
+
+/** "I run a dental clinic", "we own a small gym.": the business the visitor named, in their words. */
+const BUSINESS_RE = /\b(?:i|we)\s+(?:run|own|have|manage|operate)\s+(?:a|an)\s+([a-z][a-z&' -]{2,40}?)(?=\s*[.,!?;]|\s+(?:and|but|with|that|who|which|in|for|where)\b|\s*$)/i
+const businessIn = (earlier: string[]) => earlier.map((q) => BUSINESS_RE.exec(q)?.[1].trim().toLowerCase()).findLast(Boolean) ?? null
+
 export const FALLBACK = `Hmm, I don't have that detail, sorry. ${first} can answer it himself on [the contact page](/contact). In the meantime, you might like [projects](/projects), [services](/services), or [about](/about).`
+
+/** The latest earlier question with a topic to show an example of, if any. */
+const topicExample = (earlier: string[]) => earlier.map(exampleReply).findLast(Boolean) ?? null
 
 /**
  * Lumen's offline answer to a question: a follow-up first, then a named
- * sample, then the first rule that matches. `page` is the one the visitor has
- * open, and `previous` the question before this one, when known.
+ * sample, then the first rule that matches, and when nothing does, a question
+ * back. `page` is the one the visitor has open, and `earlier` the visitor's
+ * questions before this one, oldest first, so a follow-up finds its topic and
+ * a business named earlier shapes the answer.
  */
-export function localAnswer(question: string, page: Page | null = null, previous: string | null = null): string {
+export function localAnswer(question: string, page: Page | null = null, earlier: string[] = []): string {
   const trimmed = question.trim()
   if (!trimmed) return FALLBACK
-  // "What would that look like?" means the last question's topic; with no topic to lean on, the rules answer it as asked.
-  if (previous && FOLLOW_UP.test(trimmed) && trimmed.split(/\s+/).length <= 8) {
-    const example = exampleReply(previous)
+  const short = trimmed.split(/\s+/).length <= 8
+  // "What would that look like?" means the latest topic; with no topic to lean on, the rules answer it as asked.
+  if (short && FOLLOW_UP.test(trimmed)) {
+    const example = topicExample(earlier)
     if (example) return example
   }
   // "Tell me about <sample>" is what the sample chips send; the bio rule would otherwise take "tell me about".
@@ -425,10 +449,14 @@ export function localAnswer(question: string, page: Page | null = null, previous
   }
   for (const rule of RULES) {
     if (!(typeof rule.match === 'function' ? rule.match(trimmed) : rule.match.test(trimmed))) continue
-    const reply = rule.reply(trimmed, page)
+    const reply = rule.reply(trimmed, { page, business: businessIn(earlier) })
     return rule.leadForm ? `${reply}\n\n[[lead-form]]` : reply
   }
   // Nothing matched: a named sample still beats the generic answer.
   const named = findSample(trimmed)
-  return named ? sampleReply(named) : FALLBACK
+  if (named) return sampleReply(named)
+  // "Can he do that?" after a topic is about that topic; with none, it needs a question back.
+  if (short && VAGUE.test(trimmed)) return topicExample(earlier) ?? CLARIFY
+  // A clear question about him that no rule covers is a missing fact; anything else, ask what they meant.
+  return ABOUT_HIM.test(trimmed) ? FALLBACK : CLARIFY
 }

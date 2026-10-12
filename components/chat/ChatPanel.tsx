@@ -20,7 +20,7 @@ import {
 import { useShellNav } from '@/components/shell/NavigationProvider'
 import { chat } from '@/data/chat'
 import { prefersReducedMotion } from '@/lib/motion'
-import { copyText, hasLeadForm, leadDraft, plainText } from '@/lib/chat/rich'
+import { copyText, hasLeadForm, leadDraft, optionsOf, plainText } from '@/lib/chat/rich'
 import type { CardProject } from '@/lib/chat/samples'
 import { PAGE_CHIPS, startersFor, suggestionsFor } from '@/lib/chat/suggestions'
 import { isMuted, play, setMuted } from '@/lib/chat/sound'
@@ -199,7 +199,9 @@ export default function ChatPanel({
   }, [typed])
 
   const lastOf = (role: 'user' | 'assistant') => messages.findLast((m) => m.role === role && !m.pending)?.content ?? null
-  const suggestions = messages.length ? suggestionsFor(lastOf('assistant'), lastOf('user')) : startersFor(page)
+  // When Lumen's last reply asked something, its options are the chips; otherwise the usual suggestions.
+  const offered = optionsOf(lastOf('assistant') ?? '')
+  const suggestions = !messages.length ? startersFor(page) : offered.length ? offered : suggestionsFor(lastOf('assistant'), lastOf('user'))
   // Only the first reply that asks for the form draws it; two forms in one chat would read as broken.
   const formOwner = useMemo(() => messages.find((m) => m.role === 'assistant' && hasLeadForm(m.content))?.id, [messages])
   // The form's message starts with what the visitor asked before it appeared, less the questions that only mean something beside their page.
