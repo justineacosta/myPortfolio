@@ -1,5 +1,5 @@
 // Prints what Lumen really answers, so the answers can be read before
-// shipping: 14 single questions, then one two-turn conversation. It talks to a
+// shipping: 16 single questions, then one two-turn conversation. It talks to a
 // running dev server and exits 1 on any non-200, printing the status and body.
 // With the real ANTHROPIC_API_KEY, Claude answers; without one, the offline
 // rules do (each answer is labelled live or local). Each request sends its own
@@ -24,6 +24,8 @@ const QUESTIONS = [
   "Did you build Airbnb's booking system?",
   'Can you guarantee my sales double?',
   'Give me a fixed price for an online store.',
+  'We own a gym. Any examples?',
+  'Is he taking on new clients?',
 ]
 
 let count = 0

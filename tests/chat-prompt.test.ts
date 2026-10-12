@@ -30,6 +30,12 @@ describe("Lumen's system prompt", () => {
     expect(SAMPLE_PROJECTS.every((p) => p.trade && p.builds.length && p.flows.length)).toBe(true)
   })
 
+  it('covers the questions that need care, and its examples only name cards that exist', () => {
+    for (const s of ['Have you built anything like that?', "Did you build [a named company's product]?", 'Guarantees', 'Follow-ups', 'How does a project start?']) expect(SYSTEM_PROMPT).toContain(s)
+    const slugs = new Set(SAMPLE_PROJECTS.map((p) => p.key))
+    for (const [, slug] of SYSTEM_PROMPT.matchAll(/\[\[project:([a-z0-9-]+)\]\]/g)) expect(slugs.has(slug), slug).toBe(true)
+  })
+
   it('never gives Lumen an email address, and calls the samples fictional', () => {
     expect(SYSTEM_PROMPT).not.toContain(profile.email)
     expect(SYSTEM_PROMPT).not.toMatch(/[\w.+-]+@[\w-]+\.\w+/)
