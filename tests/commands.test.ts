@@ -1,10 +1,29 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+import { NOTES } from '@/data/notes'
 import { NAV } from '@/data/nav'
 import { PROJECT_VIEWS, projects } from '@/data/projects'
-import { COMMANDS, filterCommands, SECTIONS } from '@/lib/commands'
+import { COMMANDS, commands, filterCommands, SECTIONS } from '@/lib/commands'
 import { splitHref } from '@/lib/hash'
 
 describe('filterCommands', () => {
+  it('lists each visible guide in ⌘K while Notes is on, and none while it is off', () => {
+    vi.stubEnv('NODE_ENV', 'development')
+    try {
+      const n = NOTES[0]
+      expect(commands().find((c) => c.href === `/notes/${n.slug}`)).toMatchObject({ label: n.title })
+      expect(filterCommands(n.title.slice(0, 12)).map((c) => c.href)).toContain(`/notes/${n.slug}`)
+      const item = NAV.find((x) => x.href === '/notes')!
+      item.hidden = true
+      try {
+        expect(commands().some((c) => c.href.startsWith('/notes'))).toBe(false)
+      } finally {
+        item.hidden = false
+      }
+    } finally {
+      vi.unstubAllEnvs()
+    }
+  })
+
   it('finds the San Fernando case study, led by its first logo', () => {
     const hit = COMMANDS.find((c) => c.href === '/projects#san-fernando')!
     expect(hit).toMatchObject({ label: 'Barangay San Fernando', logo: 'nextdotjs' })

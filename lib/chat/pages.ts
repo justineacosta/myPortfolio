@@ -1,5 +1,6 @@
 import { NAV, isHidden } from '@/data/nav'
 import { home } from '@/data/home'
+import { notesPage } from '@/data/notes'
 import { projects, type ProjectView } from '@/data/projects'
 import { SERVICES, PROCESS } from '@/data/services'
 import { FAQS } from '@/data/faqs'
@@ -26,6 +27,7 @@ const BASE: Record<string, string> = {
   '/projects': `${projects.lede} The cards: ${[{ title: projects.caseStudy.cardTitle }, projects.cards.automations, projects.cards.plan, projects.cards.sites, projects.cards.agents, ...projects.writeups].map((c) => c.title).join(', ')}.`,
   '/services': `The six services (${SERVICES.map((s) => s.name).join(', ')}) and the five steps every project runs through (${PROCESS.map((s) => s.name).join(', ')}).`,
   '/about': `${first}'s background: who he is, the roles he works in, where he's based, his stack and his courses.`,
+  '/notes': `${notesPage.lede} Guides for business owners on automations, AI chatbots and web apps.`,
   '/contact': `The contact form and the common questions: ${FAQS.map((f) => f.q).join(' ')}`,
 }
 

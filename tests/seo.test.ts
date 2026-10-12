@@ -1,4 +1,6 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+import { NAV } from '@/data/nav'
+import { NOTES } from '@/data/notes'
 import robots from '@/app/robots'
 import sitemap from '@/app/sitemap'
 import { profile } from '@/data/profile'
@@ -42,8 +44,25 @@ describe('pageMetadata', () => {
 })
 
 describe('sitemap and robots', () => {
+  it('lists each visible guide while Notes is on, and none while it is off', () => {
+    vi.stubEnv('NODE_ENV', 'development')
+    try {
+      const urls = sitemap().map((e) => e.url)
+      for (const n of NOTES) expect(urls).toContain(`${SITE_URL}/notes/${n.slug}`)
+      const item = NAV.find((x) => x.href === '/notes')!
+      item.hidden = true
+      try {
+        expect(sitemap().some((e) => e.url.includes('/notes'))).toBe(false)
+      } finally {
+        item.hidden = false
+      }
+    } finally {
+      vi.unstubAllEnvs()
+    }
+  })
   it('lists every public page once, the build plan too, and leaves the thank-you page out', () => {
     const urls = sitemap().map((e) => e.url)
+    // In tests NODE_ENV is 'test', so the draft guides are not listed.
     expect(urls).toEqual([...indexedPaths(), ...STATIC_PAGES].map((p) => `${SITE_URL}${p === '/' ? '' : p}`))
     expect(urls).toContain(`${SITE_URL}/build-plan.html`)
     expect(urls).toContain(`${SITE_URL}/agentic-framework.html`)

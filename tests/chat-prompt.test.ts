@@ -1,5 +1,7 @@
-import { describe, expect, it } from 'vitest'
-import { KNOWN_PATHS, SYSTEM_PROMPT, systemBlocks } from '@/lib/chat/prompt'
+import { describe, expect, it, vi } from 'vitest'
+import { guidesSection, KNOWN_PATHS, SYSTEM_PROMPT, systemBlocks } from '@/lib/chat/prompt'
+import { pageFor } from '@/lib/chat/pages'
+import { NOTES } from '@/data/notes'
 import { SAMPLE_PROJECTS } from '@/lib/chat/samples'
 import { CASE_SITES } from '@/data/cases/pages'
 import { NAV } from '@/data/nav'
@@ -10,6 +12,38 @@ import { FAQS } from '@/data/faqs'
 import { SERVICES } from '@/data/services'
 
 describe("Lumen's system prompt", () => {
+  it('lists the visible guides for Lumen, and says nothing of them when there are none', () => {
+    expect(guidesSection([])).toBe('')
+    const n = NOTES[0]
+    const section = guidesSection([n])
+    expect(section).toContain('# Guides (/notes)')
+    expect(section).toContain(n.title)
+    expect(section).toContain(n.summary)
+    expect(section).toContain(`(/notes/${n.slug})`)
+    // NODE_ENV is 'test' here, so the drafts stay out of the built prompt.
+    expect(SYSTEM_PROMPT).not.toContain('# Guides (/notes)')
+  })
+
+  it('lets a reply link each visible guide, built fresh with drafts showing', async () => {
+    vi.stubEnv('NODE_ENV', 'development')
+    vi.resetModules()
+    try {
+      // A fresh data/nav ships /notes switched off; vitest.setup.ts only switched the old copy on.
+      const nav = await import('@/data/nav')
+      for (const item of nav.NAV) item.hidden = false
+      const fresh = await import('@/lib/chat/prompt')
+      for (const n of NOTES) expect(fresh.KNOWN_PATHS.has(`/notes/${n.slug}`), n.slug).toBe(true)
+      expect(fresh.SYSTEM_PROMPT).toContain('# Guides (/notes)')
+    } finally {
+      vi.unstubAllEnvs()
+      vi.resetModules()
+    }
+  })
+
+  it('knows what the Notes page is for', () => {
+    expect(pageFor('/notes')?.about).toMatch(/guides/i)
+  })
+
   it('no longer says everything here is a sample, and routes "case study" to San Fernando too', () => {
     expect(SYSTEM_PROMPT).not.toContain("What you'll find here are sample systems for fictional businesses")
     expect(SYSTEM_PROMPT).toMatch(/"case study":.*\/projects#san-fernando/)

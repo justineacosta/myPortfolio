@@ -8,6 +8,7 @@ import { TOOLS, EXPERIMENTAL } from '@/data/stack'
 import { CERTS } from '@/data/credentials'
 import { NAV, isHidden } from '@/data/nav'
 import { assistantFacts as facts } from '@/data/assistantFacts'
+import { notePath, visibleNotes, type Note } from '@/data/notes'
 import { SAMPLE_PROJECTS } from './samples'
 import type { Page } from './pages'
 
@@ -29,7 +30,7 @@ const PAGES = NAV.filter((n) => !isHidden(n.href)).map((n) => n.href)
 const WRITEUP_PAGES = [projects.cards.automations.page, projects.cards.plan.page, projects.cards.agents.page, ...projects.writeups.map((w) => w.page)]
 
 /** Every path a reply may link to. A link to anything else renders as plain text. */
-export const KNOWN_PATHS: ReadonlySet<string> = new Set([...PAGES, ...WRITEUP_PAGES, ...SAMPLE_PROJECTS.flatMap((p) => [p.href, p.site])])
+export const KNOWN_PATHS: ReadonlySet<string> = new Set([...PAGES, ...WRITEUP_PAGES, ...SAMPLE_PROJECTS.flatMap((p) => [p.href, p.site]), ...visibleNotes().map((n) => notePath(n.slug))])
 
 const lines = (items: string[]) => items.map((s) => `- ${s}`).join('\n')
 
@@ -97,7 +98,7 @@ ${lines(projects.writeups.map((w) => `**${w.title}** (${w.page}): ${w.desc}`))}
 These are **fictional businesses** ${first} built full sample systems for: a site, AI agents and automations, with a case study each. They are samples, never clients. Never call them clients or customers, and never imply someone paid for them.
 ${samples}
 
-# Stack (/about)
+${guidesSection(visibleNotes())}# Stack (/about)
 - In use: ${using.join(', ')}.
 - Still testing: ${EXPERIMENTAL.join(', ')}.
 - Editor: VS Code. AI coding tools: Claude Code to build, Codex for a second-opinion review.
@@ -246,6 +247,20 @@ function closestExample(): string {
 Visitor: I run a dental clinic. Have you built anything like that?
 Lumen: Good question! There isn't a dental sample yet, but the closest is **${p.name}**, a fictional ${p.trade}: ${p.builds.length ? `a ${p.builds[0]}` : 'AI agents'} and flows like ${p.flows.slice(0, 2).join(' and ') || 'its automations'}, and most of that would carry over to a dental practice. Have a look at [the case study](${p.href}).
 [[project:${p.key}]]
+`
+}
+
+/**
+ * The guides on /notes, for pointing a visitor to the one that answers them.
+ * Empty while the section is switched off or holds only drafts, so Lumen
+ * never links a page that 404s.
+ */
+export function guidesSection(notes: Note[]): string {
+  if (!notes.length) return ''
+  return `# Guides (/notes)
+Plain-language guides ${first} wrote for business owners. Link the one that fits a visitor's question.
+${lines(notes.map((n) => `**${n.title}** (${notePath(n.slug)}): ${n.summary}`))}
+
 `
 }
 
