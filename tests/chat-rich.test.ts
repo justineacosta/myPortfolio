@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { hasLeadForm, isSafeUrl, parseBlocks, parseInline, plainText, stripDirectives } from '@/lib/chat/rich'
+import { hasLeadForm, isSafeUrl, optionsOf, parseBlocks, parseInline, plainText, stripDirectives } from '@/lib/chat/rich'
 
 describe('parseBlocks', () => {
   it('splits a reply into paragraphs, bullets and the directives alone on their line', () => {
@@ -28,6 +28,23 @@ describe('parseBlocks', () => {
   it('tells whether a reply asks for the form', () => {
     expect(hasLeadForm('Sure.\n[[lead-form]]')).toBe(true)
     expect(hasLeadForm('Sure.')).toBe(false)
+  })
+})
+
+describe('optionsOf', () => {
+  it('reads the answers to tap from an options line, plain, deduped, at most three', () => {
+    expect(optionsOf('What did you have in mind?\n[[options:Build a **website**|Automate a workflow|Build a website|Add a bot|One more]]')).toEqual([
+      'Build a website',
+      'Automate a workflow',
+      'Add a bot',
+    ])
+    expect(optionsOf('No question here.')).toEqual([])
+  })
+
+  it('never shows the options line in the bubble, finished or still streaming in', () => {
+    expect(parseBlocks('What did you have in mind?\n\n[[options:A site|A bot]]')).toEqual([{ kind: 'p', text: 'What did you have in mind?' }])
+    expect(parseBlocks('What did you have in mind?\n\n[[options:A si')).toEqual([{ kind: 'p', text: 'What did you have in mind?' }])
+    expect(plainText('Which one?\n[[options:A|B]]')).toBe('Which one?')
   })
 })
 

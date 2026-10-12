@@ -2,9 +2,10 @@
  * Lumen's reply format, ported from the old portfolio
  * (the myPortfolioV3 repo, src/components/rich-text.tsx) as plain functions so it can be
  * tested without a browser: paragraphs, `- ` bullets, **bold**, _italic_,
- * `code`, [links](url), and two directives alone on their line:
- * `[[project:<slug>]]` (a sample system's card) and `[[lead-form]]` (the
- * in-chat contact form). A visitor never sees a raw `[[…]]`.
+ * `code`, [links](url), and three directives alone on their line:
+ * `[[project:<slug>]]` (a sample system's card), `[[lead-form]]` (the
+ * in-chat contact form) and `[[options:A|B|C]]` (answers to tap, shown as the
+ * chips under the chat). A visitor never sees a raw `[[…]]`.
  */
 
 export type Block = { kind: 'p'; text: string } | { kind: 'ul'; items: string[] } | { kind: 'project'; slug: string } | { kind: 'lead-form' }
@@ -17,8 +18,32 @@ export type Inline =
 /** `[[lead-form]]` or `[[project:some-slug]]`, alone on its line, matched lowercased so `[[Project:Ostler]]` still resolves. */
 const DIRECTIVE_RE = /^\[\[([a-z-]+)(?::([a-z0-9-]+))?\]\]$/
 
-/** A line that could still grow into a directive while the reply streams in: `[`, `[[`, `[[proj`, `[[project:os`, `[[project:ostler]`. */
-const PARTIAL_RE = /^\[{1,2}[a-z0-9:-]*\]{0,2}$/i
+/** A line that could still grow into a directive while the reply streams in: `[`, `[[`, `[[proj`, `[[project:os`, `[[options:Show me th`. */
+const PARTIAL_RE = /^\[{1,2}[a-z0-9:-]*\]{0,2}$|^\[\[[^\]\n]*\]?$/i
+
+/** `[[options:A|B|C]]`: the answers a visitor might tap after Lumen asks them something. */
+const OPTIONS_RE = /^\[\[options:([^\]\n]+)\]\]$/i
+/** The most options shown, and the longest one kept. */
+const MAX_OPTIONS = 3
+const MAX_OPTION_LENGTH = 60
+
+/**
+ * The answers a reply offers to tap, from an `[[options:…]]` line of its own:
+ * at most three, each plain text, trimmed and cut short. Empty when the reply
+ * offers none. The bubble never shows the line; the chips under the chat do.
+ */
+export function optionsOf(text: string): string[] {
+  for (const line of text.split('\n').reverse()) {
+    const m = OPTIONS_RE.exec(line.trim())
+    if (!m) continue
+    const options = m[1]
+      .split('|')
+      .map((o) => o.replace(/[*_`[\]]/g, '').replace(/\s+/g, ' ').trim().slice(0, MAX_OPTION_LENGTH))
+      .filter(Boolean)
+    return [...new Set(options)].slice(0, MAX_OPTIONS)
+  }
+  return []
+}
 
 /** The marker the in-chat form is asked for with, as it appears in a reply. */
 export const LEAD_FORM = '[[lead-form]]'

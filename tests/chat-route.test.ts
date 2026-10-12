@@ -94,14 +94,14 @@ describe('POST /api/chat', () => {
     expect(streamMock).not.toHaveBeenCalled()
   })
 
-  it('gives the offline rules the question before this one, so a follow-up has a topic', async () => {
+  it("gives the offline rules the visitor's earlier questions, so a follow-up has a topic", async () => {
     vi.stubEnv('ANTHROPIC_API_KEY', '')
     const messages = [
       { role: 'user', content: 'I need my lead intake automated.' },
       { role: 'assistant', content: 'Yes: Automation & Workflows.' },
       { role: 'user', content: 'What would that look like?' },
     ]
-    expect(await read(await post({ messages }))).toBe(localAnswer('What would that look like?', null, 'I need my lead intake automated.'))
+    expect(await read(await post({ messages }))).toBe(localAnswer('What would that look like?', null, ['I need my lead intake automated.']))
   })
 
   it('answers from the offline rules when the call fails before its first event', async () => {

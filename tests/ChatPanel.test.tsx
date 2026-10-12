@@ -92,6 +92,21 @@ describe('Lumen', () => {
     expect(within(dialog).queryByRole('link', { name: 'the blog' })).toBeNull()
   })
 
+  it('turns the answers a reply offers into the chips, and sends the one tapped', async () => {
+    fetchMock.mockResolvedValueOnce(answer('Happy to check! What did you have in mind?\n[[options:Build a website|Automate a workflow]]')).mockResolvedValueOnce(answer('Sure.'))
+    renderChat()
+    const dialog = await open()
+    await userEvent.type(screen.getByRole('textbox', { name: chat.message }), 'can he do that?{Enter}')
+    const chip = await within(dialog).findByRole('button', { name: 'Automate a workflow' })
+    expect(within(dialog).getByRole('button', { name: 'Build a website' })).toBeInTheDocument()
+    expect(within(dialog).queryByText(/\[\[options/, SEEN)).toBeNull()
+    await userEvent.click(chip)
+    await within(dialog).findByText('Sure.', SEEN)
+    expect(sentBody(1).messages.at(-1)).toEqual({ role: 'user', content: 'Automate a workflow' })
+    // The next reply asks nothing, so the usual suggestions come back.
+    expect(within(dialog).queryByRole('button', { name: 'Build a website' })).toBeNull()
+  })
+
   it('draws the project card a reply asks for, and nothing for an unknown slug', async () => {
     fetchMock.mockResolvedValueOnce(answer('Ostler is a sample.\n[[project:ostler-barbers]]')).mockResolvedValueOnce(answer('Another.\n[[project:made-up]]'))
     renderChat()
