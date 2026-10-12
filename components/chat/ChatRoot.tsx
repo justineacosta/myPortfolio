@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { usePathname } from 'next/navigation'
 import { useShellNav } from '@/components/shell/NavigationProvider'
+import { track } from '@/lib/analytics'
 import type { CardProject } from '@/lib/chat/samples'
 import { play } from '@/lib/chat/sound'
 import { useChat } from './useChat'
@@ -38,6 +39,7 @@ export default function ChatRoot({ ai, paths, projects }: { ai: boolean; paths: 
   const known = useMemo(() => new Set(paths), [paths])
   const openChat = () => {
     play('open')
+    track('Lumen opened')
     setOpen(true)
   }
 
@@ -48,6 +50,7 @@ export default function ChatRoot({ ai, paths, projects }: { ai: boolean; paths: 
       if (document.documentElement.hasAttribute('data-dialog') || document.querySelector('[role="dialog"][aria-modal="true"], dialog[open]')) return
       e.preventDefault()
       play('open')
+      track('Lumen opened')
       setOpen(true)
     }
     document.addEventListener('keydown', onKey)

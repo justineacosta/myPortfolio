@@ -4,6 +4,7 @@ import { useId, useState, type FormEvent, type ReactNode } from 'react'
 import { CheckCircleIcon, EnvelopeSimpleIcon, PaperPlaneRightIcon } from '@phosphor-icons/react/ssr'
 import { chat } from '@/data/chat'
 import { contact } from '@/data/contact'
+import { track } from '@/lib/analytics'
 import { checkLead, MAX_EMAIL, MAX_MESSAGE, MAX_NAME, SubmitError, submitLead, type Errors, type Field } from '@/lib/contact'
 
 const INPUT =
@@ -52,6 +53,7 @@ export default function LeadForm({ draft = '' }: { draft?: string }) {
     setStatus('sending')
     try {
       await submitLead(result.lead)
+      track('Contact sent')
       setStatus('sent')
     } catch (err) {
       setStatus('idle')
