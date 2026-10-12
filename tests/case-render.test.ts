@@ -11,6 +11,7 @@ import { renderAutomations } from '@/lib/automations/render'
 import type { SiteLink } from '@/lib/brand/render'
 import { renderPlan } from '@/lib/buildPlan/render'
 import { renderEndToEnd } from '@/lib/endToEnd/render'
+import { withLumen } from '@/lib/chat/embed'
 
 type Row = [name: string, render: (site?: SiteLink) => string, file: string]
 
@@ -26,7 +27,7 @@ const site: SiteLink = { name: 'Oriel', href: '/samples/oriel-portugal-residence
 
 describe.each(rows)('%s page, site link', (_name, render, file) => {
   it('without a site, renders the committed general page byte for byte', () => {
-    expect(render()).toBe(readFileSync(file, 'utf8').replace(/\r/g, ''))
+    expect(withLumen(render())).toBe(readFileSync(file, 'utf8').replace(/\r/g, ''))
   })
 
   it('with a site, links back to it and points canonical at its own page', () => {

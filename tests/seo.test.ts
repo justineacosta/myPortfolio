@@ -54,7 +54,7 @@ describe('sitemap and robots', () => {
   it('points crawlers at the sitemap and keeps them out of the sample sites', () => {
     const r = robots()
     expect(r.sitemap).toBe(`${SITE_URL}/sitemap.xml`)
-    expect(r.rules).toMatchObject({ userAgent: '*', allow: '/', disallow: ['/samples/', '/cases/'] })
+    expect(r.rules).toMatchObject({ userAgent: '*', allow: '/', disallow: ['/samples/', '/cases/', '/lumen'] })
   })
 })
 

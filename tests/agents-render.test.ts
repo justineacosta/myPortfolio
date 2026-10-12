@@ -6,6 +6,7 @@ import { renderAgents } from '@/lib/agents/render'
 import { themeHeadJs } from '@/lib/brand/render'
 import { iconSvg } from '@/lib/endToEnd/icons'
 import { readContrast, readTokens } from '@/lib/tokens'
+import { withLumen } from '@/lib/chat/embed'
 
 const html = renderAgents()
 const doc = new DOMParser().parseFromString(html, 'text/html')
@@ -214,6 +215,6 @@ describe('renderAgents', () => {
 
 describe('public/ai-agents.html', () => {
   it('is up to date with its data (run npm run agents-page after any change)', () => {
-    expect(readFileSync('public/ai-agents.html', 'utf8').replace(/\r\n/g, '\n')).toBe(renderAgents())
+    expect(readFileSync('public/ai-agents.html', 'utf8').replace(/\r\n/g, '\n')).toBe(withLumen(renderAgents()))
   })
 })

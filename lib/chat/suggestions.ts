@@ -85,9 +85,13 @@ const PAGE_STARTERS: Record<string, string[]> = {
   '/contact': ['How fast does he reply?', 'What does it cost?', 'How fast can he start?', 'Who owns the code?'],
 }
 
+/** The starter chips on a case-study or write-up page, where the visitor is reading one piece of work. */
+const WORK_STARTERS = [THIS_ONE, 'How does a project start?', 'What does it cost?', 'Is he taking new work?']
+
 /** The starter chips for a page, as the widget names it (a pathname, and a hash when a Projects card is open). */
 export function startersFor(page: string): string[] {
   const [path, view] = page.split('#')
+  if (path.endsWith('.html')) return WORK_STARTERS
   const chips = PAGE_STARTERS[path] ?? STARTER_SUGGESTIONS
   // An open Projects card is "this one", not the whole page.
   return view && path === '/projects' ? [THIS_ONE, ...chips.slice(1)] : chips
@@ -95,7 +99,7 @@ export function startersFor(page: string): string[] {
 
 /** Every chip the widget can show, for the test that each one gets a real answer. */
 export const ALL_SUGGESTIONS = [
-  ...new Set([...STARTER_SUGGESTIONS, ...Object.values(PAGE_STARTERS).flat(), THIS_ONE, ...DEFAULT_SUGGESTIONS, ...SUGGESTION_RULES.flatMap((r) => r.suggestions)]),
+  ...new Set([...STARTER_SUGGESTIONS, ...Object.values(PAGE_STARTERS).flat(), ...WORK_STARTERS, ...DEFAULT_SUGGESTIONS, ...SUGGESTION_RULES.flatMap((r) => r.suggestions)]),
 ]
 
 /**

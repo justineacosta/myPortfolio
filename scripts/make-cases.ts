@@ -3,10 +3,12 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { renderCases } from '../lib/cases/render.ts'
+import { withLumen } from '../lib/chat/embed.ts'
 
 for (const { path, html } of renderCases()) {
   const file = join(process.cwd(), 'public', path)
   mkdirSync(dirname(file), { recursive: true })
-  writeFileSync(file, html)
+  // Each page carries Lumen's launcher (public/lumen-embed.js).
+  writeFileSync(file, withLumen(html))
   console.log(`public${path}: ${(html.length / 1024).toFixed(1)} KB`)
 }

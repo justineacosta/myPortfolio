@@ -17,7 +17,6 @@ import {
   StopIcon,
   XIcon,
 } from '@phosphor-icons/react/ssr'
-import { useShellNav } from '@/components/shell/NavigationProvider'
 import { chat } from '@/data/chat'
 import { prefersReducedMotion } from '@/lib/motion'
 import { copyText, hasLeadForm, leadDraft, optionsOf, plainText } from '@/lib/chat/rich'
@@ -81,6 +80,7 @@ export default function ChatPanel({
   known,
   projects,
   ai,
+  go,
   onClose,
 }: {
   messages: Message[]
@@ -96,9 +96,10 @@ export default function ChatPanel({
   projects: CardProject[]
   /** Whether the server has a key, for the privacy note before anyone has asked. */
   ai: boolean
+  /** Goes to a site page: the shell's router on the site, the top window when embedded. */
+  go: (href: string) => void
   onClose: (refocus: boolean) => void
 }) {
-  const { go } = useShellNav()
   const [typed, setTyped] = useState('')
   const panel = useRef<HTMLDivElement>(null)
   const input = useRef<HTMLTextAreaElement>(null)
