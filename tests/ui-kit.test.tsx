@@ -7,7 +7,7 @@ import Shot from '@/components/ui/Shot'
 describe('PageHeader', () => {
   it("shows the page's crumb, Kraft's two-line heading as one sentence, and the lede", () => {
     render(<PageHeader href="/projects" title={['Real builds you', 'can open.']} lede="Everything here shipped." />)
-    expect(screen.getByText('PROJECTS / BUILDS')).toBeInTheDocument()
+    expect(screen.getByText('PROJECTS / WEB, AI & AUTOMATION BUILDS')).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 1, name: 'Real builds you can open.' })).toBeInTheDocument()
     expect(screen.getByText('Everything here shipped.')).toBeInTheDocument()
   })

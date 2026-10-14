@@ -64,7 +64,7 @@ export const servicesPage = {
   /** The way on to the guides, at the foot of the page while /notes is switched on. */
   guides: { label: 'Read the guides', href: '/notes' },
   title: ['Apps, agents and the', 'automation between them.'] as const,
-  lede: 'What I build, how it works, and what you get at the end of it.',
+  lede: 'Full-stack web apps, AI agents and n8n automation: what I build, how it works, and what you get at the end of it.',
   /** The meta description: search results and link previews, not the page. */
   description: 'Full-stack web apps, AI agents and RAG, n8n, Zapier and Make automation, CRMs, APIs and SEO. Built in Manila for teams in the US, EU and CA.',
   method: {
