@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { Geist, Geist_Mono } from 'next/font/google'
+import SiteAnalytics from '@/components/shell/SiteAnalytics'
 import { home } from '@/data/home'
 import { profile } from '@/data/profile'
 import { bootScript } from '@/lib/boot'
@@ -28,7 +29,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: bootScript }} />
       </head>
-      <body className="bg-bg font-sans text-ink antialiased">{children}</body>
+      <body className="bg-bg font-sans text-ink antialiased">
+        {children}
+        {/* Only Vercel serves the script; a local `next start` would 404 on it. `next dev` logs the events to the console instead. */}
+        {(process.env.VERCEL || process.env.NODE_ENV === 'development') && <SiteAnalytics />}
+      </body>
     </html>
   )
 }

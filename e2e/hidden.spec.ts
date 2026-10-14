@@ -5,7 +5,7 @@ import { SWITCHES } from './pages'
 const off = SWITCHES.filter((s) => s.hidden)
 
 test('reads every page switch in data/nav.ts', () => {
-  expect(SWITCHES.map((s) => s.href)).toEqual(['/', '/projects', '/showcase', '/services', '/testimonials', '/about', '/contact'])
+  expect(SWITCHES.map((s) => s.href)).toEqual(['/', '/projects', '/showcase', '/services', '/notes', '/testimonials', '/about', '/contact'])
 })
 
 test('every page switched off in data/nav.ts answers with the 404 and has no link in the sidebar', async ({ page }) => {

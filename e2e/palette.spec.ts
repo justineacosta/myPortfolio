@@ -72,3 +72,13 @@ test('⌘K lands on a section, on this page and on another', async ({ page }) =>
   await expect(page).toHaveURL(/\/contact#faqs$/)
   await expect(page.locator('#faqs')).toBeInViewport()
 })
+
+test('⌘K finds the San Fernando case study from another page', async ({ page }) => {
+  await page.goto('/about')
+  await hydrated(page)
+  await page.keyboard.press('Control+k')
+  await page.keyboard.type('san fernando')
+  await page.keyboard.press('Enter')
+  await expect(page).toHaveURL(/\/projects#san-fernando$/)
+  await expect(page.getByRole('dialog', { name: 'Barangay San Fernando - Government Citizen Portal' })).toBeVisible()
+})

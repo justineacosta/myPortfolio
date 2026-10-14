@@ -3,6 +3,7 @@
 import { lazy, Suspense, useState, useSyncExternalStore } from 'react'
 import ViewDialog from '@/components/ui/ViewDialog'
 import { projects, type Site } from '@/data/projects'
+import { track } from '@/lib/analytics'
 import DrumBoundary from './DrumBoundary'
 import SiteCarousel from './SiteCarousel'
 import SitePreview from './SitePreview'
@@ -27,6 +28,10 @@ export default function SitesView({ open, onClose }: { open: boolean; onClose: (
   const mounted = useSyncExternalStore(noSubscribe, () => true, () => false)
   const [failed, setFailed] = useState(false)
   const [site, setSite] = useState<Site | null>(null)
+  const openSite = (picked: Site) => {
+    track('Sample site opened', { site: picked.name })
+    setSite(picked)
+  }
   // Leaving the view (Close, Esc, Back) closes the preview on it too.
   const [wasOpen, setWasOpen] = useState(open)
   if (open !== wasOpen) {
@@ -42,11 +47,11 @@ export default function SitesView({ open, onClose }: { open: boolean; onClose: (
         {drum ? (
           <DrumBoundary onFail={() => setFailed(true)}>
             <Suspense fallback={<div className="min-h-0 flex-1" />}>
-              <SiteDrum sites={s.sites} onOpen={setSite} onFail={() => setFailed(true)} paused={site !== null} />
+              <SiteDrum sites={s.sites} onOpen={openSite} onFail={() => setFailed(true)} paused={site !== null} />
             </Suspense>
           </DrumBoundary>
         ) : (
-          <SiteCarousel sites={s.sites} onOpen={setSite} running={open && site === null} />
+          <SiteCarousel sites={s.sites} onOpen={openSite} running={open && site === null} />
         )}
       </ViewDialog>
       <SitePreview site={site} onClose={() => setSite(null)} />

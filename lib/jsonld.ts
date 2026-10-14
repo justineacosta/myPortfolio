@@ -1,4 +1,5 @@
 import { FAQS } from '@/data/faqs'
+import { notePath, type Note } from '@/data/notes'
 import { profile } from '@/data/profile'
 import { SERVICES } from '@/data/services'
 import { isPlaceholder } from '@/lib/placeholder'
@@ -41,6 +42,20 @@ export function servicesJsonLd(url = SITE_URL) {
       position: i + 1,
       item: { '@type': 'Service', name: s.name, serviceType: s.name, description: `${s.line} ${s.bullets.join('. ')}.`, provider },
     })),
+  }
+}
+
+/** A guide's BlogPosting JSON-LD, for /notes/<slug>, written by the Person on Home. */
+export function noteJsonLd(note: Note, url = SITE_URL) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: note.title,
+    description: note.summary,
+    datePublished: note.date,
+    url: `${url}${notePath(note.slug)}`,
+    author: { '@type': 'Person', name: profile.name, url },
+    keywords: note.tags.join(', '),
   }
 }
 

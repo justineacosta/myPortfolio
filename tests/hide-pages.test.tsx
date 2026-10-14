@@ -5,6 +5,7 @@ import AboutPage from '@/app/(site)/about/page'
 import ContactPage from '@/app/(site)/contact/page'
 import ProjectsPage from '@/app/(site)/projects/page'
 import ServicesPage from '@/app/(site)/services/page'
+import NotesPage from '@/app/(site)/notes/page'
 import ShowcasePage from '@/app/(site)/showcase/page'
 import TestimonialsPage from '@/app/(site)/testimonials/page'
 import ThankYou from '@/app/(plain)/thank-you/page'
@@ -33,6 +34,7 @@ const PAGES: Record<string, () => unknown> = {
   '/projects': ProjectsPage,
   '/showcase': ShowcasePage,
   '/services': ServicesPage,
+  '/notes': NotesPage,
   '/testimonials': TestimonialsPage,
   '/about': AboutPage,
   '/contact': ContactPage,
@@ -60,6 +62,21 @@ describe('hiding a page (hidden: true in data/nav.ts)', () => {
 
   it('can never hide Home, as data/nav.ts ships', () => {
     expect(readFileSync('data/nav.ts', 'utf8')).toMatch(/\{ href: '\/', [^\n]*hidden: false \}/)
+  })
+
+  // Switching Notes on is how a guide goes live, so its flag isn't pinned here; e2e/hidden.spec.ts follows it.
+  it('puts Notes right after Services', () => {
+    expect(NAV.map((n) => n.href).indexOf('/notes')).toBe(NAV.map((n) => n.href).indexOf('/services') + 1)
+  })
+
+  it('links Services to the guides only while Notes is on', () => {
+    render(<NavigationProvider>{ServicesPage()}</NavigationProvider>)
+    expect(screen.getByRole('link', { name: /Read the guides/ })).toHaveAttribute('href', '/notes')
+    cleanup()
+    withHidden('/notes', () => {
+      render(<NavigationProvider>{ServicesPage()}</NavigationProvider>)
+      expect(screen.queryByRole('link', { name: /Read the guides/ })).toBeNull()
+    })
   })
 
   it('reads a section link as its page: /services#method is Services', () => {
@@ -112,7 +129,7 @@ describe('hiding a page (hidden: true in data/nav.ts)', () => {
           const numbers = within(links)
             .getAllByRole('link')
             .map((l) => l.textContent!.slice(-2))
-          expect(numbers).toEqual(['01', '02', '03', '04', '05', '06'])
+          expect(numbers).toEqual(Array.from({ length: NAV.length - 1 }, (_, i) => String(i + 1).padStart(2, '0')))
         })
       })
     })

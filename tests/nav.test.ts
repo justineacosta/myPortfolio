@@ -2,12 +2,12 @@ import { describe, expect, it } from 'vitest'
 import { isActivePath, MOBILE_NAV, NAV, navForPath } from '@/data/nav'
 
 describe('nav data', () => {
-  it('lists the seven sections in spec order', () => {
+  it('lists the eight sections in spec order', () => {
     expect(NAV.map((n) => n.label)).toEqual([
-      'Home', 'Projects', 'Showcase', 'Services', 'Testimonials', 'About', 'FAQs / Contact',
+      'Home', 'Projects', 'Showcase', 'Services', 'Notes', 'Testimonials', 'About', 'FAQs / Contact',
     ])
     expect(NAV.map((n) => n.hint)).toEqual([
-      'OVERVIEW', 'BUILDS', 'FLAGSHIP', 'OFFERS', 'CLIENTS', 'PROFILE', 'INQUIRY',
+      'OVERVIEW', 'BUILDS', 'FLAGSHIP', 'OFFERS', 'GUIDES', 'CLIENTS', 'PROFILE', 'INQUIRY',
     ])
   })
 

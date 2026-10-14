@@ -9,7 +9,7 @@ import type { Brand } from './stack'
  */
 
 /** Every sub-view the board opens. Each id is also its URL hash (/projects#build-plan). */
-export const PROJECT_VIEWS = ['automations', 'build-plan', 'agentic-framework', 'end-to-end', 'sites', 'ai-agents'] as const
+export const PROJECT_VIEWS = ['san-fernando', 'automations', 'build-plan', 'agentic-framework', 'end-to-end', 'sites', 'ai-agents'] as const
 export type ProjectView = (typeof PROJECT_VIEWS)[number]
 
 /** A chip with a tool's logo: its text, and the logo's slug in public/icons/brands/. */
@@ -45,6 +45,45 @@ const SITES: Site[] = [
   const shot = file.replace(/\.html$/, '.jpeg')
   return { name, file, src: `/samples/${file}`, thumb: `/samples/thumbs/${shot}`, tall: `/samples/thumbs/tall/${shot}` }
 })
+
+/**
+ * Barangay San Fernando's citizen portal, the one real client build on the
+ * board. The problem and solution are the old portfolio's (the myPortfolioV3
+ * repo, src/data/projects.ts, barangay-san-fernando-citizen-portal), word for
+ * word. The features are written from the real site's README (the
+ * SanFernandoWeb repo, §Features), since the old five undersold it. No
+ * screenshots and no live link (spec 2026-10-13-san-fernando-case-study).
+ */
+const CASE_STUDY = {
+  view: 'san-fernando' as const,
+  kicker: 'REAL CLIENT · CITIZEN PORTAL',
+  title: 'Barangay San Fernando - Government Citizen Portal',
+  cardTitle: 'Barangay San Fernando',
+  tagline: 'A progressive community, a better tomorrow.',
+  seal: { src: '/assets/testimonial-san-fernando-seal.png', alt: 'Barangay San Fernando seal' },
+  body: 'A citizen-facing portal for a local barangay government, built to move routine transactions off the counter and online.',
+  problemLabel: 'The problem',
+  problem:
+    'Every routine barangay transaction — requesting a document, checking a service, finding out which official to talk to — meant a trip to the counter during office hours. Once a request was filed, residents had no way to see where it stood.',
+  solutionLabel: 'What I built',
+  solution:
+    'A citizen-facing portal that moves those transactions online. Residents browse services and news, submit document requests and follow their status, and look up officials; staff work the same queue from an authenticated area, and a transparency section publishes budgets and reports in the open.',
+  featuresLabel: 'Features',
+  features: [
+    'Four request flows residents file online: applications, appointments, complaints and assistance.',
+    'Tracking by reference number and surname, with a timeline of every step, and a way to reply when staff need more information.',
+    'Email receipts and outcome notices at every step, from submission to resolution.',
+    'News, notices, an events calendar, the officials directory, and a transparency section with legislative and disclosure documents.',
+    'A staff portal with five ticket queues, and a draft-to-published workflow for every kind of content.',
+    'Role-based staff access, an audit log of every change, and bot and rate-limit protection on every public form.',
+  ],
+  stack: logos(
+    ['Next.js', 'nextdotjs'], ['React', 'react'], ['TypeScript', 'typescript'], ['Tailwind CSS', 'tailwindcss'],
+    ['Supabase', 'supabase'], ['PostgreSQL', 'postgresql'], ['Resend', 'resend'], ['Cloudflare', 'cloudflare'],
+  ),
+  cue: 'READ THE CASE STUDY',
+  contact: { label: 'Start a project', href: '/contact' },
+}
 
 const WRITEUPS: Writeup[] = [
   { view: 'agentic-framework', kicker: 'HOW I BUILD WITH AI', title: 'The Agentic Framework', desc: 'The tools, the rules and the loop I use to ship apps with AI.', logos: logos(['Claude', 'claude'], ['Cursor', 'cursor'], ['Codex', 'codex']), cue: 'READ THE FRAMEWORK', page: '/agentic-framework.html', frameTitle: 'Agentic Framework page', shot: '/shots/agentic-framework.jpeg' },
@@ -106,6 +145,7 @@ export const projects = {
     },
   },
   writeups: WRITEUPS,
+  caseStudy: CASE_STUDY,
   sitesView: {
     label: 'Funnels and sites',
     kicker: 'FUNNELS AND SITES',

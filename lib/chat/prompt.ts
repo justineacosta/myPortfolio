@@ -8,6 +8,7 @@ import { TOOLS, EXPERIMENTAL } from '@/data/stack'
 import { CERTS } from '@/data/credentials'
 import { NAV, isHidden } from '@/data/nav'
 import { assistantFacts as facts } from '@/data/assistantFacts'
+import { notePath, visibleNotes, type Note } from '@/data/notes'
 import { SAMPLE_PROJECTS } from './samples'
 import type { Page } from './pages'
 
@@ -29,7 +30,7 @@ const PAGES = NAV.filter((n) => !isHidden(n.href)).map((n) => n.href)
 const WRITEUP_PAGES = [projects.cards.automations.page, projects.cards.plan.page, projects.cards.agents.page, ...projects.writeups.map((w) => w.page)]
 
 /** Every path a reply may link to. A link to anything else renders as plain text. */
-export const KNOWN_PATHS: ReadonlySet<string> = new Set([...PAGES, ...WRITEUP_PAGES, ...SAMPLE_PROJECTS.flatMap((p) => [p.href, p.site])])
+export const KNOWN_PATHS: ReadonlySet<string> = new Set([...PAGES, ...WRITEUP_PAGES, ...SAMPLE_PROJECTS.flatMap((p) => [p.href, p.site]), ...visibleNotes().map((n) => notePath(n.slug))])
 
 const lines = (items: string[]) => items.map((s) => `- ${s}`).join('\n')
 
@@ -81,6 +82,11 @@ ${lines(PROCESS.map((s) => `**${s.name}**: ${s.line}`))}
 # Common questions
 ${lines([...FAQS.map((f) => `**${f.q}** ${f.a}`), ...facts.faq.map((f) => `**${f.question}** ${f.answer}`)])}
 
+# Real client work
+${first}'s real, shipped client work, as opposed to the fictional samples below:
+- **${projects.caseStudy.title}** ([case study](/projects#${projects.caseStudy.view})): ${projects.caseStudy.body} ${projects.caseStudy.solution}
+Built with ${projects.caseStudy.stack.map((b) => b.name).join(', ')}.
+
 # What's on the Projects page (/projects)
 - **${projects.cards.automations.title}** (${projects.cards.automations.page}): ${projects.cards.automations.body}
 - **${projects.cards.plan.title}** (${projects.cards.plan.page}): ${projects.cards.plan.body}
@@ -92,7 +98,7 @@ ${lines(projects.writeups.map((w) => `**${w.title}** (${w.page}): ${w.desc}`))}
 These are **fictional businesses** ${first} built full sample systems for: a site, AI agents and automations, with a case study each. They are samples, never clients. Never call them clients or customers, and never imply someone paid for them.
 ${samples}
 
-# Stack (/about)
+${guidesSection(visibleNotes())}# Stack (/about)
 - In use: ${using.join(', ')}.
 - Still testing: ${EXPERIMENTAL.join(', ')}.
 - Editor: VS Code. AI coding tools: Claude Code to build, Codex for a second-opinion review.
@@ -176,7 +182,7 @@ These come up often, and the easy answer is the wrong one:
 - **Hiring intent is about hiring.** A visitor describing a system ("a booking flow", "automate my intake") is asking what ${first} can build, not asking to book him; answer the question, and save the form for when they want to start.
 
 # Routing intents to pages
-- "projects" / "work" / "examples" / "case study": [/projects](/projects), or a sample system's own case study
+- "projects" / "work" / "examples" / "case study": [/projects](/projects), [the San Fernando case study](/projects#${projects.caseStudy.view}) for real client work, or a sample system's own case study
 - "services" / "offer" / "what can you build": [/services](/services)
 - "stack" / "tools" / "skills" / "background" / "about" / "courses": [/about](/about)
 - "hire" / "contact" / "available" / "price": [/contact](/contact)
@@ -223,7 +229,7 @@ Visitor: write me a poem about the sea
 Lumen: I'd love to help, but that one's outside what I know; I'm all about ${first} and his work. You could ask what he's built for a business like yours.
 ${closestExample()}
 Visitor: did you build Airbnb's booking system?
-Lumen: Nothing on this site mentions that one, so I'd rather not claim it. What you'll find here are sample systems for fictional businesses, on [the projects page](/projects). For anything beyond those, just ask him on [the contact page](/contact).
+Lumen: Nothing on this site mentions that one, so I'd rather not claim it. What you'll find here is his work for [**${projects.caseStudy.cardTitle}**](/projects#${projects.caseStudy.view}) and sample systems for fictional businesses, on [the projects page](/projects). For anything beyond those, just ask him on [the contact page](/contact).
 
 Visitor: can you guarantee my sales double?
 Lumen: Totally fair thing to want! Honestly, no one can promise results like that, and ${first} won't pretend to. What he can promise is a clear written proposal with scope and price, and a handover with full documentation and access. If you share your goals on [the contact page](/contact), he'll tell you what's realistic.`
@@ -241,6 +247,20 @@ function closestExample(): string {
 Visitor: I run a dental clinic. Have you built anything like that?
 Lumen: Good question! There isn't a dental sample yet, but the closest is **${p.name}**, a fictional ${p.trade}: ${p.builds.length ? `a ${p.builds[0]}` : 'AI agents'} and flows like ${p.flows.slice(0, 2).join(' and ') || 'its automations'}, and most of that would carry over to a dental practice. Have a look at [the case study](${p.href}).
 [[project:${p.key}]]
+`
+}
+
+/**
+ * The guides on /notes, for pointing a visitor to the one that answers them.
+ * Empty while the section is switched off or holds only drafts, so Lumen
+ * never links a page that 404s.
+ */
+export function guidesSection(notes: Note[]): string {
+  if (!notes.length) return ''
+  return `# Guides (/notes)
+Plain-language guides ${first} wrote for business owners. Link the one that fits a visitor's question.
+${lines(notes.map((n) => `**${n.title}** (${notePath(n.slug)}): ${n.summary}`))}
+
 `
 }
 

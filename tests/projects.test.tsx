@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import Board from '@/components/projects/Board'
 import ProjectViews from '@/components/projects/ProjectViews'
+import { NAV } from '@/data/nav'
 import { BUILDS, PROJECT_VIEWS, projects } from '@/data/projects'
 import { installMatchMedia } from '@/test/matchMedia'
 
@@ -10,6 +11,35 @@ describe('Projects data', () => {
   it('names every sub-view once, and every write-up opens its own page', () => {
     expect(new Set(PROJECT_VIEWS).size).toBe(PROJECT_VIEWS.length)
     expect(projects.writeups.every((w) => w.page && w.frameTitle && w.shot)).toBe(true)
+  })
+
+  it('carries the San Fernando case study: V3’s problem and solution, the real site’s six features, every logo on disk', () => {
+    const s = projects.caseStudy
+    expect(s).toMatchObject({
+      view: 'san-fernando',
+      kicker: 'REAL CLIENT · CITIZEN PORTAL',
+      title: 'Barangay San Fernando - Government Citizen Portal',
+      cardTitle: 'Barangay San Fernando',
+      tagline: 'A progressive community, a better tomorrow.',
+      seal: { src: '/assets/testimonial-san-fernando-seal.png', alt: 'Barangay San Fernando seal' },
+      body: 'A citizen-facing portal for a local barangay government, built to move routine transactions off the counter and online.',
+      problemLabel: 'The problem', solutionLabel: 'What I built', featuresLabel: 'Features',
+      cue: 'READ THE CASE STUDY',
+      contact: { label: 'Start a project', href: '/contact' },
+    })
+    expect(s.problem).toMatch(/^Every routine barangay transaction/)
+    expect(s.solution).toMatch(/^A citizen-facing portal that moves those transactions online\./)
+    expect(s.features).toEqual([
+      'Four request flows residents file online: applications, appointments, complaints and assistance.',
+      'Tracking by reference number and surname, with a timeline of every step, and a way to reply when staff need more information.',
+      'Email receipts and outcome notices at every step, from submission to resolution.',
+      'News, notices, an events calendar, the officials directory, and a transparency section with legislative and disclosure documents.',
+      'A staff portal with five ticket queues, and a draft-to-published workflow for every kind of content.',
+      'Role-based staff access, an audit log of every change, and bot and rate-limit protection on every public form.',
+    ])
+    expect(s.stack.map((b) => b.name)).toEqual(['Next.js', 'React', 'TypeScript', 'Tailwind CSS', 'Supabase', 'PostgreSQL', 'Resend', 'Cloudflare'])
+    for (const b of s.stack) expect(existsSync(`public/icons/brands/${b.slug}.svg`), b.slug).toBe(true)
+    expect(existsSync(`public${s.seal.src}`)).toBe(true)
   })
 
   it('keeps the sites, and the Automations card opens its flows page, with a real 16:10 screenshot on Home', () => {
@@ -123,9 +153,22 @@ describe('Board', () => {
   it('links every card to its sub-view by hash, in board order', () => {
     render(<Board />)
     expect(screen.getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual([
-      '#automations', '#build-plan', '#agentic-framework', '#end-to-end', '#sites', '#ai-agents',
+      '#san-fernando', '#automations', '#build-plan', '#agentic-framework', '#end-to-end', '#sites', '#ai-agents',
     ])
     expect(screen.getByText('CLICK A CARD TO OPEN IT')).toBeInTheDocument()
+  })
+
+  it('leads the board with the San Fernando banner, a link to its view with three logos and its cue', () => {
+    render(<Board />)
+    const s = projects.caseStudy
+    const card = screen.getByRole('link', { name: new RegExp(`^${s.kicker}`) })
+    expect(card).toHaveAttribute('href', '#san-fernando')
+    expect(card).toHaveAttribute('data-case', s.cue)
+    expect(card).toHaveTextContent(s.cardTitle)
+    expect(card).toHaveTextContent(s.body)
+    expect(card.querySelectorAll('[data-logo-stack] img')).toHaveLength(3)
+    // First on the board, ahead of every other card.
+    expect(screen.getAllByRole('link')[0]).toBe(card)
   })
 
   it('shows the build plan card as an n8n plan, each step with its tool’s logo', () => {
@@ -139,7 +182,8 @@ describe('Board', () => {
   it('tops every card with an overlapping stack of its brand logos, decoration only, and no green icon', () => {
     render(<Board />)
     const stacks = screen.getAllByRole('link').map((a) => a.querySelector('[data-logo-stack]')!)
-    expect(stacks.map((s) => srcs(s).map(slugOf))).toEqual(CARD_LOGOS)
+    // The San Fernando banner leads, with the first three of its stack.
+    expect(stacks.map((s) => srcs(s).map(slugOf))).toEqual([['nextdotjs', 'react', 'typescript'], ...CARD_LOGOS])
     for (const s of stacks) {
       expect(s).toHaveAttribute('aria-hidden', 'true')
       expect(s.querySelector('svg')).toBeNull()
@@ -202,6 +246,33 @@ describe('ProjectViews', () => {
     fireEvent.click(within(view).getByRole('button', { name: 'Close' }))
     expect(window.location.hash).toBe('')
     expect(view).not.toHaveAttribute('open')
+  })
+
+  it('opens the San Fernando case study from its hash, with every ported line and a way to start a project', () => {
+    window.history.replaceState(null, '', '/projects#san-fernando')
+    render(<ProjectViews />)
+    const s = projects.caseStudy
+    const view = screen.getByRole('dialog', { name: s.title })
+    expect(view).toHaveAttribute('open')
+    for (const text of [s.kicker, s.tagline, s.problem, s.solution, ...s.features, ...s.stack.map((b) => b.name)]) {
+      expect(view).toHaveTextContent(text)
+    }
+    expect(within(view).getByRole('heading', { name: s.problemLabel })).toBeInTheDocument()
+    expect(within(view).getByRole('img', { name: s.seal.alt })).toBeInTheDocument()
+    expect(within(view).getByRole('link', { name: s.contact.label })).toHaveAttribute('href', '/contact')
+  })
+
+  it('drops the case study’s contact link while Contact is switched off', () => {
+    const item = NAV.find((n) => n.href === '/contact')!
+    item.hidden = true
+    try {
+      window.history.replaceState(null, '', '/projects#san-fernando')
+      render(<ProjectViews />)
+      expect(screen.getByRole('dialog', { name: projects.caseStudy.title })).toBeInTheDocument()
+      expect(screen.queryByRole('link', { name: projects.caseStudy.contact.label })).toBeNull()
+    } finally {
+      item.hidden = false
+    }
   })
 
   it('has no iframe while the build plan is closed, so /projects never fetches it up front', () => {
