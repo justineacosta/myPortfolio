@@ -27,12 +27,12 @@ export type MobileNavItem = { href: string; label: string; icon: Icon; center?: 
  */
 export const NAV: NavItem[] = [
   { href: '/', label: 'Home', hint: 'OVERVIEW', eyebrow: 'HOME / OVERVIEW', icon: HouseIcon, hidden: false },
-  { href: '/projects', label: 'Projects', hint: 'BUILDS', eyebrow: 'PROJECTS / BUILDS', icon: FolderOpenIcon, hidden: false },
+  { href: '/projects', label: 'Projects', hint: 'BUILDS', eyebrow: 'PROJECTS / WEB, AI & AUTOMATION BUILDS', icon: FolderOpenIcon, hidden: false },
   { href: '/showcase', label: 'Showcase', hint: 'FLAGSHIP', eyebrow: 'SHOWCASE / FLAGSHIP', icon: FlagIcon, hidden: true },
   { href: '/services', label: 'Services', hint: 'OFFERS', eyebrow: 'SERVICES / OFFERS', icon: StackIcon, hidden: false },
   { href: '/testimonials', label: 'Testimonials', hint: 'CLIENTS', eyebrow: 'TESTIMONIALS / CLIENTS', icon: QuotesIcon, hidden: true },
   { href: '/about', label: 'About', hint: 'PROFILE', eyebrow: 'ABOUT / PROFILE', icon: UserCircleIcon, hidden: false },
-  { href: '/contact', label: 'FAQs / Contact', hint: 'INQUIRY', eyebrow: 'FAQS / CONTACT', icon: ChatCircleDotsIcon, hidden: false },
+  { href: '/contact', label: 'FAQs / Contact', hint: 'INQUIRY', eyebrow: 'FAQS / HIRE A FULL-STACK DEVELOPER', icon: ChatCircleDotsIcon, hidden: false },
 ]
 
 /** Kraft's phone nav. Showcase and Testimonials are reached from Home and ⌘K. */

@@ -4,7 +4,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import { home } from '@/data/home'
 import { profile } from '@/data/profile'
 import { bootScript } from '@/lib/boot'
-import { OG_BASE, SITE_NAME } from '@/lib/seo'
+import { HOME_TITLE, OG_BASE, TITLE_TEMPLATE } from '@/lib/seo'
 import { SITE_URL } from '@/lib/site'
 import 'lenis/dist/lenis.css'
 import './globals.css'
@@ -14,11 +14,11 @@ const geistMono = Geist_Mono({ subsets: ['latin'], weight: ['400', '500'], varia
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: SITE_NAME, template: `%s · ${profile.studio}` },
+  title: { default: HOME_TITLE, template: TITLE_TEMPLATE },
   description: home.lede,
   applicationName: profile.studio,
   authors: [{ name: profile.name }],
-  openGraph: { ...OG_BASE, title: SITE_NAME, description: home.lede },
+  openGraph: { ...OG_BASE, title: HOME_TITLE, description: home.lede },
   twitter: { card: 'summary_large_image' },
 }
 

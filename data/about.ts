@@ -14,7 +14,7 @@ export const ROLES: Role[] = [
 
 export const about = {
   title: ["Hi, I'm Justine."] as const,
-  lede: 'I build the systems that keep working when nobody is watching them.',
+  lede: "I'm a full-stack developer and AI automation engineer in Manila. I build the systems that keep working when nobody is watching them.",
   /** The meta description: search results and link previews, not the page. */
   description: "I'm Justine Acosta, a full-stack developer and AI automation engineer in Manila. I build software, AI agents and workflows that keep working after the demo.",
   intro: {

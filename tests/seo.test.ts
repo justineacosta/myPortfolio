@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest'
+import { NAV } from '@/data/nav'
 import robots from '@/app/robots'
 import sitemap from '@/app/sitemap'
 import { profile } from '@/data/profile'
 import { FAQS } from '@/data/faqs'
 import { SERVICES } from '@/data/services'
 import { faqJsonLd, jsonLd, personJsonLd, servicesJsonLd } from '@/lib/jsonld'
-import { indexedPaths, ledeOr, pageMetadata, SITE_NAME, STATIC_PAGES } from '@/lib/seo'
+import { HOME_TITLE, indexedPaths, ledeOr, pageMetadata, STATIC_PAGES } from '@/lib/seo'
 import { SITE_URL, siteUrl } from '@/lib/site'
 import { readTokens } from '@/lib/tokens'
 import { SHARE_ALT, SHARE_SIZE } from '@/lib/share-meta'
@@ -24,17 +25,27 @@ describe('siteUrl', () => {
 })
 
 describe('pageMetadata', () => {
-  it("names a page after its nav label, with its own description and canonical link", () => {
+  it('gives a page its search title, with its own description and canonical link', () => {
     const m = pageMetadata('/projects', 'Everything here shipped.')
-    expect(m.title).toBe('Projects')
+    expect(m.title).toBe('Web, AI Agent & Automation Projects')
     expect(m.description).toBe('Everything here shipped.')
     expect(m.alternates?.canonical).toBe('/projects')
     const image = { width: SHARE_SIZE.width, height: SHARE_SIZE.height, alt: SHARE_ALT }
-    expect(m.openGraph).toMatchObject({ title: 'Projects · Kraft', url: '/projects', siteName: 'Kraft', images: [{ url: '/opengraph-image', ...image }] })
+    expect(m.openGraph).toMatchObject({ title: 'Web, AI Agent & Automation Projects · Justine Acosta', url: '/projects', siteName: 'Kraft', images: [{ url: '/opengraph-image', ...image }] })
     expect(m.twitter).toMatchObject({ images: [{ url: '/twitter-image', ...image }] })
   })
-  it('gives Home the full site name', () => {
-    expect(pageMetadata('/', 'x').title).toEqual({ absolute: SITE_NAME })
+  it('falls back to the nav label for a page without a search title', () => {
+    expect(pageMetadata('/testimonials', 'x').title).toBe('Testimonials')
+  })
+  it('gives Home the name and the role', () => {
+    expect(pageMetadata('/', 'x').title).toEqual({ absolute: HOME_TITLE })
+    expect(HOME_TITLE).toBe('Justine Acosta · Full-stack & AI Automation Developer')
+  })
+  it('keeps every full search title under 60 characters', () => {
+    for (const { href } of NAV) {
+      const m = pageMetadata(href, 'x')
+      expect((m.openGraph?.title as string).length, href).toBeLessThanOrEqual(60)
+    }
   })
   it('takes an explicit label for pages outside the nav', () => {
     expect(pageMetadata('/thank-you', 'x', 'Thank you').title).toBe('Thank you')

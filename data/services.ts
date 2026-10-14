@@ -62,7 +62,7 @@ export const SERVICES: Service[] = [
 /** Services page copy, verbatim (KraftScreens.dc.html:209-324). The labels name the sections in ⌘K. */
 export const servicesPage = {
   title: ['Apps, agents and the', 'automation between them.'] as const,
-  lede: 'What I build, how it works, and what you get at the end of it.',
+  lede: 'Full-stack web apps, AI agents and n8n automation: what I build, how it works, and what you get at the end of it.',
   /** The meta description: search results and link previews, not the page. */
   description: 'Full-stack web apps, AI agents and RAG, n8n, Zapier and Make automation, CRMs, APIs and SEO. Built in Manila for teams in the US, EU and CA.',
   method: {

@@ -13,7 +13,7 @@ export const legal = {
   notFound: {
     kicker: '404',
     title: 'Page not found.',
-    /** The browser tab: "Page not found · Kraft". */
+    /** The browser tab: "Page not found · Justine Acosta". */
     tabTitle: 'Page not found',
     body: "That address doesn't exist. If you followed a link that should work, let me know and I'll look into it.",
     home: 'Back to home',
