@@ -5,6 +5,7 @@ import { flushSync } from 'react-dom'
 import { ArrowRightIcon, CheckCircleIcon, WarningCircleIcon } from '@phosphor-icons/react/ssr'
 import { contact } from '@/data/contact'
 import { profile } from '@/data/profile'
+import { track } from '@/lib/analytics'
 import {
   checkLead, FIELDS, MAX_EMAIL, MAX_MESSAGE, MAX_NAME, SubmitError, submitLead,
   type Errors, type Field,
@@ -54,6 +55,7 @@ export default function ContactForm() {
     setStatus({ kind: 'sending' })
     try {
       await submitLead(result.lead)
+      track('Contact sent')
       setStatus({ kind: 'sent' })
     } catch (err) {
       setStatus({ kind: 'error', note: err instanceof SubmitError ? err.message : contact.errors.failed })
