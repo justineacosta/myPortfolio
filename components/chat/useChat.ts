@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { chat } from '@/data/chat'
+import { track } from '@/lib/analytics'
 import { play } from '@/lib/chat/sound'
 import { recent, type ChatTurn } from '@/lib/chat/validate'
 import { CHAT_KEY } from '@/lib/storage-keys'
@@ -153,6 +154,7 @@ export function useChat(page: string) {
     async (text: string) => {
       const question = text.trim()
       if (!question || sending) return
+      track('Lumen message')
       await ask(question, messages)
     },
     [ask, messages, sending],
