@@ -9,6 +9,7 @@ import { brandIcon } from '@/data/stack'
 import { pushHash } from '@/lib/hash'
 import { prefersReducedMotion } from '@/lib/motion'
 import AgentsPreview from './AgentsPreview'
+import CaseStudyCard from './CaseStudyCard'
 import SitesCard from './SitesCard'
 import FlowPeek from './FlowPeek'
 import LogoStack from './LogoStack'
@@ -60,6 +61,8 @@ export default function Board() {
             {projects.nudge}
           </span>
         </div>
+
+        <CaseStudyCard onOpen={openView} />
 
         <div className={`flex flex-wrap ${GAP}`}>
           <a href="#automations" onClick={openView} data-case={c.automations.cue} className={`${CARD} min-w-[min(270px,100%)] flex-[3_1_420px]`}>

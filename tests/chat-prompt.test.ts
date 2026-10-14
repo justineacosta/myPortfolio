@@ -4,11 +4,24 @@ import { SAMPLE_PROJECTS } from '@/lib/chat/samples'
 import { CASE_SITES } from '@/data/cases/pages'
 import { NAV } from '@/data/nav'
 import { profile } from '@/data/profile'
+import { projects } from '@/data/projects'
 import { assistantFacts } from '@/data/assistantFacts'
 import { FAQS } from '@/data/faqs'
 import { SERVICES } from '@/data/services'
 
 describe("Lumen's system prompt", () => {
+  it('no longer says everything here is a sample, and routes "case study" to San Fernando too', () => {
+    expect(SYSTEM_PROMPT).not.toContain("What you'll find here are sample systems for fictional businesses")
+    expect(SYSTEM_PROMPT).toMatch(/"case study":.*\/projects#san-fernando/)
+  })
+
+  it('names San Fernando as real client work, links its case study, and still calls the samples fictional', () => {
+    expect(SYSTEM_PROMPT).toContain('# Real client work')
+    expect(SYSTEM_PROMPT).toContain(projects.caseStudy.title)
+    expect(SYSTEM_PROMPT).toContain('/projects#san-fernando')
+    expect(SYSTEM_PROMPT).toContain('They are samples, never clients.')
+  })
+
   it('is one cached block, built once with nothing per request in it', () => {
     const blocks = systemBlocks()
     expect(blocks).toHaveLength(1)

@@ -9,7 +9,7 @@ const BRANDS = {
   react: '61DAFB', typescript: '3178C6', nodedotjs: '5FA04E', python: '3776AB', postgresql: '4169E1',
   supabase: '3FCF8E', docker: '2496ED', n8n: 'EA4B71', figma: 'F24E1E', claude: 'D97757',
   nextdotjs: 'A3AAB2', tailwindcss: '06B6D4', fastapi: '009688', redis: 'FF4438', mongodb: '47A248',
-  prisma: '2D3748', vercel: 'A3AAB2', cloudflare: 'F38020', githubactions: '2088FF', git: 'F05032',
+  prisma: '2D3748', vercel: 'A3AAB2', resend: 'A3AAB2', cloudflare: 'F38020', githubactions: '2088FF', git: 'F05032',
   langchain: '5FB39B', huggingface: 'FFD21E', googlegemini: '8E75B2', zapier: 'FF4F00', make: '6D00CC',
   stripe: '635BFF', expo: 'A3AAB2', graphql: 'E10098', anthropic: 'D97757', hubspot: 'FF7A59',
   airtable: '18BFFF', notion: 'A3AAB2', postman: 'FF6C37', googlechrome: '4285F4', express: 'A3AAB2',

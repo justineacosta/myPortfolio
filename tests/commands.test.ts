@@ -5,6 +5,11 @@ import { COMMANDS, filterCommands, SECTIONS } from '@/lib/commands'
 import { splitHref } from '@/lib/hash'
 
 describe('filterCommands', () => {
+  it('finds the San Fernando case study, led by its first logo', () => {
+    const hit = COMMANDS.find((c) => c.href === '/projects#san-fernando')!
+    expect(hit).toMatchObject({ label: 'Barangay San Fernando', logo: 'nextdotjs' })
+    expect(filterCommands('san fernando').map((c) => c.href)).toContain('/projects#san-fernando')
+  })
   it('returns everything for an empty or blank query', () => {
     expect(filterCommands('')).toEqual(COMMANDS)
     expect(filterCommands('   ')).toEqual(COMMANDS)
@@ -24,7 +29,7 @@ describe('SECTIONS', () => {
   it('follow the pages, each a hash link on its page', () => {
     expect(COMMANDS.slice(0, NAV.length).map((c) => c.href)).toEqual(NAV.map((n) => n.href))
     expect(SECTIONS.map((s) => s.href)).toEqual([
-      '/projects#automations', '/projects#build-plan', '/projects#agentic-framework',
+      '/projects#san-fernando', '/projects#automations', '/projects#build-plan', '/projects#agentic-framework',
       '/projects#end-to-end', '/projects#sites', '/projects#ai-agents',
       '/services#method', '/services#automation', '/contact#faqs',
     ])
@@ -39,7 +44,7 @@ describe('SECTIONS', () => {
 
   it('show each Projects entry with its card’s lead logo; the rest keep an icon', () => {
     const c = projects.cards
-    const lead = [c.automations, c.plan, ...projects.writeups, c.sites, c.agents].map((x) => x.logos[0].slug)
+    const lead = [projects.caseStudy.stack, ...[c.automations, c.plan, ...projects.writeups, c.sites, c.agents].map((x) => x.logos)].map((l) => l[0].slug)
     const views = SECTIONS.filter((s) => s.href.startsWith('/projects#'))
     expect(views.map((s) => s.logo)).toEqual(lead)
     for (const s of COMMANDS.filter((x) => !x.href.startsWith('/projects#'))) expect(s.icon, s.id).toBeDefined()
