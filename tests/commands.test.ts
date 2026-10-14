@@ -1,18 +1,47 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+import { NOTES } from '@/data/notes'
 import { NAV } from '@/data/nav'
 import { PROJECT_VIEWS, projects } from '@/data/projects'
-import { COMMANDS, filterCommands, SECTIONS } from '@/lib/commands'
+import { COMMANDS, commands, filterCommands, SECTIONS } from '@/lib/commands'
 import { splitHref } from '@/lib/hash'
 
 describe('filterCommands', () => {
+  it('still returns every entry for an empty query once a guide is published', () => {
+    const was = NOTES[0].draft
+    NOTES[0].draft = false
+    try {
+      expect(filterCommands('')).toEqual(commands())
+      expect(commands().map((c) => c.href)).toContain(`/notes/${NOTES[0].slug}`)
+    } finally {
+      NOTES[0].draft = was
+    }
+  })
+  it('lists each visible guide in ⌘K while Notes is on, and none while it is off', () => {
+    vi.stubEnv('NODE_ENV', 'development')
+    try {
+      const n = NOTES[0]
+      expect(commands().find((c) => c.href === `/notes/${n.slug}`)).toMatchObject({ label: n.title })
+      expect(filterCommands(n.title.slice(0, 12)).map((c) => c.href)).toContain(`/notes/${n.slug}`)
+      const item = NAV.find((x) => x.href === '/notes')!
+      item.hidden = true
+      try {
+        expect(commands().some((c) => c.href.startsWith('/notes'))).toBe(false)
+      } finally {
+        item.hidden = false
+      }
+    } finally {
+      vi.unstubAllEnvs()
+    }
+  })
+
   it('finds the San Fernando case study, led by its first logo', () => {
     const hit = COMMANDS.find((c) => c.href === '/projects#san-fernando')!
     expect(hit).toMatchObject({ label: 'Barangay San Fernando', logo: 'nextdotjs' })
     expect(filterCommands('san fernando').map((c) => c.href)).toContain('/projects#san-fernando')
   })
   it('returns everything for an empty or blank query', () => {
-    expect(filterCommands('')).toEqual(COMMANDS)
-    expect(filterCommands('   ')).toEqual(COMMANDS)
+    expect(filterCommands('')).toEqual(commands())
+    expect(filterCommands('   ')).toEqual(commands())
   })
   it('matches labels case-insensitively', () => {
     expect(filterCommands('SERV').map((c) => c.href)).toEqual(['/services'])

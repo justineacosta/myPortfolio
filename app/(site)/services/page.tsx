@@ -1,7 +1,11 @@
 import Automation from '@/components/services/Automation'
 import Method from '@/components/services/Method'
 import Offers from '@/components/services/Offers'
+import { ArrowRightIcon } from '@phosphor-icons/react/ssr'
+import { CTA } from '@/components/projects/styles'
+import { ShellLink } from '@/components/shell/NavigationProvider'
 import PageHeader from '@/components/ui/PageHeader'
+import { isHidden } from '@/data/nav'
 import { servicesPage } from '@/data/services'
 import { notFoundIfHidden } from '@/lib/hidden'
 import { jsonLd, servicesJsonLd } from '@/lib/jsonld'
@@ -18,6 +22,11 @@ export default function Page() {
       <Method />
       <Offers />
       <Automation />
+      {!isHidden(servicesPage.guides.href) && (
+        <ShellLink href={servicesPage.guides.href} className={`${CTA} self-start text-[11px]`}>
+          {servicesPage.guides.label} <ArrowRightIcon size={13} aria-hidden />
+        </ShellLink>
+      )}
     </section>
   )
 }

@@ -16,13 +16,13 @@ const renderSidebar = () =>
   )
 
 describe('Sidebar', () => {
-  it('numbers the seven sections 01-07 and marks the current one', () => {
+  it('numbers the eight sections 01-08 and marks the current one', () => {
     renderSidebar()
     const nav = screen.getByRole('navigation', { name: 'Sections' })
     const links = within(nav).getAllByRole('link')
-    expect(links).toHaveLength(7)
+    expect(links).toHaveLength(8)
     expect(links.map((l) => l.textContent)).toEqual([
-      'Home01', 'Projects02', 'Showcase03', 'Services04', 'Testimonials05', 'About06', 'FAQs / Contact07',
+      'Home01', 'Projects02', 'Showcase03', 'Services04', 'Notes05', 'Testimonials06', 'About07', 'FAQs / Contact08',
     ])
     expect(links[1]).toHaveAttribute('aria-current', 'page')
     expect(links[0]).not.toHaveAttribute('aria-current')

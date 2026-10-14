@@ -1,7 +1,8 @@
 import type { Icon } from '@phosphor-icons/react'
-import { ChatCircleDotsIcon, LightningIcon, TreeStructureIcon } from '@phosphor-icons/react/ssr'
+import { ChatCircleDotsIcon, LightningIcon, NotebookIcon, TreeStructureIcon } from '@phosphor-icons/react/ssr'
 import { contact } from '@/data/contact'
 import { isHidden, NAV } from '@/data/nav'
+import { notePath, visibleNotes } from '@/data/notes'
 import { projects, type ProjectView } from '@/data/projects'
 import { servicesPage } from '@/data/services'
 import type { Brand } from '@/data/stack'
@@ -36,8 +37,12 @@ export const SECTIONS: Command[] = [
 
 export const COMMANDS: Command[] = [...PAGES, ...SECTIONS]
 
-/** The ⌘K entries for pages that are switched on (data/nav.ts). */
-export const commands = () => COMMANDS.filter((c) => !isHidden(c.href))
+/** Each guide on /notes, read when ⌘K opens, so a switched-off section or a draft never shows. */
+const noteCommands = (): Command[] =>
+  visibleNotes().map((n) => ({ id: `note-${n.slug}`, label: n.title, hint: hintOf('/notes'), href: notePath(n.slug), icon: NotebookIcon }))
+
+/** The ⌘K entries for pages that are switched on (data/nav.ts), then the visible guides. */
+export const commands = () => [...COMMANDS.filter((c) => !isHidden(c.href)), ...noteCommands()]
 
 /** Kraft's filter (Kraft Portfolio.dc.html:705-706): label or hint contains the query. */
 export function filterCommands(query: string, list: Command[] = commands()): Command[] {

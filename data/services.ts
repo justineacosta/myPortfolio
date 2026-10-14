@@ -61,6 +61,8 @@ export const SERVICES: Service[] = [
 
 /** Services page copy, verbatim (KraftScreens.dc.html:209-324). The labels name the sections in ⌘K. */
 export const servicesPage = {
+  /** The way on to the guides, at the foot of the page while /notes is switched on. */
+  guides: { label: 'Read the guides', href: '/notes' },
   title: ['Apps, agents and the', 'automation between them.'] as const,
   lede: 'What I build, how it works, and what you get at the end of it.',
   /** The meta description: search results and link previews, not the page. */
