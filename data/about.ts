@@ -22,7 +22,7 @@ export const about = {
     aside: 'The retry. The log line. The empty state.',
     lead: 'Kraft is just how I work',
     body: ': I build the app, the AI and the automations around it, and I stay accountable for all of it. AI helps me move fast; the decisions stay mine.',
-    story: "I've shipped enough projects alone to know the hard part starts after launch. That's the part I build for.",
+    story: "I've spent years seeing where work breaks, and how much people carry just to keep it moving after launch. So I build systems that remember for them.",
   },
   /** A looping video, encoded from assets/about-workstation.gif by scripts/workstation-video.mjs. */
   image: {
