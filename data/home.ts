@@ -28,7 +28,6 @@ export const home = {
     },
     about: {
       title: 'About',
-      body: 'How I work, and what I refuse to ship.',
       href: '/about',
       image: {
         webm: '/assets/about-workstation.webm',
