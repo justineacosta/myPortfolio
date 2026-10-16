@@ -17,7 +17,7 @@ export const EMAIL_PALETTE = {
   line: '#EDF2EB',
   ink: '#0B1310',
   ink2: '#3B4742',
-  ink3: '#69756F',
+  ink3: '#606C66',
   accent: '#0E6B44',
   onAccent: '#F3FFF8',
 }

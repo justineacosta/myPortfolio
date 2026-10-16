@@ -34,7 +34,7 @@ export default function PlainShell({ children }: { children: ReactNode }) {
           {children}
         </main>
         <footer className="mx-auto flex w-full max-w-[880px] flex-wrap items-center gap-x-4 gap-y-2 border-t border-b1 px-4 py-6">
-          <span className="font-mono text-[9.5px] tracking-[.06em] text-ink4">{profile.copyright}</span>
+          <span className="font-mono text-[9.5px] tracking-[.06em] text-ink3">{profile.copyright}</span>
         </footer>
       </div>
     </>
