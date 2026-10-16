@@ -32,11 +32,12 @@ export const contact = {
     body: "It's in my inbox. I'll reply within one business day.",
     again: 'Send another',
   },
-  /** The confirmation the visitor gets by email. It never quotes their message. */
+  /** The confirmation the visitor gets by email. It quotes nothing they typed, not even their name. */
   reply: {
     /** The sender name the visitor sees: a person, not a brand. */
     sender: 'Justine at Kraft',
-    subject: (firstName: string) => `Thanks, ${firstName}. I'll reply within one business day`,
+    subject: "Thanks for your message. I'll reply within one business day",
+    greeting: 'Hi there,',
     kicker: 'MESSAGE RECEIVED',
     title: 'Got your message.',
     body: "Thanks for writing. Your message reached me, and I'll reply within one business day.",

@@ -9,8 +9,8 @@ import { SITE_URL } from '@/lib/site'
  * The contact form's backend: checks the message with the form's own rules,
  * then sends it through Resend. Two emails go out, designed in lib/emails.ts:
  * - To CONTACT_TO, with Reply-To the visitor, so a reply goes straight to them.
- * - To the visitor, a short confirmation. It never repeats what they typed,
- *   so the form cannot be used to mail someone else's words. If it fails
+ * - To the visitor, a short confirmation. It repeats nothing they typed, not
+ *   even their name, so the form cannot be used to mail someone else's words. If it fails
  *   (say, the sending domain is not verified yet) the message still counts
  *   as sent.
  * Each email has its own sender name (data/contact.ts); CONTACT_FROM gives
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
     return refuse(contact.errors.failed, 502)
   }
   try {
-    await sendEmail(key, { from: sender(contact.reply.sender, from), to: lead.email, replyTo: to, ...confirmEmail(lead, SITE_URL) })
+    await sendEmail(key, { from: sender(contact.reply.sender, from), to: lead.email, replyTo: to, ...confirmEmail(SITE_URL) })
   } catch (err) {
     console.error('Contact form: the confirmation was not sent.', err)
   }

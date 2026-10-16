@@ -148,6 +148,14 @@ describe('POST /api/chat', () => {
     expect(streamMock).not.toHaveBeenCalled()
   })
 
+  it('refuses a body over 64 KB that declares no length, without reading past the limit', async () => {
+    // A chunked upload has no Content-Length, so only counting the bytes as they arrive can catch it.
+    const res = await post({ messages: MESSAGES, pad: 'x'.repeat(65 * 1024) })
+    expect(res.status).toBe(400)
+    expect(await res.json()).toEqual({ error: chat.errors.invalid })
+    expect(streamMock).not.toHaveBeenCalled()
+  })
+
   it('limits Claude to 30 questions an hour per visitor, and never limits the offline rules', async () => {
     for (let i = 0; i < 30; i++) expect((await post({ messages: MESSAGES }, '10.7.7.7')).status).toBe(200)
     const over = await post({ messages: MESSAGES }, '10.7.7.7')
