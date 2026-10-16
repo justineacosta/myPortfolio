@@ -27,7 +27,7 @@ export default function Sidebar() {
       </div>
 
       <div className="flex flex-col items-center gap-2.5">
-        <div className="group/avatar relative flex size-[120px] items-center justify-center">
+        <div className="group/avatar relative flex size-[182px] items-center justify-center">
           <div
             aria-hidden
             className="absolute -inset-4 rounded-full bg-[radial-gradient(circle_at_50%_32%,var(--washB),transparent_68%)]"
@@ -35,10 +35,10 @@ export default function Sidebar() {
           <Image
             src={profile.portrait.src}
             alt={profile.portrait.alt}
-            width={114}
-            height={114}
+            width={176}
+            height={176}
             preload
-            className="relative size-[114px] rounded-full border border-b2 object-cover"
+            className="relative size-[176px] rounded-full border border-b2 object-cover"
             style={{ objectPosition: profile.portrait.position }}
           />
           {/* The drawn portrait, over the photo, while the avatar is hovered. */}
@@ -46,9 +46,9 @@ export default function Sidebar() {
             data-portrait-drawn
             src={profile.portrait.drawn.src}
             alt=""
-            width={114}
-            height={114}
-            className="absolute size-[114px] rounded-full border border-b2 object-cover opacity-0 transition-opacity duration-400 group-hover/avatar:opacity-100"
+            width={176}
+            height={176}
+            className="absolute size-[176px] rounded-full border border-b2 object-cover opacity-0 transition-opacity duration-400 group-hover/avatar:opacity-100"
             style={{ objectPosition: profile.portrait.drawn.position }}
           />
         </div>
