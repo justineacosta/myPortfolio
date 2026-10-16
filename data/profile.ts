@@ -16,7 +16,7 @@ export const profile = {
   jobTitle: 'Full-stack developer and AI automation engineer',
   address: { locality: 'Manila', country: 'PH' },
   portrait: {
-    src: '/assets/portrait.jpg', alt: 'Portrait of Justine Acosta', position: '57% 36%',
+    src: '/assets/portrait-headshot.jpg', alt: 'Portrait of Justine Acosta', position: '50% 50%',
     /** The same moment, drawn: the avatar's hover (a tap on phones) and the Thank-you and 404 pages. */
     drawn: {
       src: '/assets/portrait-drawn.jpg', alt: 'Drawing of Justine raising a bottle in a café', position: '56% 37%',

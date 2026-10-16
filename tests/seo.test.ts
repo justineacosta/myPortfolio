@@ -100,7 +100,7 @@ describe('sitemap and robots', () => {
 describe('Person JSON-LD', () => {
   it('describes Justine, with the contact email now that it is real', () => {
     const p = personJsonLd('https://kraft.dev')
-    expect(p).toMatchObject({ '@type': 'Person', name: 'Justine Acosta', url: 'https://kraft.dev', image: 'https://kraft.dev/assets/portrait.jpg', email: `mailto:${profile.email}` })
+    expect(p).toMatchObject({ '@type': 'Person', name: 'Justine Acosta', url: 'https://kraft.dev', image: 'https://kraft.dev/assets/portrait-headshot.jpg', email: `mailto:${profile.email}` })
     expect(p.sameAs).toEqual(['https://github.com/justineacosta', 'https://www.linkedin.com/in/justinesam023'])
   })
   it('lists every FAQ, question and answer, for /contact', () => {
