@@ -123,7 +123,7 @@ export default function Sidebar() {
         </MagnetLink>
       )}
 
-      <span className="font-mono text-[9px] tracking-[.06em] text-ink4">{profile.copyright}</span>
+      <span className="font-mono text-[9px] tracking-[.06em] text-ink3">{profile.copyright}</span>
     </aside>
   )
 }

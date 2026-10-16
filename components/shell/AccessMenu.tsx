@@ -16,7 +16,7 @@ const SIZE_TEXT = ['text-sm', 'text-base', 'text-lg'] as const
  * contrast, motion off and underlined links. Each switch applies at once and
  * is remembered, and lib/boot.ts re-applies it before the first paint. The
  * panel is portalled to <body> so no scroll box clips it. Escape, the close
- * button, a click elsewhere or a resize closes it. A dot on the button shows
+ * button, a click elsewhere or a change of width closes it. A dot on the button shows
  * that something is switched on.
  */
 export default function AccessMenu({ size = 38, className = '' }: { size?: 38 | 40; className?: string }) {
@@ -57,7 +57,11 @@ export default function AccessMenu({ size = 38, className = '' }: { size?: 38 | 
       if (panel.current?.contains(t) || button.current?.contains(t)) return
       close(false)
     }
-    const onResize = () => close(false)
+    // Only a change of width moves the button. A phone's address bar showing or hiding changes the height alone, and must not close it.
+    const width = window.innerWidth
+    const onResize = () => {
+      if (window.innerWidth !== width) close(false)
+    }
     window.addEventListener('keydown', onKey)
     window.addEventListener('pointerdown', onDown)
     window.addEventListener('resize', onResize)

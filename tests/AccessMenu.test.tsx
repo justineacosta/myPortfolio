@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import AccessMenu from '@/components/shell/AccessMenu'
 import { A11Y_KEY } from '@/lib/storage-keys'
@@ -70,6 +70,19 @@ describe('AccessMenu', () => {
   it('a click anywhere else closes it', async () => {
     const user = await openMenu()
     await user.click(document.body)
+    expect(screen.queryByRole('dialog', { name: 'Accessibility' })).toBeNull()
+  })
+
+  it('stays open when only the height changes (a phone address bar showing or hiding), and closes when the width does', async () => {
+    await openMenu()
+    const resize = (width: number, height: number) => {
+      Object.defineProperty(window, 'innerWidth', { value: width, configurable: true })
+      Object.defineProperty(window, 'innerHeight', { value: height, configurable: true })
+      act(() => void window.dispatchEvent(new Event('resize')))
+    }
+    resize(window.innerWidth, window.innerHeight - 60)
+    expect(screen.queryByRole('dialog', { name: 'Accessibility' })).toBeInTheDocument()
+    resize(window.innerWidth - 200, window.innerHeight)
     expect(screen.queryByRole('dialog', { name: 'Accessibility' })).toBeNull()
   })
 

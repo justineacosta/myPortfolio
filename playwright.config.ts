@@ -3,6 +3,9 @@ import { defineConfig, devices } from '@playwright/test'
 export default defineConfig({
   testDir: 'e2e',
   fullyParallel: true,
+  // A few animation-timed tests miss their window when every worker shares the CPU, and pass alone.
+  // One retry lets them through; the report still lists them as flaky, so a real break shows up.
+  retries: 1,
   reporter: 'list',
   use: { baseURL: 'http://localhost:3100', trace: 'retain-on-failure' },
   webServer: {

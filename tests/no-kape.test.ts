@@ -19,7 +19,8 @@ const strings = (v: unknown, seen = new Set<unknown>()): string[] => {
 describe('no kape content', () => {
   for (const file of readdirSync('data').filter((f) => f.endsWith('.ts'))) {
     it(`data/${file} exports none`, async () => {
-      const mod = await import(`../data/${file.replace(/\.ts$/, '')}`)
+      // The extension sits in the literal part, so Vite can resolve the import without a warning.
+      const mod = await import(`../data/${file.replace(/\.ts$/, '')}.ts`)
       expect(strings(mod).filter((s) => BANNED.test(s))).toEqual([])
       // A cold import of a large data file can pass 5 s while the whole suite runs.
     }, 30_000)

@@ -22,7 +22,7 @@ describe('renderPlan', () => {
   })
 
   it('opens with the title, the promise, the facts and the diagram key', () => {
-    expect(doc.title).toBe('Trusted Mover build plan')
+    expect(doc.title).toBe('Trusted Mover build plan · Justine Acosta')
     expect(doc.querySelector('h1')!.textContent).toBe(plan.heading)
     expect(doc.querySelector('link[rel=canonical]')!.getAttribute('href')).toBe('/build-plan.html')
     expect(doc.querySelectorAll('.meta dt')).toHaveLength(plan.meta.length)

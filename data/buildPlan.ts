@@ -338,7 +338,7 @@ const H03: Workflow = {
 }
 
 export const plan: Plan = {
-  title: 'Trusted Mover build plan',
+  title: 'Trusted Mover build plan · Justine Acosta',
   description: 'An n8n build plan for a moving company: six workflows, three helpers, a test matrix and a handover, planned before anything is built.',
   kicker: 'N8N BUILD PLAN · TRUSTED MOVER',
   heading: 'Every quote, booking and move, planned before a single node is placed.',

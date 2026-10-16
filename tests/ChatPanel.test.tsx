@@ -7,6 +7,8 @@ import { STARTER_SUGGESTIONS } from '@/lib/chat/suggestions'
 import { CHAT_KEY, CHAT_WIDE_KEY } from '@/lib/storage-keys'
 import { CHAT_TTL_MS } from '@/components/chat/useChat'
 import type { CardProject } from '@/lib/chat/samples'
+import { SHELL_MIN_QUERY } from '@/lib/breakpoints'
+import { installMatchMedia } from '../test/matchMedia'
 
 const go = vi.fn()
 vi.mock('@/components/shell/NavigationProvider', () => ({ useShellNav: () => ({ go }) }))
@@ -296,6 +298,39 @@ describe('Lumen', () => {
     await userEvent.click(pill)
     expect(log.scrollTo).toHaveBeenCalledWith(expect.objectContaining({ top: 2000 }))
     expect(within(dialog).queryByRole('button', { name: chat.latest })).toBeNull()
+  })
+
+  it('announces a reply once, when it is finished, not every piece of it as it streams in', async () => {
+    renderChat()
+    const dialog = await open()
+    // role="log" is a live region by default; the sr-only line below it is the one that speaks.
+    expect(within(dialog).getByRole('log')).toHaveAttribute('aria-live', 'off')
+    await userEvent.click(within(dialog).getByRole('button', { name: STARTER_SUGGESTIONS[0] }))
+    await within(dialog).findByText('Hello there.', SEEN)
+    const spoken = dialog.querySelector('[aria-live="polite"]')
+    await waitFor(() => expect(spoken).toHaveTextContent('Hello there.'))
+  })
+
+  it('is a modal sheet on phones: Tab and Shift+Tab stay inside it', async () => {
+    renderChat()
+    const dialog = await open()
+    expect(dialog).toHaveAttribute('aria-modal', 'true')
+    const close = within(dialog).getByRole('button', { name: chat.close })
+    const box = within(dialog).getByRole('textbox', { name: chat.message })
+    // The send button is disabled while the box is empty, so the box is the last stop.
+    box.focus()
+    await userEvent.tab()
+    expect(dialog).toContainElement(document.activeElement as HTMLElement)
+    expect(document.activeElement).not.toBe(box)
+    close.focus()
+    await userEvent.tab({ shift: true })
+    expect(dialog).toContainElement(document.activeElement as HTMLElement)
+  })
+
+  it('stays non-modal on desktop, where the page beside it is still in use', async () => {
+    installMatchMedia({ [SHELL_MIN_QUERY]: true })
+    renderChat()
+    expect(await open()).toHaveAttribute('aria-modal', 'false')
   })
 
   it('closes on Esc and puts focus back on the launcher', async () => {
