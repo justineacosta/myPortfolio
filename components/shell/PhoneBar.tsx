@@ -69,14 +69,14 @@ export default function PhoneBar() {
         aria-label={profile.portrait.drawn.swap}
         aria-pressed={drawn}
         onClick={() => setDrawn((d) => !d)}
-        className="relative size-10 shrink-0 cursor-pointer rounded-full border-0 bg-transparent p-0"
+        className="relative size-10 shrink-0 cursor-pointer overflow-hidden rounded-full border border-b2 bg-transparent p-0"
       >
         <Image
           src={profile.portrait.src}
           alt={profile.portrait.alt}
-          width={40}
-          height={40}
-          className="size-10 rounded-full border border-b2 object-cover"
+          fill
+          sizes="40px"
+          className="object-cover"
           style={{ objectPosition: profile.portrait.position }}
         />
         <Image
@@ -84,9 +84,9 @@ export default function PhoneBar() {
           data-on={drawn}
           src={profile.portrait.drawn.src}
           alt=""
-          width={40}
-          height={40}
-          className="absolute inset-0 size-10 rounded-full border border-b2 object-cover opacity-0 transition-opacity duration-400 data-[on=true]:opacity-100"
+          fill
+          sizes="40px"
+          className="object-cover opacity-0 transition-opacity duration-400 data-[on=true]:opacity-100"
           style={{ objectPosition: profile.portrait.drawn.position }}
         />
       </button>
