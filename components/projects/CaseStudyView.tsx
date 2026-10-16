@@ -1,11 +1,11 @@
 import Image from 'next/image'
-import Link from 'next/link'
+import IntentLink from '@/components/ui/IntentLink'
 import { ArrowRightIcon } from '@phosphor-icons/react/ssr'
 import { isHidden } from '@/data/nav'
 import { projects } from '@/data/projects'
-import { brandIcon } from '@/data/stack'
 import { BODY, CTA, TITLE } from './styles'
 import Window from './Window'
+import BrandIcon from '@/components/ui/BrandIcon'
 
 const HEADING = 'text-[15px] font-semibold tracking-[-.02em]'
 const PROSE = 'text-[14px] leading-[1.55] text-ink2'
@@ -32,7 +32,7 @@ export default function CaseStudyView({ open, onClose }: { open: boolean; onClos
       <ul className="flex flex-wrap gap-2" aria-label="Stack">
         {s.stack.map((b) => (
           <li key={b.slug} className="flex items-center gap-2 rounded-full border border-b1 bg-s0 px-3 py-2 text-[12.5px] text-ink2">
-            <Image src={brandIcon(b.slug)} alt="" width={14} height={14} className="block" />
+            <BrandIcon slug={b.slug} size={14} className="block" />
             {b.name}
           </li>
         ))}
@@ -58,9 +58,9 @@ export default function CaseStudyView({ open, onClose }: { open: boolean; onClos
       </section>
 
       {!isHidden(s.contact.href) && (
-        <Link href={s.contact.href} className={`${CTA} self-start text-[11px]`}>
+        <IntentLink href={s.contact.href} className={`${CTA} self-start text-[11px]`}>
           {s.contact.label} <ArrowRightIcon size={13} aria-hidden />
-        </Link>
+        </IntentLink>
       )}
     </Window>
   )

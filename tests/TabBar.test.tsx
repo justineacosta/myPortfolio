@@ -4,7 +4,7 @@ import { NavigationProvider } from '@/components/shell/NavigationProvider'
 import TabBar from '@/components/shell/TabBar'
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: vi.fn(), prefetch: vi.fn() }),
   usePathname: () => '/services',
 }))
 

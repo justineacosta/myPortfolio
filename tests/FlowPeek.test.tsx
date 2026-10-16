@@ -21,7 +21,7 @@ describe('FlowPeek', () => {
     inCard()
     const root = document.querySelector('[data-flow-peek]')!
     expect(root).toHaveAttribute('aria-hidden', 'true')
-    for (const img of root.querySelectorAll('img')) expect(img).toHaveAttribute('alt', '')
+    for (const logo of root.querySelectorAll('[data-brand]')) expect(logo).toHaveAttribute('aria-hidden', 'true')
   })
 
   it('draws each flow’s main route as chips, under its site and platform', () => {
@@ -70,7 +70,7 @@ describe('FlowPeek', () => {
 
   it('draws the webhook and branch icons in the cream chip’s own ink, so they read in the dark theme too', () => {
     inCard()
-    const icons = [...document.querySelectorAll('[data-chip] > svg')]
+    const icons = [...document.querySelectorAll('[data-chip] > svg:not([data-brand])')]
     expect(icons.length).toBeGreaterThan(0)
     for (const svg of icons) expect(svg.getAttribute('class')).toContain('text-logo-ink')
   })

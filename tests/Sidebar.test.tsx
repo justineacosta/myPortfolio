@@ -4,7 +4,7 @@ import { NavigationProvider } from '@/components/shell/NavigationProvider'
 import Sidebar from '@/components/shell/Sidebar'
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: vi.fn(), prefetch: vi.fn() }),
   usePathname: () => '/projects',
 }))
 

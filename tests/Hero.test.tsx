@@ -4,7 +4,7 @@ import Hero from '@/components/home/Hero'
 import { NavigationProvider } from '@/components/shell/NavigationProvider'
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: vi.fn(), prefetch: vi.fn() }),
   usePathname: () => '/',
 }))
 

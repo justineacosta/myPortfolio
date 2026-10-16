@@ -1,6 +1,5 @@
-import Image from 'next/image'
 import type { Brand } from '@/data/stack'
-import { brandIcon } from '@/data/stack'
+import BrandIcon from '@/components/ui/BrandIcon'
 
 /**
  * A board card's tools, as Kraft's logo stack (components/home/ServicesCard.tsx):
@@ -26,7 +25,7 @@ export default function LogoStack({ logos, size = 'lg' }: { logos: Brand[]; size
           key={l.slug}
           className={`relative grid shrink-0 place-items-center bg-logo-chip shadow-(--logo-shadow) transition-[transform,margin-left] duration-380 ease-[cubic-bezier(.2,.8,.2,1)] ${s.chip} ${i ? s.overlap : ''} ${POSE[Math.min(i, POSE.length - 1)]}`}
         >
-          <Image src={brandIcon(l.slug)} alt="" width={s.logo} height={s.logo} className="block" />
+          <BrandIcon slug={l.slug} size={s.logo} className="block" />
         </span>
       ))}
     </span>

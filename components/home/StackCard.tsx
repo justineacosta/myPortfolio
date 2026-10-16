@@ -1,8 +1,8 @@
-import Image from 'next/image'
 import { StackSimpleIcon } from '@phosphor-icons/react/ssr'
 import { home } from '@/data/home'
-import { brandIcon, EXPERIMENTAL, stackRows } from '@/data/stack'
+import { EXPERIMENTAL, stackRows } from '@/data/stack'
 import HomeCard from './HomeCard'
+import BrandIcon from '@/components/ui/BrandIcon'
 
 /** Two opposing marquees of tool chips; the dot says in use (accent) or experimental (grey). KraftScreens.dc.html:99-126. */
 export default function StackCard() {
@@ -28,7 +28,7 @@ export default function StackCard() {
                     data-experimental={exp || undefined}
                     className="flex items-center gap-2 rounded-full border border-b1 bg-chip px-3 py-[7px] whitespace-nowrap"
                   >
-                    <Image src={brandIcon(t.slug)} alt="" width={14} height={14} className="block shrink-0" />
+                    <BrandIcon slug={t.slug} size={14} className="block shrink-0" />
                     <span className="text-xs font-medium text-ink2">{t.name}</span>
                     <span
                       aria-hidden

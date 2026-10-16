@@ -6,9 +6,9 @@ import { ArrowUpRightIcon, PauseIcon, PlayIcon } from '@phosphor-icons/react/ssr
 import FlowStrip, { PEEK_SLUG } from '@/components/projects/FlowStrip'
 import { PLATFORMS } from '@/data/automations'
 import { BUSINESSES, showcase, TALL } from '@/data/showcase'
-import { brandIcon } from '@/data/stack'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import Cta from './Cta'
+import BrandIcon from '@/components/ui/BrandIcon'
 
 /**
  * The four sample businesses (data/showcase.ts). The copy column is the tab
@@ -144,7 +144,7 @@ export default function Flagship() {
                 onKeyDown={(e) => onKey(e, i)}
                 className={`flex min-h-10 shrink-0 cursor-pointer items-center gap-2 rounded-[10px] px-3.5 text-[13px] font-medium whitespace-nowrap transition-colors duration-200 ${on ? 'bg-accent text-on-accent' : 'text-ink3 hover:bg-hover hover:text-ink'}`}
               >
-                <Image src={brandIcon(PEEK_SLUG[PLATFORMS[x.platform].tool]!)} alt="" width={15} height={15} className="size-[15px] rounded-[3px] bg-logo-chip p-px" />
+                <BrandIcon slug={PEEK_SLUG[PLATFORMS[x.platform].tool]!} size={15} className="size-[15px] rounded-[3px] bg-logo-chip p-px" />
                 {x.short}
               </button>
             )

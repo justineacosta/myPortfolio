@@ -18,7 +18,7 @@ function unlockIfLast() {
 const isBackdrop = (target: EventTarget | null, dialog: HTMLElement) =>
   target === dialog || (target instanceof HTMLElement && target.dataset.backdrop !== undefined)
 
-const FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+const FOCUSABLE = 'button, a[href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
 
 /**
  * Nothing to return focus to (a ⌘K pick made with nothing focused). The view

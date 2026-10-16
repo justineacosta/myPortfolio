@@ -11,12 +11,11 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
 } from 'react'
-import Image from 'next/image'
 import { MagnifyingGlassIcon } from '@phosphor-icons/react/ssr'
-import { brandIcon } from '@/data/stack'
 import { filterCommands, type Command } from '@/lib/commands'
 import { introLive, skipIntro } from '@/lib/intro'
 import { useShellNav } from './NavigationProvider'
+import BrandIcon from '@/components/ui/BrandIcon'
 
 type PaletteCtx = { open: boolean; openPalette: () => void; closePalette: () => void }
 const Ctx = createContext<PaletteCtx | null>(null)
@@ -204,7 +203,7 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
                   {Icon ? (
                     <Icon size={16} aria-hidden className="text-accent" />
                   ) : (
-                    <Image src={brandIcon(c.logo!)} alt="" width={16} height={16} className="block shrink-0" />
+                    <BrandIcon slug={c.logo!} size={16} className="block shrink-0" />
                   )}
                   <span className="text-sm font-medium text-ink">{c.label}</span>
                   <span className="ml-auto font-mono text-[9.5px] text-ink3">{c.hint}</span>

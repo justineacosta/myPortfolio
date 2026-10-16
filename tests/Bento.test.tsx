@@ -5,7 +5,7 @@ import { NavigationProvider } from '@/components/shell/NavigationProvider'
 import { BUILDS } from '@/data/projects'
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: vi.fn(), prefetch: vi.fn() }),
   usePathname: () => '/',
 }))
 
@@ -68,7 +68,7 @@ describe('Bento', () => {
     expect(within(services).getByText('APIs & Integrations')).toBeInTheDocument()
     expect(within(services).queryByText('Mobile Apps & Extensions')).toBeNull()
     expect(within(services).getByText('SCROLL FOR ALL SIX')).toBeInTheDocument()
-    expect(services.querySelector('img[src="/icons/brands/n8n.svg"]')).not.toBeNull()
+    expect(services.querySelector('[data-brand="n8n"]')).not.toBeNull()
   })
 
   it('turns a vertical wheel over the services row into sideways scroll', () => {

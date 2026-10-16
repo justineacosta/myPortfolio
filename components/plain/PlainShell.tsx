@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import Link from 'next/link'
+import IntentLink from '@/components/ui/IntentLink'
 import type { ReactNode } from 'react'
 import AccessMenu from '@/components/shell/AccessMenu'
 import PageGlow from '@/components/shell/PageGlow'
@@ -21,10 +21,10 @@ export default function PlainShell({ children }: { children: ReactNode }) {
           {shellCopy.skipLink}
         </a>
         <header className="mx-auto flex w-full max-w-[880px] items-center gap-2.5 px-4 py-5">
-          <Link href="/" className="flex items-center gap-2.5 text-ink">
+          <IntentLink href="/" className="flex items-center gap-2.5 text-ink">
             <Image src="/assets/kraft-mark.svg" alt="" width={26} height={26} className="block rounded-lg border border-b1" />
             <span className="text-sm font-bold tracking-[.16em]">{profile.brand}</span>
-          </Link>
+          </IntentLink>
           <div className="ml-auto flex gap-2">
             <ThemeButton />
             <AccessMenu />

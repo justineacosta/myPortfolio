@@ -1,10 +1,9 @@
-import Image from 'next/image'
 import { ArrowRightIcon, StackIcon } from '@phosphor-icons/react/ssr'
 import { home } from '@/data/home'
 import { SERVICES } from '@/data/services'
-import { brandIcon } from '@/data/stack'
 import HomeCard from './HomeCard'
 import WheelRow from './WheelRow'
+import BrandIcon from '@/components/ui/BrandIcon'
 
 /** Kraft's logo stack (KraftScreens.dc.html:1082-1093): overlapped at rest, fanned when its service is hovered. */
 const LOGO_POSE = [
@@ -34,7 +33,7 @@ export default function ServicesCard() {
                     key={`${l.slug}-${li}`}
                     className={`relative grid size-[27px] shrink-0 place-items-center rounded-[9px] bg-logo-chip shadow-(--logo-shadow) transition-[transform,margin-left] duration-380 ease-[cubic-bezier(.2,.8,.2,1)] ${LOGO_POSE[li]}`}
                   >
-                    <Image src={brandIcon(l.slug)} alt="" width={15} height={15} className="block" />
+                    <BrandIcon slug={l.slug} size={15} className="block" />
                   </span>
                 ))}
               </div>

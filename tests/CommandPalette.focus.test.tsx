@@ -5,7 +5,7 @@ import { NavigationProvider } from '@/components/shell/NavigationProvider'
 import { PaletteProvider, usePalette } from '@/components/shell/CommandPalette'
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: vi.fn(), prefetch: vi.fn() }),
   usePathname: () => '/projects',
 }))
 

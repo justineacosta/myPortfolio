@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type KeyboardEvent as ReactKeyboardEvent } from 'react'
-import Image from 'next/image'
 import {
   ArrowClockwiseIcon,
   ArrowCounterClockwiseIcon,
@@ -19,7 +18,6 @@ import {
   XIcon,
 } from '@phosphor-icons/react/ssr'
 import { chat } from '@/data/chat'
-import { brandIcon } from '@/data/stack'
 import { SHELL_MIN_QUERY } from '@/lib/breakpoints'
 import { prefersReducedMotion } from '@/lib/motion'
 import { copyText, hasLeadForm, leadDraft, optionsOf, plainText } from '@/lib/chat/rich'
@@ -31,6 +29,7 @@ import { CHAT_WIDE_KEY } from '@/lib/storage-keys'
 import { PANEL_DOM_ID } from './ChatLauncher'
 import RichText from './RichText'
 import type { Message, Mode } from './useChat'
+import BrandIcon from '@/components/ui/BrandIcon'
 
 const TITLE_ID = `${PANEL_DOM_ID}-title`
 /** The dialogs and menus the site draws (the palette, the accessibility menu, a view's native dialog). */
@@ -42,7 +41,7 @@ const actionButton = 'inline-flex h-6 cursor-pointer items-center gap-1 rounded-
 const iconButton = 'grid size-[30px] cursor-pointer place-items-center rounded-[9px] border border-b1 bg-chip text-ink3 hover:text-ink disabled:cursor-default disabled:opacity-40 disabled:hover:text-ink3'
 
 /** What Tab can land on inside the panel, in order. */
-const TABBABLE = 'button:not([disabled]), [href], input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+const TABBABLE = 'button:not([disabled]), a[href], input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
 /**
  * Whether the panel is a sheet over the page: below the desktop shell, on the
@@ -297,7 +296,7 @@ export default function ChatPanel({
             </h2>
             <span title={chat.badge.title} className="inline-flex items-center gap-1 rounded-md border border-wash-b bg-wash px-1.5 py-0.5 font-mono text-[8.5px] tracking-[.12em] text-accent uppercase">
               {/* Claude's own mark, as a "powered by" sign; Lumen keeps its own face. */}
-              <Image src={brandIcon('claude')} alt="" width={10} height={10} className="block shrink-0" />
+              <BrandIcon slug="claude" size={10} className="block shrink-0" />
               {chat.badge.label}
             </span>
           </span>

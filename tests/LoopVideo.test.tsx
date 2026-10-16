@@ -9,7 +9,7 @@ import { home } from '@/data/home'
 import { DEFAULT_PREFS, savePrefs } from '@/lib/a11y'
 import { installMatchMedia } from '../test/matchMedia'
 
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }), usePathname: () => '/' }))
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn(), prefetch: vi.fn() }), usePathname: () => '/' }))
 
 const clip = about.image
 
