@@ -4,7 +4,7 @@ const PAGE = '/build-plan.html'
 
 test('reads top to bottom: the promise, the section bar, every section and diagram', async ({ page }) => {
   await page.goto(PAGE)
-  await expect(page).toHaveTitle('Trusted Mover build plan')
+  await expect(page).toHaveTitle('Trusted Mover build plan · Justine Acosta')
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Every quote, booking and move, planned before a single node is placed.')
   await expect(page.getByRole('navigation', { name: 'Sections' }).getByRole('link')).toHaveCount(14)
   await expect(page.locator('main > section')).toHaveCount(14)
