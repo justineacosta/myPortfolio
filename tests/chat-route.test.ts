@@ -23,12 +23,12 @@ const post = (body: unknown, from = `10.1.0.${++ip}`) =>
 const delta = (text: string) => ({ type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text } })
 const thinking = { type: 'content_block_delta', index: 0, delta: { type: 'thinking_delta', thinking: '' } }
 /** What `beta.messages.stream` returns: an async iterable of events, with the final message after them. */
-const replying = (events: unknown[], failAfter?: Error) => ({
+const replying = (events: unknown[], failAfter?: Error, stop = 'end_turn') => ({
   async *[Symbol.asyncIterator]() {
     yield* events
     if (failAfter) throw failAfter
   },
-  finalMessage: async () => ({ model: 'claude-opus-5-5', stop_reason: 'end_turn', usage: { cache_read_input_tokens: 0, cache_creation_input_tokens: 0 } }),
+  finalMessage: async () => ({ model: 'claude-opus-5-5', stop_reason: stop, usage: { cache_read_input_tokens: 0, cache_creation_input_tokens: 0 } }),
   abort: vi.fn(),
 })
 
@@ -76,7 +76,7 @@ describe('POST /api/chat', () => {
     expect(streamMock).toHaveBeenCalledTimes(1)
     expect(streamMock.mock.calls[0][0]).toEqual({
       model: 'claude-opus-5-5',
-      max_tokens: 2000,
+      max_tokens: 8000,
       thinking: { type: 'adaptive' },
       output_config: { effort: 'low' },
       betas: ['server-side-fallback-2026-07-01'],
@@ -114,6 +114,11 @@ describe('POST /api/chat', () => {
   it('ends a reply cut off mid-answer with the interrupted note, not a fake finish', async () => {
     streamMock.mockReturnValue(replying([delta('Half an ans')], new Error('dropped')))
     expect(await read(await post({ messages: MESSAGES }))).toBe(`Half an ans\n\n${chat.replies.interrupted}`)
+  })
+
+  it('ends an answer that ran out of tokens with the interrupted note, so the panel offers to ask again', async () => {
+    streamMock.mockReturnValue(replying([delta('A long answer that stops mid')], undefined, 'max_tokens'))
+    expect(await read(await post({ messages: MESSAGES }))).toBe(`A long answer that stops mid\n\n${chat.replies.interrupted}`)
   })
 
   it('answers from the offline rules when Claude sends no words at all (a refusal the fallback could not rescue)', async () => {

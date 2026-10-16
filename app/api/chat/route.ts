@@ -104,8 +104,9 @@ export async function POST(req: Request) {
   try {
     stream = anthropic().beta.messages.stream({
       model: MODEL,
-      // Caps thinking and the answer together; much lower and a question that makes it think can be cut mid-sentence.
-      max_tokens: 2000,
+      // Caps thinking and the answer together, so it leaves room for both; a typical reply uses a fraction.
+      // One that still runs out is marked interrupted below, never passed off as finished.
+      max_tokens: 8000,
       thinking: { type: 'adaptive' },
       // Portfolio questions aren't hard, and the wait is what a visitor feels.
       output_config: { effort: 'low' },
@@ -146,6 +147,8 @@ export async function POST(req: Request) {
         }
         // Nothing to show (a refusal the fallback couldn't rescue, or an empty answer): the offline rules answer instead.
         if (!wrote) controller.enqueue(encoder.encode(offline()))
+        // Out of tokens mid-answer: say so, and the panel offers to ask again.
+        else if (final.stop_reason === 'max_tokens') controller.enqueue(encoder.encode(`\n\n${chat.replies.interrupted}`))
       } catch (err) {
         console.error('Lumen: the call failed mid-answer.', err)
         controller.enqueue(encoder.encode(wrote ? `\n\n${chat.replies.interrupted}` : offline()))
