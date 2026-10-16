@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { act, render, screen } from '@testing-library/react'
 import AboutPage from '@/app/(site)/about/page'
 import { about, ROLES } from '@/data/about'
@@ -45,19 +45,12 @@ describe('About', () => {
     expect(screen.getByText('GMT+8 · US / EU / CA OVERLAP')).toBeInTheDocument()
   })
 
-  it('swaps the workstation GIF for a still frame when motion is off', () => {
+  it('plays the workstation as a looping video, and swaps it for a still frame when motion is off', () => {
+    HTMLMediaElement.prototype.play = vi.fn().mockResolvedValue(undefined) as unknown as HTMLMediaElement['play']
     render(<AboutPage />)
-    const img = screen.getByRole('img', { name: about.image.alt })
-    expect(img.getAttribute('src')).toContain('about-workstation.gif')
-    expect(document.querySelector('source[media="(prefers-reduced-motion: reduce)"]')?.getAttribute('srcset')).toContain(
-      'about-workstation-still.webp',
-    )
+    expect(screen.getByRole('img', { name: about.image.alt }).querySelector('source[type="video/mp4"]')).toHaveAttribute('src', about.image.mp4)
     act(() => savePrefs({ ...DEFAULT_PREFS, motion: true }))
-    expect(img.getAttribute('src')).toContain('about-workstation-still.webp')
-  })
-
-  it('ships the still frame', () => {
-    expect(existsSync(`public${about.image.still}`)).toBe(true)
+    expect(screen.getByRole('img', { name: about.image.alt }).getAttribute('src')).toContain(about.image.still)
   })
 
   it('has a self-hosted logo for every role', () => {

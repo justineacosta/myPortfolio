@@ -31,7 +31,9 @@ export const home = {
       body: 'How I work, and what I refuse to ship.',
       href: '/about',
       image: {
-        src: '/assets/about-workstation.gif',
+        webm: '/assets/about-workstation.webm',
+        mp4: '/assets/about-workstation.mp4',
+        still: '/assets/about-workstation-still.webp',
         alt: 'Animated pixel-art illustration of a developer workstation',
         width: 1920,
         height: 1080,

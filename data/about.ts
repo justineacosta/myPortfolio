@@ -24,8 +24,10 @@ export const about = {
     body: ': I build the app, the AI and the automations around it, and I stay accountable for all of it. AI helps me move fast; the decisions stay mine.',
     story: "I've shipped enough projects alone to know the hard part starts after launch. That's the part I build for.",
   },
+  /** A looping video, encoded from assets/about-workstation.gif by scripts/workstation-video.mjs. */
   image: {
-    src: '/assets/about-workstation.gif',
+    webm: '/assets/about-workstation.webm',
+    mp4: '/assets/about-workstation.mp4',
     still: '/assets/about-workstation-still.webp',
     alt: 'Animated pixel-art illustration of a late-night developer workstation',
     width: 1920,
