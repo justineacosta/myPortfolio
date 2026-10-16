@@ -6,7 +6,7 @@ import { NavigationProvider } from '@/components/shell/NavigationProvider'
 import PhoneBar from '@/components/shell/PhoneBar'
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: vi.fn(), prefetch: vi.fn() }),
   usePathname: () => '/about',
 }))
 

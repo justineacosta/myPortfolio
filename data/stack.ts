@@ -5,6 +5,8 @@
 export type Brand = { name: string; slug: string }
 
 export const brandIcon = (slug: string) => `/icons/brands/${slug}.svg`
+/** The same logo as a symbol in the sprite, for components/ui/BrandIcon.tsx. */
+export const brandSprite = (slug: string) => `/icons/brands.svg#${slug}`
 
 export const TOOLS: Brand[] = [
   { name: 'React', slug: 'react' },

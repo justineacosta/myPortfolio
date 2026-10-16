@@ -1,7 +1,6 @@
-import Image from 'next/image'
 import { BADGE, CARD, TAG } from '@/components/ui/styles'
 import { SERVICES, servicesPage } from '@/data/services'
-import { brandIcon } from '@/data/stack'
+import BrandIcon from '@/components/ui/BrandIcon'
 
 /**
  * "What I can do for you" (KraftScreens.dc.html:243-274): the six offers.
@@ -29,7 +28,7 @@ export default function Offers() {
               <div className="flex gap-[5px] rounded-[13px] border border-b1 bg-chip p-[5px]">
                 {s.logos.map((l, li) => (
                   <span key={`${l.slug}-${li}`} className="grid size-[30px] place-items-center rounded-[9px] bg-logo-chip shadow-(--chip-shadow)">
-                    <Image src={brandIcon(l.slug)} alt={l.name} width={17} height={17} className="block size-[17px] object-contain" />
+                    <BrandIcon slug={l.slug} size={17} alt={l.name} className="block size-[17px]" />
                   </span>
                 ))}
               </div>

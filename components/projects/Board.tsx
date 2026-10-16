@@ -1,11 +1,9 @@
 'use client'
 
-import Image from 'next/image'
 import { useRef, useState, type MouseEvent, type PointerEvent } from 'react'
 import { ArrowUpRightIcon, HandPointingIcon } from '@phosphor-icons/react/ssr'
 import Frame from '@/components/ui/Frame'
 import { projects } from '@/data/projects'
-import { brandIcon } from '@/data/stack'
 import { pushHash } from '@/lib/hash'
 import { prefersReducedMotion } from '@/lib/motion'
 import AgentsPreview from './AgentsPreview'
@@ -14,6 +12,7 @@ import SitesCard from './SitesCard'
 import FlowPeek from './FlowPeek'
 import LogoStack from './LogoStack'
 import { BODY, CARD, CTA, TITLE } from './styles'
+import BrandIcon from '@/components/ui/BrandIcon'
 
 const GAP = 'gap-[clamp(11px,1.3cqw,18px)]'
 
@@ -89,7 +88,7 @@ export default function Board() {
                     className={`flex items-center gap-1.5 rounded-lg border py-[5px] pr-2.5 pl-[5px] text-[11.5px] font-medium ${i === c.plan.steps.length - 1 ? 'border-accent bg-accent text-on-accent' : 'border-b1 bg-s1 text-ink2'}`}
                   >
                     <span aria-hidden className="grid size-[18px] place-items-center rounded-[5px] bg-logo-chip">
-                      <Image src={brandIcon(s.logo)} alt="" width={12} height={12} className="block" />
+                      <BrandIcon slug={s.logo} size={12} className="block" />
                     </span>
                     {s.label}
                   </span>
@@ -136,13 +135,13 @@ export default function Board() {
             <div className="mt-auto flex flex-wrap items-center gap-2 pt-3.5">
               {c.agents.counts.map((a) => (
                 <span key={a.name} className="flex items-center gap-2 rounded-full border border-b1 bg-s0 px-3 py-2 text-[12.5px] text-ink2">
-                  <Image src={brandIcon(a.logo)} alt="" width={14} height={14} className="block" />
+                  <BrandIcon slug={a.logo} size={14} className="block" />
                   {a.name}
                 </span>
               ))}
               <span className="ml-1 flex flex-wrap items-center gap-2">
                 {c.agents.tools.map((l) => (
-                  <Image key={l.slug} src={brandIcon(l.slug)} alt="" width={16} height={16} className="block" />
+                  <BrandIcon key={l.slug} slug={l.slug} size={16} className="block" />
                 ))}
               </span>
             </div>

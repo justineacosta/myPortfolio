@@ -8,7 +8,7 @@ import { NOTES, notesPage, visibleNotes } from '@/data/notes'
 import { noteJsonLd } from '@/lib/jsonld'
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: vi.fn(), prefetch: vi.fn() }),
   usePathname: () => '/notes',
 }))
 

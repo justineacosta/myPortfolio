@@ -7,7 +7,7 @@ import { SPIN_MS } from '@/lib/fan'
 import { installMatchMedia } from '@/test/matchMedia'
 
 const push = vi.hoisted(() => vi.fn())
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push }), usePathname: () => '/' }))
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push, prefetch: vi.fn() }), usePathname: () => '/' }))
 
 class OnScreen {
   constructor(private cb: IntersectionObserverCallback) {}

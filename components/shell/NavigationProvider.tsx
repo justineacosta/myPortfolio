@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   createContext,
@@ -13,6 +12,7 @@ import {
   type ComponentProps,
   type ReactNode,
 } from 'react'
+import IntentLink from '@/components/ui/IntentLink'
 import { prefersReducedMotion } from '@/lib/motion'
 import { currentHash, pushHash, splitHref } from '@/lib/hash'
 import { getScrollY, scrollToSection, scrollToTop, scrollToY } from '@/lib/scroller'
@@ -82,6 +82,8 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
         return
       }
       setPending({ href, from: pathname })
+      // Links prefetch only on intent (ShellLink), so fetch while the page fades.
+      router.prefetch(href)
       timer.current = window.setTimeout(() => {
         pushed.current = path
         router.push(href, { scroll: false })
@@ -132,11 +134,15 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
 
-/** A next/link whose plain left-clicks run through Kraft's crossfade. */
-export function ShellLink({ href, onClick, ...rest }: ComponentProps<typeof Link> & { href: string }) {
+/**
+ * A next/link whose plain left-clicks run through Kraft's crossfade. It
+ * prefetches on intent (IntentLink); a click with no intent shown still
+ * fetches during the fade (go).
+ */
+export function ShellLink({ href, onClick, ...rest }: ComponentProps<typeof IntentLink> & { href: string }) {
   const { go } = useShellNav()
   return (
-    <Link
+    <IntentLink
       href={href}
       {...rest}
       onClick={(e) => {

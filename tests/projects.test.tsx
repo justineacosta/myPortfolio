@@ -121,8 +121,7 @@ const CARD_LOGOS = [
   ['figma', 'react', 'tailwindcss'],
   ['claude', 'supabase', 'n8n'],
 ]
-const srcs = (el: Element) => [...el.querySelectorAll('img')].map((i) => i.getAttribute('src')!)
-const slugOf = (src: string) => decodeURIComponent(src).match(/brands\/([a-z0-9]+)\.svg/)?.[1]
+const brands = (el: Element) => [...el.querySelectorAll('[data-brand]')].map((i) => i.getAttribute('data-brand'))
 
 /** A JPEG's pixel size, from its start-of-frame marker. */
 function jpegSize(b: Buffer) {
@@ -166,7 +165,7 @@ describe('Board', () => {
     expect(card).toHaveAttribute('data-case', s.cue)
     expect(card).toHaveTextContent(s.cardTitle)
     expect(card).toHaveTextContent(s.body)
-    expect(card.querySelectorAll('[data-logo-stack] img')).toHaveLength(3)
+    expect(card.querySelectorAll('[data-logo-stack] [data-brand]')).toHaveLength(3)
     // First on the board, ahead of every other card.
     expect(screen.getAllByRole('link')[0]).toBe(card)
   })
@@ -176,18 +175,18 @@ describe('Board', () => {
     const card = screen.getByRole('link', { name: /^The build plan/ })
     expect(within(card).getByText('N8N BUILD PLAN')).toBeInTheDocument()
     const steps = ['Webhook', 'Claude', 'Approve?', 'Stripe'].map((s) => within(card).getByText(s).closest('span')!)
-    expect(steps.map((s) => srcs(s).map(slugOf))).toEqual([['n8n'], ['claude'], ['telegram'], ['stripe']])
+    expect(steps.map((s) => brands(s))).toEqual([['n8n'], ['claude'], ['telegram'], ['stripe']])
   })
 
   it('tops every card with an overlapping stack of its brand logos, decoration only, and no green icon', () => {
     render(<Board />)
     const stacks = screen.getAllByRole('link').map((a) => a.querySelector('[data-logo-stack]')!)
     // The San Fernando banner leads, with the first three of its stack.
-    expect(stacks.map((s) => srcs(s).map(slugOf))).toEqual([['nextdotjs', 'react', 'typescript'], ...CARD_LOGOS])
+    expect(stacks.map((s) => brands(s))).toEqual([['nextdotjs', 'react', 'typescript'], ...CARD_LOGOS])
     for (const s of stacks) {
       expect(s).toHaveAttribute('aria-hidden', 'true')
-      expect(s.querySelector('svg')).toBeNull()
-      for (const img of s.querySelectorAll('img')) expect(img).toHaveAttribute('alt', '')
+      expect(s.querySelector('svg:not([data-brand])')).toBeNull()
+      for (const logo of s.querySelectorAll('[data-brand]')) expect(logo).toHaveAttribute('aria-hidden', 'true')
     }
   })
 
@@ -342,16 +341,16 @@ describe('the AI agents card', () => {
     const agent = agents.builds.filter((b) => b.kind === 'agent').length
     expect(projects.cards.agents.counts.map((x) => x.name)).toEqual([`${rag} RAG chatbots`, `${agent} AI agents`])
     for (const x of projects.cards.agents.counts) expect(within(c).getByText(x.name)).toBeInTheDocument()
-    expect(projects.cards.agents.counts.map((x) => srcs(within(c).getByText(x.name)).map(slugOf))).toEqual([['supabase'], ['claude']])
+    expect(projects.cards.agents.counts.map((x) => brands(within(c).getByText(x.name)))).toEqual([['supabase'], ['claude']])
     expect(within(c).getByText('SEE HOW THEY WORK')).toBeInTheDocument()
   })
 
   it('shows the eight tool logos as decoration, and no live dots', () => {
     const c = card()
-    const logos = [...c.querySelectorAll('img')].map((i) => i.getAttribute('src'))
+    const logos = brands(c)
     for (const slug of ['claude', 'n8n', 'supabase', 'gmail', 'googlesheets', 'telegram', 'stripe', 'caldotcom'])
-      expect(logos.some((s) => s?.includes(`${slug}.svg`)), slug).toBe(true)
-    for (const img of c.querySelectorAll('img')) expect(img).toHaveAttribute('alt', '')
+      expect(logos, slug).toContain(slug)
+    for (const logo of c.querySelectorAll('[data-brand]')) expect(logo).toHaveAttribute('aria-hidden', 'true')
     for (const slug of ['gmail', 'telegram', 'caldotcom']) expect(existsSync(`public/icons/brands/${slug}.svg`), slug).toBe(true)
     expect(c.querySelector('.size-1\\.5.rounded-full.bg-accent')).toBeNull()
   })
@@ -364,7 +363,7 @@ describe('the AI agents card', () => {
     expect(p.textContent).toContain('Do you move pianos, and what does it add?')
     expect(p.textContent).toContain('Pricing guide §4')
     expect(p.textContent).toContain('Stripe · invoice 14 days overdue')
-    expect(srcs(p.querySelector('.ap-step-1')!).map(slugOf)).toEqual(['stripe'])
+    expect(brands(p.querySelector('.ap-step-1')!)).toEqual(['stripe'])
     expect(p.querySelector('a, button, input, [tabindex]')).toBeNull()
   })
 

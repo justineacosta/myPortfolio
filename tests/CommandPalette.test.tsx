@@ -7,7 +7,7 @@ import { registerIntroSkip } from '@/lib/intro'
 
 const nav = vi.hoisted(() => ({ push: vi.fn() }))
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: nav.push }),
+  useRouter: () => ({ push: nav.push, prefetch: vi.fn() }),
   usePathname: () => '/',
 }))
 
@@ -69,12 +69,12 @@ describe('CommandPalette', () => {
     await user.click(screen.getByText('Jump to…'))
     await user.keyboard('agentic')
     const option = screen.getByRole('option', { name: /The Agentic Framework/ })
-    expect(option.querySelector('img')?.getAttribute('src')).toContain('claude.svg')
-    expect(option.querySelector('img')).toHaveAttribute('alt', '')
+    expect(option.querySelector('[data-brand]')).toHaveAttribute('data-brand', 'claude')
+    expect(option.querySelector('[data-brand]')).toHaveAttribute('aria-hidden', 'true')
     await user.clear(screen.getByRole('combobox'))
     await user.keyboard('services')
     const page = screen.getAllByRole('option')[0]
-    expect(page.querySelector('img')).toBeNull()
+    expect(page.querySelector('[data-brand]')).toBeNull()
     expect(page.querySelector('svg')).not.toBeNull()
   })
 

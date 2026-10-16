@@ -4,7 +4,7 @@ import { NavigationProvider, SWAP_MS, useShellNav } from '@/components/shell/Nav
 
 const nav = vi.hoisted(() => ({ push: vi.fn(), pathname: '/services' }))
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: nav.push }),
+  useRouter: () => ({ push: nav.push, prefetch: vi.fn() }),
   usePathname: () => nav.pathname,
 }))
 

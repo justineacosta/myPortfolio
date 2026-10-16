@@ -1,9 +1,8 @@
 import { Fragment } from 'react'
-import Image from 'next/image'
 import { ArrowsSplitIcon, WebhooksLogoIcon } from '@phosphor-icons/react/ssr'
 import { mainRoute, type Flow, type FlowNode } from '@/data/automations'
-import { brandIcon } from '@/data/stack'
 import type { ToolId } from '@/lib/brand/tools'
+import BrandIcon from '@/components/ui/BrandIcon'
 
 /** Each tool's logo in public/icons/brands/, for the chips. */
 export const PEEK_SLUG: Partial<Record<ToolId, string>> = {
@@ -19,7 +18,7 @@ function Chip({ node, flow, n }: { node: FlowNode; flow: Flow; n: number }) {
   return (
     <span data-chip className={`relative grid size-[clamp(20px,12cqw,36px)] shrink-0 place-items-center bg-logo-chip shadow-(--logo-shadow) ${SHAPE[flow.platform]}`}>
       {tool ? (
-        <Image src={brandIcon(PEEK_SLUG[tool]!)} alt="" width={18} height={18} className="block size-1/2" />
+        <BrandIcon slug={PEEK_SLUG[tool]!} size={18} className="block size-1/2" />
       ) : node.kind === 'branch' ? (
         <ArrowsSplitIcon className="size-1/2 text-logo-ink" />
       ) : (

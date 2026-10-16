@@ -31,3 +31,17 @@ for (const [slug, hex] of Object.entries(BRANDS)) {
 }
 for (const [slug, file] of Object.entries(COPIED)) writeFileSync(path.join(out, `${slug}.svg`), readFileSync(path.join('lib', 'brand', 'logos', file), 'utf8'))
 console.log(`wrote ${Object.keys(BRANDS).length + Object.keys(COPIED).length} brand icons to ${out}`)
+
+// Every logo again as a <symbol> in one file, which components/ui/BrandIcon.tsx draws with <use>,
+// so a page with twenty logos makes one request instead of twenty.
+const symbols = [...Object.keys(BRANDS), ...Object.keys(COPIED)].sort().map((slug) => {
+  const svg = readFileSync(path.join(out, `${slug}.svg`), 'utf8')
+  const [, attrs, body] = svg.match(/^<svg([^>]*)>([\s\S]*)<\/svg>\s*$/)
+  const viewBox = attrs.match(/viewBox="([^"]+)"/)[1]
+  const fill = attrs.match(/fill="([^"]+)"/)?.[1]
+  const inner = body.replace(/<title>[\s\S]*?<\/title>/, '')
+  return `<symbol id="${slug}" viewBox="${viewBox}">${fill ? `<g fill="${fill}">${inner}</g>` : inner}</symbol>`
+})
+const sprite = path.join('public', 'icons', 'brands.svg')
+writeFileSync(sprite, `<svg xmlns="http://www.w3.org/2000/svg">${symbols.join('')}</svg>\n`)
+console.log(`wrote ${symbols.length} symbols to ${sprite}`)

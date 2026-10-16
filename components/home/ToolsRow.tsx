@@ -1,6 +1,6 @@
-import Image from 'next/image'
 import { home } from '@/data/home'
-import { brandIcon, TOOLS } from '@/data/stack'
+import { TOOLS } from '@/data/stack'
+import BrandIcon from '@/components/ui/BrandIcon'
 
 /** "Daily drivers" and the tools marquee (KraftScreens.dc.html:62-74). The second copy only closes the loop. */
 export default function ToolsRow() {
@@ -22,7 +22,7 @@ export default function ToolsRow() {
                 aria-hidden={copy === 1 || undefined}
                 className="flex items-center gap-2 text-[13.5px] font-medium whitespace-nowrap text-ink2"
               >
-                <Image src={brandIcon(t.slug)} alt="" width={18} height={18} className="block shrink-0" />
+                <BrandIcon slug={t.slug} size={18} className="block shrink-0" />
                 {t.name}
               </li>
             )),

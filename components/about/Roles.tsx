@@ -1,7 +1,6 @@
-import Image from 'next/image'
 import { CARD } from '@/components/ui/styles'
 import { ROLES } from '@/data/about'
-import { brandIcon } from '@/data/stack'
+import BrandIcon from '@/components/ui/BrandIcon'
 
 /** Kraft's logo fan per role (KraftScreens.dc.html:1164-1181): stacked at rest, fanned while the row is hovered. */
 const POSE = [
@@ -26,7 +25,7 @@ export default function Roles() {
                 key={l.slug}
                 className={`relative grid size-[31px] shrink-0 place-items-center rounded-[10px] bg-logo-chip shadow-(--logo-shadow) transition-[transform,margin-left] duration-380 ease-[cubic-bezier(.2,.8,.2,1)] ${POSE[i]}`}
               >
-                <Image src={brandIcon(l.slug)} alt="" width={16} height={16} className="block" />
+                <BrandIcon slug={l.slug} size={16} className="block" />
               </span>
             ))}
           </div>

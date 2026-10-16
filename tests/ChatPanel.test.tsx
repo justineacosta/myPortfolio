@@ -159,9 +159,9 @@ describe('Lumen', () => {
     const dialog = await open()
     expect(within(dialog).getByText(chat.badge.label)).toBeInTheDocument()
     // The badge carries Claude's own mark, decorative, beside the word.
-    const mark = within(dialog).getByTitle(chat.badge.title).querySelector('img')
-    expect(mark?.getAttribute('src')).toContain('claude.svg')
-    expect(mark).toHaveAttribute('alt', '')
+    const mark = within(dialog).getByTitle(chat.badge.title).querySelector('[data-brand]')
+    expect(mark).toHaveAttribute('data-brand', 'claude')
+    expect(mark).toHaveAttribute('aria-hidden', 'true')
     expect(within(dialog).getByText(chat.privacy.site)).toBeInTheDocument()
     await userEvent.type(screen.getByRole('textbox', { name: chat.message }), 'Hi{Enter}')
     await within(dialog).findByText('Offline answer.', SEEN)
