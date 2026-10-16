@@ -42,23 +42,22 @@ describe('notifyEmail (the one I get)', () => {
 })
 
 describe('confirmEmail (the one the visitor gets)', () => {
-  const mail = confirmEmail(lead, 'https://kraft.dev')
+  const mail = confirmEmail('https://kraft.dev')
 
   it('greets them, lists what happens next, and links to recent work', () => {
-    expect(mail.subject).toBe("Thanks, Ana. I'll reply within one business day")
-    expect(mail.html).toContain('Hi Ana,')
+    expect(mail.subject).toBe("Thanks for your message. I'll reply within one business day")
+    expect(mail.html).toContain('Hi there,')
     for (const step of contact.reply.steps) expect(mail.html).toContain(step)
     expect(mail.html).toContain('href="https://kraft.dev/projects"')
     expect(mail.html).toContain(contact.reply.cta)
     expect(mail.text).toContain('https://kraft.dev/projects')
   })
 
-  it('never repeats what they typed, so the form cannot mail someone else\'s words', () => {
-    expect(mail.html).not.toContain('Our intake is manual.')
-    expect(mail.text).not.toContain('Our intake is manual.')
-  })
-
-  it('escapes the name it greets them with', () => {
-    expect(confirmEmail({ ...lead, firstName: '<b>Ana</b>' }, 'https://kraft.dev').html).toContain('Hi &lt;b&gt;Ana&lt;/b&gt;,')
+  it('never repeats anything they typed, name included, so the form cannot mail someone else\'s words', () => {
+    for (const typed of [lead.message.split('\n')[0], lead.firstName, lead.lastName]) {
+      expect(mail.subject).not.toContain(typed)
+      expect(mail.html).not.toContain(typed)
+      expect(mail.text).not.toContain(typed)
+    }
   })
 })

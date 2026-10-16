@@ -90,8 +90,12 @@ export function notifyEmail(lead: Lead, at: Date): Email {
   return { subject, text: `${body}\n\nReceived: ${received(at)}`, html }
 }
 
-/** The visitor's confirmation. It never repeats their message, so the form cannot mail someone else's words. */
-export function confirmEmail(lead: Lead, site: string): Email {
+/**
+ * The visitor's confirmation. It repeats nothing they typed, not even their
+ * first name: the address is unverified, so anything echoed back is words a
+ * stranger chose, mailed to whoever owns that address.
+ */
+export function confirmEmail(site: string): Email {
   const r = contact.reply
   const work = `${site}/projects`
   const steps = r.steps
@@ -105,7 +109,7 @@ export function confirmEmail(lead: Lead, site: string): Email {
     escape(r.body),
     kicker(r.kicker) +
       `<h1 style="margin:0 0 18px;font-size:24px;line-height:1.2;letter-spacing:-.02em;color:${P.ink}">${r.title}</h1>` +
-      `<p style="margin:0 0 12px;font-size:15px;line-height:1.6;color:${P.ink}">Hi ${escape(lead.firstName)},</p>` +
+      `<p style="margin:0 0 12px;font-size:15px;line-height:1.6;color:${P.ink}">${r.greeting}</p>` +
       `<p style="margin:0;font-size:15px;line-height:1.6;color:${P.ink2}">${escape(r.body)}</p>` +
       `<p style="margin:28px 0 6px;font-family:${MONO};font-size:10.5px;letter-spacing:.14em;color:${P.ink3}">${r.next}</p>` +
       `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${steps}</table>` +
@@ -114,7 +118,7 @@ export function confirmEmail(lead: Lead, site: string): Email {
     escape(r.footer),
   )
   const text = [
-    `Hi ${lead.firstName},`,
+    r.greeting,
     '',
     r.body,
     '',
@@ -125,5 +129,5 @@ export function confirmEmail(lead: Lead, site: string): Email {
     '',
     `— ${profile.name}`,
   ].join('\n')
-  return { subject: r.subject(lead.firstName), text, html }
+  return { subject: r.subject, text, html }
 }
