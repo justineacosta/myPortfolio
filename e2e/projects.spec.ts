@@ -488,7 +488,7 @@ test('the San Fernando banner opens its case study; Escape closes it and focus r
   })
   await page.goto('/projects')
   await hydrated(page)
-  const card = page.getByRole('link', { name: /^REAL CLIENT/ })
+  const card = page.getByRole('link', { name: /^CLIENT ·/ })
   const box = (await card.boundingBox())!
   expect(box.width).toBeLessThanOrEqual(page.viewportSize()!.width)
   await card.click()

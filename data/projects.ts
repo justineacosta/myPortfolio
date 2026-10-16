@@ -56,7 +56,7 @@ const SITES: Site[] = [
  */
 const CASE_STUDY = {
   view: 'san-fernando' as const,
-  kicker: 'REAL CLIENT · CITIZEN PORTAL',
+  kicker: 'CLIENT · CITIZEN PORTAL',
   title: 'Barangay San Fernando - Government Citizen Portal',
   cardTitle: 'Barangay San Fernando',
   tagline: 'A progressive community, a better tomorrow.',
