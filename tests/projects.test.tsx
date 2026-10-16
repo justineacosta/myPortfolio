@@ -17,7 +17,7 @@ describe('Projects data', () => {
     const s = projects.caseStudy
     expect(s).toMatchObject({
       view: 'san-fernando',
-      kicker: 'REAL CLIENT · CITIZEN PORTAL',
+      kicker: 'CLIENT · CITIZEN PORTAL',
       title: 'Barangay San Fernando - Government Citizen Portal',
       cardTitle: 'Barangay San Fernando',
       tagline: 'A progressive community, a better tomorrow.',

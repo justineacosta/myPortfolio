@@ -10,7 +10,7 @@ type Props = { onOpen: (e: MouseEvent<HTMLAnchorElement>) => void }
 /**
  * The real client banner that leads the board (spec 2026-10-13-san-fernando-case-study):
  * a link to the San Fernando case study, set apart from the samples by its
- * REAL CLIENT kicker. The seal is decorative here (the view names it), so the
+ * CLIENT kicker. The seal is decorative here (the view names it), so the
  * link's name starts with the kicker. Three of the stack's logos, like every card.
  */
 export default function CaseStudyCard({ onOpen }: Props) {

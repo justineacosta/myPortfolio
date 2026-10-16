@@ -329,7 +329,7 @@ test('phone: the San Fernando banner stacks, opens its case study, and nothing s
   test.skip(isHidden('/projects'), 'Projects is switched off')
   await page.goto('/projects')
   await hydrated(page)
-  const card = page.getByRole('link', { name: /^REAL CLIENT/ })
+  const card = page.getByRole('link', { name: /^CLIENT ·/ })
   await card.scrollIntoViewIfNeeded()
   expect((await card.boundingBox())!.width).toBeLessThanOrEqual(390)
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
