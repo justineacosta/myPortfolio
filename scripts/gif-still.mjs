@@ -4,7 +4,7 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { chromium } from '@playwright/test'
 
-const SRC = 'public/assets/about-workstation.gif'
+const SRC = 'assets/about-workstation.gif'
 const OUT = 'public/assets/about-workstation-still.webp'
 
 const browser = await chromium.launch()

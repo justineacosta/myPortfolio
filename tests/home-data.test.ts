@@ -23,7 +23,9 @@ describe('Home data', () => {
       ...TOOLS.map((t) => brandIcon(t.slug)),
       ...SERVICES.flatMap((s) => s.logos.map((l) => brandIcon(l.slug))),
       ...CERTS.map((c) => c.icon),
-      home.cards.about.image.src,
+      home.cards.about.image.webm,
+      home.cards.about.image.mp4,
+      home.cards.about.image.still,
     ]
     expect(urls.filter((u) => !inPublic(u))).toEqual([])
   })
