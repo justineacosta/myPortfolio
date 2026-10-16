@@ -31,6 +31,33 @@ const headers = (mode: 'live' | 'local') => ({ 'content-type': 'text/plain; char
 
 const refuse = (error: string, status: number) => Response.json({ error }, { status })
 
+/**
+ * The body as JSON, or null when it is unreadable or over MAX_BODY. A declared
+ * length over the limit is refused before reading; one that declares none
+ * (a chunked upload) is counted as it arrives and dropped once it passes.
+ */
+async function readBody(req: Request): Promise<unknown> {
+  if (Number(req.headers.get('content-length')) > MAX_BODY || !req.body) return null
+  const reader = req.body.getReader()
+  const chunks: Uint8Array[] = []
+  let size = 0
+  try {
+    for (;;) {
+      const { done, value } = await reader.read()
+      if (done) break
+      size += value.byteLength
+      if (size > MAX_BODY) {
+        void reader.cancel()
+        return null
+      }
+      chunks.push(value)
+    }
+    return JSON.parse(Buffer.concat(chunks).toString('utf8'))
+  } catch {
+    return null
+  }
+}
+
 /** An offline answer, sent four characters at a time like a stream. */
 function local(reply: string): Response {
   // [\s\S], not ., so line breaks survive the split.
@@ -57,9 +84,8 @@ type StreamEvent = Anthropic.Beta.Messages.BetaRawMessageStreamEvent
 const textOf = (event: StreamEvent) => (event.type === 'content_block_delta' && event.delta.type === 'text_delta' ? event.delta.text : '')
 
 export async function POST(req: Request) {
-  // No honest history is near this size, so a larger one is refused before it is read.
-  const declared = Number(req.headers.get('content-length'))
-  const sent: unknown = declared > MAX_BODY ? null : await req.json().catch(() => null)
+  // No honest history is near MAX_BODY, so a larger one is refused unread.
+  const sent = await readBody(req)
   const messages = checkChat(sent)
   if (!messages) return refuse(chat.errors.invalid, 400)
   // Only a page the site shows is believed; anything else is no page at all.
