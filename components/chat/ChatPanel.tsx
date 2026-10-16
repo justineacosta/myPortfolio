@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type KeyboardEvent as ReactKeyboardEvent } from 'react'
 import Image from 'next/image'
 import {
   ArrowClockwiseIcon,
@@ -20,6 +20,7 @@ import {
 } from '@phosphor-icons/react/ssr'
 import { chat } from '@/data/chat'
 import { brandIcon } from '@/data/stack'
+import { SHELL_MIN_QUERY } from '@/lib/breakpoints'
 import { prefersReducedMotion } from '@/lib/motion'
 import { copyText, hasLeadForm, leadDraft, optionsOf, plainText } from '@/lib/chat/rich'
 import type { CardProject } from '@/lib/chat/samples'
@@ -39,6 +40,21 @@ const bubble = 'max-w-[88%] rounded-2xl border px-3 py-2 text-[13.5px] leading-n
 const NEAR_END = 48
 const actionButton = 'inline-flex h-6 cursor-pointer items-center gap-1 rounded-md px-1.5 text-[11px] font-medium text-ink3 hover:bg-chip hover:text-ink disabled:cursor-default disabled:opacity-40'
 const iconButton = 'grid size-[30px] cursor-pointer place-items-center rounded-[9px] border border-b1 bg-chip text-ink3 hover:text-ink disabled:cursor-default disabled:opacity-40 disabled:hover:text-ink3'
+
+/** What Tab can land on inside the panel, in order. */
+const TABBABLE = 'button:not([disabled]), [href], input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+
+/**
+ * Whether the panel is a sheet over the page: below the desktop shell, on the
+ * site itself. Framed by public/lumen-embed.js it never is, since the frame's
+ * own width says nothing about the screen, and the page around it owns focus.
+ */
+const onShellChange = (change: () => void) => {
+  const query = window.matchMedia(SHELL_MIN_QUERY)
+  query.addEventListener('change', change)
+  return () => query.removeEventListener('change', change)
+}
+const isSheet = () => window.self === window.top && !window.matchMedia(SHELL_MIN_QUERY).matches
 
 /** Whether `el` is inside a dialog or menu other than this panel. */
 function inOtherOverlay(el: EventTarget | null, panel: HTMLElement | null): boolean {
@@ -108,6 +124,24 @@ export default function ChatPanel({
   const list = useRef<HTMLDivElement>(null)
 
   useEffect(() => input.current?.focus(), [])
+
+  // On phones the panel covers the page, so it is modal there: Tab wraps inside it instead of reaching what it hides.
+  const sheet = useSyncExternalStore(onShellChange, isSheet, () => false)
+  const trapTab = (e: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (!sheet || e.key !== 'Tab' || !panel.current) return
+    // Skip what CSS hides on phones (the widen button): it has no box to focus.
+    const stops = Array.from(panel.current.querySelectorAll<HTMLElement>(TABBABLE)).filter((el) => getComputedStyle(el).display !== 'none')
+    if (!stops.length) return
+    const first = stops[0]
+    const last = stops[stops.length - 1]
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault()
+      last.focus()
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault()
+      first.focus()
+    }
+  }
 
   // Whether the sounds are muted, read after mount: storage only exists in the browser.
   const [muted, setMutedState] = useState(false)
@@ -244,8 +278,9 @@ export default function ChatPanel({
       ref={panel}
       id={PANEL_DOM_ID}
       role="dialog"
-      aria-modal="false"
+      aria-modal={sheet}
       aria-labelledby={TITLE_ID}
+      onKeyDown={trapTab}
       data-a11y-scale
       data-lenis-prevent
       className={`fixed inset-0 z-40 flex animate-rise flex-col overflow-hidden bg-linear-to-b from-s2 to-s1 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-ink shell:inset-auto shell:right-5 shell:bottom-[124px] shell:max-h-[calc(100dvh-144px)] shell:rounded-2xl shell:transition-[width,height] shell:duration-200 motion-reduce:transition-none ${wide ? 'shell:h-[calc(100dvh-144px)] shell:w-[min(720px,calc(100vw-40px))]' : 'shell:h-140 shell:w-100'} shell:border shell:border-b2 shell:pt-0 shell:pb-0 shell:shadow-(--palette-shadow)`}
@@ -283,7 +318,8 @@ export default function ChatPanel({
       </div>
 
       <div className="relative flex min-h-0 flex-1 flex-col">
-      <div ref={list} onScroll={onScroll} role="log" aria-label={chat.name} className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto overscroll-contain px-4 py-3.5">
+      {/* Not a live region: it would read out every streamed piece. The sr-only line at the end reads the finished reply. */}
+      <div ref={list} onScroll={onScroll} role="log" aria-live="off" aria-label={chat.name} className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto overscroll-contain px-4 py-3.5">
         <div className={`${bubble} self-start border-b1 bg-s2`}>
           <RichText text={chat.greeting} known={known} projects={projects} allowLeadForm={false} go={go} onFollow={follow} />
         </div>
