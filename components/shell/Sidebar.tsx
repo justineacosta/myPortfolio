@@ -19,7 +19,7 @@ export default function Sidebar() {
       aria-label="Profile and site navigation"
       data-intro-rail
       data-a11y-scale
-      className="hidden w-(--rail) shrink-0 flex-col gap-[18px] overflow-y-auto border-r border-b1 bg-linear-to-b from-s1 to-bg px-4 pt-5 pb-4 shell:flex"
+      className="hidden w-(--rail) shrink-0 flex-col gap-[18px] overflow-x-hidden overflow-y-auto border-r border-b1 bg-linear-to-b from-s1 to-bg px-4 pt-5 pb-4 shell:flex"
     >
       <div className="flex items-center gap-2.5">
         <Image src="/assets/kraft-mark.svg" alt="" width={26} height={26} className="block rounded-lg border border-b1" />
@@ -27,30 +27,34 @@ export default function Sidebar() {
       </div>
 
       <div className="flex flex-col items-center gap-2.5">
-        <div className="group/avatar relative flex size-[182px] items-center justify-center">
+        {/* Shrinks with a narrow rail or larger text. The round frame clips both
+            portraits, so the tall drawn one can never spill out as an oval. */}
+        <div className="group/avatar relative aspect-square w-[182px] max-w-full p-[3px]">
           <div
             aria-hidden
             className="absolute -inset-4 rounded-full bg-[radial-gradient(circle_at_50%_32%,var(--washB),transparent_68%)]"
           />
-          <Image
-            src={profile.portrait.src}
-            alt={profile.portrait.alt}
-            width={176}
-            height={176}
-            preload
-            className="relative size-[176px] rounded-full border border-b2 object-cover"
-            style={{ objectPosition: profile.portrait.position }}
-          />
-          {/* The drawn portrait, over the photo, while the avatar is hovered. */}
-          <Image
-            data-portrait-drawn
-            src={profile.portrait.drawn.src}
-            alt=""
-            width={176}
-            height={176}
-            className="absolute size-[176px] rounded-full border border-b2 object-cover opacity-0 transition-opacity duration-400 group-hover/avatar:opacity-100"
-            style={{ objectPosition: profile.portrait.drawn.position }}
-          />
+          <div className="relative size-full overflow-hidden rounded-full border border-b2">
+            <Image
+              src={profile.portrait.src}
+              alt={profile.portrait.alt}
+              fill
+              sizes="176px"
+              preload
+              className="object-cover"
+              style={{ objectPosition: profile.portrait.position }}
+            />
+            {/* The drawn portrait, over the photo, while the avatar is hovered. */}
+            <Image
+              data-portrait-drawn
+              src={profile.portrait.drawn.src}
+              alt=""
+              fill
+              sizes="176px"
+              className="object-cover opacity-0 transition-opacity duration-400 group-hover/avatar:opacity-100"
+              style={{ objectPosition: profile.portrait.drawn.position }}
+            />
+          </div>
         </div>
         <div className="flex items-center gap-[7px]">
           <span className="text-[16.5px] font-semibold tracking-[-.015em]">{profile.name}</span>
